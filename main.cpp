@@ -1,36 +1,5 @@
 
-#pragma once //Intended to avoid circular includes from happening
-
-/*
-class myClass{
-~~~~~~~~  This class would information in it
-}
-
-main
-#include <myclass.H> //Intended to have all the prototypes
-
-//////////////////////////
-//This code would not run, until function prototypes are made
-void func1(){
-func2()
-}
-void func2(){}
-void func3(){}
-//////////////////////////
-
-//////////////////////////
-void func1();
-void func2();
-void func3();
-//So long as the function is defined before it is called, these functions could run
-//////////////////////////
-
-//////////////////////////
-#include <myclass.h>
-
-
-
-*/
+#pragma once 
 
 #ifdef _WIN32
 #  define WINDOWS_LEAN_AND_MEAN
@@ -45,9 +14,7 @@ void func3();
 
 #include<_common.h>         // For common headers
 #include<_scene.h>          // My scene context
-
-
-
+#include<_timerPlusPlus.h>   // For the timer class
 
 HDC			hDC=NULL;		// Private GDI Device Context
 HGLRC		hRC=NULL;		// Permanent Rendering Context
@@ -59,12 +26,15 @@ bool	active=TRUE;		// Window Active Flag Set To TRUE By Default. Active environm
 bool	fullscreen=TRUE;	// Fullscreen Flag Set To Fullscreen Mode By Default (is the screen full-screen or not)
 
 LRESULT	CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);	// Declaration For WndProc. Passing parameters into system
-_scene *myScene = new _scene();//handling memory to point to specific scene values. makes an instance of scene
 
+
+// CLASS INSTANCE DECLARATIONS //
+_logger Logger; //New instance of logger to be used in the program. Logger will be used to track specific values and print them to the console for debugging purposes
+_scene *myScene = new _scene();//handling memory to point to specific scene values. makes an instance of scene
+_timerPlusPlus Timer; // Timer for handling update loop for scenese
 
 //An option to parallel-check each individual function would be loops to handle interrupts
 //Parallel while loops to be able to handle in program is handled by the callback function
-
 
 /*
 Top-Layer System: Application Layer
@@ -75,10 +45,9 @@ Bottom-Layer System: Hardware
 --Driver handling occurs in the hardware
 --Keyboard, Mouse, and other peripherals should interrupt the signal to trigger a process
 --Interrupt Handling allows for the interrupts needed to be processed properly
-
-
 */
 
+#include <windows.h>
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 //										THE KILL GL WINDOW
@@ -282,7 +251,8 @@ BOOL CreateGLWindow(char* title, int width, int height, int bits, bool fullscree
         KillGLWindow();    //Kills window if game does not initialize
         MessageBox(NULL,"Can't Initialize GL.", "ERROR", MB_OK|MB_ICONEXCLAMATION); //Message Box declares that OpenGL crashed
 	}
-
+	Logger.InitLogger("logs/main.log");
+	Timer.reset();
 	return TRUE;									// Success
 }
 
@@ -295,6 +265,7 @@ LRESULT CALLBACK WndProc(	HWND	hWnd,			// Handle For This Window
 							WPARAM	wParam,			// Additional Message Information
 							LPARAM	lParam)			// Additional Message Information
 {
+	myScene->winMsg(hWnd, uMsg, wParam, lParam); //Passes the message to the scene to be handled by the scene class. This allows for the scene to handle specific messages related to the scene itself (such as mouse movement and key presses)
 	switch (uMsg)									// Check For Windows Messages
 	{
 	    //Is Window Currently Active?
@@ -383,13 +354,10 @@ int WINAPI WinMain(	HINSTANCE	hInstance,			// Instance
 	// Ask The User Which Screen Mode They Prefer
 	//First message shown
 
-	/*
 	if (MessageBox(NULL,"Would You Like To Run In Fullscreen Mode?", "Start FullScreen?",MB_YESNO|MB_ICONQUESTION)==IDNO) 	//Message, Title, Buttons
 	{
 		fullscreen=FALSE;							// Windowed Mode
 	}
-	*/
-
 	// Create Our OpenGL Window
 	if (!CreateGLWindow("Game Engine Lesson 01",fullscreenWidth,fullscreenHeight,256,fullscreen))
 	{
@@ -422,6 +390,11 @@ int WINAPI WinMain(	HINSTANCE	hInstance,			// Instance
 			else									// Not Time To Quit, Update Screen
 			{
 				myScene->drawScene(); //So long as the key is not escaping (quitting), keep drawing the scene
+				if (Timer.getTicks() > 16.67) // If the time since the last update is greater than 16.67ms (60fps), update the scene
+				{
+					myScene->updateScene(Timer.getTicks()); //Update the scene with the time since the last update
+					Timer.reset(); // Reset the timer for the next update
+				}
 				SwapBuffers(hDC);				// Swap Buffers (Double Buffering)
 			}
 

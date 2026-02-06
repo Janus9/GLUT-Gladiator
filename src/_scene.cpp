@@ -23,6 +23,11 @@ GLint _scene::initGL()
     glEnable(GL_COLOR_MATERIAL); //To theoretically instantiate a base color on a 3D object (likely won't be used)
 
     myLight->setLight(GL_LIGHT0); //The light onto the object from the pointer is set to be the instantiated light from before
+    myModel->initModel(); //The model is initialized from the pointer to the model class
+    
+    // CLASS INIT //
+    debugTimer.reset(); //Reset the update timer for the scene
+
     return true;
 
 }
@@ -38,6 +43,7 @@ GLint _scene::initGL()
 
 void _scene::reSize(GLint width, GLint height)
 {
+    Logger.LogInfo("Resizing window to width: " + std::to_string(width) + " and height: " + std::to_string(height), LOG_BOTH);
     GLfloat aspectRatio = (GLfloat) width/ (GLfloat) height; //Intended to keep track of window resize
     glViewport(0,0,width,height); //Integer values taken in to take in view. Setting Viewport
     glMatrixMode(GL_PROJECTION); //Turns the projection into a matrix. Initiate the projection
@@ -58,8 +64,94 @@ void _scene::drawScene()
     glLoadIdentity(); //Whichever state the scene is in it will stay there
     glColor3f(1.0,0.5,1.9); //sets the color of the model
     glTranslatef(0.0,0.0,-8.0); //Translating the specific position of the object that will be drawn. -Z means into the scene (center and back position)
-    glutSolidTeapot(1.5); //Places a teapot model within the scene. draw teapot
-
+    //glutSolidTeapot(1.5); //Places a teapot model within the scene. draw teapot
+    myModel->drawModel(); //Draw the model from the pointer to the model class
 }
 
+// Runs in loop 60 times per second. dt is in ms.
+void _scene::updateScene(double dt)
+{
+    dt = dt / 1000.0; // Convert dt to seconds for easier calculations
+    if(W) myModel->rotation.y += 30*dt; 
+    if(S) myModel->rotation.y -= 30*dt; 
 
+    if (debugTimer.getTicks() > debugPrintInterval) 
+    {
+        debugPrint(); 
+        debugTimer.reset(); 
+    }
+}
+
+void _scene::debugPrint()
+{
+    Logger.LogDebug("Debug Print: W=" + std::to_string(W) + " A=" + std::to_string(A) + " S=" + std::to_string(S) + " D=" + std::to_string(D), LOG_CONSOLE);
+}
+
+int _scene::winMsg(HWND	hWnd, UINT uMsg, WPARAM	wParam, LPARAM lParam)
+{
+    switch (uMsg)								
+    {
+        // Keypress
+        case WM_KEYDOWN:
+            //Logger.LogDebug("Key Pressed: " + std::to_string(wParam), LOG_CONSOLE); //Log the key that was pressed
+            switch (wParam)
+            {
+                case 'W':
+                    W = true;
+                    break;
+                case 'A':
+                    A = true;
+                    break;
+                case 'S':
+                    S = true;
+                    break;
+                case 'D':
+                    D = true;
+                    break;
+            }
+            break;
+        // Key release
+        case WM_KEYUP:
+            //Logger.LogDebug("Key Released: " + std::to_string(wParam), LOG_CONSOLE); //Log the key that was released
+            switch (wParam)
+            {
+                case 'W':
+                    W = false;
+                    break;
+                case 'A':
+                    A = false;
+                    break;
+                case 'S':
+                    S = false;
+                    break;
+                case 'D':
+                    D = false;
+                    break;
+            }
+            break;
+        // Left Mouse button down
+        case WM_LBUTTONDOWN:
+            //Logger.LogDebug("Left Mouse Button Down at (" + std::to_string(LOWORD(lParam)) + ", " + std::to_string(HIWORD(lParam)) + ")", LOG_CONSOLE); //Log the position of the mouse when left button is pressed
+            break;
+        // Right Mouse button down
+        case WM_RBUTTONDOWN:
+            //Logger.LogDebug("Right Mouse Button Down at (" + std::to_string(LOWORD(lParam)) + ", " + std::to_string(HIWORD(lParam)) + ")", LOG_CONSOLE); //Log the position of the mouse when right button is pressed
+            break;
+        // Left Mouse button up
+        case WM_LBUTTONUP:
+            //Logger.LogDebug("Left Mouse Button Up at (" + std::to_string(LOWORD(lParam)) + ", " + std::to_string(HIWORD(lParam)) + ")", LOG_CONSOLE); //Log the position of the mouse when left button is released
+            break;
+        // Right Mouse button up
+        case WM_RBUTTONUP:
+            //Logger.LogDebug("Right Mouse Button Up at (" + std::to_string(LOWORD(lParam)) + ", " + std::to_string(HIWORD(lParam)) + ")", LOG_CONSOLE); //Log the position of the mouse when right button is released
+            break;
+        // Mouse move
+        case WM_MOUSEMOVE:
+            //Logger.LogDebug("Mouse Move at (" + std::to_string(LOWORD(lParam)) + ", " + std::to_string(HIWORD(lParam)) + ")", LOG_CONSOLE); //Log the position of the mouse when it moves
+            break;
+        // Mouse wheel
+        case WM_MOUSEWHEEL:
+            //Logger.LogDebug("Mouse Wheel: " + std::to_string((short)HIWORD(wParam)) + " at (" + std::to_string(LOWORD(lParam)) + ", " + std::to_string(HIWORD(lParam)) + ")", LOG_CONSOLE); //Log the amount of scroll and position of the mouse when the wheel is scrolled
+            break;
+    }
+}

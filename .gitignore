@@ -1,0 +1,12 @@
+# IDE SPECIFIC #
+.vscode/
+
+# BUILD ARTIFACTS #
+bin/    
+build/
+logs/
+
+# FILE TYPEs #
+*.log
+*.o
+*.exe
