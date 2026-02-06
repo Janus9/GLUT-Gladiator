@@ -1,0 +1,30 @@
+#ifndef _LIGHTSETTINGS_H
+#define _LIGHTSETTINGS_H
+
+#include <_common.h>
+
+class _lightSettings
+{
+    public:
+        _lightSettings();
+        virtual ~_lightSettings();
+
+        void setLight (GLenum);
+
+        //Instantiates the various light types of both provide light and mat framework to the light
+        const GLfloat light_ambient[4]  = { 0.0f, 0.0f, 0.0f, 1.0f };
+        const GLfloat light_diffuse[4]  = { 1.0f, 1.0f, 1.0f, 1.0f };
+        const GLfloat light_specular[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
+        const GLfloat light_position[4] = { 2.0f, 5.0f, 5.0f, 0.0f };
+
+        const GLfloat mat_ambient[4]    = { 0.7f, 0.7f, 0.7f, 1.0f };
+        const GLfloat mat_diffuse[4]    = { 0.8f, 0.8f, 0.8f, 1.0f };
+        const GLfloat mat_specular[4]   = { 1.0f, 1.0f, 1.0f, 1.0f };
+        const GLfloat high_shininess[4] = { 100.0f };
+
+    protected:
+
+    private:
+};
+
+#endif // _LIGHTSETTINGS_H
