@@ -1,11 +1,13 @@
 #ifndef _COMMON_H
 #define _COMMON_H
 
+#define GLEW_STATIC
+
 // INCLUDES //
 
 #include <windows.h>
 #include <iostream>
-#include <GL/glew.h>
+#include <GL/glew.h>    // for VBOs
 #include <GL/gl.h>
 #include <GL/glut.h>
 #include <time.h>

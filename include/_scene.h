@@ -9,6 +9,7 @@
 #include<_model.h>
 #include<_timerPlusPlus.h>  
 #include<_sprite.h>
+#include<_vbo.h>
 
 class _scene
 {

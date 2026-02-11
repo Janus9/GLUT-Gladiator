@@ -13,6 +13,7 @@ _scene::~_scene()
 
 GLint _scene::initGL()
 {
+    glewInit();
     glClearColor(0.0,0.0,0.0,1.0); //Intended to change the background color. 0001 is black
     glClearDepth(1.0); //Gives depth to the environment by having color both in the front and back. Depth-test value
     glEnable(GL_DEPTH_TEST); //Will ensure the depth of the z-coordinate is accurate through enabling depth-test
