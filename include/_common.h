@@ -8,6 +8,7 @@
 #include <gl/gl.h>
 #include <gl/glut.h>
 #include <time.h>
+#include <math.h>
 #include <cmath>
 #include <vector>
 #include <chrono>

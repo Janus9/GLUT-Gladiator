@@ -1,9 +1,10 @@
 #ifndef _SCENE_H
 #define _SCENE_H
 
-#include <math.h>
-#include <iostream>
+// INCLUDES //
+
 #include<_common.h> 
+
 #include<_lightSettings.h>
 #include<_model.h>
 #include<_timerPlusPlus.h>
