@@ -26,4 +26,6 @@ void _sprite::spriteInit(const std::string& fileName, int xFrames, int yFrames)
 void _sprite::drawSprite()
 {
     // todo
+    glPushMatrix();
+    glPopMatrix();
 }

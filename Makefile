@@ -6,10 +6,10 @@ SHELL := powershell.exe
 
 # Compiler Flags
 CXX := g++ 
-R_FLAGS := -O2 																			# Release Flags
-D_FLAGS := -g -O0																		# Debug Flags																		# Debug Flags
-INCLUDE := -Iinclude -I../common/include 												# Headers
-LIB := -L../common/lib -lSoil -lfreeglut -lopengl32 -lglu32 -lwinmm -lgdi32 -lirrKlang 	# Libraries
+R_FLAGS := -O2 -DGLEW_STATIC 																				# Release Flags
+D_FLAGS := -g -O0 -DGLEW_STATIC																				# Debug Flags																		# Debug Flags
+INCLUDE := -Iinclude -I../common/include 																	# Headers
+LIB := -L../common/lib -lglew32s -lSoil -lfreeglut -lopengl32 -lglu32 -lwinmm -lgdi32 -lirrKlang  			# Libraries
 
 # Directors
 SRC_DIR := src

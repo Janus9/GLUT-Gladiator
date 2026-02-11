@@ -5,8 +5,9 @@
 
 #include <windows.h>
 #include <iostream>
-#include <gl/gl.h>
-#include <gl/glut.h>
+#include <GL/glew.h>
+#include <GL/gl.h>
+#include <GL/glut.h>
 #include <time.h>
 #include <math.h>
 #include <cmath>

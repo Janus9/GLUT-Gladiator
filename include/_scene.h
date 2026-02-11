@@ -7,7 +7,8 @@
 
 #include<_lightSettings.h>
 #include<_model.h>
-#include<_timerPlusPlus.h>
+#include<_timerPlusPlus.h>  
+#include<_sprite.h>
 
 class _scene
 {
