@@ -21,16 +21,16 @@ _texture::~_texture()
 
 }
 
-GLuint _texture::loadTexture(char* fileName)
+GLuint _texture::loadTexture(const std::string& fileName)
 {
     glGenTextures(1,&textID);               // Creates an OpenGL texture and stores the ID in textID
     glBindTexture(GL_TEXTURE_2D,textID);    // Makes the texture "active"
 
-    image = SOIL_load_image(fileName,&width,&height,0,SOIL_LOAD_RGBA); 
+    image = SOIL_load_image(fileName.c_str(),&width,&height,0,SOIL_LOAD_RGBA); 
     if (!image) {
-        std::cout << "Error: couldn't load " << fileName << std::endl;
+        Logger.LogError("Couldn't load texture: " + std::string(fileName), LOG_BOTH);
         glBindTexture(GL_TEXTURE_2D, 0);
-        textID = 0;                      // mark invalid
+        textID = 0;     // mark invalid
         return 0;
     }
     glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA,width,height,0,GL_RGBA,GL_UNSIGNED_BYTE,image); // Copies the image data into GPU memory

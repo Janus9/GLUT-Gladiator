@@ -15,7 +15,7 @@ class _texture
         virtual ~_texture();
 
         // Loads a given image file into GPU memory and returns a textureId.
-        GLuint loadTexture(char *);    
+        GLuint loadTexture(const std::string& fileName);    
         // Binds a loaded texture. Used prior to calling draw function on a given object.
         void bindTexture();            
 
@@ -25,7 +25,6 @@ class _texture
         GLuint textID;                 // Image data buffer handler
 
     protected:
-
     private:
 };
 

@@ -1,12 +1,19 @@
-# IDE SPECIFIC #
+# -- IDE SPECIFIC -- #
+# VS CODE #
 .vscode/
+# CODE::BLOCKS #
+*.cbp
+*.depend
+*.layout
 
 # BUILD ARTIFACTS #
 bin/    
 build/
 logs/
+obj/
 
 # FILE TYPEs #
 *.log
 *.o
 *.exe
+
