@@ -1,0 +1,52 @@
+#include "_texture.h"
+
+_texture::_texture()
+{
+    //ctor
+    width = 0;
+    height = 0;
+
+    textID = 0;
+    image = nullptr;
+}
+
+_texture::~_texture()
+{
+    //dtor
+    if (textID != 0)
+    {
+        // Releases the texture from GPU memory
+        glDeleteTextures(1, &textID);
+    }
+
+}
+
+GLuint _texture::loadTexture(char* fileName)
+{
+    glGenTextures(1,&textID);               // Creates an OpenGL texture and stores the ID in textID
+    glBindTexture(GL_TEXTURE_2D,textID);    // Makes the texture "active"
+
+    image = SOIL_load_image(fileName,&width,&height,0,SOIL_LOAD_RGBA); 
+    if (!image) {
+        std::cout << "Error: couldn't load " << fileName << std::endl;
+        glBindTexture(GL_TEXTURE_2D, 0);
+        textID = 0;                      // mark invalid
+        return 0;
+    }
+    glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA,width,height,0,GL_RGBA,GL_UNSIGNED_BYTE,image); // Copies the image data into GPU memory
+    SOIL_free_image_data(image); // Free the image data from CPU memory since it's now in GPU memory
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,GL_REPEAT);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+
+    return textID;
+}
+
+void _texture::bindTexture()
+{
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D,textID);
+}

@@ -23,12 +23,14 @@ GLint _scene::initGL()
     glEnable(GL_LIGHT0); //Light is instantiated at this module
     glEnable(GL_COLOR_MATERIAL); //To theoretically instantiate a base color on a 3D object (likely won't be used)
 
+    // CLASS INIT //
+
     myLight->setLight(GL_LIGHT0); //The light onto the object from the pointer is set to be the instantiated light from before
     myModel->initModel(); //The model is initialized from the pointer to the model class
     
-    // CLASS INIT //
     debugTimer.reset(); //Reset the update timer for the scene
 
+    texture1.loadTexture("images/wood.png");
     return true;
 
 }
@@ -49,8 +51,12 @@ void _scene::reSize(GLint width, GLint height)
     glViewport(0,0,width,height); //Integer values taken in to take in view. Setting Viewport
     glMatrixMode(GL_PROJECTION); //Turns the projection into a matrix. Initiate the projection
     glLoadIdentity(); //Keep value's axes (matrix * identity matrix = matrix). Initialize the matrix with identity matrix
-
-    gluPerspective(45.0, aspectRatio, 0.1, 100.0); //How far and how near do you want the perspective to be. Setup prospective projection
+    
+    if (isPerspective) {
+        gluPerspective(45.0, aspectRatio, 0.1, 100.0); //How far and how near do you want the perspective to be. Setup prospective projection
+    } else {
+        glOrtho(-10.0*aspectRatio, 10.0*aspectRatio, -10.0, 10.0, 0.1, 100.0); //Orthographic projection -- objects are the same size regardless of distance from camera
+    }
     glMatrixMode(GL_MODELVIEW); //Inputs into matrix depend on the placement of objects in the matrix overview. Initiate model and view matrix
 
     glLoadIdentity();//Keep value's axes (matrix * identity matrix = matrix). Initialize the matrix with identity matrix
@@ -65,7 +71,8 @@ void _scene::drawScene()
     glLoadIdentity(); //Whichever state the scene is in it will stay there
     glColor3f(1.0,0.5,1.9); //sets the color of the model
     glTranslatef(0.0,0.0,-8.0); //Translating the specific position of the object that will be drawn. -Z means into the scene (center and back position)
-    //glutSolidTeapot(1.5); //Places a teapot model within the scene. draw teapot
+
+    texture1.bindTexture(); // Bind the texture before drawing the model
     myModel->drawModel(); //Draw the model from the pointer to the model class
 }
 
@@ -73,8 +80,10 @@ void _scene::drawScene()
 void _scene::updateScene(double dt)
 {
     dt = dt / 1000.0; // Convert dt to seconds for easier calculations
-    if(W) myModel->rotation.y += 30*dt; 
-    if(S) myModel->rotation.y -= 30*dt; 
+    if(A) myModel->rotation.y += 30*dt; 
+    if(D) myModel->rotation.y -= 30*dt; 
+    if(W) myModel->position.z += 5*dt;
+    if(S) myModel->position.z -= 5*dt;
 
     if (debugTimer.getTicks() > debugPrintInterval) 
     {
@@ -108,6 +117,9 @@ int _scene::winMsg(HWND	hWnd, UINT uMsg, WPARAM	wParam, LPARAM lParam)
                     break;
                 case 'D':
                     D = true;
+                    break;
+                case '~':
+                    isPerspective = !isPerspective; 
                     break;
             }
             break;

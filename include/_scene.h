@@ -5,6 +5,7 @@
 
 #include<_common.h> 
 
+#include<_texture.h>
 #include<_lightSettings.h>
 #include<_model.h>
 #include<_timerPlusPlus.h>  
@@ -31,14 +32,17 @@ class _scene
         int winMsg(HWND	hWnd, UINT uMsg, WPARAM	wParam, LPARAM lParam);
 
         // CLASSES //
-        _lightSettings *myLight = new _lightSettings();     // New Instance of Lights needed to be used in the scene
-        _model* myModel = new _model();                     // New Instance of Model needed to be used in the scene
-
-
     protected:
     private:
+
+        _lightSettings *myLight = new _lightSettings();     
+        _model* myModel = new _model();
+
+        _texture texture1;
+
         bool W,A,S,D; // Track WASD key states (true = help, false = released)
         
+        bool isPerspective = true;
         _timerPlusPlus debugTimer; // Timer to track time between updates for the scene
         bool debugEnabled = true; // Enables specific debugging information for the scene
         double debugPrintInterval = 5000; // ms between debug prints
