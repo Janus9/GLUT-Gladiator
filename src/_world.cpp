@@ -18,6 +18,9 @@ _world::~_world()
 void _world::initWorld()
 {
     // Initialize world tiles and chunks here
+    chunk->chunkX = 0;
+    chunk->chunkY = 0;
+    
     world_tiles[0].textureId = tileTexture->loadTexture("images/missing_texture.png");   
     world_tiles[1].textureId = tileTexture->loadTexture("images/orange.png");   
     
@@ -42,8 +45,8 @@ void _world::drawWorld()
             _tile& tile = world_tiles[tileType];
             
             // Calculate world position
-            float worldX = (chunk->chunkX * 16 + x) * tile.pixelW;
-            float worldY = (chunk->chunkY * 16 + y) * tile.pixelH;
+            float worldX = (chunk->chunkX * 16 + x) * TILE_W;
+            float worldY = (chunk->chunkY * 16 + y) * TILE_H;
             
             // Bind texture
             glBindTexture(GL_TEXTURE_2D, tile.textureId);
@@ -51,9 +54,9 @@ void _world::drawWorld()
             // Draw the tile quad
             glBegin(GL_QUADS);
                 glTexCoord2f(0.0f, 0.0f); glVertex2f(worldX, worldY);
-                glTexCoord2f(1.0f, 0.0f); glVertex2f(worldX + tile.pixelW, worldY);
-                glTexCoord2f(1.0f, 1.0f); glVertex2f(worldX + tile.pixelW, worldY + tile.pixelH);
-                glTexCoord2f(0.0f, 1.0f); glVertex2f(worldX, worldY + tile.pixelH);
+                glTexCoord2f(1.0f, 0.0f); glVertex2f(worldX + TILE_W, worldY);
+                glTexCoord2f(1.0f, 1.0f); glVertex2f(worldX + TILE_W, worldY + TILE_H);
+                glTexCoord2f(0.0f, 1.0f); glVertex2f(worldX, worldY + TILE_H);
             glEnd();
         }
     }

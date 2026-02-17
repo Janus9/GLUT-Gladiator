@@ -9,6 +9,9 @@
 #ifndef _WORLD_H
 #define _WORLD_H
 
+#define TILE_W 16.0f   // Tile width in world units is ALWAYS the same of 16
+#define TILE_H 16.0f   // Tile height in world units is ALWAYS the same of 16
+
 #include<_common.h>
 #include<_texture.h>
 

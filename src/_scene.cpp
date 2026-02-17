@@ -27,6 +27,9 @@ GLint _scene::initGL()
 
     inputTimer.reset(); // Reset the input timer to regulate toggle keys
 
+    // tester player
+    test_player->spriteInit("images/test_player.png", 1, 1); 
+
     myLight->setLight(GL_LIGHT0); //The light onto the object from the pointer is set to be the instantiated light from before
     myModel->initModel(); //The model is initialized from the pointer to the model class
     myWorld->initWorld(); // Initialize the world
@@ -56,20 +59,17 @@ void _scene::reSize(GLint width, GLint height)
     glMatrixMode(GL_PROJECTION); //Turns the projection into a matrix. Initiate the projection
     glLoadIdentity(); //Keep value's axes (matrix * identity matrix = matrix). Initialize the matrix with identity matrix
     
-    if (isPerspective) {
-        gluPerspective(45.0, aspectRatio, 0.1, 100.0); //How far and how near do you want the perspective to be. Setup prospective projection
-    } else {
-        //Orthographic projection -- objects are the same size regardless of distance from camera
-        glOrtho(
-            0.0, width,     // left->right = 1 world unit (1 pixel) 
-            0.0, height,    // top->bottom = 1 world unit (1 pixel)
-            -1.0, 1.0       // z index from -1 to 1 is visible (everything else clips and is not visible)
-        ); 
-    }
+
+    // We use Orthographic projection because its a 2D game and it makes it easy to maintain scale via pixels
+    glOrtho(
+        0.0, width,     // left->right = 1 world unit (1 pixel) 
+        0.0, height,    // top->bottom = 1 world unit (1 pixel)
+        -1.0, 1.0       // z index from -1 to 1 is visible (everything else clips and is not visible)
+    ); 
+
     glMatrixMode(GL_MODELVIEW); //Inputs into matrix depend on the placement of objects in the matrix overview. Initiate model and view matrix
 
     glLoadIdentity();//Keep value's axes (matrix * identity matrix = matrix). Initialize the matrix with identity matrix
-
 }
 
 //Scene is running in a loop
@@ -79,9 +79,16 @@ void _scene::drawScene()
     //clear buffers
     glLoadIdentity(); //Whichever state the scene is in it will stay there
 
+    glPushMatrix();
+        glTranslatef(-cameraX, -cameraY, 0.0f); // Move the camera based on current position
+        myWorld->drawWorld(); // Draw the world
+    glPopMatrix();
+    
+    glPushMatrix();
+        test_player->pos = {width/2.0f, height/2.0f}; 
+        test_player->drawSprite(); // Draw the test player sprite
+    glPopMatrix();
 
-    glTranslatef(-cameraX, -cameraY, 0.0f); // Move the camera based on current position
-    myWorld->drawWorld(); // Draw the world
 }
 
 // Runs in loop 60 times per second. dt is in ms.

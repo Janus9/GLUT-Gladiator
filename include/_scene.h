@@ -42,6 +42,7 @@ class _scene
         _lightSettings *myLight = new _lightSettings();     
         _model* myModel = new _model();
         _world* myWorld = new _world();
+        _sprite* test_player = new _sprite();
 
         _vbo vbo1 = _vbo();
 
@@ -52,7 +53,7 @@ class _scene
         float cameraX = 0.0f;
         float cameraY = 0.0f;
 
-        float cameraSpeed = 32.0f; // Units per second
+        float cameraSpeed = 128.0f; // Units per second
 
         bool W,A,S,D;                       // Track WASD key states (true = help, false = released)
         int mouseWheelDirection = 0;        // 0 = none, 1 = up, -1 = down 
