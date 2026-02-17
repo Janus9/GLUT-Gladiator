@@ -21,6 +21,7 @@
 #include <iomanip>
 #include <sstream>
 #include <stdlib.h>
+#include <cstdint>  // for uint32_t and other fixed-width integer types
 #include <_logger.h>
 
 // DEFINITIONS //
@@ -53,6 +54,12 @@ struct Vec2i
 {
     GLint x;
     GLint y;
+};
+
+struct TilePosI
+{
+    uint8_t row;
+    uint8_t col;
 };
 
 struct Col3f

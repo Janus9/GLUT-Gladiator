@@ -12,6 +12,8 @@
 #include<_sprite.h>
 #include<_vbo.h>
 
+#include<_world.h>
+
 class _scene
 {
     public:
@@ -39,24 +41,33 @@ class _scene
 
         _lightSettings *myLight = new _lightSettings();     
         _model* myModel = new _model();
+        _world* myWorld = new _world();
+
         _vbo vbo1 = _vbo();
 
         _texture texture1;
 
-        _timerPlusPlus inputTimer; // Timer to regulate toggle keys (ensures a key only pressed once)
+        _timerPlusPlus inputTimer;          // Timer to regulate toggle keys (ensures a key only pressed once)
 
-        bool W,A,S,D; // Track WASD key states (true = help, false = released)
-        int mouseWheelDirection = 0; // 0 = none, 1 = up, -1 = down 
+        float cameraX = 0.0f;
+        float cameraY = 0.0f;
 
-        bool isPerspective = true;
-        _timerPlusPlus debugTimer; // Timer to track time between updates for the scene
-        bool debugEnabled = true; // Enables specific debugging information for the scene
-        bool inputDebugEnabled = true; // Enables debug info for inputs (keyboard keys + mouse inputs)
-        double debugPrintInterval = 5000; // ms between debug prints
+        float cameraSpeed = 32.0f; // Units per second
+
+        bool W,A,S,D;                       // Track WASD key states (true = help, false = released)
+        int mouseWheelDirection = 0;        // 0 = none, 1 = up, -1 = down 
+
+        bool isPerspective = false;
+        _timerPlusPlus debugTimer;          // Timer to track time between updates for the scene
+        bool debugEnabled = true;           // Enables specific debugging information for the scene
+        bool inputDebugEnabled = false;     // Enables debug info for inputs (keyboard keys + mouse inputs)
+        double debugPrintInterval = 5000;   // ms between debug prints
         // Function that runs every [debugPrintInterval] ms for dubuggin purposes
         void debugPrint();
-
-        void keyboardHandler(WPARAM wParam); // Handles keyboard inputs for toggle keys. Function regulated by a timer
+        // Handles keyboard inputs for toggle keys. Function regulated by a timer
+        void keyboardHandler(WPARAM wParam); 
+        // Handles commands sent from console
+        void commandHandler(); 
 };
 
 #endif // _SCENE_H

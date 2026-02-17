@@ -4,7 +4,8 @@
 
 /* -- COLOR DEFINITIONS -- */
 #define ESC "\033["         
-#define RESET "\033[m"
+//#define RESET "\033[m"
+#define RESET "\033[m>con"
 // TEXT COLORS //
 #define BLACK_TXT "30;"
 #define RED_TXT "31;"

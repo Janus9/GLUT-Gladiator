@@ -29,12 +29,12 @@ GLint _scene::initGL()
 
     myLight->setLight(GL_LIGHT0); //The light onto the object from the pointer is set to be the instantiated light from before
     myModel->initModel(); //The model is initialized from the pointer to the model class
+    myWorld->initWorld(); // Initialize the world
     
     debugTimer.reset(); //Reset the update timer for the scene
     vbo1.vboInit();
     texture1.loadTexture("images/wood.png");
     return true;
-
 }
 
 //Forced perspective projection: Farther away objects look smaller
@@ -59,7 +59,12 @@ void _scene::reSize(GLint width, GLint height)
     if (isPerspective) {
         gluPerspective(45.0, aspectRatio, 0.1, 100.0); //How far and how near do you want the perspective to be. Setup prospective projection
     } else {
-        glOrtho(-10.0*aspectRatio, 10.0*aspectRatio, -10.0, 10.0, 0.1, 100.0); //Orthographic projection -- objects are the same size regardless of distance from camera
+        //Orthographic projection -- objects are the same size regardless of distance from camera
+        glOrtho(
+            0.0, width,     // left->right = 1 world unit (1 pixel) 
+            0.0, height,    // top->bottom = 1 world unit (1 pixel)
+            -1.0, 1.0       // z index from -1 to 1 is visible (everything else clips and is not visible)
+        ); 
     }
     glMatrixMode(GL_MODELVIEW); //Inputs into matrix depend on the placement of objects in the matrix overview. Initiate model and view matrix
 
@@ -73,22 +78,20 @@ void _scene::drawScene()
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
     //clear buffers
     glLoadIdentity(); //Whichever state the scene is in it will stay there
-    glColor3f(1.0,0.5,1.9); //sets the color of the model
-    glTranslatef(0.0,0.0,-8.0); //Translating the specific position of the object that will be drawn. -Z means into the scene (center and back position)
 
-    texture1.bindTexture(); // Bind the texture before drawing the model
-    //myModel->drawModel(); //Draw the model from the pointer to the model class
-    vbo1.drawVBO(); // Draw the VBO
+
+    glTranslatef(-cameraX, -cameraY, 0.0f); // Move the camera based on current position
+    myWorld->drawWorld(); // Draw the world
 }
 
 // Runs in loop 60 times per second. dt is in ms.
 void _scene::updateScene(double dt)
 {
     dt = dt / 1000.0; // Convert dt to seconds for easier calculations
-    if(A) vbo1.rot.y += 30*dt; 
-    if(D) vbo1.rot.y -= 30*dt; 
-    if(W) vbo1.pos.z += 5*dt;
-    if(S) vbo1.pos.z -= 5*dt;
+    if(A) cameraX -= cameraSpeed*dt; 
+    if(D) cameraX += cameraSpeed*dt; 
+    if(W) cameraY += cameraSpeed*dt;
+    if(S) cameraY -= cameraSpeed*dt;
 
     if (debugTimer.getTicks() > debugPrintInterval) 
     {
@@ -109,9 +112,7 @@ void _scene::keyboardHandler(WPARAM wParam)
         switch (wParam)
         {
             case 192: // ~
-                isPerspective = !isPerspective;
-                reSize(width, height); // Update the projection with the new perspective setting 
-                Logger.LogInfo("Toggled perspective mode: " + std::string(isPerspective ? "ON" : "OFF"), LOG_CONSOLE);
+                commandHandler(); // Enter command mode to input text-based commands
                 break;
             case 221: // ]
                 debugEnabled = !debugEnabled; 
@@ -196,4 +197,29 @@ int _scene::winMsg(HWND	hWnd, UINT uMsg, WPARAM	wParam, LPARAM lParam)
             break;
     }
     return 0;
+}
+
+void _scene::commandHandler() {
+    std::string command;
+    std::cout << "Enter command: ";
+    std::cin >> command;
+    // command checking -- hashmap would be better
+    if (command == "gg_help") {
+        // show all commands
+        std::cout << "Available commands:\n";
+    } else if (command == "gg_toggle_debug") {
+        debugEnabled = !debugEnabled;
+        std::cout << "Debug mode: " << (debugEnabled ? "ON" : "OFF") << std::endl;
+    } else if (command == "gg_toggle_input_debug") {
+        inputDebugEnabled = !inputDebugEnabled;
+        std::cout << "Input debug mode: " << (inputDebugEnabled ? "ON" : "OFF") << std::endl;
+    } else if (command == "gg_set_camera_speed") {
+        float newSpeed;
+        std::cout << "Enter new camera speed (default is " << cameraSpeed << "): ";
+        std::cin >> newSpeed;
+        cameraSpeed = newSpeed;
+        std::cout << "Camera speed set to: " << cameraSpeed << std::endl;
+    } else {
+        std::cout << "Unknown command: " << command << std::endl;
+    }
 }
