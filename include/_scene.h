@@ -48,23 +48,39 @@ class _scene
 
         _texture texture1;
 
-        _timerPlusPlus inputTimer;          // Timer to regulate toggle keys (ensures a key only pressed once)
+        _timerPlusPlus inputTimer; // Timer to regulate toggle keys (ensures a key only pressed once)
+
+        float playerX = 0.0f;
+        float playerY = 0.0f;
 
         float cameraX = 0.0f;
         float cameraY = 0.0f;
         float cameraSpeed = 128.0f; // Units per second
         float cameraZoom = 1.0f;
 
-        bool W,A,S,D;                       // Track WASD key states (true = help, false = released)
-        int mouseWheelDirection = 0;        // 0 = none, 1 = up, -1 = down 
+        bool W = false; 
+        bool A = false; 
+        bool S = false; 
+        bool D = false;
+
+        // DEBUGGING //
+        _timerPlusPlus debugTimer;          // Timer to track time between updates for the scene
+        _timerPlusPlus* fpsTimer = new _timerPlusPlus(); // Timer to track time between frames for FPS calculation
 
         bool isPerspective = false;
-        _timerPlusPlus debugTimer;          // Timer to track time between updates for the scene
         bool debugEnabled = true;           // Enables specific debugging information for the scene
         bool inputDebugEnabled = false;     // Enables debug info for inputs (keyboard keys + mouse inputs)
+        bool cameraFree = false;            // If true camera will not track player and can be moved freely
+
         double debugPrintInterval = 5000;   // ms between debug prints
+        double fpsPrintInterval = 1000;     // ms between FPS prints
+        double sceneFPS = 0.0;              // Current FPS of the scene (updated every [fpsPrintInterval] ms)
+        int frameCount = 0;                 // Number of frames between FPS prints
+
         // Function that runs every [debugPrintInterval] ms for dubuggin purposes
         void debugPrint();
+        // Function that runs every [fpsPrintInterval] ms to calculate and print the FPS of the scene
+        void debugPrintFPS();
         // Handles keyboard inputs for toggle keys. Function regulated by a timer
         void keyboardHandler(WPARAM wParam); 
         // Handles commands sent from console

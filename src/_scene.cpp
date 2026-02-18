@@ -32,10 +32,12 @@ GLint _scene::initGL()
 
     // CLASS INIT //
 
-    inputTimer.reset(); // Reset the input timer to regulate toggle keys
-
+    inputTimer.reset(); 
+    fpsTimer->reset();  
     // tester player
     test_player->spriteInit("images/test_player.png", 1, 1); 
+    
+    test_player->pos = {width/2.0f, height/2.0f}; // Start player in the center of the screen
 
     myLight->setLight(GL_LIGHT0); //The light onto the object from the pointer is set to be the instantiated light from before
     myModel->initModel(); //The model is initialized from the pointer to the model class
@@ -66,6 +68,8 @@ void _scene::reSize(GLint width, GLint height)
     glMatrixMode(GL_PROJECTION); //Turns the projection into a matrix. Initiate the projection
     glLoadIdentity(); //Keep value's axes (matrix * identity matrix = matrix). Initialize the matrix with identity matrix
     
+    test_player->pos = {width/2.0f, height/2.0f}; // Start player in the center of the screen
+    
     applyCamera();
 
     glMatrixMode(GL_MODELVIEW); //Inputs into matrix depend on the placement of objects in the matrix overview. Initiate model and view matrix
@@ -84,19 +88,35 @@ void _scene::drawScene()
 
     myWorld->drawWorld(); // Draw the world
 
-    test_player->pos = { width/2.0f, height/2.0f }; 
     test_player->drawSprite(); // Draw the test player sprite
 
+    // For FPS measuring
+    frameCount++;
+    if(fpsTimer->getTicks() > fpsPrintInterval) {
+        debugPrintFPS(); 
+    }
 }
 
 // Runs in loop 60 times per second. dt is in ms.
 void _scene::updateScene(double dt)
 {
     dt = dt / 1000.0; // Convert dt to seconds for easier calculations
-    if(A) cameraX -= cameraSpeed*dt; 
-    if(D) cameraX += cameraSpeed*dt; 
-    if(W) cameraY += cameraSpeed*dt;
-    if(S) cameraY -= cameraSpeed*dt;
+    if (cameraFree) {
+        if(W) cameraY += cameraSpeed*dt;
+        if(A) cameraX -= cameraSpeed*dt; 
+        if(S) cameraY -= cameraSpeed*dt;
+        if(D) cameraX += cameraSpeed*dt; 
+    } else {
+        if(W) playerY += cameraSpeed*dt;
+        if(A) playerX -= cameraSpeed*dt; 
+        if(S) playerY -= cameraSpeed*dt;
+        if(D) playerX += cameraSpeed*dt;
+        // If camera is not free, it will track the player (centered on player)
+        test_player->pos = {playerX, playerY}; // Update player position based on input
+
+        cameraX = playerX;
+        cameraY = playerY;
+    }
 
     if (debugTimer.getTicks() > debugPrintInterval) 
     {
@@ -117,16 +137,20 @@ void _scene::keyboardHandler(WPARAM wParam)
     {
         switch (wParam)
         {
-            case 192: // ~
+            case 192: // "~"
                 commandHandler(); // Enter command mode to input text-based commands
                 break;
-            case 221: // ]
+            case 221: // "]"
                 debugEnabled = !debugEnabled; 
                 Logger.LogInfo("Toggled debug mode: " + std::string(debugEnabled ? "ON" : "OFF"), LOG_CONSOLE);
                 break;
-            case 219: // [
+            case 219: // "["
                 inputDebugEnabled = !inputDebugEnabled; 
                 Logger.LogInfo("Toggled input debug mode: " + std::string(inputDebugEnabled ? "ON" : "OFF"), LOG_CONSOLE);
+                break;
+            case 220: // "\"
+                cameraFree = !cameraFree;
+                Logger.LogInfo("Toggled camera free mode: " + std::string(cameraFree ? "ON" : "OFF"), LOG_CONSOLE);
                 break;
         }
         inputTimer.reset(); // Reset the timer after handling a toggle key
@@ -250,13 +274,18 @@ void _scene::applyCamera() {
 
     // We use Orthographic projection because its a 2D game and it makes it easy to maintain scale via pixels
     glOrtho(
-        left, right,     // left->right = zoom of 1 means 1 world unit (1 pixel) is visible. Zooming in makes the world bigger and zooming out makes the world smaller
+        left, right,    // left->right = zoom of 1 means 1 world unit (1 pixel) is visible. Zooming in makes the world bigger and zooming out makes the world smaller
         bottom, top,    // top->bottom = zoom of 1 means 1 world unit (1 pixel) is visible. Zooming in makes the world bigger and zooming out makes the world smaller
         -1.0, 1.0       // z index from -1 to 1 is visible (everything else clips and is not visible)
     ); 
     
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
+}
 
-    
+void _scene::debugPrintFPS() {
+    sceneFPS = frameCount / (fpsTimer->getTicks() / 1000.0); // Calculate FPS based on frames and time
+    Logger.LogInfo("Current FPS: " + std::to_string(sceneFPS), LOG_CONSOLE);
+    frameCount = 0; // Reset frame count after printing FPS
+    fpsTimer->reset(); // Reset the timer for the next FPS calculation
 }

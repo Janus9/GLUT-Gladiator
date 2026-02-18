@@ -7,6 +7,8 @@
 #  include <windows.h>
 #endif
 
+#define UPDATE_DELAY (1000.0f / 60.0f)	// Delay in milliseconds for 60 updates per second
+
 //Find these libraries within the project folders
 //Exact paths may not be found but the libraries will be
 #pragma comment(lib, "opengl32.lib")
@@ -390,7 +392,7 @@ int WINAPI WinMain(	HINSTANCE	hInstance,			// Instance
 			else									// Not Time To Quit, Update Screen
 			{
 				myScene->drawScene(); //So long as the key is not escaping (quitting), keep drawing the scene
-				if (Timer.getTicks() > 16.67) // If the time since the last update is greater than 16.67ms (60fps), update the scene
+				if (Timer.getTicks() > UPDATE_DELAY) // If the time since the last update is greater than 16.67ms (60fps), update the scene
 				{
 					myScene->updateScene(Timer.getTicks()); //Update the scene with the time since the last update
 					Timer.reset(); // Reset the timer for the next update
