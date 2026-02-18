@@ -66,13 +66,7 @@ void _scene::reSize(GLint width, GLint height)
     glMatrixMode(GL_PROJECTION); //Turns the projection into a matrix. Initiate the projection
     glLoadIdentity(); //Keep value's axes (matrix * identity matrix = matrix). Initialize the matrix with identity matrix
     
-
-    // We use Orthographic projection because its a 2D game and it makes it easy to maintain scale via pixels
-    glOrtho(
-        0.0, width,     // left->right = 1 world unit (1 pixel) 
-        0.0, height,    // top->bottom = 1 world unit (1 pixel)
-        -1.0, 1.0       // z index from -1 to 1 is visible (everything else clips and is not visible)
-    ); 
+    applyCamera();
 
     glMatrixMode(GL_MODELVIEW); //Inputs into matrix depend on the placement of objects in the matrix overview. Initiate model and view matrix
 
@@ -86,15 +80,12 @@ void _scene::drawScene()
     //clear buffers
     glLoadIdentity(); //Whichever state the scene is in it will stay there
 
-    glPushMatrix();
-        glTranslatef(-cameraX, -cameraY, 0.0f); // Move the camera based on current position
-        myWorld->drawWorld(); // Draw the world
-    glPopMatrix();
-    
-    glPushMatrix();
-        test_player->pos = {width/2.0f, height/2.0f}; 
-        test_player->drawSprite(); // Draw the test player sprite
-    glPopMatrix();
+    applyCamera(); // Apply camera transformations
+
+    myWorld->drawWorld(); // Draw the world
+
+    test_player->pos = { width/2.0f, height/2.0f }; 
+    test_player->drawSprite(); // Draw the test player sprite
 
 }
 
@@ -117,6 +108,7 @@ void _scene::updateScene(double dt)
 void _scene::debugPrint()
 {
     Logger.LogDebug("Debug Print: W=" + std::to_string(W) + " A=" + std::to_string(A) + " S=" + std::to_string(S) + " D=" + std::to_string(D), LOG_CONSOLE);
+    Logger.LogDebug("Camera Position: (" + std::to_string(cameraX) + ", " + std::to_string(cameraY) + ") Zoom: " + std::to_string(cameraZoom), LOG_CONSOLE);
 }
 
 void _scene::keyboardHandler(WPARAM wParam)
@@ -207,7 +199,13 @@ int _scene::winMsg(HWND	hWnd, UINT uMsg, WPARAM	wParam, LPARAM lParam)
         // Mouse wheel
         case WM_MOUSEWHEEL:
             if (inputDebugEnabled) Logger.LogDebug("Mouse Wheel: " + std::to_string((short)HIWORD(wParam)) + " at (" + std::to_string(LOWORD(lParam)) + ", " + std::to_string(HIWORD(lParam)) + ")", LOG_CONSOLE); //Log the amount of scroll and position of the mouse when the wheel is scrolled
-            //mouseWheelDirection = HIWORD(wParam) > 0 ? 1 : -1;
+            if ((short)HIWORD(wParam) > 0 && cameraZoom < 9.0f) { 
+                // Scroll up
+                cameraZoom *= 1.1f; // Zoom in by increasing the zoom factor
+            } else if ((short)HIWORD(wParam) < 0) {
+                // Scroll down
+                cameraZoom /= 1.1f; // Zoom out by decreasing the zoom factor
+            }
             break;
     }
     return 0;
@@ -236,4 +234,29 @@ void _scene::commandHandler() {
     } else {
         std::cout << "Unknown command: " << command << std::endl;
     }
+}
+
+void _scene::applyCamera() {
+    float halfWidth = width * 0.5f / cameraZoom; // Adjust half-width based on zoom level
+    float halfHeight = height * 0.5f / cameraZoom; // Adjust half-height based on zoom level
+
+    float left = cameraX - halfWidth;
+    float right = cameraX + halfWidth;
+    float bottom = cameraY - halfHeight;
+    float top = cameraY + halfHeight;
+
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+
+    // We use Orthographic projection because its a 2D game and it makes it easy to maintain scale via pixels
+    glOrtho(
+        left, right,     // left->right = zoom of 1 means 1 world unit (1 pixel) is visible. Zooming in makes the world bigger and zooming out makes the world smaller
+        bottom, top,    // top->bottom = zoom of 1 means 1 world unit (1 pixel) is visible. Zooming in makes the world bigger and zooming out makes the world smaller
+        -1.0, 1.0       // z index from -1 to 1 is visible (everything else clips and is not visible)
+    ); 
+    
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+
+    
 }

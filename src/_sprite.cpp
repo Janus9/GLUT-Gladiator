@@ -39,7 +39,7 @@ void _sprite::drawSprite()
 
         glRotatef(rot.x, 1.0f, 0.0f, 0.0f);
         glRotatef(rot.y, 0.0f, 1.0f, 0.0f);
-        
+
         glEnable(GL_TEXTURE_2D);
         glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
         glColor4f(color.r, color.g, color.b, 1.0f);
@@ -47,10 +47,10 @@ void _sprite::drawSprite()
         glBindTexture(GL_TEXTURE_2D, textureId);
 
         glBegin(GL_QUADS);
-            glTexCoord2f(0.0f, 0.0f); glVertex2f(-tileW, -tileH);
-            glTexCoord2f(1.0f, 0.0f); glVertex2f( tileW, -tileH);
-            glTexCoord2f(1.0f, 1.0f); glVertex2f( tileW,  tileH);
-            glTexCoord2f(0.0f, 1.0f); glVertex2f(-tileW,  tileH);
+            glTexCoord2f(0.0f, 0.0f); glVertex2f(-tileW/2.0f, -tileH/2.0f);
+            glTexCoord2f(1.0f, 0.0f); glVertex2f( tileW/2.0f, -tileH/2.0f);
+            glTexCoord2f(1.0f, 1.0f); glVertex2f( tileW/2.0f,  tileH/2.0f);
+            glTexCoord2f(0.0f, 1.0f); glVertex2f(-tileW/2.0f,  tileH/2.0f);
         glEnd();
 
     glPopMatrix();

@@ -42,11 +42,12 @@ class _world
 
     protected:
     private:
-        _texture* tileTexture = new _texture(); // Texture atlas for tiles
+        _texture* tileTexture = new _texture(); // Texture loader
 
         _tile world_tiles[256]; // 256 unique tile types 
-        _chunk* chunk = new _chunk(); // example chunk
+        //_chunk* chunk = new _chunk(); // example chunk
 
+        _chunk worldChunks[9]; // 3x3 grid around the player
 };
 
 #endif // _WORLD_H

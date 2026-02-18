@@ -52,8 +52,8 @@ class _scene
 
         float cameraX = 0.0f;
         float cameraY = 0.0f;
-
         float cameraSpeed = 128.0f; // Units per second
+        float cameraZoom = 1.0f;
 
         bool W,A,S,D;                       // Track WASD key states (true = help, false = released)
         int mouseWheelDirection = 0;        // 0 = none, 1 = up, -1 = down 
@@ -68,7 +68,9 @@ class _scene
         // Handles keyboard inputs for toggle keys. Function regulated by a timer
         void keyboardHandler(WPARAM wParam); 
         // Handles commands sent from console
-        void commandHandler(); 
+        void commandHandler();
+        // Applies camera position zoom, etc
+        void applyCamera();
 };
 
 #endif // _SCENE_H
