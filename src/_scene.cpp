@@ -19,9 +19,16 @@ GLint _scene::initGL()
     glEnable(GL_DEPTH_TEST); //Will ensure the depth of the z-coordinate is accurate through enabling depth-test
     glDepthFunc(GL_LEQUAL); //Depth-test is less than or equal to--> true for less or equal
 
-    glEnable(GL_LIGHTING); //Enable lighting within the scene to be initialized (8 total lights)
-    glEnable(GL_LIGHT0); //Light is instantiated at this module
-    glEnable(GL_COLOR_MATERIAL); //To theoretically instantiate a base color on a 3D object (likely won't be used)
+    // glEnable(GL_LIGHTING); //Enable lighting within the scene to be initialized (8 total lights)
+    // glEnable(GL_LIGHT0); //Light is instantiated at this module
+    // glEnable(GL_COLOR_MATERIAL); //To theoretically instantiate a base color on a 3D object (likely won't be used)
+
+    // its 2D w/ pixels so no need for lighting
+    glDisable(GL_LIGHTING);
+    glDisable(GL_COLOR_MATERIAL);
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     // CLASS INIT //
 

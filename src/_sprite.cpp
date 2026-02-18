@@ -39,8 +39,10 @@ void _sprite::drawSprite()
 
         glRotatef(rot.x, 1.0f, 0.0f, 0.0f);
         glRotatef(rot.y, 0.0f, 1.0f, 0.0f);
-
-        glColor3f(color.r, color.g, color.b);
+        
+        glEnable(GL_TEXTURE_2D);
+        glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+        glColor4f(color.r, color.g, color.b, 1.0f);
 
         glBindTexture(GL_TEXTURE_2D, textureId);
 
