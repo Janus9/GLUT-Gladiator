@@ -59,8 +59,8 @@ GLint _scene::initGL()
     
     test_player->pos = {width/2.0f, height/2.0f}; // Start player in the center of the screen
 
-    myLight->setLight(GL_LIGHT0); //The light onto the object from the pointer is set to be the instantiated light from before
-    myModel->initModel(); //The model is initialized from the pointer to the model class
+    myLight->setLight(GL_LIGHT0); // The light onto the object from the pointer is set to be the instantiated light from before
+    myModel->initModel(); // The model is initialized from the pointer to the model class
     myWorld->initWorld(); // Initialize the world
     
     debugTimer.reset();     
@@ -81,17 +81,17 @@ void _scene::reSize(GLint width, GLint height)
     this->height = height;
     Logger.LogInfo("Resizing window to width: " + std::to_string(width) + " and height: " + std::to_string(height), LOG_BOTH);
     GLfloat aspectRatio = (GLfloat) width/ (GLfloat) height; //Intended to keep track of window resize
-    glViewport(0,0,width,height); //Integer values taken in to take in view. Setting Viewport
-    glMatrixMode(GL_PROJECTION); //Turns the projection into a matrix. Initiate the projection
-    glLoadIdentity(); //Keep value's axes (matrix * identity matrix = matrix). Initialize the matrix with identity matrix
+    glViewport(0,0,width,height); // Integer values taken in to take in view. Setting Viewport
+    glMatrixMode(GL_PROJECTION); // Turns the projection into a matrix. Initiate the projection
+    glLoadIdentity(); // Keep value's axes (matrix * identity matrix = matrix). Initialize the matrix with identity matrix
     
     test_player->pos = {width/2.0f, height/2.0f}; // Start player in the center of the screen
     
     applyCamera();
 
-    glMatrixMode(GL_MODELVIEW); //Inputs into matrix depend on the placement of objects in the matrix overview. Initiate model and view matrix
+    glMatrixMode(GL_MODELVIEW); // Inputs into matrix depend on the placement of objects in the matrix overview. Initiate model and view matrix
 
-    glLoadIdentity();//Keep value's axes (matrix * identity matrix = matrix). Initialize the matrix with identity matrix
+    glLoadIdentity();// Keep value's axes (matrix * identity matrix = matrix). Initialize the matrix with identity matrix
 }
 
 //Scene is running in a loop

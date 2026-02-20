@@ -58,13 +58,13 @@ class _scene
 
         float cameraX = 0.0f;
         float cameraY = 0.0f;
-        float cameraSpeed = 1024.0f; // Units per second
+        float cameraSpeed = 128.0f; // Units per second
         float cameraZoom = 1.0f;
 
         bool W = false; 
         bool A = false; 
-        bool S = true; 
-        bool D = true;
+        bool S = false; 
+        bool D = false;
 
         // DEBUGGING //
         _timerPlusPlus debugTimer;          // Timer to track time between updates for the scene

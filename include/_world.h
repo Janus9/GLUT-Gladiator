@@ -18,8 +18,6 @@
 struct _tile
 {
     float u0, v0, u1, v1; // if using atlas; otherwise 0..1
-    int pixelW;
-    int pixelH;
 };
 
 
@@ -75,6 +73,10 @@ class _world
         std::mt19937 rng{seed}; 
 
         // -- WORLD DATA -- //
+
+        // This is the default number of renered chunks for the world. Starts at center and expands evenly outward as a cube 
+        // Would be better done as a sphere but cube is easier -- gives warning if # doesnt make an even cube
+        int numStartingChunks = 256;
 
         _texture* tileAtlas = new _texture(); // Texture loader
 

@@ -15,29 +15,27 @@ _world::~_world()
 void _world::initWorld()
 {
     Logger.LogInfo("Initializing world for seed " + to_string(seed), LOG_BOTH);
+    Logger.LogInfo("World has " + to_string(numStartingChunks) + " starting chunks.", LOG_BOTH);
 
     tileAtlas->loadTexture("images/world_tiles_atlas.png"); // Load the tile atlas texture
-    worldChunks.resize(9); // Resize the vector to hold 9 chunks (3x3 grid around the player)
+    worldChunks.resize(numStartingChunks); // Resize the vector to hold numStartingChunks chunks
 
     uniform_int_distribution<int> dist(0, 3); 
 
-    // Initialize world tiles and chunks here
-    for (int i = 0; i < worldChunks.size(); i++) {
-        worldChunks[i].chunkX = (i % 3) - 1; // -1, 0, 1
-        worldChunks[i].chunkY = (i / 3) - 1; // -1, 0, 1
-
-        loadedChunks.insert({ChunkPosToKey(worldChunks[i].chunkX, worldChunks[i].chunkY),true});
-
-        Logger.LogInfo("Initialized chunk at (" + std::to_string(worldChunks[i].chunkX) + ", " + std::to_string(worldChunks[i].chunkY) + ")", LOG_CONSOLE);
-    } 
-
-    for (int i = 0; i < 256; i++) {
-        for(int chunkNum = 0; chunkNum < 9; chunkNum++) {
-            worldChunks[chunkNum].tileData[i] = dist(rng); // Randomly assign tile type 0 or 1 or 2 or 3                                    
-        }
-        world_tiles[i].pixelW = 16; // Assuming each tile is 16x16 pixels in the atlas
-        world_tiles[i].pixelH = 16;
+    double sqrtNumChunks = sqrt(numStartingChunks);
+    // This checks if a decimal (like 1.3) is equal to its floor (1.0) which indicates the sqrt wasn't perfect
+    if (sqrtNumChunks != floor(sqrtNumChunks)) {
+        Logger.LogWarning("numStartingChunks is not a perfect square. This may lead to an uneven distribution of chunks around the center.", LOG_BOTH);
     }
+
+    // Initialize world tiles and chunks here
+    for (int i = 0; i < numStartingChunks; i++) {
+
+        int chunkX = i % (int)sqrt(numStartingChunks) - floor(sqrt(numStartingChunks) / 2); // Calculate chunkX based on index
+        int chunkY = i / (int)sqrt(numStartingChunks) - floor(sqrt(numStartingChunks) / 2); // Calculate chunkY based on index
+
+        generateChunk(chunkX, chunkY); // Generate the chunk at the calculated coordinates
+    } 
 
     initTiles(); // Setup tiles
 }
@@ -52,18 +50,8 @@ void _world::initTiles() {
 }
 
 bool _world::setTileInAtlas(int tileNum, _tile &tile) {
-        
-    // Will (for now) give us 16x16 tiles
-
-    // Error check for divide by 0
-    if (tile.pixelW == 0 || tile.pixelH == 0) 
-    {
-        Logger.LogError("Tile pixel width and height must be greater than zero. Check tile initialization.", LOG_BOTH);
-        return false;
-    }
-
-    int numTilesPerRow = 256 / tile.pixelW;     // This gives us how many tiles are in a single row
-    int numTilesPerCol = 256 / tile.pixelH;     // This gives us how many tiles are in a single column
+    int numTilesPerRow = 256 / TILE_W;     // This gives us how many tiles are in a single row
+    int numTilesPerCol = 256 / TILE_H;     // This gives us how many tiles are in a single column
 
     // Error check for mod by 0 
     if (numTilesPerRow == 0) {
@@ -81,13 +69,13 @@ bool _world::setTileInAtlas(int tileNum, _tile &tile) {
     */
 
     // Left (X)
-    float u0 = (tileNumX * tile.pixelW) / 256.0f;
+    float u0 = (tileNumX * TILE_W) / 256.0f;
     // Left (Y)
-    float v0 = (tileNumY * tile.pixelH) / 256.0f;
+    float v0 = (tileNumY * TILE_H) / 256.0f;
     // Right (X)
-    float u1 = u0 + (tile.pixelW / 256.0f);
+    float u1 = u0 + (TILE_W / 256.0f);
     // Right (Y)
-    float v1 = v0 + (tile.pixelH / 256.0f);
+    float v1 = v0 + (TILE_H / 256.0f);
 
     Logger.LogDebug("Tile " + std::to_string(tileNum) + " atlas coordinates: (" + std::to_string(u0) + ", " + std::to_string(v0) + ") to (" + std::to_string(u1) + ", " + std::to_string(v1) + ")", LOG_CONSOLE);
 
