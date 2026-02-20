@@ -43,34 +43,42 @@ release: $(BUILD_R_DIR)/$(OUTPUT)
 # Debug Linking	
 $(BUILD_D_DIR)/$(OUTPUT): $(D_BINS) | $(IMG_DIR) $(BUILD_D_DIR)
 	$(CXX) $(D_BINS) $(LIB) -o $@
-	@echo " -- Binaries Linked Successfully! -- "
+	@Write-Host " >>--------------------- DEBUG ------------------------<< "
+	@Write-Host " >>           Binaries Linked Successfully!            << "
+	@Write-Host " >>----------------------------------------------------<< "
+	@Write-Host " >> Executable built at >> $(BUILD_D_DIR)\$(OUTPUT) << "
+	@Write-Host " >>----------------------------------------------------<< "
 
 # Debug Compilation with src
 $(BIN_D_DIR)/%.o: $(SRC_DIR)/%.cpp | $(BIN_D_DIR)
 	$(CXX) -c $< $(INCLUDE) $(D_FLAGS) -o $@
-	@echo " -- Compiled $< Successfully! -- "
+	@Write-Host "Compiled $<"
 
 # Debug Compilation with main
 $(BIN_D_DIR)/$(MAIN_BIN): $(MAIN_SRC) | $(BIN_D_DIR)
 	$(CXX) -c $^ $(INCLUDE) $(D_FLAGS) -o $@
-	@echo " -- Compiled $^ Successfully! -- "
+	@Write-Host "Compiled $^"
 
 # -- RELEASE -- #
 
 # Release Linking
 $(BUILD_R_DIR)/$(OUTPUT): $(R_BINS) | $(IMG_DIR) $(BUILD_R_DIR)
 	$(CXX) $(R_BINS) $(LIB) -mwindows -o $@
-	@echo " -- Binaries Linked Successfully! -- "
+	@Write-Host " >>-------------------- RELEASE -----------------------<< "
+	@Write-Host " >>           Binaries Linked Successfully!            << "
+	@Write-Host " >>----------------------------------------------------<< "
+	@Write-Host " >> Executable built at >> $(BUILD_R_DIR)\$(OUTPUT) << "
+	@Write-Host " >>----------------------------------------------------<< "
 
 # Release Compilation with src
 $(BIN_R_DIR)/%.o: $(SRC_DIR)/%.cpp | $(BIN_R_DIR)
 	$(CXX) -c $< $(INCLUDE) $(R_FLAGS) -o $@
-	@echo " -- Compiled $< Successfully! -- "
+	@Write-Host "Compiled $< Successfully!"
 
 # Release Compilation with main
 $(BIN_R_DIR)/$(MAIN_BIN): $(MAIN_SRC) | $(BIN_R_DIR)
 	$(CXX) -c $^ $(INCLUDE) $(R_FLAGS) -o $@
-	@echo " -- Compiled $^ Successfully! -- "
+	@Write-Host "Compiled $^ Successfully!"
 
 
 # -- DIRECTORS -- #
@@ -112,9 +120,10 @@ $(BUILD_R_DIR): | $(BUILD_DIR)
 
 # Removes .o files
 clean:
-	Remove-Item -Force -ErrorAction SilentlyContinue "$(BIN_D_DIR)\*.o"
-	@echo "-- Debug Binaries Cleaned Successfully -- "
-	Remove-Item -Force -ErrorAction SilentlyContinue "$(BIN_R_DIR)\*.o"
-	@echo "-- Release Binaries Cleaned Successfully -- "
-	Remove-Item -Force -ErrorAction SilentlyContinue "$(BUILD_D_DIR)\*.exe"
-	@echo "-- Executable Cleaned Successfully -- "
+	@powershell -NoProfile -Command "if (Test-Path '$(BIN_D_DIR)') { Remove-Item -Force -ErrorAction SilentlyContinue '$(BIN_D_DIR)\*.o'; Write-Host 'Debug Binaries Cleaned Successfully' } else { Write-Host 'No debug binaries found to clean ... skipping' }"
+	
+	@powershell -NoProfile -Command "if (Test-Path '$(BIN_R_DIR)') { Remove-Item -Force -ErrorAction SilentlyContinue '$(BIN_R_DIR)\*.o'; Write-Host 'Release Binaries Cleaned Successfully' } else { Write-Host 'No release binaries found to clean ... skipping' }"
+	
+	@powershell -NoProfile -Command "if (Test-Path '$(BUILD_R_DIR)\$(OUTPUT)') { Remove-Item -Force -ErrorAction SilentlyContinue '$(BUILD_R_DIR)\$(OUTPUT)'; Write-Host 'Release Executable Cleaned Successfully' } else { Write-Host 'No release executable found to clean ... skipping' }"
+	
+	@powershell -NoProfile -Command "if (Test-Path '$(BUILD_D_DIR)\$(OUTPUT)') { Remove-Item -Force -ErrorAction SilentlyContinue '$(BUILD_D_DIR)\$(OUTPUT)'; Write-Host 'Debug Executable Cleaned Successfully' } else { Write-Host 'No debug executable found to clean ... skipping' }"
