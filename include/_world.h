@@ -24,6 +24,19 @@ struct _tile
     //bool isSolid;  
 };
 
+
+/*
+* For chunk generation the coordinates start at the bottom left of the chunk.
+*
+* Thus chunk (0,0) is (0,0) coordinates at the bottom left but (256,256) at the top right.
+*
+* Chunks are ordered by their own coordinate system of (X,Y) so the Center Chunk is (0,0)
+*   (-1,0) is LEFT of Center Chunk
+*   (1,0) is RIGHT of Center Chunk
+*   (0,1) is ABOVE of Center Chunk
+*   (0,-1) is BELOW of Center Chunk
+*
+*/
 struct _chunk
 {
     uint8_t tileData[256]; // 16x16 chunk
@@ -40,14 +53,29 @@ class _world
         void initWorld();
         void drawWorld();
 
+        void SET_DisplayChunkBorders(bool value) { displayChunkBorders = value; }
+
+        void generateChunk();
+
+        bool isChunkLoaded(int chunkX, int chunkY);
+
     protected:
     private:
+        // Using a current time for the seed is chose because the normal std::random_device doesnt work for some reason
+        unsigned int seed = (unsigned int)std::chrono::system_clock::now().time_since_epoch().count(); 
+        std::mt19937 rng{seed}; 
+
         _texture* tileTexture = new _texture(); // Texture loader
 
         _tile world_tiles[256]; // 256 unique tile types 
         //_chunk* chunk = new _chunk(); // example chunk
 
-        _chunk worldChunks[9]; // 3x3 grid around the player
+        vector<_chunk> worldChunks; 
+
+        unordered_map<string,bool> loadedChunks;
+
+        // DEBUGGING //
+        bool displayChunkBorders = true; // When enabled puts a red border around chunks (may drop performance)
 };
 
 #endif // _WORLD_H

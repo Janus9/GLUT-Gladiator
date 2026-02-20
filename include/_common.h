@@ -23,6 +23,8 @@
 #include <stdlib.h>
 #include <cstdint>  // for uint32_t and other fixed-width integer types
 #include <_logger.h>
+#include <random>
+#include <unordered_map> // Hashtable
 
 // DEFINITIONS //
 
@@ -68,6 +70,17 @@ struct Col3f
     GLfloat g;
     GLfloat b;
 };
+
+// // Converts a chunk position into a string to be used as a key for the loadedChunks unordered map. This isnt a good key making a string is expensive
+// inline std::string ChunkPosToKey(Vec2i chunkPos) {
+//     return std::to_string(chunkPos.x) + "," + std::to_string(chunkPos.y);
+// }
+
+// Dont know what inline does
+// Converts a chunk position (using individual components) into a string to be used as a key for the loadedChunks unordered map. This isnt a good key making a string is expensive
+inline std::string ChunkPosToKey(int chunkX, int chunkY) {
+    return std::to_string(chunkX) + "," + std::to_string(chunkY);
+}
 
 using namespace std;
 

@@ -50,8 +50,11 @@ class _scene
 
         _timerPlusPlus inputTimer; // Timer to regulate toggle keys (ensures a key only pressed once)
 
-        float playerX = 0.0f;
-        float playerY = 0.0f;
+        // Position of the player in world coordinates
+        Vec2f playerPos = {0.0f, 0.0f};
+
+        // Position of the player in chunk coordinates
+        Vec2i playerChunkPos = {0, 0};
 
         float cameraX = 0.0f;
         float cameraY = 0.0f;
@@ -66,11 +69,14 @@ class _scene
         // DEBUGGING //
         _timerPlusPlus debugTimer;          // Timer to track time between updates for the scene
         _timerPlusPlus* fpsTimer = new _timerPlusPlus(); // Timer to track time between frames for FPS calculation
+        _timerPlusPlus* drawBenchTimer = new _timerPlusPlus(); // Timer for benching draw command
+        _timerPlusPlus* updateBenchTimer = new _timerPlusPlus(); // Timer for benching update command
 
         bool isPerspective = false;
         bool debugEnabled = true;           // Enables specific debugging information for the scene
         bool inputDebugEnabled = false;     // Enables debug info for inputs (keyboard keys + mouse inputs)
         bool cameraFree = false;            // If true camera will not track player and can be moved freely
+        bool displayChunkBorders = true;    // If enabled chunks will have red border around them
 
         double debugPrintInterval = 5000;   // ms between debug prints
         double fpsPrintInterval = 1000;     // ms between FPS prints

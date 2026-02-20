@@ -8,6 +8,26 @@ _scene::_scene()
 _scene::~_scene()
 {
     //dtor
+    delete myLight;
+    myLight = nullptr;
+
+    delete myModel;
+    myModel = nullptr;
+
+    delete myWorld;
+    myWorld = nullptr;
+
+    delete test_player;
+    test_player = nullptr;
+
+    delete fpsTimer;
+    fpsTimer = nullptr;
+
+    delete drawBenchTimer;
+    drawBenchTimer = nullptr;
+
+    delete updateBenchTimer;
+    updateBenchTimer = nullptr;
 }
 
 
@@ -43,20 +63,17 @@ GLint _scene::initGL()
     myModel->initModel(); //The model is initialized from the pointer to the model class
     myWorld->initWorld(); // Initialize the world
     
-    debugTimer.reset(); //Reset the update timer for the scene
+    debugTimer.reset();     
+    drawBenchTimer->reset(); 
+    updateBenchTimer->reset();
+    
+    myWorld->SET_DisplayChunkBorders(displayChunkBorders); // Set initial chunk border display state
+    
     vbo1.vboInit();
     texture1.loadTexture("images/wood.png");
+
     return true;
 }
-
-//Forced perspective projection: Farther away objects look smaller
-//Objects needs to have perspective to construct how the objects actually look (size of object has to match the specific scale with which the window is in)
-//The model has to be in the right position in the scene to match the model functionality
-//A camera needs to be placed to center the camera and establish view properties to apply projection
-
-//Aspect ratio for window has to match the specific resize being managed
-//Width and Height of window need to be considered to match the specific width and height of the window being generated
-//The window size can be changed and the game's structural integrity is the same
 
 void _scene::reSize(GLint width, GLint height)
 {
@@ -92,6 +109,7 @@ void _scene::drawScene()
 
     // For FPS measuring
     frameCount++;
+
     if(fpsTimer->getTicks() > fpsPrintInterval) {
         debugPrintFPS(); 
     }
@@ -100,6 +118,10 @@ void _scene::drawScene()
 // Runs in loop 60 times per second. dt is in ms.
 void _scene::updateScene(double dt)
 {
+    // Get chunk position (coordinates)
+    playerChunkPos.x = (int)floor(playerPos.x / (16 * TILE_W));
+    playerChunkPos.y = (int)floor(playerPos.y / (16 * TILE_H));
+
     dt = dt / 1000.0; // Convert dt to seconds for easier calculations
     if (cameraFree) {
         if(W) cameraY += cameraSpeed*dt;
@@ -107,15 +129,15 @@ void _scene::updateScene(double dt)
         if(S) cameraY -= cameraSpeed*dt;
         if(D) cameraX += cameraSpeed*dt; 
     } else {
-        if(W) playerY += cameraSpeed*dt;
-        if(A) playerX -= cameraSpeed*dt; 
-        if(S) playerY -= cameraSpeed*dt;
-        if(D) playerX += cameraSpeed*dt;
+        if(W) playerPos.y += cameraSpeed*dt;
+        if(A) playerPos.x -= cameraSpeed*dt; 
+        if(S) playerPos.y -= cameraSpeed*dt;
+        if(D) playerPos.x += cameraSpeed*dt;
         // If camera is not free, it will track the player (centered on player)
-        test_player->pos = {playerX, playerY}; // Update player position based on input
+        test_player->pos = playerPos; // Update player position based on input
 
-        cameraX = playerX;
-        cameraY = playerY;
+        cameraX = playerPos.x;
+        cameraY = playerPos.y;
     }
 
     if (debugTimer.getTicks() > debugPrintInterval) 
@@ -129,6 +151,16 @@ void _scene::debugPrint()
 {
     Logger.LogDebug("Debug Print: W=" + std::to_string(W) + " A=" + std::to_string(A) + " S=" + std::to_string(S) + " D=" + std::to_string(D), LOG_CONSOLE);
     Logger.LogDebug("Camera Position: (" + std::to_string(cameraX) + ", " + std::to_string(cameraY) + ") Zoom: " + std::to_string(cameraZoom), LOG_CONSOLE);
+    Logger.LogDebug("Player is in chunk: (" + std::to_string(playerChunkPos.x) + ", " + std::to_string(playerChunkPos.y) + ")", LOG_CONSOLE);
+    bool inLoadedChunk = myWorld->isChunkLoaded(playerChunkPos.x, playerChunkPos.y);
+    Logger.LogDebug("Player is in loaded chunk: " + std::string(inLoadedChunk ? "YES" : "NO"), LOG_CONSOLE);
+}
+
+void _scene::debugPrintFPS() {
+    sceneFPS = frameCount / (fpsTimer->getTicks() / 1000.0); // Calculate FPS based on frames and time
+    Logger.LogInfo("Current FPS: " + std::to_string(sceneFPS), LOG_CONSOLE);
+    frameCount = 0; // Reset frame count after printing FPS
+    fpsTimer->reset(); // Reset the timer for the next FPS calculation
 }
 
 void _scene::keyboardHandler(WPARAM wParam)
@@ -151,6 +183,11 @@ void _scene::keyboardHandler(WPARAM wParam)
             case 220: // "\"
                 cameraFree = !cameraFree;
                 Logger.LogInfo("Toggled camera free mode: " + std::string(cameraFree ? "ON" : "OFF"), LOG_CONSOLE);
+                break;
+            case 122: // "F11"
+                displayChunkBorders = !displayChunkBorders;
+                myWorld->SET_DisplayChunkBorders(displayChunkBorders); // Toggle chunk border display
+                Logger.LogInfo("Toggled chunk border display: " + std::string(displayChunkBorders ? "ON" : "OFF"), LOG_CONSOLE);
                 break;
         }
         inputTimer.reset(); // Reset the timer after handling a toggle key
@@ -283,9 +320,3 @@ void _scene::applyCamera() {
     glLoadIdentity();
 }
 
-void _scene::debugPrintFPS() {
-    sceneFPS = frameCount / (fpsTimer->getTicks() / 1000.0); // Calculate FPS based on frames and time
-    Logger.LogInfo("Current FPS: " + std::to_string(sceneFPS), LOG_CONSOLE);
-    frameCount = 0; // Reset frame count after printing FPS
-    fpsTimer->reset(); // Reset the timer for the next FPS calculation
-}

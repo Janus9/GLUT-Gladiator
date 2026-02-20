@@ -361,7 +361,7 @@ int WINAPI WinMain(	HINSTANCE	hInstance,			// Instance
 		fullscreen=FALSE;							// Windowed Mode
 	}
 	// Create Our OpenGL Window
-	if (!CreateGLWindow("Game Engine Lesson 01",fullscreenWidth,fullscreenHeight,256,fullscreen))
+	if (!CreateGLWindow("GLUT Gladiator",fullscreenWidth,fullscreenHeight,256,fullscreen))
 	{
 		return 0;									// Quit If Window Was Not Created, Program is exited
 	}
