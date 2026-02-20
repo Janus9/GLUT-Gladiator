@@ -140,6 +140,11 @@ void _scene::updateScene(double dt)
         cameraY = playerPos.y;
     }
 
+    bool inLoadedChunk = myWorld->isChunkLoaded(playerChunkPos.x, playerChunkPos.y);
+    if (!inLoadedChunk) {
+        myWorld->generateChunk(playerChunkPos.x, playerChunkPos.y);
+    }
+
     if (debugTimer.getTicks() > debugPrintInterval) 
     {
         debugPrint(); 
@@ -152,8 +157,11 @@ void _scene::debugPrint()
     Logger.LogDebug("Debug Print: W=" + std::to_string(W) + " A=" + std::to_string(A) + " S=" + std::to_string(S) + " D=" + std::to_string(D), LOG_CONSOLE);
     Logger.LogDebug("Camera Position: (" + std::to_string(cameraX) + ", " + std::to_string(cameraY) + ") Zoom: " + std::to_string(cameraZoom), LOG_CONSOLE);
     Logger.LogDebug("Player is in chunk: (" + std::to_string(playerChunkPos.x) + ", " + std::to_string(playerChunkPos.y) + ")", LOG_CONSOLE);
+    
     bool inLoadedChunk = myWorld->isChunkLoaded(playerChunkPos.x, playerChunkPos.y);
     Logger.LogDebug("Player is in loaded chunk: " + std::string(inLoadedChunk ? "YES" : "NO"), LOG_CONSOLE);
+
+    myWorld->debugPrint();
 }
 
 void _scene::debugPrintFPS() {

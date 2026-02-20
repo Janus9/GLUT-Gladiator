@@ -46,10 +46,10 @@ void _sprite::drawSprite()
         glBindTexture(GL_TEXTURE_2D, textureId);
 
         glBegin(GL_QUADS);
-            glTexCoord2f(0.0f, 0.0f); glVertex2f(-tileW/2.0f, -tileH/2.0f);
-            glTexCoord2f(1.0f, 0.0f); glVertex2f( tileW/2.0f, -tileH/2.0f);
-            glTexCoord2f(1.0f, 1.0f); glVertex2f( tileW/2.0f,  tileH/2.0f);
-            glTexCoord2f(0.0f, 1.0f); glVertex2f(-tileW/2.0f,  tileH/2.0f);
+            glTexCoord2f(0.0f, 1.0f); glVertex2f(-tileW/2.0f, -tileH/2.0f);
+            glTexCoord2f(1.0f, 1.0f); glVertex2f( tileW/2.0f, -tileH/2.0f);
+            glTexCoord2f(1.0f, 0.0f); glVertex2f( tileW/2.0f,  tileH/2.0f);
+            glTexCoord2f(0.0f, 0.0f); glVertex2f(-tileW/2.0f,  tileH/2.0f);
         glEnd();
 
     glPopMatrix();

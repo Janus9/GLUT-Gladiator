@@ -72,9 +72,9 @@ struct Col3f
 };
 
 // // Converts a chunk position into a string to be used as a key for the loadedChunks unordered map. This isnt a good key making a string is expensive
-// inline std::string ChunkPosToKey(Vec2i chunkPos) {
-//     return std::to_string(chunkPos.x) + "," + std::to_string(chunkPos.y);
-// }
+inline std::string ChunkPosToKey(Vec2i chunkPos) {
+    return std::to_string(chunkPos.x) + "," + std::to_string(chunkPos.y);
+}
 
 // Dont know what inline does
 // Converts a chunk position (using individual components) into a string to be used as a key for the loadedChunks unordered map. This isnt a good key making a string is expensive

@@ -8,16 +8,18 @@ _world::_world()
 _world::~_world()
 {
     //dtor
-    delete tileTexture;
-    tileTexture = nullptr;
+    delete tileAtlas;
+    tileAtlas = nullptr;
 }
 
 void _world::initWorld()
 {
     Logger.LogInfo("Initializing world for seed " + to_string(seed), LOG_BOTH);
+
+    tileAtlas->loadTexture("images/world_tiles_atlas.png"); // Load the tile atlas texture
     worldChunks.resize(9); // Resize the vector to hold 9 chunks (3x3 grid around the player)
 
-    uniform_int_distribution<int> dist(0, 2); 
+    uniform_int_distribution<int> dist(0, 3); 
 
     // Initialize world tiles and chunks here
     for (int i = 0; i < worldChunks.size(); i++) {
@@ -29,48 +31,100 @@ void _world::initWorld()
         Logger.LogInfo("Initialized chunk at (" + std::to_string(worldChunks[i].chunkX) + ", " + std::to_string(worldChunks[i].chunkY) + ")", LOG_CONSOLE);
     } 
 
-    generateChunk(); // generate test chunk
-    
     for (int i = 0; i < 256; i++) {
         for(int chunkNum = 0; chunkNum < 9; chunkNum++) {
-            worldChunks[chunkNum].tileData[i] = dist(rng); // Randomly assign tile type 0 or 1 
+            worldChunks[chunkNum].tileData[i] = dist(rng); // Randomly assign tile type 0 or 1 or 2 or 3                                    
         }
         world_tiles[i].pixelW = 16; // Assuming each tile is 16x16 pixels in the atlas
         world_tiles[i].pixelH = 16;
     }
-        
-    world_tiles[0].textureId = tileTexture->loadTexture("images/grass_variant_one.png");   
-    world_tiles[1].textureId = tileTexture->loadTexture("images/grass_variant_two.png");   
-    world_tiles[2].textureId = tileTexture->loadTexture("images/grass_variant_three.png");  
+
+    initTiles(); // Setup tiles
 }
 
-void _world::generateChunk() 
+void _world::initTiles() {
+    // Grass Variants //
+    setTileInAtlas(0, world_tiles[0]); 
+    setTileInAtlas(1, world_tiles[1]); 
+    setTileInAtlas(2, world_tiles[2]); 
+    setTileInAtlas(3, world_tiles[3]); 
+    // Empty Tiles //
+}
+
+bool _world::setTileInAtlas(int tileNum, _tile &tile) {
+        
+    // Will (for now) give us 16x16 tiles
+
+    // Error check for divide by 0
+    if (tile.pixelW == 0 || tile.pixelH == 0) 
+    {
+        Logger.LogError("Tile pixel width and height must be greater than zero. Check tile initialization.", LOG_BOTH);
+        return false;
+    }
+
+    int numTilesPerRow = 256 / tile.pixelW;     // This gives us how many tiles are in a single row
+    int numTilesPerCol = 256 / tile.pixelH;     // This gives us how many tiles are in a single column
+
+    // Error check for mod by 0 
+    if (numTilesPerRow == 0) {
+        Logger.LogError("Number of tiles per row cannot be zero. Check tile pixel width.", LOG_BOTH);
+        return false;
+    }
+
+    int tileNumX = tileNum % numTilesPerRow;    // This gives us which column the tile is in
+    int tileNumY = tileNum / numTilesPerRow;    // This gives us which row the tile is in (using integer division to round down)
+    /*
+        All of these values have to be between 0 and 1. This is because for glTexCoord2f we use this to assign an image from 
+        0 (start of image) to 1 (end of image). Since we have 16 tiles per row/column we divide by 16.
+
+        ex/ to get tileNum 0 (the very first tile) we need coordinates from 0-0.0625 as 0.0625 is 1/16
+    */
+
+    // Left (X)
+    float u0 = (tileNumX * tile.pixelW) / 256.0f;
+    // Left (Y)
+    float v0 = (tileNumY * tile.pixelH) / 256.0f;
+    // Right (X)
+    float u1 = u0 + (tile.pixelW / 256.0f);
+    // Right (Y)
+    float v1 = v0 + (tile.pixelH / 256.0f);
+
+    Logger.LogDebug("Tile " + std::to_string(tileNum) + " atlas coordinates: (" + std::to_string(u0) + ", " + std::to_string(v0) + ") to (" + std::to_string(u1) + ", " + std::to_string(v1) + ")", LOG_CONSOLE);
+
+    tile.u0 = u0;
+    tile.v0 = v0;
+    tile.u1 = u1;
+    tile.v1 = v1;
+
+    return true;
+}
+
+void _world::generateChunk(int new_chunkX, int new_chunkY) 
 {
-    //todo -- test add chunk to right
-    uniform_int_distribution<int> dist(0, 2); 
+    if (isChunkLoaded(new_chunkX, new_chunkY)) {
+        Logger.LogWarning("Chunk at (" + std::to_string(new_chunkX) + ", " + std::to_string(new_chunkY) + ") is already loaded. Skipping generation.", LOG_BOTH);
+        return; // Chunk is already loaded, no need to generate
+    }
 
-    int new_chunkX = 2;
-    int new_chunky = 0;
+    uniform_int_distribution<int> dist(0, 3); 
 
-    loadedChunks.insert({ChunkPosToKey(new_chunkX, new_chunky),true});
+    loadedChunks.insert({ChunkPosToKey(new_chunkX, new_chunkY),true});
 
-    Logger.LogDebug("Generating new chunk at (" + std::to_string(new_chunkX) + ", " + std::to_string(new_chunky) + ")", LOG_BOTH);
+    Logger.LogDebug("Generating new chunk at (" + std::to_string(new_chunkX) + ", " + std::to_string(new_chunkY) + ")", LOG_BOTH);
 
     _chunk newChunk;
     newChunk.chunkX = new_chunkX;
-    newChunk.chunkY = new_chunky;
+    newChunk.chunkY = new_chunkY;
 
     worldChunks.push_back(newChunk);
 
     for (int i = 0; i < 256; i++) {
-        worldChunks.back().tileData[i] = dist(rng); // Randomly assign tile type 0, 1, or 2
+        worldChunks.back().tileData[i] = dist(rng); // Randomly assign tile type 0, 1, 2, or 3
     }
 }
 
 void _world::drawWorld()
 {
-    glEnable(GL_TEXTURE_2D);
-    
     for(int chunkNum = 0; chunkNum < worldChunks.size(); chunkNum++) {
         _chunk* chunk = &worldChunks[chunkNum];
         for (int y = 0; y < 16; y++) {
@@ -86,20 +140,22 @@ void _world::drawWorld()
                 float worldY = (chunk->chunkY * 16 + y) * TILE_H;
                 
                 // Bind texture
-                glBindTexture(GL_TEXTURE_2D, tile.textureId);
-                
+                tileAtlas->bindTexture();
+
                 // Draws from bottom left
                 glBegin(GL_QUADS);
-                    glTexCoord2f(0.0f, 0.0f); glVertex2f(worldX, worldY);
-                    glTexCoord2f(1.0f, 0.0f); glVertex2f(worldX + TILE_W, worldY);
-                    glTexCoord2f(1.0f, 1.0f); glVertex2f(worldX + TILE_W, worldY + TILE_H);
-                    glTexCoord2f(0.0f, 1.0f); glVertex2f(worldX, worldY + TILE_H);
+                    // bottom-left
+                    glTexCoord2f(tile.u0, tile.v1); glVertex2f(worldX, worldY);
+                    // bottom-right
+                    glTexCoord2f(tile.u1, tile.v1); glVertex2f(worldX + TILE_W, worldY);
+                    // top-right
+                    glTexCoord2f(tile.u1, tile.v0); glVertex2f(worldX + TILE_W, worldY + TILE_H);
+                    // top-left
+                    glTexCoord2f(tile.u0, tile.v0); glVertex2f(worldX, worldY + TILE_H);
                 glEnd();
             }
         }
     }
-    glDisable(GL_TEXTURE_2D);
-
     // Displays chunk borders in red when enabled
     if (displayChunkBorders) {
         glLineWidth(2.0f); // Thicker lines for visibility
@@ -125,4 +181,11 @@ void _world::drawWorld()
 bool _world::isChunkLoaded(int chunkX, int chunkY) {
     string key = ChunkPosToKey(chunkX, chunkY);
     return loadedChunks.find(key) != loadedChunks.end();
+}
+
+void _world::debugPrint() {
+    Logger.LogInfo(" -- World Debug Print -- ", LOG_CONSOLE);
+    Logger.LogInfo("Chunks Loaded: " + std::to_string(worldChunks.size()) + " (" + std::to_string(sizeof(_chunk) * worldChunks.size()) + " B)", LOG_CONSOLE);
+    Logger.LogInfo("Tiles Loaded: " + std::to_string(worldChunks.size() * 256) + " (" + std::to_string(sizeof(uint8_t) * worldChunks.size() * 256) + " B)", LOG_CONSOLE);
+    Logger.LogInfo("------------------------", LOG_CONSOLE);
 }

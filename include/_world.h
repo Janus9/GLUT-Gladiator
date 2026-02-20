@@ -17,11 +17,9 @@
 
 struct _tile
 {
-    GLuint textureId;
-    //float u0, v0, u1, v1; // if using atlas; otherwise 0..1
+    float u0, v0, u1, v1; // if using atlas; otherwise 0..1
     int pixelW;
     int pixelH;
-    //bool isSolid;  
 };
 
 
@@ -50,31 +48,57 @@ class _world
         _world();
         virtual ~_world();
         
+        // Initializes the world by loading tile textures and generating the initial chunks.
         void initWorld();
+
+        // Draw function for world
         void drawWorld();
 
+        // Sets the debug option to display chunk borders
         void SET_DisplayChunkBorders(bool value) { displayChunkBorders = value; }
 
-        void generateChunk();
+        // Generates a chunk at the given chunk coordinates (chunkX, chunkY) and adds it to the worldChunks vector.
+        void generateChunk(int chunkX, int chunkY);
 
+        // Checks if a given chunck is loaded by looking up the chunk in the unordered map of loaded chunks.
         bool isChunkLoaded(int chunkX, int chunkY);
+
+        // Prints debugging information largely about storage and performance metrics of the world
+        void debugPrint();
 
     protected:
     private:
+        // -- RNG -- //
+
         // Using a current time for the seed is chose because the normal std::random_device doesnt work for some reason
         unsigned int seed = (unsigned int)std::chrono::system_clock::now().time_since_epoch().count(); 
         std::mt19937 rng{seed}; 
 
-        _texture* tileTexture = new _texture(); // Texture loader
+        // -- WORLD DATA -- //
 
-        _tile world_tiles[256]; // 256 unique tile types 
-        //_chunk* chunk = new _chunk(); // example chunk
+        _texture* tileAtlas = new _texture(); // Texture loader
 
+        // List of all possible tile types. This is a lookup table NOT the main storage array
+        _tile world_tiles[256];  
+        
+        // Called by initWorld as a section to load tile textures
+        void initTiles();
+
+        // Uses the tileNum to calculated the tex coords for each tile
+        bool setTileInAtlas(int tileNum, _tile &tile);
+
+        /*
+            Main storage of world data. The world is made up of chunks (16x16 tiles) thus holding 256 tiles each.
+            Each tile is represented by a single byte holding an ID that uses the world_tiles lookup to establish a texture and parameters for that tile.
+        */
         vector<_chunk> worldChunks; 
 
+        // Unordered map to keep track of which chunks are loaded. The key is a string of the format "chunkX,chunkY" and the value is a boolean indicating whether the chunk is loaded or not.
+        // This key should be changed at some point, using a string conversion is expensive.
         unordered_map<string,bool> loadedChunks;
 
-        // DEBUGGING //
+        // -- DEBUGGING -- //
+        
         bool displayChunkBorders = true; // When enabled puts a red border around chunks (may drop performance)
 };
 
