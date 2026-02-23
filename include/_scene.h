@@ -72,6 +72,8 @@ class _scene
         _timerPlusPlus* drawBenchTimer = new _timerPlusPlus(); // Timer for benching draw command
         _timerPlusPlus* updateBenchTimer = new _timerPlusPlus(); // Timer for benching update command
 
+        BenchmarkPackage drawBenchmark;
+
         bool isPerspective = false;
         bool debugEnabled = true;           // Enables specific debugging information for the scene
         bool inputDebugEnabled = false;     // Enables debug info for inputs (keyboard keys + mouse inputs)

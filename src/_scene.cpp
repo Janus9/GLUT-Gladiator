@@ -103,7 +103,12 @@ void _scene::drawScene()
 
     applyCamera(); // Apply camera transformations
 
+    double startTime = drawBenchTimer->getTicks(); 
     myWorld->drawWorld(); // Draw the world
+    double endTime = drawBenchTimer->getTicks();
+    double deltaTime = endTime - startTime;
+    drawBenchmark.benchmarkTicks += deltaTime;
+    drawBenchmark.numIterations++;
 
     test_player->drawSprite(); // Draw the test player sprite
 
