@@ -52,6 +52,9 @@ GLint _scene::initGL()
 
     // CLASS INIT //
 
+    myQuad->initQuad("images/chud.jpeg");
+    myQuad->scale = {3.0f, 3.0f, 3.0f};
+
     inputTimer.reset(); 
     fpsTimer->reset();  
     // tester player
@@ -104,7 +107,11 @@ void _scene::drawScene()
     applyCamera(); // Apply camera transformations
 
     double startTime = drawBenchTimer->getTicks(); 
+    
+    //myQuad->drawQuad();
+
     myWorld->drawWorld(); // Draw the world
+    
     double endTime = drawBenchTimer->getTicks();
     double deltaTime = endTime - startTime;
     drawBenchmark.benchmarkTicks += deltaTime;
@@ -165,6 +172,9 @@ void _scene::debugPrint()
     
     bool inLoadedChunk = myWorld->isChunkLoaded(playerChunkPos.x, playerChunkPos.y);
     Logger.LogDebug("Player is in loaded chunk: " + std::string(inLoadedChunk ? "YES" : "NO"), LOG_CONSOLE);
+
+    double dt = drawBenchmark.benchmarkTicks / drawBenchmark.numIterations;
+    Logger.LogDebug("drawScene time: " + to_string(dt) + "ms");
 
     myWorld->debugPrint();
 }

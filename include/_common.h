@@ -76,7 +76,7 @@ struct BenchmarkPackage
     std::string name = "";      
     double benchmarkTicks = 0.0;
     int numIterations = 0;    
-}
+};
 
 // // Converts a chunk position into a string to be used as a key for the loadedChunks unordered map. This isnt a good key making a string is expensive
 inline std::string ChunkPosToKey(Vec2i chunkPos) {

@@ -11,6 +11,7 @@
 #include<_timerPlusPlus.h>  
 #include<_sprite.h>
 #include<_vbo.h>
+#include<_quad.h>
 
 #include<_world.h>
 
@@ -43,6 +44,8 @@ class _scene
         _model* myModel = new _model();
         _world* myWorld = new _world();
         _sprite* test_player = new _sprite();
+
+        _quad* myQuad = new _quad();
 
         _vbo vbo1 = _vbo();
 
