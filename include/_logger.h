@@ -1,7 +1,6 @@
 #ifndef _LOGGER_H_
 #define _LOGGER_H_
 
-
 /* -- COLOR DEFINITIONS -- */
 #define ESC "\033["         
 //#define RESET "\033[m"

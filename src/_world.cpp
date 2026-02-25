@@ -10,34 +10,44 @@ _world::~_world()
     //dtor
     delete tileAtlas;
     tileAtlas = nullptr;
+
+    delete initBenchmark;
+    initBenchmark = nullptr;
 }
 
 void _world::initWorld()
 {
-    Logger.LogInfo("Initializing world for seed " + to_string(seed), LOG_BOTH);
-    Logger.LogInfo("World has " + to_string(numStartingChunks) + " starting chunks.", LOG_BOTH);
+    initBenchmark->startBenchmark();
 
-    tileAtlas->loadTexture("images/world_tiles_atlas.png"); // Load the tile atlas texture
-    worldChunks.resize(numStartingChunks); // Resize the vector to hold numStartingChunks chunks
+        Logger.LogInfo("Initializing world for seed " + to_string(seed), LOG_BOTH);
+        Logger.LogInfo("World has " + to_string(numStartingChunks) + " starting chunks.", LOG_BOTH);
 
-    uniform_int_distribution<int> dist(0, 3); 
+        tileAtlas->loadTexture("images/world_tiles_atlas.png"); // Load the tile atlas texture
+        // Reserve allocates memory but does not instantiate it -- resize allocates AND instantiates it (dont want that)
+        worldChunks.reserve(numStartingChunks); // Resize the vector to hold numStartingChunks chunks
 
-    double sqrtNumChunks = sqrt(numStartingChunks);
-    // This checks if a decimal (like 1.3) is equal to its floor (1.0) which indicates the sqrt wasn't perfect
-    if (sqrtNumChunks != floor(sqrtNumChunks)) {
-        Logger.LogWarning("numStartingChunks is not a perfect square. This may lead to an uneven distribution of chunks around the center.", LOG_BOTH);
-    }
+        uniform_int_distribution<int> dist(0, 3); 
 
-    // Initialize world tiles and chunks here
-    for (int i = 0; i < numStartingChunks; i++) {
+        double sqrtNumChunks = sqrt(numStartingChunks);
+        // This checks if a decimal (like 1.3) is equal to its floor (1.0) which indicates the sqrt wasn't perfect
+        if (sqrtNumChunks != floor(sqrtNumChunks)) {
+            Logger.LogWarning("numStartingChunks is not a perfect square. This may lead to an uneven distribution of chunks around the center.", LOG_BOTH);
+        }
 
-        int chunkX = i % (int)sqrt(numStartingChunks) - floor(sqrt(numStartingChunks) / 2); // Calculate chunkX based on index
-        int chunkY = i / (int)sqrt(numStartingChunks) - floor(sqrt(numStartingChunks) / 2); // Calculate chunkY based on index
+        // Initialize world tiles and chunks here
+        for (int i = 0; i < numStartingChunks; i++) {
 
-        generateChunk(chunkX, chunkY); // Generate the chunk at the calculated coordinates
-    } 
+            int chunkX = i % (int)sqrt(numStartingChunks) - floor(sqrt(numStartingChunks) / 2); // Calculate chunkX based on index
+            int chunkY = i / (int)sqrt(numStartingChunks) - floor(sqrt(numStartingChunks) / 2); // Calculate chunkY based on index
 
-    initTiles(); // Setup tiles
+            generateChunk(chunkX, chunkY); // Generate the chunk at the calculated coordinates
+        } 
+
+        initTiles(); // Setup tiles
+
+    initBenchmark->clickBenchmark();
+    double time = initBenchmark->getAverageResult();
+    Logger.LogInfo("World initialization for " + to_string(worldChunks.size()) + "chunks took " + to_string(time) + "ms");
 }
 
 void _world::initTiles() {
@@ -98,7 +108,7 @@ void _world::generateChunk(int new_chunkX, int new_chunkY)
 
     loadedChunks.insert({ChunkPosToKey(new_chunkX, new_chunkY),true});
 
-    Logger.LogDebug("Generating new chunk at (" + std::to_string(new_chunkX) + ", " + std::to_string(new_chunkY) + ")", LOG_BOTH);
+    //Logger.LogDebug("Generating new chunk at (" + std::to_string(new_chunkX) + ", " + std::to_string(new_chunkY) + ")", LOG_BOTH);
 
     _chunk newChunk;
     newChunk.chunkX = new_chunkX;
@@ -111,11 +121,31 @@ void _world::generateChunk(int new_chunkX, int new_chunkY)
     }
 }
 
-void _world::drawWorld()
+void _world::drawWorld(float left, float right, float top, float bottom)
 {
+    // Since its an atlas we only need one text bind. Each tile takes a snippit of the atlas
+    tileAtlas->bindTexture();
+    
+    glBegin(GL_QUADS);
+
     for(int chunkNum = 0; chunkNum < worldChunks.size(); chunkNum++) {
         _chunk* chunk = &worldChunks[chunkNum];
+
+        // chunk culling
+
+        float chunkLeft = (float)(chunk->chunkX * 16) * TILE_W;
+        float chunkBottom = (float)(chunk->chunkY * 16) * TILE_H;
+
+        float chunkRight = chunkLeft + TILE_W * TILE_W;
+        float chunkTop = chunkBottom + TILE_H * TILE_H;
+
+        if (chunkRight < left)   { continue; }  // chunk entirely left of view
+        if (chunkLeft > right)   { continue; }  // chunk entirely right of view
+        if (chunkTop < bottom)   { continue; }  // chunk entirely below view
+        if (chunkBottom > top)   { continue; }  // chunk entirely above view
+
         for (int y = 0; y < 16; y++) {
+            float worldY = (chunk->chunkY * 16 + y) * TILE_H;              
             for (int x = 0; x < 16; x++) {
                 int index = y * 16 + x;
                 uint8_t tileType = chunk->tileData[index];
@@ -124,30 +154,25 @@ void _world::drawWorld()
                 _tile& tile = world_tiles[tileType];
                 
                 // Calculate world position
-                float worldX = (chunk->chunkX * 16 + x) * TILE_W;
-                float worldY = (chunk->chunkY * 16 + y) * TILE_H;
-                
-                // Bind texture
-                tileAtlas->bindTexture();
+                float worldX = (chunk->chunkX * 16 + x) * TILE_W;    
 
-                // Draws from bottom left
-                glBegin(GL_QUADS);
-                    // bottom-left
-                    glTexCoord2f(tile.u0, tile.v1); glVertex2f(worldX, worldY);
-                    // bottom-right
-                    glTexCoord2f(tile.u1, tile.v1); glVertex2f(worldX + TILE_W, worldY);
-                    // top-right
-                    glTexCoord2f(tile.u1, tile.v0); glVertex2f(worldX + TILE_W, worldY + TILE_H);
-                    // top-left
-                    glTexCoord2f(tile.u0, tile.v0); glVertex2f(worldX, worldY + TILE_H);
-                glEnd();
+                // bottom-left
+                glTexCoord2f(tile.u0, tile.v1); glVertex2f(worldX, worldY);
+                // bottom-right
+                glTexCoord2f(tile.u1, tile.v1); glVertex2f(worldX + TILE_W, worldY);
+                // top-right
+                glTexCoord2f(tile.u1, tile.v0); glVertex2f(worldX + TILE_W, worldY + TILE_H);
+                // top-left
+                glTexCoord2f(tile.u0, tile.v0); glVertex2f(worldX, worldY + TILE_H);
             }
         }
     }
-    // Displays chunk borders in red when enabled
+    glEnd();
+    // Displays chunk borders in red when enabled -- kind of broken
     if (displayChunkBorders) {
-        glLineWidth(2.0f); // Thicker lines for visibility
         glColor3f(1.0f, 0.0f, 0.0f); // Red color for borders
+        glLineWidth(2.0f); // Thicker lines for visibility
+        glBegin(GL_LINE_LOOP);
         for(int chunkNum = 0; chunkNum < worldChunks.size(); chunkNum++) {
             _chunk& chunk = worldChunks[chunkNum];
             float left = chunk.chunkX * 16 * TILE_W;
@@ -155,14 +180,12 @@ void _world::drawWorld()
             float top = chunk.chunkY * 16 * TILE_H;
             float bottom = top + 16 * TILE_H;
             
-            glBegin(GL_LINE_LOOP);
                 glVertex2f(left, top);
                 glVertex2f(right, top);
                 glVertex2f(right, bottom);
                 glVertex2f(left, bottom);
-            glEnd();
         }
-        glLineWidth(1.0f); // Reset line width
+        glEnd();
     }   
 }
 
@@ -172,8 +195,23 @@ bool _world::isChunkLoaded(int chunkX, int chunkY) {
 }
 
 void _world::debugPrint() {
+
+    size_t ChunkBytes = sizeof(_chunk) * worldChunks.size();
+    size_t TileBytes = sizeof(uint8_t) * worldChunks.size() * 256;
+
     Logger.LogInfo(" -- World Debug Print -- ", LOG_CONSOLE);
-    Logger.LogInfo("Chunks Loaded: " + std::to_string(worldChunks.size()) + " (" + std::to_string(sizeof(_chunk) * worldChunks.size()) + " B)", LOG_CONSOLE);
-    Logger.LogInfo("Tiles Loaded: " + std::to_string(worldChunks.size() * 256) + " (" + std::to_string(sizeof(uint8_t) * worldChunks.size() * 256) + " B)", LOG_CONSOLE);
+    Logger.LogInfo(
+        "Chunks Loaded: " 
+        + std::to_string(worldChunks.size()) 
+        + " (" + std::to_string(ChunkBytes) + " B)" 
+        + " (" + std::to_string(ChunkBytes/1000000) + "MB)", 
+        LOG_CONSOLE
+    );
+    Logger.LogInfo(
+        "Tiles Loaded: " 
+        + std::to_string(worldChunks.size() * 256) 
+        + " (" + std::to_string(TileBytes) + " B)" 
+        + " (" + std::to_string(TileBytes/1000000) + "MB)", 
+        LOG_CONSOLE);
     Logger.LogInfo("------------------------", LOG_CONSOLE);
 }

@@ -14,6 +14,7 @@
 
 #include<_common.h>
 #include<_texture.h>
+#include<_benchmark.h>
 
 struct _tile
 {
@@ -50,7 +51,7 @@ class _world
         void initWorld();
 
         // Draw function for world
-        void drawWorld();
+        void drawWorld(float left, float right, float top, float bottom);
 
         // Sets the debug option to display chunk borders
         void SET_DisplayChunkBorders(bool value) { displayChunkBorders = value; }
@@ -76,7 +77,7 @@ class _world
 
         // This is the default number of renered chunks for the world. Starts at center and expands evenly outward as a cube 
         // Would be better done as a sphere but cube is easier -- gives warning if # doesnt make an even cube
-        int numStartingChunks = 64;
+        int numStartingChunks = 1048576;
 
         _texture* tileAtlas = new _texture(); // Texture loader
 
@@ -101,7 +102,9 @@ class _world
 
         // -- DEBUGGING -- //
         
-        bool displayChunkBorders = true; // When enabled puts a red border around chunks (may drop performance)
+        _benchmark* initBenchmark = new _benchmark();
+
+        bool displayChunkBorders = false; // When enabled puts a red border around chunks (may drop performance)
 };
 
 #endif // _WORLD_H

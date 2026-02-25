@@ -23,12 +23,9 @@ _scene::~_scene()
     delete fpsTimer;
     fpsTimer = nullptr;
 
-    delete drawBenchTimer;
-    drawBenchTimer = nullptr;
-
-    delete updateBenchTimer;
-    updateBenchTimer = nullptr;
-}
+    delete drawWorldBenchmark;
+    drawWorldBenchmark = nullptr;
+}   
 
 
 GLint _scene::initGL()
@@ -38,10 +35,6 @@ GLint _scene::initGL()
     glClearDepth(1.0); //Gives depth to the environment by having color both in the front and back. Depth-test value
     glEnable(GL_DEPTH_TEST); //Will ensure the depth of the z-coordinate is accurate through enabling depth-test
     glDepthFunc(GL_LEQUAL); //Depth-test is less than or equal to--> true for less or equal
-
-    // glEnable(GL_LIGHTING); //Enable lighting within the scene to be initialized (8 total lights)
-    // glEnable(GL_LIGHT0); //Light is instantiated at this module
-    // glEnable(GL_COLOR_MATERIAL); //To theoretically instantiate a base color on a 3D object (likely won't be used)
 
     // its 2D w/ pixels so no need for lighting
     glDisable(GL_LIGHTING);
@@ -57,6 +50,7 @@ GLint _scene::initGL()
 
     inputTimer.reset(); 
     fpsTimer->reset();  
+
     // tester player
     test_player->spriteInit("images/test_player.png", 1, 1); 
     
@@ -67,14 +61,13 @@ GLint _scene::initGL()
     myWorld->initWorld(); // Initialize the world
     
     debugTimer.reset();     
-    drawBenchTimer->reset(); 
-    updateBenchTimer->reset();
     
     myWorld->SET_DisplayChunkBorders(displayChunkBorders); // Set initial chunk border display state
     
     vbo1.vboInit();
     texture1.loadTexture("images/wood.png");
-
+   
+    drawWorldBenchmark->startBenchmark();
     return true;
 }
 
@@ -106,16 +99,11 @@ void _scene::drawScene()
 
     applyCamera(); // Apply camera transformations
 
-    double startTime = drawBenchTimer->getTicks(); 
-    
     //myQuad->drawQuad();
 
-    myWorld->drawWorld(); // Draw the world
-    
-    double endTime = drawBenchTimer->getTicks();
-    double deltaTime = endTime - startTime;
-    drawBenchmark.benchmarkTicks += deltaTime;
-    drawBenchmark.numIterations++;
+    drawWorldBenchmark->startBenchmark();
+        myWorld->drawWorld(left,right,top,bottom); // Draw the world
+    drawWorldBenchmark->clickBenchmark();
 
     test_player->drawSprite(); // Draw the test player sprite
 
@@ -170,11 +158,12 @@ void _scene::debugPrint()
     Logger.LogDebug("Camera Position: (" + std::to_string(cameraX) + ", " + std::to_string(cameraY) + ") Zoom: " + std::to_string(cameraZoom), LOG_CONSOLE);
     Logger.LogDebug("Player is in chunk: (" + std::to_string(playerChunkPos.x) + ", " + std::to_string(playerChunkPos.y) + ")", LOG_CONSOLE);
     
+    Logger.LogDebug("World drawing took: " + std::to_string(drawWorldBenchmark->getAverageResult()) + "ms");
+
     bool inLoadedChunk = myWorld->isChunkLoaded(playerChunkPos.x, playerChunkPos.y);
     Logger.LogDebug("Player is in loaded chunk: " + std::string(inLoadedChunk ? "YES" : "NO"), LOG_CONSOLE);
 
-    double dt = drawBenchmark.benchmarkTicks / drawBenchmark.numIterations;
-    Logger.LogDebug("drawScene time: " + to_string(dt) + "ms");
+    Logger.LogDebug("Left: " + to_string(left) + "\n Right: " + to_string(right) + "\n Top: " + to_string(top) + "\n Bottom: " + to_string(bottom));
 
     myWorld->debugPrint();
 }
@@ -324,10 +313,10 @@ void _scene::applyCamera() {
     float halfWidth = width * 0.5f / cameraZoom; // Adjust half-width based on zoom level
     float halfHeight = height * 0.5f / cameraZoom; // Adjust half-height based on zoom level
 
-    float left = cameraX - halfWidth;
-    float right = cameraX + halfWidth;
-    float bottom = cameraY - halfHeight;
-    float top = cameraY + halfHeight;
+    left = cameraX - halfWidth;
+    right = cameraX + halfWidth;
+    bottom = cameraY - halfHeight;
+    top = cameraY + halfHeight;
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();

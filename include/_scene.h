@@ -12,6 +12,7 @@
 #include<_sprite.h>
 #include<_vbo.h>
 #include<_quad.h>
+#include<_benchmark.h>
 
 #include<_world.h>
 
@@ -39,6 +40,12 @@ class _scene
     private:
 
         int width, height; 
+
+        // Coordinates for the view-window. These are set in applyCamera.
+        float left = 0.0f;
+        float right = 0.0f;
+        float bottom = 0.0f;
+        float top = 0.0f;
 
         _lightSettings *myLight = new _lightSettings();     
         _model* myModel = new _model();
@@ -72,16 +79,14 @@ class _scene
         // DEBUGGING //
         _timerPlusPlus debugTimer;          // Timer to track time between updates for the scene
         _timerPlusPlus* fpsTimer = new _timerPlusPlus(); // Timer to track time between frames for FPS calculation
-        _timerPlusPlus* drawBenchTimer = new _timerPlusPlus(); // Timer for benching draw command
-        _timerPlusPlus* updateBenchTimer = new _timerPlusPlus(); // Timer for benching update command
 
-        BenchmarkPackage drawBenchmark;
+        _benchmark* drawWorldBenchmark = new _benchmark();
 
         bool isPerspective = false;
         bool debugEnabled = true;           // Enables specific debugging information for the scene
         bool inputDebugEnabled = false;     // Enables debug info for inputs (keyboard keys + mouse inputs)
         bool cameraFree = false;            // If true camera will not track player and can be moved freely
-        bool displayChunkBorders = true;    // If enabled chunks will have red border around them
+        bool displayChunkBorders = false;   // If enabled chunks will have red border around them
 
         double debugPrintInterval = 5000;   // ms between debug prints
         double fpsPrintInterval = 1000;     // ms between FPS prints
