@@ -170,23 +170,26 @@ void _world::drawWorld(float left, float right, float top, float bottom)
     glEnd();
     // Displays chunk borders in red when enabled -- kind of broken
     if (displayChunkBorders) {
-        glColor3f(1.0f, 0.0f, 0.0f); // Red color for borders
-        glLineWidth(2.0f); // Thicker lines for visibility
-        glBegin(GL_LINE_LOOP);
-        for(int chunkNum = 0; chunkNum < worldChunks.size(); chunkNum++) {
-            _chunk& chunk = worldChunks[chunkNum];
-            float left = chunk.chunkX * 16 * TILE_W;
-            float right = left + 16 * TILE_W;
-            float top = chunk.chunkY * 16 * TILE_H;
-            float bottom = top + 16 * TILE_H;
-            
-                glVertex2f(left, top);
-                glVertex2f(right, top);
-                glVertex2f(right, bottom);
-                glVertex2f(left, bottom);
-        }
-        glEnd();
-    }   
+        glPushAttrib(GL_CURRENT_BIT | GL_LINE_BIT); // saves current GL state for color/line wdidth
+            glColor3f(1.0f, 0.0f, 0.0f); // Red color for borders
+            glLineWidth(2.0f); // Thicker lines for visibility
+            glBegin(GL_LINE_LOOP);
+                for(int chunkNum = 0; chunkNum < worldChunks.size(); chunkNum++) {
+                    _chunk* chunk = &worldChunks[chunkNum];
+
+                    float left = chunk->chunkX * 16 * TILE_W;
+                    float right = left + 16 * TILE_W;
+                    float top = chunk->chunkY * 16 * TILE_H;
+                    float bottom = top + 16 * TILE_H;
+                    
+                    glVertex2f(left, top);
+                    glVertex2f(right, top);
+                    glVertex2f(right, bottom);
+                    glVertex2f(left, bottom);
+                }
+            glEnd();
+        glPopAttrib();
+    }
 }
 
 bool _world::isChunkLoaded(int chunkX, int chunkY) {
