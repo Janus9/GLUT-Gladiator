@@ -58,13 +58,13 @@ void _sprite::drawSprite()
 
         glBegin(GL_QUADS);
             // bottom-left
-            glTexCoord2f(u0, v1); glVertex2f(0.0f, 0.0f);
+            glTexCoord2f(u0, v1); glVertex2f(-spriteWidth/2.0f, -spriteHeight/2.0f);
             // bottom-right
-            glTexCoord2f(u1, v1); glVertex2f(spriteWidth, 0.0f);
+            glTexCoord2f(u1, v1); glVertex2f(spriteWidth/2.0, -spriteHeight/2.0f);
             // top-right
-            glTexCoord2f(u1, v0); glVertex2f(spriteWidth, spriteHeight);
+            glTexCoord2f(u1, v0); glVertex2f(spriteWidth/2.0f, spriteHeight/2.0f);
             // top-left
-            glTexCoord2f(u0, v0); glVertex2f(0.0f, spriteHeight);
+            glTexCoord2f(u0, v0); glVertex2f(-spriteWidth/2.0f, spriteHeight/2.0f);
         glEnd();
     glPopMatrix();
 }
