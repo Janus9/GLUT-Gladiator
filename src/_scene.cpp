@@ -52,7 +52,7 @@ GLint _scene::initGL()
     fpsTimer->reset();  
 
     // tester player
-    test_player->spriteInit("images/test_player.png", 1, 1); 
+    test_player->spriteInit("images/spriteSheet.png", 8, 4); 
     
     test_player->pos = {width/2.0f, height/2.0f}; // Start player in the center of the screen
 
@@ -118,6 +118,14 @@ void _scene::drawScene()
 // Runs in loop 60 times per second. dt is in ms.
 void _scene::updateScene(double dt)
 {
+    // Sprite movement for player
+    if (W) test_player->updateSprite(3);
+    if (A) test_player->updateSprite(1);
+    if (S) test_player->updateSprite(0);
+    if (D) test_player->updateSprite(2);
+
+    if (!W && !A && !S && !D) test_player->stopAnimation();
+
     // Get chunk position (coordinates)
     playerChunkPos.x = (int)floor(playerPos.x / (16 * TILE_W));
     playerChunkPos.y = (int)floor(playerPos.y / (16 * TILE_H));

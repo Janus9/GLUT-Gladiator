@@ -13,45 +13,75 @@ _sprite::_sprite()
 
 _sprite::~_sprite()
 {
-    //dtor
+    delete animationTimer;
+    animationTimer = nullptr;    
+
+    delete texture;
+    texture = nullptr;
 }
 
-void _sprite::spriteInit(const std::string& fileName, int xFrames, int yFrames)
+void _sprite::spriteInit(const std::string& fileName, int _xFrames, int _yFrames, int _FPS)
 {
-    // todo
-    static _texture spriteTexture = _texture();
-    textureId = spriteTexture.loadTexture(fileName);
-    if (textureId == 0) {
+    xFrames = _xFrames;
+    yFrames = _yFrames;
+
+    FPS = _FPS;
+
+    fpsDelay = 1.0/FPS * 1000; // Sets FPS to a ms delay
+
+    if (texture->loadTexture(fileName) == 0) {
         Logger.LogError("Failed to initialize sprite with texture: " + fileName, LOG_BOTH);
-        textureId = spriteTexture.loadTexture("images/missing_texture.png"); // Load a default missing texture
+        texture->loadTexture("images/missing_texture.png"); // Load a default missing texture
     } else {
         Logger.LogInfo("Sprite initialized with texture: " + fileName, LOG_BOTH);
     }
+
+    animationTimer->reset();
 }
 
 void _sprite::drawSprite()
 {
-    // todo
-    glEnable(GL_TEXTURE_2D);
     glPushMatrix();
+        texture->bindTexture();
 
         glTranslatef(pos.x, pos.y, 0.0f);
 
-        glRotatef(rot.x, 1.0f, 0.0f, 0.0f);
-        glRotatef(rot.y, 0.0f, 1.0f, 0.0f);
+        glColor3f(color.r, color.g, color.b);
 
-        glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-        glColor4f(color.r, color.g, color.b, 1.0f);
+        glRotatef(rot.x,1,0,0);
+        glRotatef(rot.y,0,1,0);
 
-        glBindTexture(GL_TEXTURE_2D, textureId);
+        float u0 = frameX * (1.0f/xFrames);
+        float v0 = frameY * (1.0f/yFrames);
+        float u1 = (frameX+1) * (1.0f/xFrames);
+        float v1 = (frameY+1) * (1.0f/yFrames);
 
         glBegin(GL_QUADS);
-            glTexCoord2f(0.0f, 1.0f); glVertex2f(-tileW/2.0f, -tileH/2.0f);
-            glTexCoord2f(1.0f, 1.0f); glVertex2f( tileW/2.0f, -tileH/2.0f);
-            glTexCoord2f(1.0f, 0.0f); glVertex2f( tileW/2.0f,  tileH/2.0f);
-            glTexCoord2f(0.0f, 0.0f); glVertex2f(-tileW/2.0f,  tileH/2.0f);
+            // bottom-left
+            glTexCoord2f(u0, v1); glVertex2f(0.0f, 0.0f);
+            // bottom-right
+            glTexCoord2f(u1, v1); glVertex2f(spriteWidth, 0.0f);
+            // top-right
+            glTexCoord2f(u1, v0); glVertex2f(spriteWidth, spriteHeight);
+            // top-left
+            glTexCoord2f(u0, v0); glVertex2f(0.0f, spriteHeight);
         glEnd();
-
     glPopMatrix();
-    glDisable(GL_TEXTURE_2D);
+}
+
+void _sprite::updateSprite(const int rowIndex) 
+{
+    if (frameY != rowIndex) frameY = rowIndex;
+
+    if (animationTimer->getTicks() > fpsDelay) {
+        frameX = (frameX + 1) % xFrames;
+        animationTimer->reset();
+    }
+}
+
+void _sprite::stopAnimation()
+{
+    // This needs to be changed to whatever sprite default is (TODO)
+    frameX = 0;
+    animationTimer->reset();
 }
