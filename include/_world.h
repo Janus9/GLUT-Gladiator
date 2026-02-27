@@ -36,9 +36,11 @@ struct _tile
 */
 struct _chunk
 {
-    uint8_t tileData[256]; // 16x16 chunk
     int chunkX;
     int chunkY;
+    uint8_t tileData[256]; // 16x16 chunk
+    GLuint vboID = 0;      // ID for the GPU memory of tiles
+    bool vboDirty = true;  // If dirty then we update the chunk (when tiles change)
 };
 
 class _world
@@ -59,6 +61,9 @@ class _world
         // Generates a chunk at the given chunk coordinates (chunkX, chunkY) and adds it to the worldChunks vector.
         void generateChunk(int chunkX, int chunkY);
 
+        // Uses unordered map to return a given chunk 
+        _chunk* getChunk(int chunkX, int chunkY);
+
         // Checks if a given chunck is loaded by looking up the chunk in the unordered map of loaded chunks.
         bool isChunkLoaded(int chunkX, int chunkY);
 
@@ -70,14 +75,14 @@ class _world
         // -- RNG -- //
 
         // Using a current time for the seed is chose because the normal std::random_device doesnt work for some reason
-        unsigned int seed = (unsigned int)std::chrono::system_clock::now().time_since_epoch().count(); 
+        const int seed = (unsigned int)std::chrono::system_clock::now().time_since_epoch().count(); 
         std::mt19937 rng{seed}; 
 
         // -- WORLD DATA -- //
 
         // This is the default number of renered chunks for the world. Starts at center and expands evenly outward as a cube 
         // Would be better done as a sphere but cube is easier -- gives warning if # doesnt make an even cube
-        int numStartingChunks = 256;
+        const int numStartingChunks = 1048576;
 
         _texture* tileAtlas = new _texture(); // Texture loader
 
@@ -90,15 +95,18 @@ class _world
         // Uses the tileNum to calculated the tex coords for each tile
         bool setTileInAtlas(int tileNum, _tile &tile);
 
+        // Builds a VBO for each chunk of all 256 tiles
+        void buildChunkVBO(_chunk* chunk);
+
         /*
             Main storage of world data. The world is made up of chunks (16x16 tiles) thus holding 256 tiles each.
             Each tile is represented by a single byte holding an ID that uses the world_tiles lookup to establish a texture and parameters for that tile.
         */
         vector<_chunk> worldChunks; 
 
-        // Unordered map to keep track of which chunks are loaded. The key is a string of the format "chunkX,chunkY" and the value is a boolean indicating whether the chunk is loaded or not.
-        // This key should be changed at some point, using a string conversion is expensive.
-        unordered_map<string,bool> loadedChunks;
+        // Constant lookup time for a given chunk and is loaded (vector still used for iterating)
+        unordered_map<pair<int,int>, _chunk*, PairHash> chunkLookup;
+        unordered_map<pair<int,int>, bool, PairHash> loadedChunks;
 
         // -- DEBUGGING -- //
         

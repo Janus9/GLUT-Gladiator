@@ -5,7 +5,6 @@
 
 // INCLUDES //
 
-#include <windows.h>
 #include <iostream>
 #include <GL/glew.h>    // for VBOs
 #include <GL/gl.h>
@@ -78,16 +77,15 @@ struct BenchmarkPackage
     int numIterations = 0;    
 };
 
-// // Converts a chunk position into a string to be used as a key for the loadedChunks unordered map. This isnt a good key making a string is expensive
-inline std::string ChunkPosToKey(Vec2i chunkPos) {
-    return std::to_string(chunkPos.x) + "," + std::to_string(chunkPos.y);
-}
-
-// Dont know what inline does
-// Converts a chunk position (using individual components) into a string to be used as a key for the loadedChunks unordered map. This isnt a good key making a string is expensive
-inline std::string ChunkPosToKey(int chunkX, int chunkY) {
-    return std::to_string(chunkX) + "," + std::to_string(chunkY);
-}
+// Structure for an int,int -> hash. Used for the unordered map in _world for chunks
+struct PairHash {
+    std::size_t operator()(const std::pair<int, int>& p) const {
+        // Combine two ints into one hash using bit shifting
+        // This is fast - just bit operations, no string allocation
+        // AI recommended hashing function, don't know how it works -- will research it later
+        return std::hash<long long>()(((long long)p.first << 32) | (unsigned int)p.second);
+    }
+};
 
 using namespace std;
 

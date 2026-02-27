@@ -25,7 +25,9 @@ void _world::initWorld()
         tileAtlas->loadTexture("images/world_tiles_atlas.png"); // Load the tile atlas texture
         // Reserve allocates memory but does not instantiate it -- resize allocates AND instantiates it (dont want that)
         worldChunks.reserve(numStartingChunks); // Resize the vector to hold numStartingChunks chunks
-
+        
+        initTiles(); // Setup tiles
+        
         uniform_int_distribution<int> dist(0, 3); 
 
         double sqrtNumChunks = sqrt(numStartingChunks);
@@ -42,8 +44,6 @@ void _world::initWorld()
 
             generateChunk(chunkX, chunkY); // Generate the chunk at the calculated coordinates
         } 
-
-        initTiles(); // Setup tiles
 
     initBenchmark->clickBenchmark();
     double time = initBenchmark->getAverageResult();
@@ -106,7 +106,7 @@ void _world::generateChunk(int new_chunkX, int new_chunkY)
 
     uniform_int_distribution<int> dist(0, 3); 
 
-    loadedChunks.insert({ChunkPosToKey(new_chunkX, new_chunkY),true});
+    loadedChunks[{new_chunkX, new_chunkY}] = true;  // Using pair directly
 
     //Logger.LogDebug("Generating new chunk at (" + std::to_string(new_chunkX) + ", " + std::to_string(new_chunkY) + ")", LOG_BOTH);
 
@@ -119,55 +119,105 @@ void _world::generateChunk(int new_chunkX, int new_chunkY)
     for (int i = 0; i < 256; i++) {
         worldChunks.back().tileData[i] = dist(rng); // Randomly assign tile type 0, 1, 2, or 3
     }
+
+    chunkLookup[{new_chunkX, new_chunkY}] = &worldChunks.back();  // Using pair directly
+}
+
+void _world::buildChunkVBO(_chunk* chunk) {
+    // 1 tile = 4 vertices, 1 vertex = 4 floats (2 for vertex, 2 for texture) = 16
+    // 256 tiles * 16 from above gives 4096
+    float vboData[4096];
+    int index = 0;
+
+    for (int y = 0; y < 16; y++) {
+        for (int x = 0; x < 16; x++) {
+            int tileIndex = y * 16 + x;
+            uint8_t tileType = chunk->tileData[tileIndex];
+            _tile* tile = &world_tiles[tileType];
+            
+            float worldX = (chunk->chunkX * 16 + x) * TILE_W;
+            float worldY = (chunk->chunkY * 16 + y) * TILE_H;
+
+            // The VBO is set up identical to how we would do glVertex2f and glTexCoord2f
+
+            // Bottom-left
+            vboData[index++] = worldX;
+            vboData[index++] = worldY;
+            vboData[index++] = tile->u0;
+            vboData[index++] = tile->v1;
+            
+            // Bottom-right
+            vboData[index++] = worldX + TILE_W;
+            vboData[index++] = worldY;
+            vboData[index++] = tile->u1;
+            vboData[index++] = tile->v1;
+            
+            // Top-right
+            vboData[index++] = worldX + TILE_W;
+            vboData[index++] = worldY + TILE_H;
+            vboData[index++] = tile->u1;
+            vboData[index++] = tile->v0;
+            
+            // Top-left
+            vboData[index++] = worldX;
+            vboData[index++] = worldY + TILE_H;
+            vboData[index++] = tile->u0;
+            vboData[index++] = tile->v0;
+        }
+    }
+
+    // VBO uninitialized if 0
+    if (chunk->vboID == 0) {
+        glGenBuffers(1, &chunk->vboID); // Create an ID for the GPU buffer (only done once)
+    }
+
+    glBindBuffer(GL_ARRAY_BUFFER, chunk->vboID); // Working with this specific buffer
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vboData), vboData, GL_STATIC_DRAW); // Copy the system memory buffer (vboData) into a GPU memory buffer
+    glBindBuffer(GL_ARRAY_BUFFER,0); // Make sure to set vbo to 0 (nothing) to signal we're done working with this vboID
+
+    chunk->vboDirty = false;
 }
 
 void _world::drawWorld(float left, float right, float top, float bottom)
 {
     // Since its an atlas we only need one text bind. Each tile takes a snippit of the atlas
     tileAtlas->bindTexture();
-    
-    glBegin(GL_QUADS);
 
-    for(int chunkNum = 0; chunkNum < worldChunks.size(); chunkNum++) {
-        _chunk* chunk = &worldChunks[chunkNum];
+    // Tell OpenGL were using VBOs
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
-        // chunk culling
+    // Calculate which chunks are visible
+    int minChunkX = (int)floor(left / (16 * TILE_W));
+    int maxChunkX = (int)ceil(right / (16 * TILE_W));
+    int minChunkY = (int)floor(bottom / (16 * TILE_H));
+    int maxChunkY = (int)ceil(top / (16 * TILE_H));
 
-        float chunkLeft = (float)(chunk->chunkX * 16) * TILE_W;
-        float chunkBottom = (float)(chunk->chunkY * 16) * TILE_H;
+    for (int chunkY = minChunkY; chunkY < maxChunkY; chunkY++) {
+        for (int chunkX = minChunkX; chunkX < maxChunkX; chunkX++) {
+            // Check if we loaded the given chunk
+            if (!isChunkLoaded(chunkX, chunkY)) { continue; }
+            
+            // Uses unordered map to get a reference to the chunk (since we arent iterating through entire vector)
+            _chunk* chunk = getChunk(chunkX, chunkY);
+            if (chunk == nullptr) { continue; }
 
-        float chunkRight = chunkLeft + TILE_W * TILE_W;
-        float chunkTop = chunkBottom + TILE_H * TILE_H;
-
-        if (chunkRight < left)   { continue; }  // chunk entirely left of view
-        if (chunkLeft > right)   { continue; }  // chunk entirely right of view
-        if (chunkTop < bottom)   { continue; }  // chunk entirely below view
-        if (chunkBottom > top)   { continue; }  // chunk entirely above view
-
-        for (int y = 0; y < 16; y++) {
-            float worldY = (chunk->chunkY * 16 + y) * TILE_H;              
-            for (int x = 0; x < 16; x++) {
-                int index = y * 16 + x;
-                uint8_t tileType = chunk->tileData[index];
-                
-                // Get the tile definition
-                _tile& tile = world_tiles[tileType];
-                
-                // Calculate world position
-                float worldX = (chunk->chunkX * 16 + x) * TILE_W;    
-
-                // bottom-left
-                glTexCoord2f(tile.u0, tile.v1); glVertex2f(worldX, worldY);
-                // bottom-right
-                glTexCoord2f(tile.u1, tile.v1); glVertex2f(worldX + TILE_W, worldY);
-                // top-right
-                glTexCoord2f(tile.u1, tile.v0); glVertex2f(worldX + TILE_W, worldY + TILE_H);
-                // top-left
-                glTexCoord2f(tile.u0, tile.v0); glVertex2f(worldX, worldY + TILE_H);
+            // If chunk is dirty (so tiles changed) call a rebuild
+            if (chunk->vboDirty) {
+                buildChunkVBO(chunk);
             }
+
+            // Draw VBO
+            glBindBuffer(GL_ARRAY_BUFFER, chunk->vboID);
+            glVertexPointer(2, GL_FLOAT, 4 * sizeof(float), (void*)0);
+            glTexCoordPointer(2, GL_FLOAT, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+            glDrawArrays(GL_QUADS, 0, 256 * 4);  // 256 tiles * 4 vertices
         }
     }
-    glEnd();
+
+    glDisableClientState(GL_VERTEX_ARRAY);
+    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+
     // Displays chunk borders in red when enabled -- kind of broken
     if (displayChunkBorders) {
         glPushAttrib(GL_CURRENT_BIT | GL_LINE_BIT); // saves current GL state for color/line wdidth
@@ -193,8 +243,15 @@ void _world::drawWorld(float left, float right, float top, float bottom)
 }
 
 bool _world::isChunkLoaded(int chunkX, int chunkY) {
-    string key = ChunkPosToKey(chunkX, chunkY);
-    return loadedChunks.find(key) != loadedChunks.end();
+    return loadedChunks.find({chunkX, chunkY}) != loadedChunks.end();
+}
+
+_chunk* _world::getChunk(int chunkX, int chunkY) {
+    auto it = chunkLookup.find({chunkX,chunkY});
+    if (it != chunkLookup.end()) {
+        return it->second;
+    }
+    return nullptr;
 }
 
 void _world::debugPrint() {
