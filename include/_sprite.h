@@ -10,8 +10,8 @@ class _sprite {
         _sprite();
         virtual ~_sprite();
 
-        const float spriteWidth = 16.0f; // Width of the sprite in world units
-        const float spriteHeight = 16.0f; // Height of the sprite in world units
+        const float spriteWidth = 32.0f; // Width of the sprite in world units
+        const float spriteHeight = 32.0f; // Height of the sprite in world units
 
         // world //
         Vec2f pos; 

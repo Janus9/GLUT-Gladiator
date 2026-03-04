@@ -263,34 +263,57 @@ Vec2i _world::convertIndexToPos(int index, int width, int height) {
     int yPos = index / height;
 }
 
+/*
+When tiles are made from noise its flat but since we load chunk by chunk we have to convert this flat array into 
+a coordinate system for chunks
+*/
 void _world::finalizeWorld() {
     Logger.LogDebug("Mapping world noise into tiles");
     
-    int world_noise_i = 0;
+    int worldWidth = (int)sqrt(numStartingChunks) * 16;
+    int worldHeight = (int)sqrt(numStartingChunks) * 16;
+    
     for (int i = 0; i < numStartingChunks; i++) {
-
-        int new_chunkX = i % (int)sqrt(numStartingChunks) - floor(sqrt(numStartingChunks) / 2); // Calculate chunkX based on index
-        int new_chunkY = i / (int)sqrt(numStartingChunks) - floor(sqrt(numStartingChunks) / 2); // Calculate chunkY based on index
+        int new_chunkX = i % (int)sqrt(numStartingChunks) - floor(sqrt(numStartingChunks) / 2);
+        int new_chunkY = i / (int)sqrt(numStartingChunks) - floor(sqrt(numStartingChunks) / 2);
 
         _chunk newChunk;
         newChunk.chunkX = new_chunkX;
         newChunk.chunkY = new_chunkY;
 
-        for (int j = 0; j < 256; j++) {
-            newChunk.tileData[j] = world_noise[world_noise_i] ? 4 : 5;
-            world_noise_i++;
+        // Calculate the starting position of this chunk in the world grid
+        int chunkStartX = (new_chunkX + (int)floor(sqrt(numStartingChunks) / 2)) * 16;
+        int chunkStartY = (new_chunkY + (int)floor(sqrt(numStartingChunks) / 2)) * 16;
+
+        // Extract the 16x16 tile section for this chunk from world_noise
+        for (int tileY = 0; tileY < 16; tileY++) {
+            for (int tileX = 0; tileX < 16; tileX++) {
+                // Calculate position in world grid
+                int worldX = chunkStartX + tileX;
+                int worldY = chunkStartY + tileY;
+                
+                // Convert to flat array index
+                int world_noise_index = worldY * worldWidth + worldX;
+                
+                // Convert to chunk tile index (tileY * 16 + tileX gives position in chunk's 16x16 grid)
+                int chunk_tile_index = tileY * 16 + tileX;
+                
+                newChunk.tileData[chunk_tile_index] = world_noise[world_noise_index] ? 4 : 5;
+            }
         }
 
         worldChunks.push_back(newChunk);
 
-        loadedChunks[{new_chunkX, new_chunkY}] = true;  // Using pair directly
-        chunkLookup[{new_chunkX, new_chunkY}] = &worldChunks.back();  // Using pair directly
+        loadedChunks[{new_chunkX, new_chunkY}] = true;
+        chunkLookup[{new_chunkX, new_chunkY}] = &worldChunks.back();
     }
     Logger.LogDebug("World noise has been mapped to tiles and has been finalized!");
 }
 
 void _world::runWorldGeneration(int iterations) {
-    Logger.LogInfo("Running world generation!");
+    Logger.LogInfo("Running world generation for parameters: ");
+    Logger.LogInfo(" - Noise Density: " + to_string(noise_distribution*100.0f) + "%");
+    Logger.LogInfo(" - Generation Iterations: " + to_string(iterations));
 
     // inefficent but easy, maps each tile to a coordinate for easy acess
     unordered_map<pair<int,int>, bool, PairHash> noise_map;
@@ -342,8 +365,8 @@ void _world::runWorldGeneration(int iterations) {
                     }
                 }
             }
-            // Value can be changed to vary results >= 4 is considered "best"
-            if (num_neighbors >= 4) {
+            // Moore Neighborhood //
+            if (num_neighbors > 4) {
                 world_noise[i] = true;
             } else {
                 world_noise[i] = false;
@@ -356,6 +379,7 @@ void _world::runWorldGeneration(int iterations) {
 
             noise_map[{xPos, yPos}] = world_noise[i];
         }
+        Logger.LogDebug(" -- Iteration: " + to_string(iteration) + " completed!");
     }
 
     Logger.LogDebug("World generation completed! Finalizing now ...");
