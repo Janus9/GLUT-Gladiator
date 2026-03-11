@@ -15,6 +15,7 @@
 #include<_quad.h>
 #include<_benchmark.h>
 
+#include<_sounds.h>
 #include<_world.h>
 
 class _scene
@@ -39,7 +40,6 @@ class _scene
         // CLASSES //
     protected:
     private:
-
         int width, height; 
 
         // Coordinates for the view-window. These are set in applyCamera.
@@ -47,6 +47,9 @@ class _scene
         float right = 0.0f;
         float bottom = 0.0f;
         float top = 0.0f;
+
+        // Sounds //
+        _sounds* testSounds = new _sounds();
 
         _lightSettings *myLight = new _lightSettings();     
         _model* myModel = new _model();

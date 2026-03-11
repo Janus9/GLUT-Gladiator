@@ -70,13 +70,6 @@ struct Col3f
     GLfloat b;
 };
 
-struct BenchmarkPackage
-{
-    std::string name = "";      
-    double benchmarkTicks = 0.0;
-    int numIterations = 0;    
-};
-
 // Structure for an int,int -> hash. Used for the unordered map in _world for chunks
 struct PairHash {
     std::size_t operator()(const std::pair<int, int>& p) const {

@@ -82,7 +82,7 @@ class _world
 
         // This is the default number of renered chunks for the world. Starts at center and expands evenly outward as a cube 
         // Would be better done as a sphere but cube is easier -- gives warning if # doesnt make an even cube
-        const int numStartingChunks = 1048576;
+        const int numStartingChunks = 256;
 
         _texture* tileAtlas = new _texture(); // Texture loader
 

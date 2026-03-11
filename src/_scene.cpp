@@ -25,6 +25,9 @@ _scene::~_scene()
 
     delete drawWorldBenchmark;
     drawWorldBenchmark = nullptr;
+
+    delete testSounds;
+    testSounds = nullptr;
 }   
 
 
@@ -68,6 +71,8 @@ GLint _scene::initGL()
     texture1.loadTexture("images/wood.png");
    
     drawWorldBenchmark->startBenchmark();
+
+    testSounds->playSounds("sounds/level_transition.mp3");
     return true;
 }
 
