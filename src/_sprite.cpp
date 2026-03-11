@@ -3,12 +3,6 @@
 _sprite::_sprite()
 {
     //ctor
-    pos = {0.0f, 0.0f};
-    rot = {0.0f, 0.0f};
-    color = {1.0f, 1.0f, 1.0f};
-    
-    velocity = {0.0f, 0.0f};
-    acceleration = {0.0f, 0.0f};
 }
 
 _sprite::~_sprite()

@@ -14,13 +14,9 @@ class _sprite {
         const float spriteHeight = 32.0f; // Height of the sprite in world units
 
         // world //
-        Vec2f pos; 
-        Vec2f rot;
-        Col3f color;
-
-        // physics //
-        Vec2f velocity; 
-        Vec2f acceleration;
+        Vec2f pos = {0.0f, 0.0f};
+        Vec2f rot = {0.0f, 0.0f};
+        Col3f color = {1.0f, 1.0f, 1.0f};
 
         /* Initializatin of a sprite
            - fileName: the file name of the texture to be used for the sprite
@@ -28,12 +24,12 @@ class _sprite {
            - yFrames: the number of vertical frames for the sprite sheet
            - fps: the framerate of the animation when played (default is 24fps)
         */
-        void spriteInit(const std::string& fileName, int _xFrames, int _yFrames, int _FPS = 24);
-        void drawSprite();
+        virtual void spriteInit(const std::string& fileName, int _xFrames, int _yFrames, int _FPS = 24);
+        virtual void drawSprite();
         // Update loop handles primarily animations but can be configured for physics etc as well
         // Requires the row's index (so starting at 0) to be passed to decide which animation (for now)
-        void updateSprite(const int rowIndex);
-        void stopAnimation();
+        virtual void updateSprite(const int rowIndex);
+        virtual void stopAnimation();
     protected:
     private:
         _timerPlusPlus* animationTimer = new _timerPlusPlus();

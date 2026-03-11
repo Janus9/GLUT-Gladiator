@@ -14,7 +14,7 @@
 #include<_vbo.h>
 #include<_quad.h>
 #include<_benchmark.h>
-
+#include<_unit.h>
 #include<_sounds.h>
 #include<_world.h>
 
@@ -54,7 +54,10 @@ class _scene
         _lightSettings *myLight = new _lightSettings();     
         _model* myModel = new _model();
         _world* myWorld = new _world();
-        _sprite* test_player = new _sprite();
+        
+        _unit* testPlayer = new _unit();
+
+        _unit* testUnit = new _unit();
 
         _quad* myQuad = new _quad();
 
@@ -63,9 +66,6 @@ class _scene
         _texture texture1;
 
         _timerPlusPlus inputTimer; // Timer to regulate toggle keys (ensures a key only pressed once)
-
-        // Position of the player in world coordinates
-        Vec2f playerPos = {0.0f, 0.0f};
 
         // Position of the player in chunk coordinates
         Vec2i playerChunkPos = {0, 0};
@@ -79,6 +79,8 @@ class _scene
         bool A = false; 
         bool S = false; 
         bool D = false;
+
+        bool SPACE = false;
 
         // DEBUGGING //
         _timerPlusPlus debugTimer;          // Timer to track time between updates for the scene

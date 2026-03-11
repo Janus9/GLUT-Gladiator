@@ -17,8 +17,8 @@ _scene::~_scene()
     delete myWorld;
     myWorld = nullptr;
 
-    delete test_player;
-    test_player = nullptr;
+    delete testPlayer;
+    testPlayer = nullptr;
 
     delete fpsTimer;
     fpsTimer = nullptr;
@@ -28,6 +28,9 @@ _scene::~_scene()
 
     delete testSounds;
     testSounds = nullptr;
+
+    delete testUnit;
+    testUnit = nullptr;
 }   
 
 
@@ -48,17 +51,20 @@ GLint _scene::initGL()
 
     // CLASS INIT //
 
-    myQuad->initQuad("images/chud.jpeg");
-    myQuad->scale = {3.0f, 3.0f, 3.0f};
-
     inputTimer.reset(); 
     fpsTimer->reset();  
 
-    // tester player
-    test_player->spriteInit("images/spriteSheet.png", 8, 4); 
+    // Tester Player
+    testPlayer->initUnit();
+    testPlayer->spriteInit("images/spriteSheet.png", 8, 4); 
     
-    test_player->pos = {width/2.0f, height/2.0f}; // Start player in the center of the screen
-
+    testPlayer->pos = {0.0f, 0.0f}; // Start player in the center of the screen
+    // Tester Unit
+    testUnit->initUnit();
+    testUnit->spriteInit("images/m2_50.png",4,1);
+    
+    testUnit->pos = {0.0f, 0.0f};
+    
     myLight->setLight(GL_LIGHT0); // The light onto the object from the pointer is set to be the instantiated light from before
     myModel->initModel(); // The model is initialized from the pointer to the model class
     myWorld->initWorld(); // Initialize the world
@@ -86,7 +92,7 @@ void _scene::reSize(GLint width, GLint height)
     glMatrixMode(GL_PROJECTION); // Turns the projection into a matrix. Initiate the projection
     glLoadIdentity(); // Keep value's axes (matrix * identity matrix = matrix). Initialize the matrix with identity matrix
     
-    test_player->pos = {width/2.0f, height/2.0f}; // Start player in the center of the screen
+    //testPlayer->pos = {width/2.0f, height/2.0f}; // Start player in the center of the screen
     
     applyCamera();
 
@@ -110,7 +116,8 @@ void _scene::drawScene()
         myWorld->drawWorld(left,right,top,bottom); // Draw the world
     drawWorldBenchmark->clickBenchmark();
 
-    test_player->drawSprite(); // Draw the test player sprite
+    testPlayer->drawSprite(); // Draw the test player sprite
+    testUnit->drawSprite();
 
     // For FPS measuring
     frameCount++;
@@ -124,16 +131,19 @@ void _scene::drawScene()
 void _scene::updateScene(double dt)
 {
     // Sprite movement for player
-    if (W) test_player->updateSprite(3);
-    if (A) test_player->updateSprite(1);
-    if (S) test_player->updateSprite(0);
-    if (D) test_player->updateSprite(2);
+    if (W) testPlayer->updateSprite(3);
+    if (A) testPlayer->updateSprite(1);
+    if (S) testPlayer->updateSprite(0);
+    if (D) testPlayer->updateSprite(2);
 
-    if (!W && !A && !S && !D) test_player->stopAnimation();
+    if (SPACE) testUnit->updateSprite(0);
+
+    if (!W && !A && !S && !D) testPlayer->stopAnimation();
+    if (!SPACE) testUnit->stopAnimation();
 
     // Get chunk position (coordinates)
-    playerChunkPos.x = (int)floor(playerPos.x / (16 * TILE_W));
-    playerChunkPos.y = (int)floor(playerPos.y / (16 * TILE_H));
+    playerChunkPos.x = (int)floor(testPlayer->pos.x / (16 * TILE_W));
+    playerChunkPos.y = (int)floor(testPlayer->pos.y / (16 * TILE_H));
 
     dt = dt / 1000.0; // Convert dt to seconds for easier calculations
     if (cameraFree) {
@@ -142,15 +152,15 @@ void _scene::updateScene(double dt)
         if(S) cameraY -= cameraSpeed*dt;
         if(D) cameraX += cameraSpeed*dt; 
     } else {
-        if(W) playerPos.y += cameraSpeed*dt;
-        if(A) playerPos.x -= cameraSpeed*dt; 
-        if(S) playerPos.y -= cameraSpeed*dt;
-        if(D) playerPos.x += cameraSpeed*dt;
+        if(W) testPlayer->pos.y += cameraSpeed*dt;
+        if(A) testPlayer->pos.x -= cameraSpeed*dt; 
+        if(S) testPlayer->pos.y -= cameraSpeed*dt;
+        if(D) testPlayer->pos.x += cameraSpeed*dt;
         // If camera is not free, it will track the player (centered on player)
-        test_player->pos = playerPos; // Update player position based on input
+        testPlayer->pos = testPlayer->pos; // Update player position based on input
 
-        cameraX = playerPos.x;
-        cameraY = playerPos.y;
+        cameraX = testPlayer->pos.x;
+        cameraY = testPlayer->pos.y;
     }
 
     bool inLoadedChunk = myWorld->isChunkLoaded(playerChunkPos.x, playerChunkPos.y);
@@ -167,14 +177,15 @@ void _scene::updateScene(double dt)
 
 void _scene::debugPrint()
 {
-    Logger.LogDebug("Debug Print: W=" + std::to_string(W) + " A=" + std::to_string(A) + " S=" + std::to_string(S) + " D=" + std::to_string(D), LOG_CONSOLE);
-    Logger.LogDebug("Camera Position: (" + std::to_string(cameraX) + ", " + std::to_string(cameraY) + ") Zoom: " + std::to_string(cameraZoom), LOG_CONSOLE);
-    Logger.LogDebug("Player is in chunk: (" + std::to_string(playerChunkPos.x) + ", " + std::to_string(playerChunkPos.y) + ")", LOG_CONSOLE);
+    Logger.LogDebug("Debug Print: W=" + to_string(W) + " A=" + to_string(A) + " S=" + to_string(S) + " D=" + to_string(D), LOG_CONSOLE);
+    Logger.LogDebug("Camera Position: (" + to_string(cameraX) + ", " + to_string(cameraY) + ") Zoom: " + to_string(cameraZoom), LOG_CONSOLE);
+    Logger.LogDebug("Player Position: (" + to_string(testPlayer->pos.x) + ", " + to_string(testPlayer->pos.y) + ")", LOG_CONSOLE);
+    Logger.LogDebug("Player is in chunk: (" + to_string(playerChunkPos.x) + ", " + to_string(playerChunkPos.y) + ")", LOG_CONSOLE);
     
-    Logger.LogDebug("World drawing took: " + std::to_string(drawWorldBenchmark->getAverageResult()) + "ms");
+    Logger.LogDebug("World drawing took: " + to_string(drawWorldBenchmark->getAverageResult()) + "ms");
 
     bool inLoadedChunk = myWorld->isChunkLoaded(playerChunkPos.x, playerChunkPos.y);
-    Logger.LogDebug("Player is in loaded chunk: " + std::string(inLoadedChunk ? "YES" : "NO"), LOG_CONSOLE);
+    //Logger.LogDebug("Player is in loaded chunk: " + (inLoadedChunk ? "YES" : "NO"), LOG_CONSOLE);
 
     Logger.LogDebug("Left: " + to_string(left) + "\n Right: " + to_string(right) + "\n Top: " + to_string(top) + "\n Bottom: " + to_string(bottom));
 
@@ -229,6 +240,7 @@ int _scene::winMsg(HWND	hWnd, UINT uMsg, WPARAM	wParam, LPARAM lParam)
             keyboardHandler(wParam);
             switch (wParam)
             {
+                // WASD //
                 case 'W':
                     W = true;
                     break;
@@ -241,6 +253,10 @@ int _scene::winMsg(HWND	hWnd, UINT uMsg, WPARAM	wParam, LPARAM lParam)
                 case 'D':
                     D = true;
                     break;
+                // OTHER //
+                case 32: // spacebar
+                    SPACE = true;
+                    break;
             }
             break;
         // Key release
@@ -248,6 +264,7 @@ int _scene::winMsg(HWND	hWnd, UINT uMsg, WPARAM	wParam, LPARAM lParam)
             if (inputDebugEnabled) Logger.LogDebug("Key Released: " + std::to_string(wParam), LOG_CONSOLE); //Log the key that was released
             switch (wParam)
             {
+                // WASD //
                 case 'W':
                     W = false;
                     break;
@@ -259,6 +276,10 @@ int _scene::winMsg(HWND	hWnd, UINT uMsg, WPARAM	wParam, LPARAM lParam)
                     break;
                 case 'D':
                     D = false;
+                    break;
+                // OTHER //
+                case 32: // spacebar
+                    SPACE = false;
                     break;
             }
             break;
