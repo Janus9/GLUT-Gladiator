@@ -155,7 +155,7 @@ void _scene::updateScene(double dt)
 
     bool inLoadedChunk = myWorld->isChunkLoaded(playerChunkPos.x, playerChunkPos.y);
     if (!inLoadedChunk) {
-        myWorld->generateChunk(playerChunkPos.x, playerChunkPos.y);
+        //myWorld->generateChunk(playerChunkPos.x, playerChunkPos.y);
     }
 
     if (debugTimer.getTicks() > debugPrintInterval) 

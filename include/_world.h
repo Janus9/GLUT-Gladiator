@@ -108,6 +108,21 @@ class _world
         unordered_map<pair<int,int>, _chunk*, PairHash> chunkLookup;
         unordered_map<pair<int,int>, bool, PairHash> loadedChunks;
 
+        // -- World Generation -- //
+        vector<bool> world_noise;
+
+        float noise_distribution = 0.6;  // 0-1 value for % of world that is walls as initial noise
+        float generation_iterations = 7; // Number of iterations to run the algorithm
+
+        // Converts an index into a coordinate position starting at TOP LEFT for (0,0) using grid
+        Vec2i convertIndexToPos(int index, int width, int height);
+
+        // Finalizes the world generation binding the vector -> unordered map for rendering
+        void finalizeWorld();
+
+        // runs through all iterations of the world generation
+        void runWorldGeneration(int iterations);
+
         // -- DEBUGGING -- //
         
         _benchmark* initBenchmark = new _benchmark();

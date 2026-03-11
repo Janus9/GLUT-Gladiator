@@ -25,11 +25,10 @@ void _world::initWorld()
         tileAtlas->loadTexture("images/world_tiles_atlas.png"); // Load the tile atlas texture
         // Reserve allocates memory but does not instantiate it -- resize allocates AND instantiates it (dont want that)
         worldChunks.reserve(numStartingChunks); // Resize the vector to hold numStartingChunks chunks
-        
+        world_noise.resize(numStartingChunks*256);  // 256 tiles per chunk
+
         initTiles(); // Setup tiles
         
-        uniform_int_distribution<int> dist(0, 3); 
-
         double sqrtNumChunks = sqrt(numStartingChunks);
         // This checks if a decimal (like 1.3) is equal to its floor (1.0) which indicates the sqrt wasn't perfect
         if (sqrtNumChunks != floor(sqrtNumChunks)) {
@@ -37,13 +36,14 @@ void _world::initWorld()
         }
 
         // Initialize world tiles and chunks here
-        for (int i = 0; i < numStartingChunks; i++) {
+        // for (int i = 0; i < numStartingChunks; i++) {
 
-            int chunkX = i % (int)sqrt(numStartingChunks) - floor(sqrt(numStartingChunks) / 2); // Calculate chunkX based on index
-            int chunkY = i / (int)sqrt(numStartingChunks) - floor(sqrt(numStartingChunks) / 2); // Calculate chunkY based on index
+        //     int chunkX = i % (int)sqrt(numStartingChunks) - floor(sqrt(numStartingChunks) / 2); // Calculate chunkX based on index
+        //     int chunkY = i / (int)sqrt(numStartingChunks) - floor(sqrt(numStartingChunks) / 2); // Calculate chunkY based on index
 
-            generateChunk(chunkX, chunkY); // Generate the chunk at the calculated coordinates
-        } 
+        //     generateChunk(chunkX, chunkY); // Generate the chunk at the calculated coordinates
+        // }
+        runWorldGeneration(generation_iterations); 
 
     initBenchmark->clickBenchmark();
     double time = initBenchmark->getAverageResult();
@@ -56,6 +56,8 @@ void _world::initTiles() {
     setTileInAtlas(1, world_tiles[1]); 
     setTileInAtlas(2, world_tiles[2]); 
     setTileInAtlas(3, world_tiles[3]); 
+    setTileInAtlas(4, world_tiles[4]); // Wall
+    setTileInAtlas(5, world_tiles[5]); // Empty 
     // Empty Tiles //
 }
 
@@ -104,7 +106,7 @@ void _world::generateChunk(int new_chunkX, int new_chunkY)
         return; // Chunk is already loaded, no need to generate
     }
 
-    uniform_int_distribution<int> dist(0, 3); 
+    uniform_int_distribution<int> dist(4, 5); 
 
     loadedChunks[{new_chunkX, new_chunkY}] = true;  // Using pair directly
 
@@ -253,6 +255,138 @@ _chunk* _world::getChunk(int chunkX, int chunkY) {
     }
     return nullptr;
 }
+
+/* -- >> WORLD GENERATION << -- */
+
+Vec2i _world::convertIndexToPos(int index, int width, int height) {
+    int xPos = index % width;
+    int yPos = index / height;
+}
+
+/*
+When tiles are made from noise its flat but since we load chunk by chunk we have to convert this flat array into 
+a coordinate system for chunks
+*/
+void _world::finalizeWorld() {
+    Logger.LogDebug("Mapping world noise into tiles");
+    
+    int worldWidth = (int)sqrt(numStartingChunks) * 16;
+    int worldHeight = (int)sqrt(numStartingChunks) * 16;
+    
+    for (int i = 0; i < numStartingChunks; i++) {
+        int new_chunkX = i % (int)sqrt(numStartingChunks) - floor(sqrt(numStartingChunks) / 2);
+        int new_chunkY = i / (int)sqrt(numStartingChunks) - floor(sqrt(numStartingChunks) / 2);
+
+        _chunk newChunk;
+        newChunk.chunkX = new_chunkX;
+        newChunk.chunkY = new_chunkY;
+
+        // Calculate the starting position of this chunk in the world grid
+        int chunkStartX = (new_chunkX + (int)floor(sqrt(numStartingChunks) / 2)) * 16;
+        int chunkStartY = (new_chunkY + (int)floor(sqrt(numStartingChunks) / 2)) * 16;
+
+        // Extract the 16x16 tile section for this chunk from world_noise
+        for (int tileY = 0; tileY < 16; tileY++) {
+            for (int tileX = 0; tileX < 16; tileX++) {
+                // Calculate position in world grid
+                int worldX = chunkStartX + tileX;
+                int worldY = chunkStartY + tileY;
+                
+                // Convert to flat array index
+                int world_noise_index = worldY * worldWidth + worldX;
+                
+                // Convert to chunk tile index (tileY * 16 + tileX gives position in chunk's 16x16 grid)
+                int chunk_tile_index = tileY * 16 + tileX;
+                
+                newChunk.tileData[chunk_tile_index] = world_noise[world_noise_index] ? 4 : 5;
+            }
+        }
+
+        worldChunks.push_back(newChunk);
+
+        loadedChunks[{new_chunkX, new_chunkY}] = true;
+        chunkLookup[{new_chunkX, new_chunkY}] = &worldChunks.back();
+    }
+    Logger.LogDebug("World noise has been mapped to tiles and has been finalized!");
+}
+
+void _world::runWorldGeneration(int iterations) {
+    Logger.LogInfo("Running world generation for parameters: ");
+    Logger.LogInfo(" - Noise Density: " + to_string(noise_distribution*100.0f) + "%");
+    Logger.LogInfo(" - Generation Iterations: " + to_string(iterations));
+
+    // inefficent but easy, maps each tile to a coordinate for easy acess
+    unordered_map<pair<int,int>, bool, PairHash> noise_map;
+
+    bernoulli_distribution dist(noise_distribution); // cant use uniform_distribution for bools
+    
+    Logger.LogInfo("Establishing world noise for a ratio of " + to_string(noise_distribution));
+    
+      // World width/height in tiles
+    int worldWidth = (int)sqrt(numStartingChunks)*16;
+    int worldHeight = (int)sqrt(numStartingChunks)*16;
+
+    for (int i = 0; i < world_noise.size(); i++) {
+        world_noise[i] = dist(rng);
+        
+        int xPos = i % worldWidth;
+        int yPos = i / worldWidth;
+
+        noise_map[{xPos, yPos}] = world_noise[i];
+    }
+
+    Logger.LogInfo("Finished generating noise of " + to_string(world_noise.size()) + "tiles");
+
+    Logger.LogInfo("Starting cellular automata algorithm for a world of Width: " + to_string(worldWidth) + "and Height: " + to_string(worldHeight) + " tiles");
+    
+    // Run cellular automata algorithm
+    for (int iteration = 0; iteration < iterations; iteration++) {
+        for (int i = 0; i < world_noise.size(); i++) {
+            // Converts each tile to a (x,y) position since ceullar automata requires locality
+            int xPos = i % worldWidth;
+            int yPos = i / worldWidth;
+
+            int num_neighbors = 0;
+
+            for (int x = xPos-1; x <= xPos+1; x++) {
+                for (int y = yPos-1; y <= yPos+1; y++) {
+                    // Check if this is same time
+                    if ((x == xPos && y == yPos)) { continue; }   
+                    auto wall = noise_map.find({x,y});
+                    if (wall == noise_map.end()) {
+                        // Out of bounds (say wall)
+                        num_neighbors++;
+                    } else {
+                        // In bounds -- run check
+                        if (wall->second) {
+                            // found wall
+                            num_neighbors++;
+                        }
+                    }
+                }
+            }
+            // Moore Neighborhood //
+            if (num_neighbors > 4) {
+                world_noise[i] = true;
+            } else {
+                world_noise[i] = false;
+            }
+        }
+        // Must be done last as doing this during iteration messes up results
+        for (int i = 0; i < world_noise.size(); i++) {
+            int xPos = i % worldWidth;
+            int yPos = i / worldWidth;
+
+            noise_map[{xPos, yPos}] = world_noise[i];
+        }
+        Logger.LogDebug(" -- Iteration: " + to_string(iteration) + " completed!");
+    }
+
+    Logger.LogDebug("World generation completed! Finalizing now ...");
+    finalizeWorld();
+}
+
+/* -- >> DEBUGING << -- */
 
 void _world::debugPrint() {
 
