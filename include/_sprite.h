@@ -15,7 +15,7 @@ class _sprite {
 
         // world //
         Vec2f pos = {0.0f, 0.0f};
-        Vec2f rot = {0.0f, 0.0f};
+        GLfloat rot = 0.0f; // 2D rotation means only one angle needed
         Col3f color = {1.0f, 1.0f, 1.0f};
 
         /* Initializatin of a sprite

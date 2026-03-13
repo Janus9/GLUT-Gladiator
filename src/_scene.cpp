@@ -131,15 +131,20 @@ void _scene::drawScene()
 void _scene::updateScene(double dt)
 {
     // Sprite movement for player
+    if (GetDistance(testPlayer->pos,testUnit->pos) < (16.0f*16.0f)) {   // One chunk
+        testUnit->focusOn(testPlayer->pos);
+        testUnit->updateSprite(0);
+    } else {
+        if (testUnit->rot > 0.0f) testUnit->rot -= 1.0f;
+        testUnit->stopAnimation();
+    }
+
     if (W) testPlayer->updateSprite(3);
     if (A) testPlayer->updateSprite(1);
     if (S) testPlayer->updateSprite(0);
     if (D) testPlayer->updateSprite(2);
 
-    if (SPACE) testUnit->updateSprite(0);
-
     if (!W && !A && !S && !D) testPlayer->stopAnimation();
-    if (!SPACE) testUnit->stopAnimation();
 
     // Get chunk position (coordinates)
     playerChunkPos.x = (int)floor(testPlayer->pos.x / (16 * TILE_W));
@@ -183,6 +188,8 @@ void _scene::debugPrint()
     Logger.LogDebug("Player is in chunk: (" + to_string(playerChunkPos.x) + ", " + to_string(playerChunkPos.y) + ")", LOG_CONSOLE);
     
     Logger.LogDebug("World drawing took: " + to_string(drawWorldBenchmark->getAverageResult()) + "ms");
+
+    Logger.LogDebug("Distance to test unit: " + to_string(GetDistance(testPlayer->pos,testUnit->pos)));
 
     bool inLoadedChunk = myWorld->isChunkLoaded(playerChunkPos.x, playerChunkPos.y);
     //Logger.LogDebug("Player is in loaded chunk: " + (inLoadedChunk ? "YES" : "NO"), LOG_CONSOLE);

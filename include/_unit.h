@@ -18,8 +18,8 @@ class _unit : public _sprite {
         // Setup unit with health/speed (HP units, pixels/second)
         void initUnit(float _maxHealth = 100.0f, float _speed = 32.0f);
         void drawUnit();
-        // Changes the units rotation to focus on a given (x,y) point
-        void focusOn(const Vec2f &_pos);
+        // Enforces the unit to rotate to a given point given a speed entry in degrees/second (entries <= 0 mean instant rotation)
+        void focusOn(const Vec2f &_pos, float speed = 0.0f);
 
         float maxHealth = 0.0f;
         float currentHealth = 0.0f;

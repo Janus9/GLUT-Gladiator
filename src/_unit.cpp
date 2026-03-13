@@ -22,6 +22,16 @@ const bool _unit::isAlive() {
     return currentHealth > 0.0f; 
 }
 
-void _unit::focusOn(const Vec2f &_pos) {
-    
+void _unit::focusOn(const Vec2f &_pos, float speed) {
+    float rotNeeded = GetRotationAngle(pos,_pos); 
+    if (speed <= 0.0f) {
+        rot = rotNeeded;
+        return;
+    }
+    speed /= 60.0f; // Adjust to degrees/second (breaks if update FPS ever changes)
+    if (rot < rotNeeded) {
+        rot += speed;
+    } else {
+        rot -= speed;
+    }
 }

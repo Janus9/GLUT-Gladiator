@@ -42,8 +42,7 @@ void _sprite::drawSprite()
 
         glColor3f(color.r, color.g, color.b);
 
-        glRotatef(rot.x,1,0,0);
-        glRotatef(rot.y,0,1,0);
+        glRotatef(rot,0,0,1);
 
         float u0 = frameX * (1.0f/xFrames);
         float v0 = frameY * (1.0f/yFrames);

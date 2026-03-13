@@ -80,6 +80,24 @@ struct PairHash {
     }
 };
 
+// Returns the distance (in world units) between two points
+inline float GetDistance(const Vec2f &start, const Vec2f &end) {
+    float result = powf(end.x - start.x,2.0f) + powf(end.y - start.y,2.0f);
+    return sqrtf(result);
+}
+
+// Returns the degrees of rotation required to look at a given object
+inline float GetRotationAngle(const Vec2f &start, const Vec2f &end) {
+    // find our delta distance
+    float dx = start.x - end.x;
+    float dy = end.y - start.y;
+
+    float angleDeg = atan2f(dx, dy) * 180.0f / PI;
+    angleDeg = fmodf(angleDeg, 360.0f); // Bound angleDeg to 360 degrees
+    if (angleDeg < 0.0f) angleDeg += 360.0f; // Bound angleDeg to NOT be negative
+    return angleDeg;
+}
+
 using namespace std;
 
 #endif // _COMMON_H
