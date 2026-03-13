@@ -132,7 +132,7 @@ void _scene::updateScene(double dt)
 {
     // Sprite movement for player
     if (GetDistance(testPlayer->pos,testUnit->pos) < (16.0f*16.0f)) {   // One chunk
-        testUnit->focusOn(testPlayer->pos);
+        testUnit->focusOn(testPlayer->pos,240.0f);
         testUnit->updateSprite(0);
     } else {
         if (testUnit->rot > 0.0f) testUnit->rot -= 1.0f;
