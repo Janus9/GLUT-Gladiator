@@ -92,8 +92,6 @@ void _scene::reSize(GLint width, GLint height)
     glMatrixMode(GL_PROJECTION); // Turns the projection into a matrix. Initiate the projection
     glLoadIdentity(); // Keep value's axes (matrix * identity matrix = matrix). Initialize the matrix with identity matrix
     
-    //testPlayer->pos = {width/2.0f, height/2.0f}; // Start player in the center of the screen
-    
     applyCamera();
 
     glMatrixMode(GL_MODELVIEW); // Inputs into matrix depend on the placement of objects in the matrix overview. Initiate model and view matrix
@@ -313,12 +311,12 @@ int _scene::winMsg(HWND	hWnd, UINT uMsg, WPARAM	wParam, LPARAM lParam)
         // Mouse wheel
         case WM_MOUSEWHEEL:
             if (inputDebugEnabled) Logger.LogDebug("Mouse Wheel: " + std::to_string((short)HIWORD(wParam)) + " at (" + std::to_string(LOWORD(lParam)) + ", " + std::to_string(HIWORD(lParam)) + ")", LOG_CONSOLE); //Log the amount of scroll and position of the mouse when the wheel is scrolled
-            if ((short)HIWORD(wParam) > 0 && cameraZoom < 9.0f) { 
+            if ((short)HIWORD(wParam) > 0) { 
                 // Scroll up
-                cameraZoom *= 1.1f; // Zoom in by increasing the zoom factor
+                if (cameraZoom < 9.0f) cameraZoom++; // Zoom in by increasing the zoom factor
             } else if ((short)HIWORD(wParam) < 0) {
                 // Scroll down
-                cameraZoom /= 1.1f; // Zoom out by decreasing the zoom factor
+                if (cameraZoom > 1.0f) cameraZoom--; // Zoom out by decreasing the zoom factor
             }
             break;
     }
@@ -351,13 +349,16 @@ void _scene::commandHandler() {
 }
 
 void _scene::applyCamera() {
+    float renderCameraX = floor(cameraX);
+    float renderCameraY = floor(cameraY);
+    
     float halfWidth = width * 0.5f / cameraZoom; // Adjust half-width based on zoom level
     float halfHeight = height * 0.5f / cameraZoom; // Adjust half-height based on zoom level
 
-    left = cameraX - halfWidth;
-    right = cameraX + halfWidth;
-    bottom = cameraY - halfHeight;
-    top = cameraY + halfHeight;
+    left = renderCameraX - halfWidth;
+    right = renderCameraX + halfWidth;
+    bottom = renderCameraY - halfHeight;
+    top = renderCameraY + halfHeight;
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
