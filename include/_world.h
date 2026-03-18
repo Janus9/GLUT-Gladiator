@@ -82,7 +82,7 @@ class _world
 
         // This is the default number of renered chunks for the world. Starts at center and expands evenly outward as a cube 
         // Would be better done as a sphere but cube is easier -- gives warning if # doesnt make an even cube
-        const int numStartingChunks = 64;
+        const int numStartingChunks = 16384;
 
         _texture* tileAtlas = new _texture(); // Texture loader
 
@@ -109,7 +109,7 @@ class _world
         unordered_map<pair<int,int>, bool, PairHash> loadedChunks;
 
         // -- World Generation -- //
-        vector<bool> world_noise;
+        vector<uint8_t> world_noise;
 
         float noise_distribution = 0.6;  // 0-1 value for % of world that is walls as initial noise
         float generation_iterations = 7; // Number of iterations to run the algorithm

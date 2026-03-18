@@ -220,28 +220,28 @@ void _world::drawWorld(float left, float right, float top, float bottom)
     glDisableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 
-    // Displays chunk borders in red when enabled -- kind of broken
-    if (displayChunkBorders) {
-        glPushAttrib(GL_CURRENT_BIT | GL_LINE_BIT); // saves current GL state for color/line wdidth
-            glColor3f(1.0f, 0.0f, 0.0f); // Red color for borders
-            glLineWidth(2.0f); // Thicker lines for visibility
-            glBegin(GL_LINE_LOOP);
-                for(int chunkNum = 0; chunkNum < worldChunks.size(); chunkNum++) {
-                    _chunk* chunk = &worldChunks[chunkNum];
+    // // Displays chunk borders in red when enabled -- kind of broken
+    // if (displayChunkBorders) {
+    //     glPushAttrib(GL_CURRENT_BIT | GL_LINE_BIT); // saves current GL state for color/line wdidth
+    //         glColor3f(1.0f, 0.0f, 0.0f); // Red color for borders
+    //         glLineWidth(2.0f); // Thicker lines for visibility
+    //         glBegin(GL_LINE_LOOP);
+    //             for(int chunkNum = 0; chunkNum < worldChunks.size(); chunkNum++) {
+    //                 _chunk* chunk = &worldChunks[chunkNum];
 
-                    float left = chunk->chunkX * 16 * TILE_W;
-                    float right = left + 16 * TILE_W;
-                    float top = chunk->chunkY * 16 * TILE_H;
-                    float bottom = top + 16 * TILE_H;
+    //                 float left = chunk->chunkX * 16 * TILE_W;
+    //                 float right = left + 16 * TILE_W;
+    //                 float top = chunk->chunkY * 16 * TILE_H;
+    //                 float bottom = top + 16 * TILE_H;
                     
-                    glVertex2f(left, top);
-                    glVertex2f(right, top);
-                    glVertex2f(right, bottom);
-                    glVertex2f(left, bottom);
-                }
-            glEnd();
-        glPopAttrib();
-    }
+    //                 glVertex2f(left, top);
+    //                 glVertex2f(right, top);
+    //                 glVertex2f(right, bottom);
+    //                 glVertex2f(left, bottom);
+    //             }
+    //         glEnd();
+    //     glPopAttrib();
+    // }
 }
 
 bool _world::isChunkLoaded(int chunkX, int chunkY) {
@@ -315,10 +315,7 @@ void _world::runWorldGeneration(int iterations) {
     Logger.LogInfo(" - Noise Density: " + to_string(noise_distribution*100.0f) + "%");
     Logger.LogInfo(" - Generation Iterations: " + to_string(iterations));
 
-    // inefficent but easy, maps each tile to a coordinate for easy acess
-    unordered_map<pair<int,int>, bool, PairHash> noise_map;
-
-    bernoulli_distribution dist(noise_distribution); // cant use uniform_distribution for bools
+    uniform_real_distribution<float> dist(0.0f,1.0f);
     
     Logger.LogInfo("Establishing world noise for a ratio of " + to_string(noise_distribution));
     
@@ -327,12 +324,7 @@ void _world::runWorldGeneration(int iterations) {
     int worldHeight = (int)sqrt(numStartingChunks)*16;
 
     for (int i = 0; i < world_noise.size(); i++) {
-        world_noise[i] = dist(rng);
-        
-        int xPos = i % worldWidth;
-        int yPos = i / worldWidth;
-
-        noise_map[{xPos, yPos}] = world_noise[i];
+        world_noise[i] = (dist(rng) < noise_distribution);    // Randomly assigns 0 or 1 based on noise_distribution
     }
 
     Logger.LogInfo("Finished generating noise of " + to_string(world_noise.size()) + "tiles");
@@ -341,43 +333,34 @@ void _world::runWorldGeneration(int iterations) {
     
     // Run cellular automata algorithm
     for (int iteration = 0; iteration < iterations; iteration++) {
+        vector<uint8_t> world_noise_copy(world_noise);
         for (int i = 0; i < world_noise.size(); i++) {
-            // Converts each tile to a (x,y) position since ceullar automata requires locality
-            int xPos = i % worldWidth;
-            int yPos = i / worldWidth;
-
+            /*
+            Each cell must check eight neighbors total (9 including itself). Each neighbor is checked to see if it is of type
+            Wall = true or type Floor = false
+            We do this by finding the index arround the element for efficiency
+            */
             int num_neighbors = 0;
-
-            for (int x = xPos-1; x <= xPos+1; x++) {
-                for (int y = yPos-1; y <= yPos+1; y++) {
-                    // Check if this is same time
-                    if ((x == xPos && y == yPos)) { continue; }   
-                    auto wall = noise_map.find({x,y});
-                    if (wall == noise_map.end()) {
-                        // Out of bounds (say wall)
-                        num_neighbors++;
-                    } else {
-                        // In bounds -- run check
-                        if (wall->second) {
-                            // found wall
-                            num_neighbors++;
-                        }
-                    }
+            for (int j = 0; j < 9; j++) {
+                int xOffset = j % 3 - 1;    // Gets xOffset for tiles [-1,1]
+                int yOffset = j / 3 - 1;    // Gets yOffset for tiles [-1,1] -- Applies worldWidth later
+                int index = i + xOffset + yOffset * worldWidth; // Gets the given index to check
+                if (index == i) continue;   // Skip checking ourselves
+                if (index < 0 || index >= world_noise.size()) { // If index is out of bounds, treat as wall
+                    num_neighbors++;
+                    continue;
+                }
+                if (world_noise_copy[index]) {  // Check index, true means wall
+                    num_neighbors++;
                 }
             }
+            
             // Moore Neighborhood //
             if (num_neighbors > 4) {
                 world_noise[i] = true;
             } else {
                 world_noise[i] = false;
             }
-        }
-        // Must be done last as doing this during iteration messes up results
-        for (int i = 0; i < world_noise.size(); i++) {
-            int xPos = i % worldWidth;
-            int yPos = i / worldWidth;
-
-            noise_map[{xPos, yPos}] = world_noise[i];
         }
         Logger.LogDebug(" -- Iteration: " + to_string(iteration) + " completed!");
     }
