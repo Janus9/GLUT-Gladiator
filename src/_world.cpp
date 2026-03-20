@@ -185,6 +185,8 @@ void _world::drawWorld(float left, float right, float top, float bottom)
     // Since its an atlas we only need one text bind. Each tile takes a snippit of the atlas
     tileAtlas->bindTexture();
 
+    glColor4f(1.0f,1.0f,1.0f,1.0f);
+
     // Tell OpenGL were using VBOs
     glEnableClientState(GL_VERTEX_ARRAY);
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);

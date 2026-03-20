@@ -10,6 +10,8 @@ class _hudText {
 
         // Initialize a textbox of a given text, positinon, size
         void initText(const string &_text, const Vec2f &pos, const Vec2f &size);
+        void setText(const string &_text);
+        void setScreenDimensions(double width, double height);
         void drawText();
 
         // Position (in pixels)
@@ -29,6 +31,8 @@ class _hudText {
         bool borderEnabled = false;     // If true draws a border behind text
     protected:
     private:
+        double screenWidth = 0.0;
+        double screenHeight = 0.0;
 };
 
 #endif _HUDTEXT_H

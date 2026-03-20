@@ -17,6 +17,7 @@
 #include<_unit.h>
 #include<_sounds.h>
 #include<_world.h>
+#include<_hudText.h>
 
 class _scene
 {
@@ -62,6 +63,8 @@ class _scene
         _quad* myQuad = new _quad();
 
         _vbo vbo1 = _vbo();
+
+        _hudText* fpsText = new _hudText();
 
         _texture texture1;
 

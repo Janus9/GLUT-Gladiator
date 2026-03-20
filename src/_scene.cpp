@@ -31,6 +31,9 @@ _scene::~_scene()
 
     delete testUnit;
     testUnit = nullptr;
+
+    delete fpsText;
+    fpsText = nullptr;
 }   
 
 
@@ -64,7 +67,10 @@ GLint _scene::initGL()
     testUnit->spriteInit("images/m2_50.png",4,1);
     
     testUnit->pos = {0.0f, 0.0f};
-    
+
+    fpsText->initText(to_string(sceneFPS),{10.0f,10.0f}, {10.0f,height - 20.0f});
+    fpsText->color = {1.0f,0.0f,0.0f}; // Set FPS color to red
+
     myLight->setLight(GL_LIGHT0); // The light onto the object from the pointer is set to be the instantiated light from before
     myModel->initModel(); // The model is initialized from the pointer to the model class
     myWorld->initWorld(); // Initialize the world
@@ -86,6 +92,7 @@ void _scene::reSize(GLint width, GLint height)
 {
     this->width = width;
     this->height = height;
+    fpsText->setScreenDimensions(width,height);
     Logger.LogInfo("Resizing window to width: " + std::to_string(width) + " and height: " + std::to_string(height), LOG_BOTH);
     GLfloat aspectRatio = (GLfloat) width/ (GLfloat) height; //Intended to keep track of window resize
     glViewport(0,0,width,height); // Integer values taken in to take in view. Setting Viewport
@@ -116,6 +123,8 @@ void _scene::drawScene()
 
     testPlayer->drawSprite(); // Draw the test player sprite
     testUnit->drawSprite();
+
+    fpsText->drawText();
 
     // For FPS measuring
     frameCount++;
@@ -199,7 +208,8 @@ void _scene::debugPrint()
 
 void _scene::debugPrintFPS() {
     sceneFPS = frameCount / (fpsTimer->getTicks() / 1000.0); // Calculate FPS based on frames and time
-    Logger.LogInfo("Current FPS: " + std::to_string(sceneFPS), LOG_CONSOLE);
+    //Logger.LogInfo("Current FPS: " + std::to_string(sceneFPS), LOG_CONSOLE);
+    fpsText->setText(to_string(sceneFPS) + " FPS");
     frameCount = 0; // Reset frame count after printing FPS
     fpsTimer->reset(); // Reset the timer for the next FPS calculation
 }
