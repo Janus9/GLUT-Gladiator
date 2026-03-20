@@ -146,10 +146,10 @@ void _scene::updateScene(double dt)
         testUnit->stopAnimation();
     }
 
-    if (W) testPlayer->updateSprite(3);
-    if (A) testPlayer->updateSprite(1);
-    if (S) testPlayer->updateSprite(0);
-    if (D) testPlayer->updateSprite(2);
+    if (W && !cameraFree) testPlayer->updateSprite(3);
+    if (A && !cameraFree) testPlayer->updateSprite(1);
+    if (S && !cameraFree) testPlayer->updateSprite(0);
+    if (D && !cameraFree) testPlayer->updateSprite(2);
 
     if (!W && !A && !S && !D) testPlayer->stopAnimation();
 
@@ -164,10 +164,10 @@ void _scene::updateScene(double dt)
         if(S) cameraY -= cameraSpeed*dt;
         if(D) cameraX += cameraSpeed*dt; 
     } else {
-        if(W) testPlayer->pos.y += cameraSpeed*dt;
-        if(A) testPlayer->pos.x -= cameraSpeed*dt; 
-        if(S) testPlayer->pos.y -= cameraSpeed*dt;
-        if(D) testPlayer->pos.x += cameraSpeed*dt;
+        if(W) testPlayer->pos.y += playerSpeed*dt;
+        if(A) testPlayer->pos.x -= playerSpeed*dt; 
+        if(S) testPlayer->pos.y -= playerSpeed*dt;
+        if(D) testPlayer->pos.x += playerSpeed*dt;
         // If camera is not free, it will track the player (centered on player)
         testPlayer->pos = testPlayer->pos; // Update player position based on input
 

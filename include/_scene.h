@@ -75,7 +75,8 @@ class _scene
 
         float cameraX = 0.0f;
         float cameraY = 0.0f;
-        float cameraSpeed = 256.0f; // Units per second
+        float playerSpeed = 256.0f; // Units per second
+        float cameraSpeed = 1024.0f; // Units per second
         float cameraZoom = 1.0f;
 
         bool W = false; 
