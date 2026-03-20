@@ -68,7 +68,7 @@ GLint _scene::initGL()
     
     testUnit->pos = {0.0f, 0.0f};
 
-    fpsText->initText(to_string(sceneFPS),{10.0f,10.0f}, {10.0f,height - 20.0f});
+    fpsText->initText(to_string(sceneFPS),{10.0f,height - 80.0f}, {1.0f,1.0f});
     fpsText->color = {1.0f,0.0f,0.0f}; // Set FPS color to red
 
     myLight->setLight(GL_LIGHT0); // The light onto the object from the pointer is set to be the instantiated light from before

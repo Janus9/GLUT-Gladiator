@@ -40,14 +40,13 @@ void _hudText::drawText() {
     glDisable(GL_DEPTH_TEST);   // Text ignores depth_test to ensure it draws on TOP and is never hidden
 
     glColor3f(color.r, color.g, color.b);
-
     glRasterPos2f(pos_pixels.x, pos_pixels.y);
-
+    
     int i = 0;
     for (i = 0; i < (int)text.size(); i++) {
-        glutBitmapCharacter(GLUT_BITMAP_8_BY_13, text[i]);
+        glutBitmapCharacter(GLUT_BITMAP_9_BY_15, text[i]);
     }
-
+    
     glPopMatrix();
 
     glMatrixMode(GL_PROJECTION);

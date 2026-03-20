@@ -35,4 +35,4 @@ class _hudText {
         double screenHeight = 0.0;
 };
 
-#endif _HUDTEXT_H
+#endif // _HUDTEXT_H
