@@ -111,7 +111,7 @@ class _world
         // -- World Generation -- //
         vector<uint8_t> world_noise;
 
-        float noise_distribution = 0.6;  // 0-1 value for % of world that is walls as initial noise
+        float noise_distribution = 0.60;  // 0-1 value for % of world that is walls as initial noise
         float generation_iterations = 7; // Number of iterations to run the algorithm
 
         // Converts an index into a coordinate position starting at TOP LEFT for (0,0) using grid
