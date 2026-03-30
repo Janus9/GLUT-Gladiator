@@ -93,7 +93,7 @@ class _world
         void initTiles();
 
         // Uses the tileNum to calculated the tex coords for each tile
-        bool setTileInAtlas(int tileNum, _tile &tile);
+        bool setTileInAtlas(int xIndex, int yIndex, _tile &tile);
 
         // Builds a VBO for each chunk of all 256 tiles
         void buildChunkVBO(_chunk* chunk);

@@ -22,7 +22,7 @@ void _world::initWorld()
         Logger.LogInfo("Initializing world for seed " + to_string(seed), LOG_BOTH);
         Logger.LogInfo("World has " + to_string(numStartingChunks) + " starting chunks.", LOG_BOTH);
 
-        tileAtlas->loadTexture("images/world_tiles_atlas.png"); // Load the tile atlas texture
+        tileAtlas->loadTexture("images/set_1.png"); // Load the tile atlas texture
         // Reserve allocates memory but does not instantiate it -- resize allocates AND instantiates it (dont want that)
         worldChunks.reserve(numStartingChunks); // Resize the vector to hold numStartingChunks chunks
         world_noise.resize(numStartingChunks*256);  // 256 tiles per chunk
@@ -51,19 +51,30 @@ void _world::initWorld()
 }
 
 void _world::initTiles() {
-    // Grass Variants //
-    setTileInAtlas(0, world_tiles[0]); 
-    setTileInAtlas(1, world_tiles[1]); 
-    setTileInAtlas(2, world_tiles[2]); 
-    setTileInAtlas(3, world_tiles[3]); 
-    setTileInAtlas(4, world_tiles[4]); // Wall
-    setTileInAtlas(5, world_tiles[5]); // Empty 
-    // Empty Tiles //
+    // FLOOR //
+    setTileInAtlas(8,13, world_tiles[0]);       // Blank Floor
+    setTileInAtlas(9,12, world_tiles[1]);       // Slightly Cracked Floor
+    setTileInAtlas(10,13, world_tiles[2]);      // Medium Cracked Floor
+    setTileInAtlas(8,12, world_tiles[3]);       // Square outlined floor
+    setTileInAtlas(9,13, world_tiles[4]);       // Blank Floor 2
+    // WALL //
+    setTileInAtlas(6,8, world_tiles[5]);        // Wall Center
+
+    setTileInAtlas(5,8, world_tiles[6]);        // Wall Left
+    setTileInAtlas(7,8, world_tiles[7]);        // Wall Right
+    setTileInAtlas(6,7, world_tiles[8]);        // Wall Up
+    setTileInAtlas(6,9, world_tiles[9]);        // Wall Down
+
+    setTileInAtlas(5,7, world_tiles[10]);        // Wall Corner Top Left
+    setTileInAtlas(7,7, world_tiles[11]);        // Wall Corner Top Right
+    setTileInAtlas(5,9, world_tiles[12]);        // Wall Corner Bottom Left
+    setTileInAtlas(7,9, world_tiles[13]);        // Wall Corner Bottom Left
+
 }
 
-bool _world::setTileInAtlas(int tileNum, _tile &tile) {
-    int numTilesPerRow = 256 / TILE_W;     // This gives us how many tiles are in a single row
-    int numTilesPerCol = 256 / TILE_H;     // This gives us how many tiles are in a single column
+bool _world::setTileInAtlas(int xIndex, int yIndex, _tile &tile) {
+    int numTilesPerRow = 448 / TILE_W;     // This gives us how many tiles are in a single row
+    int numTilesPerCol = 320 / TILE_H;     // This gives us how many tiles are in a single column
 
     // Error check for mod by 0 
     if (numTilesPerRow == 0) {
@@ -71,25 +82,22 @@ bool _world::setTileInAtlas(int tileNum, _tile &tile) {
         return false;
     }
 
-    int tileNumX = tileNum % numTilesPerRow;    // This gives us which column the tile is in
-    int tileNumY = tileNum / numTilesPerRow;    // This gives us which row the tile is in (using integer division to round down)
     /*
         All of these values have to be between 0 and 1. This is because for glTexCoord2f we use this to assign an image from 
         0 (start of image) to 1 (end of image). Since we have 16 tiles per row/column we divide by 16.
 
         ex/ to get tileNum 0 (the very first tile) we need coordinates from 0-0.0625 as 0.0625 is 1/16
     */
-
     // Left (X)
-    float u0 = (tileNumX * TILE_W) / 256.0f;
+    float u0 = (xIndex * TILE_W) / 448.0f;
     // Left (Y)
-    float v0 = (tileNumY * TILE_H) / 256.0f;
+    float v0 = (yIndex * TILE_H) / 320.0f;
     // Right (X)
-    float u1 = u0 + (TILE_W / 256.0f);
+    float u1 = u0 + (TILE_W / 448.0f);
     // Right (Y)
-    float v1 = v0 + (TILE_H / 256.0f);
+    float v1 = v0 + (TILE_H / 320.0f);
 
-    Logger.LogDebug("Tile " + std::to_string(tileNum) + " atlas coordinates: (" + std::to_string(u0) + ", " + std::to_string(v0) + ") to (" + std::to_string(u1) + ", " + std::to_string(v1) + ")", LOG_CONSOLE);
+    Logger.LogDebug("Tile (" + to_string(xIndex) + ", " + to_string(yIndex) + " atlas coordinates: (" + to_string(u0) + ", " + to_string(v0) + ") to (" + to_string(u1) + ", " + to_string(v1) + ")", LOG_CONSOLE);
 
     tile.u0 = u0;
     tile.v0 = v0;
@@ -300,7 +308,12 @@ void _world::finalizeWorld() {
                 // Convert to chunk tile index (tileY * 16 + tileX gives position in chunk's 16x16 grid)
                 int chunk_tile_index = tileY * 16 + tileX;
                 
-                newChunk.tileData[chunk_tile_index] = world_noise[world_noise_index] ? 4 : 5;
+                if (world_noise[world_noise_index]) {
+                    newChunk.tileData[chunk_tile_index] = 5;
+                } else {
+                    newChunk.tileData[chunk_tile_index] = 1;
+                }
+                //newChunk.tileData[chunk_tile_index] = world_noise[world_noise_index] ? 4 : 5;
             }
         }
 

@@ -62,7 +62,7 @@ GLint _scene::initGL()
     testPlayer->setupSprite("WALK");
     testPlayer->getSprite("WALK")->initSprite("images/walk.png", 8, 6, sprite_direction::LEFT,12); // No natural direction due to top down
 
-    testPlayer->scale = {2.0f, 2.0f};
+    testPlayer->scale = {1.0f, 1.0f};
     testPlayer->pos = {0.0f, 0.0f}; // Start player in the center of the screen
 
     testPlayer->getSprite("WALK")->createSpriteAction(sprite_action("WALK_DOWN",0,0,7));
