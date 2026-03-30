@@ -3,39 +3,115 @@
 
 #include <_common.h>
 #include <_sprite.h>
+#include <_collisionBound.h>
 
-class _unit : public _sprite {
+enum class collision_direction {
+    LEFT = 0,
+    RIGHT = 1,
+    TOP = 2,
+    BOTTOM = 3
+};
+
+class _unit {
     public:
         _unit();
         virtual ~_unit();
 
-        enum class Team {
-            NEUTRAL = 0,
-            FRIENDLY = 1,
-            ENEMY = 2
-        };
+        /**
+         * Sets up a new sprite by name
+         * 
+         * Unit can have multiple sprites, organized by name
+         * 
+         * @param spriteName Name for the sprite to be set. Used in getSprite(name)
+         */
+        void setupSprite(const string &spriteName);
 
-        // Setup unit with health/speed (HP units, pixels/second)
-        void initUnit(float _maxHealth = 100.0f, float _speed = 32.0f);
+        /**
+         * Draws a unit
+         * 
+         * If setup with a sprite then overwrites pos/scale/color before drawing sprite. Rotation exists only on sprite level.
+         * 
+         * Draws all sprites in the unit.
+         */
         void drawUnit();
-        // Enforces the unit to rotate to a given point given a speed entry in degrees/second (entries <= 0 mean instant rotation)
-        void focusOn(const Vec2f &_pos, float speed = 0.0f);
 
-        float maxHealth = 0.0f;
-        float currentHealth = 0.0f;
-        float speed = 0.0f;
+        /**
+         * Applies physics calculations (acceleration/velocity/position) to unit
+         * 
+         * @param dt Delta time (in seconds) for physics calculations
+         */
+        void applyPhysics(double dt);
+
+        /**
+         * Gets sprite tied to unit by name
+         * 
+         * @return _sprite pointer or nullptr if never set
+         */ 
+        _sprite* getSprite(const string &spriteName);
+
+        /**
+         * Creates a collision box for the current object. Position is automatically locked to the unit's position.
+         * 
+         * @param size Vec2f size for the box
+         */
+        void setCollisionBox(const Vec2f &size, const Vec2f &offset = {0.0f, 0.0f});
+
+        /**
+         * Performs an AABB collision check on another unit
+         * 
+         * @param other Other unit to check collision against
+         * @return True if colliding with other unit
+         */
+        bool isColliding(const _unit &other);
+
+        /**
+         * Performs a penetration collision test on another unit
+         *          
+         * +X = LEFT 
+         * 
+         * -X = RIGHT 
+         * 
+         * +Y = BOTTOM 
+         * 
+         * -Y = TOP 
+         * 
+         * @param other Other unit to check collision against
+         * @return Vec2f for x/y components of penetration
+         */
+        Vec2f getPenetration(const _unit &other);
         
-        Team team = Team::NEUTRAL;
+        // Returns the collision box of the current element
+        _collisionBound* getCollisionBound() const;
 
-        // Returns the units alive state based on health points
-        const bool isAlive();
-        
-        // Physics //
-        Vec2f velocity; 
-        Vec2f acceleration;
+        // TODO - BROKEN
+        void focusOn(const Vec2f &_pos, float speed);
 
+        Vec2f scale = {1.0f, 1.0f};  // Scale of a unit in multiplier (so 2,2 is a unit 2x width by 2x height). Default unit width/height is # of pixels
+        Vec2f pos = {0.0f, 0.0f};    // Position of a unit in world space 
+        Vec2f offsetPos = {0.0f, 0.0f};    // Offset Position of a unit in world space for side scrollers
+        Col3f color = {1.0f, 1.0f, 1.0f}; // Color of the given unit 
+
+        Vec2f acc = {0.0f, 0.0f};
+        Vec2f vel = {0.0f, 0.0f};
+
+        float health = 100.0f;
+
+        // Returns true if sprite health is less than or equal to 0.0
+        bool isDead() const;
+
+        // DEBUGGING FLAGS //
+        bool DEBUG_display_collision_bounds = false; // If true displays the display bounds
+
+        // Returns te unit's unique ID 
+        int getID() const;
     protected:
     private:
+        vector<_sprite*> spriteList; // Vector for draw iteration
+        unordered_map<string,_sprite*> spriteMap;    // Hashmap for lookups
+        _collisionBound* collisionBox = nullptr;
+
+        int unitID;
+        static int nextID;
 };
 
 #endif // _UNIT_H

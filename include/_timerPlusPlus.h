@@ -1,7 +1,7 @@
 #ifndef _TIMER_PLUS_PLUS_H
 #define _TIMER_PLUS_PLUS_H
 
-#include<_common.h>
+#include <_common.h>
 
 class _timerPlusPlus
 {
@@ -10,13 +10,15 @@ class _timerPlusPlus
         virtual ~_timerPlusPlus();
         // Reset the timer to zero
         void reset();
-        // Returns the number of ticks since last reset (in milliseconds)
-        double getTicks();
+
+        // Returns the amount of time elapsed in seconds
+        double getSeconds() const;
+        // Returns the amount of time elapsed in milliseconds
+        double getMilliseconds() const;
 
     protected:
-
     private:
-        chrono::high_resolution_clock::time_point startTime;
+        chrono::steady_clock::time_point startTime;
 };
 
 #endif // _TIMER_PLUS_PLUS_H

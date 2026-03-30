@@ -392,9 +392,9 @@ int WINAPI WinMain(	HINSTANCE	hInstance,			// Instance
 			else									// Not Time To Quit, Update Screen
 			{
 				myScene->drawScene(); //So long as the key is not escaping (quitting), keep drawing the scene
-				if (Timer.getTicks() > UPDATE_DELAY) // If the time since the last update is greater than 16.67ms (60fps), update the scene
+				if (Timer.getMilliseconds() > UPDATE_DELAY) // If the time since the last update is greater than 16.67ms (60fps), update the scene
 				{
-					myScene->updateScene(Timer.getTicks()); //Update the scene with the time since the last update
+					myScene->updateScene(Timer.getMilliseconds()); //Update the scene with the time since the last update
 					Timer.reset(); // Reset the timer for the next update
 				}
 				SwapBuffers(hDC);				// Swap Buffers (Double Buffering)

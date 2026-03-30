@@ -57,16 +57,26 @@ GLint _scene::initGL()
     inputTimer.reset(); 
     fpsTimer->reset();  
 
-    // Tester Player
-    testPlayer->initUnit();
-    testPlayer->spriteInit("images/spriteSheet.png", 8, 4); 
-    
+    // Tester Player //
+
+    testPlayer->setupSprite("WALK");
+    testPlayer->getSprite("WALK")->initSprite("images/walk.png", 8, 6, sprite_direction::LEFT,12); // No natural direction due to top down
+
+    testPlayer->scale = {2.0f, 2.0f};
     testPlayer->pos = {0.0f, 0.0f}; // Start player in the center of the screen
+
+    testPlayer->getSprite("WALK")->createSpriteAction(sprite_action("WALK_DOWN",0,0,7));
+    testPlayer->getSprite("WALK")->createSpriteAction(sprite_action("WALK_DOWN_LEFT",1,0,7));
+    testPlayer->getSprite("WALK")->createSpriteAction(sprite_action("WALK_UP_LEFT",2,0,7));
+    testPlayer->getSprite("WALK")->createSpriteAction(sprite_action("WALK_UP",3,0,7));
+    testPlayer->getSprite("WALK")->createSpriteAction(sprite_action("WALK_UP_RIGHT",4,0,7));
+    testPlayer->getSprite("WALK")->createSpriteAction(sprite_action("WALK_DOWN_RIGHT",5,0,7));
+
     // Tester Unit
-    testUnit->initUnit();
-    testUnit->spriteInit("images/m2_50.png",4,1);
+    // testUnit->initUnit();
+    // testUnit->spriteInit("images/m2_50.png",4,1);
     
-    testUnit->pos = {0.0f, 0.0f};
+    // testUnit->pos = {0.0f, 0.0f};
 
     fpsText->initText(to_string(sceneFPS),{10.0f,height - 80.0f}, {1.0f,1.0f});
     fpsText->color = {1.0f,0.0f,0.0f}; // Set FPS color to red
@@ -121,15 +131,15 @@ void _scene::drawScene()
         myWorld->drawWorld(left,right,top,bottom); // Draw the world
     drawWorldBenchmark->clickBenchmark();
 
-    testPlayer->drawSprite(); // Draw the test player sprite
-    testUnit->drawSprite();
+    testPlayer->drawUnit();
+    //testUnit->drawSprite();
 
     fpsText->drawText();
 
     // For FPS measuring
     frameCount++;
 
-    if(fpsTimer->getTicks() > fpsPrintInterval) {
+    if(fpsTimer->getMilliseconds() > fpsPrintInterval) {
         debugPrintFPS(); 
     }
 }
@@ -137,21 +147,78 @@ void _scene::drawScene()
 // Runs in loop 60 times per second. dt is in ms.
 void _scene::updateScene(double dt)
 {
-    // Sprite movement for player
-    if (GetDistance(testPlayer->pos,testUnit->pos) < (16.0f*16.0f)) {   // One chunk
-        testUnit->focusOn(testPlayer->pos,240.0f);
-        testUnit->updateSprite(0);
-    } else {
-        if (testUnit->rot > 0.0f) testUnit->rot -= 1.0f;
-        testUnit->stopAnimation();
+    // // Sprite movement for player
+    // if (GetDistance(testPlayer->pos,testUnit->pos) < (16.0f*16.0f)) {   // One chunk
+    //     testUnit->focusOn(testPlayer->pos,240.0f);
+    //     testUnit->updateSprite(0);
+    // } else {
+    //     if (testUnit->rot > 0.0f) testUnit->rot -= 1.0f;
+    //     testUnit->stopAnimation();
+    // }
+    
+    bool walking = false;
+
+    if (!cameraFree) {
+        // Double input -- diagonol checks //
+        if (W && A) {
+            testPlayer->getSprite("WALK")->loadSpriteAction("WALK_UP_LEFT");
+            testPlayer->getSprite("WALK")->setIdleFrame(0,2);
+            walking = true;
+        }
+        
+        if (W && D) {
+            testPlayer->getSprite("WALK")->loadSpriteAction("WALK_UP_RIGHT");
+            testPlayer->getSprite("WALK")->setIdleFrame(0,4);
+            walking = true;
+        }
+        
+        if (S && A) {
+            testPlayer->getSprite("WALK")->loadSpriteAction("WALK_DOWN_LEFT");
+            testPlayer->getSprite("WALK")->setIdleFrame(0,1);
+            walking = true;
+        }
+    
+        if (S && D) {
+            testPlayer->getSprite("WALK")->loadSpriteAction("WALK_DOWN_RIGHT");
+            testPlayer->getSprite("WALK")->setIdleFrame(0,5);
+            walking = true;
+        }
+
+        // Prevents single inputs when were already doing a double input
+        if (!walking) {
+            // Sigle input checks //
+            if (W) {
+                testPlayer->getSprite("WALK")->loadSpriteAction("WALK_UP");
+                testPlayer->getSprite("WALK")->setIdleFrame(0,3);
+                walking = true;
+            }
+            
+            if (A) {
+                testPlayer->getSprite("WALK")->loadSpriteAction("WALK_DOWN_LEFT");
+                testPlayer->getSprite("WALK")->setIdleFrame(0,1);
+                walking = true;
+            }
+            
+            if (S) {
+                testPlayer->getSprite("WALK")->loadSpriteAction("WALK_DOWN");
+                testPlayer->getSprite("WALK")->setIdleFrame(0,0);
+                walking = true;
+            }
+        
+            if (D) {
+                testPlayer->getSprite("WALK")->loadSpriteAction("WALK_DOWN_RIGHT");
+                testPlayer->getSprite("WALK")->setIdleFrame(0,5);
+                walking = true;
+            }
+        }
     }
 
-    if (W && !cameraFree) testPlayer->updateSprite(3);
-    if (A && !cameraFree) testPlayer->updateSprite(1);
-    if (S && !cameraFree) testPlayer->updateSprite(0);
-    if (D && !cameraFree) testPlayer->updateSprite(2);
+    if (walking) {
+        testPlayer->getSprite("WALK")->startAnimation();
+    } else {
+        testPlayer->getSprite("WALK")->stopAnimation();
+    }
 
-    if (!W && !A && !S && !D) testPlayer->stopAnimation();
 
     // Get chunk position (coordinates)
     playerChunkPos.x = (int)floor(testPlayer->pos.x / (16 * TILE_W));
@@ -180,7 +247,7 @@ void _scene::updateScene(double dt)
         //myWorld->generateChunk(playerChunkPos.x, playerChunkPos.y);
     }
 
-    if (debugTimer.getTicks() > debugPrintInterval) 
+    if (debugTimer.getMilliseconds() > debugPrintInterval) 
     {
         debugPrint(); 
         debugTimer.reset(); 
@@ -207,7 +274,7 @@ void _scene::debugPrint()
 }
 
 void _scene::debugPrintFPS() {
-    sceneFPS = frameCount / (fpsTimer->getTicks() / 1000.0); // Calculate FPS based on frames and time
+    sceneFPS = frameCount / (fpsTimer->getMilliseconds() / 1000.0); // Calculate FPS based on frames and time
     //Logger.LogInfo("Current FPS: " + std::to_string(sceneFPS), LOG_CONSOLE);
     fpsText->setText(to_string(sceneFPS) + " FPS");
     frameCount = 0; // Reset frame count after printing FPS
@@ -216,7 +283,7 @@ void _scene::debugPrintFPS() {
 
 void _scene::keyboardHandler(WPARAM wParam)
 {
-    if (inputTimer.getTicks() > 200) // 200 ms debounce time for toggle keys
+    if (inputTimer.getMilliseconds() > 200) // 200 ms debounce time for toggle keys
     {
         switch (wParam)
         {
