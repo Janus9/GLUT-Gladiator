@@ -5,6 +5,7 @@
 *.cbp
 *.depend
 *.layout
+.idea/
 
 # BUILD ARTIFACTS #
 bin/    
@@ -12,8 +13,11 @@ build/
 logs/
 obj/
 
-# FILE TYPEs #
+# FILE TYPES #
 *.log
 *.o
 *.exe
+*.dll
 
+# LIBRARY FOLDERS #
+common/
