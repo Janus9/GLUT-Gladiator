@@ -39,7 +39,8 @@ struct _chunk
     int chunkX;
     int chunkY;
     uint8_t tileData[256]; // 16x16 chunk
-    GLuint vboID = 0;      // ID for the GPU memory of tiles
+    GLuint tileVboID = 0;  // ID for the GPU memory of tiles
+    GLuint lineVboID = 0;  // ID for the GPU memory of lines
     bool vboDirty = true;  // If dirty then we update the chunk (when tiles change)
 };
 
@@ -127,7 +128,7 @@ class _world
         
         _benchmark* initBenchmark = new _benchmark();
 
-        bool displayChunkBorders = false; // When enabled puts a red border around chunks (may drop performance)
+        bool displayChunkBorders = true; // When enabled puts a red border around chunks (may drop performance)
 };
 
 #endif // _WORLD_H

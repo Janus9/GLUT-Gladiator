@@ -96,7 +96,7 @@ class _scene
         bool debugEnabled = true;           // Enables specific debugging information for the scene
         bool inputDebugEnabled = false;     // Enables debug info for inputs (keyboard keys + mouse inputs)
         bool cameraFree = false;            // If true camera will not track player and can be moved freely
-        bool displayChunkBorders = false;   // If enabled chunks will have red border around them
+        bool displayChunkBorders = true;   // If enabled chunks will have red border around them
 
         double debugPrintInterval = 5000;   // ms between debug prints
         double fpsPrintInterval = 1000;     // ms between FPS prints

@@ -136,9 +136,25 @@ void _world::generateChunk(int new_chunkX, int new_chunkY)
 void _world::buildChunkVBO(_chunk* chunk) {
     // 1 tile = 4 vertices, 1 vertex = 4 floats (2 for vertex, 2 for texture) = 16
     // 256 tiles * 16 from above gives 4096
-    float vboData[4096];
+    float tileVboData[4096];
     int index = 0;
 
+    // Line VBO Data //
+    float x0 = (chunk->chunkX * 16) * TILE_W; 
+    float y0 = (chunk->chunkY * 16) * TILE_H;
+    
+    float x1 = (chunk->chunkX * 16 + 15) * TILE_W + TILE_W;
+    float y1 = (chunk->chunkY * 16 + 15) * TILE_H + TILE_H;
+    
+    // The lines only require 2 values (x,y) per w/ no texCoords and 4 total = 8 values
+    float lineVboData[8] {
+        x0, y1, // Top Left
+        x1, y1, // Top Right
+        x1, y0, // Bottom Right
+        x0, y0, // Bottom Left 
+    };
+
+    // Tile VBO Data //
     for (int y = 0; y < 16; y++) {
         for (int x = 0; x < 16; x++) {
             int tileIndex = y * 16 + x;
@@ -151,39 +167,47 @@ void _world::buildChunkVBO(_chunk* chunk) {
             // The VBO is set up identical to how we would do glVertex2f and glTexCoord2f
 
             // Bottom-left
-            vboData[index++] = worldX;
-            vboData[index++] = worldY;
-            vboData[index++] = tile->u0;
-            vboData[index++] = tile->v1;
+            tileVboData[index++] = worldX;
+            tileVboData[index++] = worldY;
+            tileVboData[index++] = tile->u0;
+            tileVboData[index++] = tile->v1;
             
             // Bottom-right
-            vboData[index++] = worldX + TILE_W;
-            vboData[index++] = worldY;
-            vboData[index++] = tile->u1;
-            vboData[index++] = tile->v1;
+            tileVboData[index++] = worldX + TILE_W;
+            tileVboData[index++] = worldY;
+            tileVboData[index++] = tile->u1;
+            tileVboData[index++] = tile->v1;
             
             // Top-right
-            vboData[index++] = worldX + TILE_W;
-            vboData[index++] = worldY + TILE_H;
-            vboData[index++] = tile->u1;
-            vboData[index++] = tile->v0;
+            tileVboData[index++] = worldX + TILE_W;
+            tileVboData[index++] = worldY + TILE_H;
+            tileVboData[index++] = tile->u1;
+            tileVboData[index++] = tile->v0;
             
             // Top-left
-            vboData[index++] = worldX;
-            vboData[index++] = worldY + TILE_H;
-            vboData[index++] = tile->u0;
-            vboData[index++] = tile->v0;
+            tileVboData[index++] = worldX;
+            tileVboData[index++] = worldY + TILE_H;
+            tileVboData[index++] = tile->u0;
+            tileVboData[index++] = tile->v0;
         }
     }
 
     // VBO uninitialized if 0
-    if (chunk->vboID == 0) {
-        glGenBuffers(1, &chunk->vboID); // Create an ID for the GPU buffer (only done once)
+    if (chunk->tileVboID == 0) {
+        glGenBuffers(1, &chunk->tileVboID); // Create an ID for the GPU buffer for the tiles (only done once)
     }
 
-    glBindBuffer(GL_ARRAY_BUFFER, chunk->vboID); // Working with this specific buffer
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vboData), vboData, GL_STATIC_DRAW); // Copy the system memory buffer (vboData) into a GPU memory buffer
-    glBindBuffer(GL_ARRAY_BUFFER,0); // Make sure to set vbo to 0 (nothing) to signal we're done working with this vboID
+    if (chunk->lineVboID == 0) {
+        glGenBuffers(1, &chunk->lineVboID); // Create an ID for the GPU buffer for the lines
+    }
+
+    glBindBuffer(GL_ARRAY_BUFFER, chunk->tileVboID); // Working with this specific buffer
+    glBufferData(GL_ARRAY_BUFFER, sizeof(tileVboData), tileVboData, GL_STATIC_DRAW); // Copy the system memory buffer (tileVboData) into a GPU memory buffer
+    glBindBuffer(GL_ARRAY_BUFFER,0); // Make sure to set vbo to 0 (nothing) to signal we're done working with this tileVboID
+
+    glBindBuffer(GL_ARRAY_BUFFER, chunk->lineVboID); // Working with lineVboID
+    glBufferData(GL_ARRAY_BUFFER, sizeof(lineVboData), lineVboData, GL_STATIC_DRAW); // Copy the lineVboData into a GPU buffer. GL_STATIC_DRAW because the lines will never change
+    glBindBuffer(GL_ARRAY_BUFFER,0); // Make sure to set vbo to 0 (nothing) to signal we're done working with this lineVboID
 
     chunk->vboDirty = false;
 }
@@ -220,38 +244,30 @@ void _world::drawWorld(float left, float right, float top, float bottom)
             }
 
             // Draw VBO
-            glBindBuffer(GL_ARRAY_BUFFER, chunk->vboID);
+            glColor3f(1.0f,1.0f,1.0f); // Reset color to white for blank canvas
+
+            glBindBuffer(GL_ARRAY_BUFFER, chunk->tileVboID);
             glVertexPointer(2, GL_FLOAT, 4 * sizeof(float), (void*)0);
             glTexCoordPointer(2, GL_FLOAT, 4 * sizeof(float), (void*)(2 * sizeof(float)));
             glDrawArrays(GL_QUADS, 0, 256 * 4);  // 256 tiles * 4 vertices
+
+            if (displayChunkBorders) {
+                glBindBuffer(GL_ARRAY_BUFFER, chunk->lineVboID);
+                glVertexPointer(2, GL_FLOAT, 0, (void*)0); // We use 0 because its tightly packed data
+
+                glDisable(GL_TEXTURE_2D); // Textures will disrupt the lines
+                glColor3f(1.0f,0.0f,0.0f);
+                glLineWidth(3.0f);
+             
+                glDrawArrays(GL_LINE_LOOP, 0, 4); // Draw a GL_LINE_LOOP of 4 points so 8 values total
+             
+                glEnable(GL_TEXTURE_2D);
+            }
         }
     }
 
     glDisableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-
-    // // Displays chunk borders in red when enabled -- kind of broken
-    // if (displayChunkBorders) {
-    //     glPushAttrib(GL_CURRENT_BIT | GL_LINE_BIT); // saves current GL state for color/line wdidth
-    //         glColor3f(1.0f, 0.0f, 0.0f); // Red color for borders
-    //         glLineWidth(2.0f); // Thicker lines for visibility
-    //         glBegin(GL_LINE_LOOP);
-    //             for(int chunkNum = 0; chunkNum < worldChunks.size(); chunkNum++) {
-    //                 _chunk* chunk = &worldChunks[chunkNum];
-
-    //                 float left = chunk->chunkX * 16 * TILE_W;
-    //                 float right = left + 16 * TILE_W;
-    //                 float top = chunk->chunkY * 16 * TILE_H;
-    //                 float bottom = top + 16 * TILE_H;
-                    
-    //                 glVertex2f(left, top);
-    //                 glVertex2f(right, top);
-    //                 glVertex2f(right, bottom);
-    //                 glVertex2f(left, bottom);
-    //             }
-    //         glEnd();
-    //     glPopAttrib();
-    // }
 }
 
 bool _world::isChunkLoaded(int chunkX, int chunkY) {
@@ -313,7 +329,6 @@ void _world::finalizeWorld() {
                 } else {
                     newChunk.tileData[chunk_tile_index] = 1;
                 }
-                //newChunk.tileData[chunk_tile_index] = world_noise[world_noise_index] ? 4 : 5;
             }
         }
 
