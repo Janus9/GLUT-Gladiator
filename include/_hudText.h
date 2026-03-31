@@ -34,7 +34,6 @@ class _hudText {
         Col3f color = {0.0f, 0.0f, 0.0f}; // Default to black
 
         string text = ""; 
-        double* valPtr = nullptr; // Points to a val for real-time updates
 
         bool backgroundEnabled = false; // If true draws a background behind text
         bool borderEnabled = false;     // If true draws a border behind text
