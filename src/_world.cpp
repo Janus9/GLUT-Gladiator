@@ -36,13 +36,6 @@ void _world::initWorld()
         }
 
         // Initialize world tiles and chunks here
-        // for (int i = 0; i < numStartingChunks; i++) {
-
-        //     int chunkX = i % (int)sqrt(numStartingChunks) - floor(sqrt(numStartingChunks) / 2); // Calculate chunkX based on index
-        //     int chunkY = i / (int)sqrt(numStartingChunks) - floor(sqrt(numStartingChunks) / 2); // Calculate chunkY based on index
-
-        //     generateChunk(chunkX, chunkY); // Generate the chunk at the calculated coordinates
-        // }
         runWorldGeneration(generation_iterations); 
 
     initBenchmark->clickBenchmark();
@@ -58,18 +51,24 @@ void _world::initTiles() {
     setTileInAtlas(8,12, world_tiles[3]);       // Square outlined floor
     setTileInAtlas(9,13, world_tiles[4]);       // Blank Floor 2
     // WALL //
-    setTileInAtlas(6,8, world_tiles[5]);        // Wall Center
+    setTileInAtlas(22,16, world_tiles[5]);        // Wall Center
 
-    setTileInAtlas(5,8, world_tiles[6]);        // Wall Left
-    setTileInAtlas(7,8, world_tiles[7]);        // Wall Right
-    setTileInAtlas(6,7, world_tiles[8]);        // Wall Up
-    setTileInAtlas(6,9, world_tiles[9]);        // Wall Down
+    setTileInAtlas(21,16, world_tiles[6]);        // Wall Left
+    setTileInAtlas(23,16, world_tiles[7]);        // Wall Right
+    setTileInAtlas(22,15, world_tiles[8]);        // Wall Up
+    setTileInAtlas(22,17, world_tiles[9]);        // Wall Down
 
-    setTileInAtlas(5,7, world_tiles[10]);        // Wall Corner Top Left
-    setTileInAtlas(7,7, world_tiles[11]);        // Wall Corner Top Right
-    setTileInAtlas(5,9, world_tiles[12]);        // Wall Corner Bottom Left
-    setTileInAtlas(7,9, world_tiles[13]);        // Wall Corner Bottom Left
+    setTileInAtlas(21,15, world_tiles[10]);        // Wall Corner Top Left
+    setTileInAtlas(23,15, world_tiles[11]);        // Wall Corner Top Right
+    setTileInAtlas(21,17, world_tiles[12]);        // Wall Corner Bottom Left
+    setTileInAtlas(23,17, world_tiles[13]);        // Wall Corner Bottom Right
 
+    setTileInAtlas(25,16, world_tiles[14]);        // Wall Island
+
+    setTileInAtlas(25,15, world_tiles[15]);        // Wall Peninsula Top
+    setTileInAtlas(25,17, world_tiles[16]);        // Wall Peninsula Down
+    setTileInAtlas(24,16, world_tiles[17]);        // Wall Peninsula Left
+    setTileInAtlas(26,16, world_tiles[18]);        // Wall Peninsula Right
 }
 
 bool _world::setTileInAtlas(int xIndex, int yIndex, _tile &tile) {
@@ -325,7 +324,7 @@ void _world::finalizeWorld() {
                 int chunk_tile_index = tileY * 16 + tileX;
                 
                 if (world_noise[world_noise_index]) {
-                    newChunk.tileData[chunk_tile_index] = 5;
+                    newChunk.tileData[chunk_tile_index] = 14;
                 } else {
                     newChunk.tileData[chunk_tile_index] = 1;
                 }
