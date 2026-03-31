@@ -18,8 +18,8 @@ class _hudText {
 
         // Initialize a textbox of a given text, positinon, size
         void initText(const string &_text, const Vec2f &pos, const Vec2f &size);
-        void setText(const string &_text);
         void setScreenDimensions(double width, double height);
+
         void drawText();
 
         // Position (in pixels)
@@ -34,6 +34,7 @@ class _hudText {
         Col3f color = {0.0f, 0.0f, 0.0f}; // Default to black
 
         string text = ""; 
+        double* valPtr = nullptr; // Points to a val for real-time updates
 
         bool backgroundEnabled = false; // If true draws a background behind text
         bool borderEnabled = false;     // If true draws a border behind text

@@ -34,6 +34,12 @@ _scene::~_scene()
 
     delete fpsText;
     fpsText = nullptr;
+
+    delete posText;
+    posText = nullptr;
+
+    delete chunkText;
+    chunkText = nullptr;
 }   
 
 
@@ -78,8 +84,14 @@ GLint _scene::initGL()
     
     // testUnit->pos = {0.0f, 0.0f};
 
-    fpsText->initText(to_string(sceneFPS),{10.0f,height - 80.0f}, {1.0f,1.0f});
-    fpsText->color = {1.0f,0.0f,0.0f}; // Set FPS color to red
+    fpsText->initText("FPS: ",{10.0f,height - 80.0f}, {1.0f,1.0f});
+    fpsText->color = {1.0f,1.0f,1.0f}; 
+
+    posText->initText("POS",{10.0f,height - 120.0f}, {1.0f,1.0f});
+    posText->color = {1.0f,1.0f,1.0f}; 
+
+    chunkText->initText("CHUNK",{10.0f,height - 160.0f}, {1.0f,1.0f});
+    chunkText->color = {1.0f,1.0f,1.0f}; 
 
     myLight->setLight(GL_LIGHT0); // The light onto the object from the pointer is set to be the instantiated light from before
     myModel->initModel(); // The model is initialized from the pointer to the model class
@@ -95,6 +107,7 @@ GLint _scene::initGL()
     drawWorldBenchmark->startBenchmark();
 
     testSounds->playSounds("sounds/level_transition.mp3");
+
     return true;
 }
 
@@ -103,6 +116,8 @@ void _scene::reSize(GLint width, GLint height)
     this->width = width;
     this->height = height;
     fpsText->setScreenDimensions(width,height);
+    posText->setScreenDimensions(width,height);
+    chunkText->setScreenDimensions(width,height);
     Logger.LogInfo("Resizing window to width: " + std::to_string(width) + " and height: " + std::to_string(height), LOG_BOTH);
     GLfloat aspectRatio = (GLfloat) width/ (GLfloat) height; //Intended to keep track of window resize
     glViewport(0,0,width,height); // Integer values taken in to take in view. Setting Viewport
@@ -134,6 +149,8 @@ void _scene::drawScene()
     testPlayer->drawUnit();
     //testUnit->drawSprite();
 
+    chunkText->drawText();
+    posText->drawText();
     fpsText->drawText();
 
     // For FPS measuring
@@ -236,7 +253,6 @@ void _scene::updateScene(double dt)
         if(S) testPlayer->pos.y -= playerSpeed*dt;
         if(D) testPlayer->pos.x += playerSpeed*dt;
         // If camera is not free, it will track the player (centered on player)
-        testPlayer->pos = testPlayer->pos; // Update player position based on input
 
         cameraX = testPlayer->pos.x;
         cameraY = testPlayer->pos.y;
@@ -252,6 +268,10 @@ void _scene::updateScene(double dt)
         debugPrint(); 
         debugTimer.reset(); 
     }
+
+    fpsText->text = "FPS: " + to_string(sceneFPS);
+    posText->text = "Player Position: (" + to_string(testPlayer->pos.x) + ", " + to_string(testPlayer->pos.y) + ")"; 
+    chunkText->text = "Chunk Position: (" + to_string(playerChunkPos.x) + ", " + to_string(playerChunkPos.y) + ")"; 
 }
 
 void _scene::debugPrint()
@@ -276,7 +296,6 @@ void _scene::debugPrint()
 void _scene::debugPrintFPS() {
     sceneFPS = frameCount / (fpsTimer->getMilliseconds() / 1000.0); // Calculate FPS based on frames and time
     //Logger.LogInfo("Current FPS: " + std::to_string(sceneFPS), LOG_CONSOLE);
-    fpsText->setText(to_string(sceneFPS) + " FPS");
     frameCount = 0; // Reset frame count after printing FPS
     fpsTimer->reset(); // Reset the timer for the next FPS calculation
 }

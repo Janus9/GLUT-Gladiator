@@ -65,6 +65,8 @@ class _scene
         _vbo vbo1 = _vbo();
 
         _hudText* fpsText = new _hudText();
+        _hudText* posText = new _hudText();
+        _hudText* chunkText = new _hudText();
 
         _texture texture1;
 

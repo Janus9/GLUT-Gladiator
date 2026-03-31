@@ -14,10 +14,6 @@ void _hudText::initText(const string &_text, const Vec2f &pos, const Vec2f &size
     size_pixels = size;
 }
 
-void _hudText::setText(const string &_text) {
-    text = _text;
-}
-
 void _hudText::drawText() {
     if (text.empty()) return;   // Nothing to draw if no text
 
@@ -41,12 +37,11 @@ void _hudText::drawText() {
 
     glColor3f(color.r, color.g, color.b);
     glRasterPos2f(pos_pixels.x, pos_pixels.y);
-    
-    int i = 0;
-    for (i = 0; i < (int)text.size(); i++) {
+
+    for (int i = 0; i < (int)text.size(); i++) {
         glutBitmapCharacter(GLUT_BITMAP_9_BY_15, text[i]);
     }
-    
+
     glPopMatrix();
 
     glMatrixMode(GL_PROJECTION);
