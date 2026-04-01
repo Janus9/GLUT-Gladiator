@@ -106,7 +106,7 @@ GLint _scene::initGL()
    
     drawWorldBenchmark->startBenchmark();
 
-    testSounds->playSounds("sounds/level_transition.mp3");
+    //testSounds->playSounds("sounds/level_transition.mp3");
 
     return true;
 }

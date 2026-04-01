@@ -328,9 +328,7 @@ void _world::postProcessWorld() {
             }
         }
         // Island Check //
-        if (!neighborTiles[0] && !neighborTiles[1] && !neighborTiles[2] &&
-            !neighborTiles[3] && !neighborTiles[4] && !neighborTiles[5] &&
-            !neighborTiles[6] && !neighborTiles[7] && !neighborTiles[8]) 
+        if (!neighborTiles[1] && !neighborTiles[3] && !neighborTiles[5] && !neighborTiles[7]) 
         {
             world_noise[i] = 14; // Island
             continue;
@@ -391,6 +389,44 @@ void _world::postProcessWorld() {
         // Wall Right
         if (!neighborTiles[5] && neighborTiles[1] && neighborTiles[7]) {
             world_noise[i] = 7; // Wall Right 
+            continue;
+        }
+
+        // Wall Down
+        if (!neighborTiles[1] && neighborTiles[3] && neighborTiles[5]) {
+            world_noise[i] = 9; // Wall Down 
+            continue;
+        }
+
+        // Wall Up
+        if (!neighborTiles[7] && neighborTiles[3] && neighborTiles[5]) {
+            world_noise[i] = 8; // Wall Up 
+            continue;
+        }
+
+        // Wall Corners //
+
+        // Wall Corner Bottom Left
+        if (neighborTiles[5] && neighborTiles[7] && !neighborTiles[1] && !neighborTiles[3]) {
+            world_noise[i] = 12; // Wall Corner Bottom Left 
+            continue;
+        }
+
+        // Wall Corner Top Right
+        if (neighborTiles[1] && neighborTiles[3] && !neighborTiles[5] && !neighborTiles[7]) {
+            world_noise[i] = 11; // Wall Corner Top Right 
+            continue;
+        }
+
+        // Wall Corner Bottom Right
+        if (neighborTiles[3] && neighborTiles[7] && !neighborTiles[1] && !neighborTiles[5]) {
+            world_noise[i] = 13; // Wall Corner Bottom Right 
+            continue;
+        }
+
+        // Wall Corner Top Left
+        if (neighborTiles[1] && neighborTiles[5] && !neighborTiles[3] && !neighborTiles[7]) {
+            world_noise[i] = 10; // Wall Corner Top Left
             continue;
         }
 
