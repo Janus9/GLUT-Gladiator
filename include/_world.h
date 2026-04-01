@@ -118,6 +118,9 @@ class _world
         // Converts an index into a coordinate position starting at TOP LEFT for (0,0) using grid
         Vec2i convertIndexToPos(int index, int width, int height);
 
+        // Puts the world through post processing converting bools to tile IDs for texturing
+        void postProcessWorld();
+
         // Finalizes the world generation binding the vector -> unordered map for rendering
         void finalizeWorld();
 

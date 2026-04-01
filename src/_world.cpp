@@ -69,6 +69,9 @@ void _world::initTiles() {
     setTileInAtlas(25,17, world_tiles[16]);        // Wall Peninsula Down
     setTileInAtlas(24,16, world_tiles[17]);        // Wall Peninsula Left
     setTileInAtlas(26,16, world_tiles[18]);        // Wall Peninsula Right
+
+    setTileInAtlas(22,18, world_tiles[19]);        // Wall Column Up
+    setTileInAtlas(23,18, world_tiles[20]);        // Wall Column Side
 }
 
 bool _world::setTileInAtlas(int xIndex, int yIndex, _tile &tile) {
@@ -288,6 +291,114 @@ Vec2i _world::convertIndexToPos(int index, int width, int height) {
     int yPos = index / height;
 }
 
+void _world::postProcessWorld() {
+    Logger.LogInfo("Starting post processing of world");
+
+    int worldWidth = (int)sqrt(numStartingChunks)*16;
+
+    vector<uint8_t> world_noise_copy(world_noise);
+    uniform_int_distribution<uint8_t> dist(0, 4); 
+
+    for (int i = 0; i < world_noise.size(); i++) {
+        if (!world_noise_copy[i]) {
+            // Empty Tile applys random floor tile 
+            world_noise[i] = dist(rng);
+            continue;;
+        }
+        /*
+        0 1 2
+        3 4 5
+        6 7 8
+
+        Where 4 is ourselves
+        */
+        bool neighborTiles[9] = { false };
+        
+        for (int j = 0; j < 9; j++) {
+            int xOffset = j % 3 - 1;    // Gets xOffset for tiles [-1,1]
+            int yOffset = j / 3 - 1;    // Gets yOffset for tiles [-1,1] -- Applies worldWidth later
+            int index = i + xOffset + yOffset * worldWidth; // Gets the given index to check
+            if (index == i) continue;   // Skip checking ourselves
+            if (index < 0 || index >= world_noise.size()) { // If index is out of bounds, treat as wall
+                neighborTiles[j] = true;
+                continue;
+            }
+            if (world_noise_copy[index]) {  // Check index, true means wall
+                neighborTiles[j] = true;
+            }
+        }
+        // Island Check //
+        if (!neighborTiles[0] && !neighborTiles[1] && !neighborTiles[2] &&
+            !neighborTiles[3] && !neighborTiles[4] && !neighborTiles[5] &&
+            !neighborTiles[6] && !neighborTiles[7] && !neighborTiles[8]) 
+        {
+            world_noise[i] = 14; // Island
+            continue;
+        }
+        // Peninsula Checks //
+
+        // Peninsula Right
+        if (!neighborTiles[0] && !neighborTiles[1] && !neighborTiles[3] && !neighborTiles[6] && !neighborTiles[7]) 
+        {
+            world_noise[i] = 17; // Peninsula Right
+            continue;
+        }
+
+        // Peninsula Left
+        if (!neighborTiles[2] && !neighborTiles[1] && !neighborTiles[5] && !neighborTiles[7] && !neighborTiles[8]) 
+        {
+            world_noise[i] = 18; // Peninsula Left
+            continue;
+        }
+
+        // Peninsula Bottom
+        if (!neighborTiles[0] && !neighborTiles[1] && !neighborTiles[2] && !neighborTiles[3] && !neighborTiles[5]) 
+        {
+            world_noise[i] = 16; // Peninsula Bottom
+            continue;
+        }
+
+        // Peninsula Top
+        if (!neighborTiles[3] && !neighborTiles[5] && !neighborTiles[6] && !neighborTiles[7] && !neighborTiles[8]) 
+        {
+            world_noise[i] = 15; // Peninsula Top
+            continue;
+        }
+
+        // Column Checks //
+
+        // Column Up
+        if (!neighborTiles[1] && !neighborTiles[7] && neighborTiles[3] && neighborTiles[5]) {
+            world_noise[i] = 19; // Peninsula Up
+            continue;
+
+        }
+
+        // Column Side
+        if (neighborTiles[1] && neighborTiles[7] && !neighborTiles[3] && !neighborTiles[5]) {
+            world_noise[i] = 20; // Peninsula Side
+            continue;
+        }
+
+        // Wall Checks //
+
+        // Wall Left
+        if (!neighborTiles[3] && neighborTiles[1] && neighborTiles[7]) {
+            world_noise[i] = 6; // Wall Left 
+            continue;
+        }
+
+        // Wall Right
+        if (!neighborTiles[5] && neighborTiles[1] && neighborTiles[7]) {
+            world_noise[i] = 7; // Wall Right 
+            continue;
+        }
+
+        world_noise[i] = 5;
+    }
+    Logger.LogInfo("Finishing post processing of world");
+}
+
 /*
 When tiles are made from noise its flat but since we load chunk by chunk we have to convert this flat array into 
 a coordinate system for chunks
@@ -323,11 +434,7 @@ void _world::finalizeWorld() {
                 // Convert to chunk tile index (tileY * 16 + tileX gives position in chunk's 16x16 grid)
                 int chunk_tile_index = tileY * 16 + tileX;
                 
-                if (world_noise[world_noise_index]) {
-                    newChunk.tileData[chunk_tile_index] = 14;
-                } else {
-                    newChunk.tileData[chunk_tile_index] = 1;
-                }
+                newChunk.tileData[chunk_tile_index] = world_noise[world_noise_index];
             }
         }
 
@@ -394,7 +501,9 @@ void _world::runWorldGeneration(int iterations) {
         Logger.LogDebug(" -- Iteration: " + to_string(iteration) + " completed!");
     }
 
-    Logger.LogDebug("World generation completed! Finalizing now ...");
+    Logger.LogDebug("World generation completed! Post processing now ...");
+    postProcessWorld();
+    Logger.LogDebug("Post processing completed! Finalizing world now ...");
     finalizeWorld();
 }
 
