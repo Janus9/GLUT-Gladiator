@@ -306,9 +306,9 @@ void _world::postProcessWorld() {
             continue;;
         }
         /*
-        0 1 2
-        3 4 5
-        6 7 8
+        8 7 6
+        5 4 3
+        2 1 0
 
         Where 4 is ourselves
         */
@@ -336,28 +336,28 @@ void _world::postProcessWorld() {
         // Peninsula Checks //
 
         // Peninsula Right
-        if (!neighborTiles[0] && !neighborTiles[1] && !neighborTiles[3] && !neighborTiles[6] && !neighborTiles[7]) 
+        if (!neighborTiles[1] && !neighborTiles[3] && !neighborTiles[7] && neighborTiles[5]) 
         {
             world_noise[i] = 17; // Peninsula Right
             continue;
         }
 
-        // Peninsula Left
-        if (!neighborTiles[2] && !neighborTiles[1] && !neighborTiles[5] && !neighborTiles[7] && !neighborTiles[8]) 
+        // Peninsula Leftm
+        if (!neighborTiles[1] && !neighborTiles[5] && !neighborTiles[7] && neighborTiles[3]) 
         {
             world_noise[i] = 18; // Peninsula Left
             continue;
         }
 
-        // Peninsula Bottom
-        if (!neighborTiles[0] && !neighborTiles[1] && !neighborTiles[2] && !neighborTiles[3] && !neighborTiles[5]) 
-        {
+        // Peninsula Bottomi
+        if (!neighborTiles[1] && !neighborTiles[3] && !neighborTiles[5] && neighborTiles[7]) 
+        {i
             world_noise[i] = 16; // Peninsula Bottom
             continue;
         }
 
         // Peninsula Top
-        if (!neighborTiles[3] && !neighborTiles[5] && !neighborTiles[6] && !neighborTiles[7] && !neighborTiles[8]) 
+        if (!neighborTiles[3] && !neighborTiles[5] && !neighborTiles[7] && neighborTiles[1]) 
         {
             world_noise[i] = 15; // Peninsula Top
             continue;
