@@ -86,6 +86,8 @@ GLint _scene::initGL()
     testPlayer->getSprite("WALK")->createSpriteAction(sprite_action("WALK_UP",3,0,7));
     testPlayer->getSprite("WALK")->createSpriteAction(sprite_action("WALK_UP_RIGHT",4,0,7));
     testPlayer->getSprite("WALK")->createSpriteAction(sprite_action("WALK_DOWN_RIGHT",5,0,7));
+    
+    testPlayer->getSprite("WALK")->offsetPoint = {0.0f, 8.0f};
 
     // Tester Unit
     // testUnit->initUnit();
@@ -186,6 +188,8 @@ void _scene::drawScene()
 // Runs in loop 60 times per second. dt is in ms.
 void _scene::updateScene(double dt)
 {
+    dt = dt / 1000.0; // Convert dt to seconds for easier calculations
+
     // Update mouse 
     float mouseScreenYInverted = height - mouseScreenPos.y;
     // Bottom-left is (0,0) and top right is (1,1)
@@ -201,28 +205,67 @@ void _scene::updateScene(double dt)
     
     bool walking = false;
 
+    _cell* _playerCell = myWorld->getCellAtWorld(testPlayer->pos);
+    _chunk* _playerChunk = myWorld->getChunkAtWorld(testPlayer->pos);
+
+    if (_playerCell != playerCell) {
+        if (playerCell && playerChunk) {
+            playerCell->outlined = false;
+            playerChunk->vboDirty = true;
+        }
+
+        playerCell = _playerCell;
+        playerChunk = _playerChunk;
+        
+        playerCell->outlined = true;
+        playerChunk->vboDirty = true;
+    }
+
     /**
-     * 0 0 0
-     * 0 P 0
-     * 0 0 0
+     * X X X
+     * X P X
+     * X X X
      * 
      * P = player
-     * 0 = tile (0 = no collision and 1 = collision)
+     * X = tile (false means tile has no collision while true mean tile has collision)
+     * 
      */
-    bool collisionTable[9] = {false};
+    bool occupationTable[9] = {false};
+    /**
+     * Used for movement, we check from occupation table IF movement causes issues
+     * 
+     *   0
+     * 1 P 2
+     *   3
+     * 
+     */
+    bool collisionTable[4] = {false};
     for (int i = 0; i < 9; i++) {
         // Establish tiles right around player
         int x = i % 3 - 1; 
         int y = i / 3 - 1;
         Vec2f offset(16 * x, -16 * y);
-        collisionTable[i] = myWorld->getTileAtWorld(testPlayer->pos + offset)->hasCollision;
+        occupationTable[i] = myWorld->getTileAtWorld(testPlayer->pos + offset)->hasCollision;
     }
 
-    // Debugs collision table
-    // cout << "Collision Table:" <<
-    //     "\n(" << collisionTable[0] << ", " << collisionTable[1] << ", " << collisionTable[2] << ")\n" <<
-    //     "\n(" << collisionTable[3] << ", " << collisionTable[4] << ", " << collisionTable[5] << ")\n" <<
-    //     "\n(" << collisionTable[6] << ", " << collisionTable[7] << ", " << collisionTable[8] << ")\n";
+    if (myWorld->getTileAtWorld(testPlayer->pos + Vec2f(0.0f, playerSpeed*dt))->hasCollision) {
+        // Next potential movement yields use moving into upper tile
+        collisionTable[0] = true;
+    }
+    if (myWorld->getTileAtWorld(testPlayer->pos - Vec2f(0.0f, playerSpeed*dt))->hasCollision) {
+        // Next potential movement yields use moving into lower tile
+        collisionTable[3] = true;
+    }
+    if (myWorld->getTileAtWorld(testPlayer->pos - Vec2f(playerSpeed*dt, 0.0f))->hasCollision) {
+        // Next potential movement yields use moving into left tile
+        collisionTable[1] = true;
+    }
+    if (myWorld->getTileAtWorld(testPlayer->pos + Vec2f(playerSpeed*dt, 0.0f))->hasCollision) {
+        // Next potential movement yields use moving into right tile
+        collisionTable[2] = true;
+    }
+
+    cout << "Collision Table: " << collisionTable[0] << ", " << collisionTable[1] << ", " << collisionTable[2] << ", " << collisionTable[3] << "\n";
 
     if (!cameraFree) {
         // Double input -- diagonol checks //
@@ -253,25 +296,25 @@ void _scene::updateScene(double dt)
         // Prevents single inputs when were already doing a double input
         if (!walking) {
             // Sigle input checks //
-            if (W && !collisionTable[1]) {
+            if (W && !collisionTable[0]) {
                 testPlayer->getSprite("WALK")->loadSpriteAction("WALK_UP");
                 testPlayer->getSprite("WALK")->setIdleFrame(0,3);
                 walking = true;
             }
             
-            if (A && !collisionTable[3]) {
+            if (A && !collisionTable[1]) {
                 testPlayer->getSprite("WALK")->loadSpriteAction("WALK_DOWN_LEFT");
                 testPlayer->getSprite("WALK")->setIdleFrame(0,1);
                 walking = true;
             }
             
-            if (S && !collisionTable[7]) {
+            if (S && !collisionTable[3]) {
                 testPlayer->getSprite("WALK")->loadSpriteAction("WALK_DOWN");
                 testPlayer->getSprite("WALK")->setIdleFrame(0,0);
                 walking = true;
             }
         
-            if (D && !collisionTable[5]) {
+            if (D && !collisionTable[2]) {
                 testPlayer->getSprite("WALK")->loadSpriteAction("WALK_DOWN_RIGHT");
                 testPlayer->getSprite("WALK")->setIdleFrame(0,5);
                 walking = true;
@@ -285,17 +328,16 @@ void _scene::updateScene(double dt)
         testPlayer->getSprite("WALK")->stopAnimation();
     }
 
-    dt = dt / 1000.0; // Convert dt to seconds for easier calculations
     if (cameraFree) {
         if(W) cameraY += cameraSpeed*dt;
         if(A) cameraX -= cameraSpeed*dt; 
         if(S) cameraY -= cameraSpeed*dt;
         if(D) cameraX += cameraSpeed*dt; 
     } else {
-        if(W && !collisionTable[1]) testPlayer->pos.y += playerSpeed*dt;
-        if(A && !collisionTable[3]) testPlayer->pos.x -= playerSpeed*dt; 
-        if(S && !collisionTable[7]) testPlayer->pos.y -= playerSpeed*dt;
-        if(D && !collisionTable[5]) testPlayer->pos.x += playerSpeed*dt;
+        if(W && !collisionTable[0]) testPlayer->pos.y += playerSpeed*dt;
+        if(A && !collisionTable[1]) testPlayer->pos.x -= playerSpeed*dt; 
+        if(S && !collisionTable[3]) testPlayer->pos.y -= playerSpeed*dt;
+        if(D && !collisionTable[2]) testPlayer->pos.x += playerSpeed*dt;
     }
 
     // // Chunk generation only works during world setup (for now TODO)

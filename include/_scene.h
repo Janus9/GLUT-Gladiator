@@ -87,6 +87,10 @@ class _scene
         _cell* hoveredCell = nullptr;
         _chunk* hoveredChunk = nullptr;
 
+        // Cell + Chunk player is occupying
+        _cell* playerCell = nullptr;
+        _chunk* playerChunk = nullptr;
+
         // Position of the player in chunk coordinates
         Vec2i playerChunkPos = {0, 0};
 
