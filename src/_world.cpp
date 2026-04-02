@@ -50,6 +50,19 @@ void _world::initTiles() {
     setTileInAtlas(10,13, world_tiles[2]);      // Medium Cracked Floor
     setTileInAtlas(8,12, world_tiles[3]);       // Square outlined floor
     setTileInAtlas(9,13, world_tiles[4]);       // Blank Floor 2
+
+    world_tiles[0].hasCollision = false;
+    world_tiles[1].hasCollision = false;
+    world_tiles[2].hasCollision = false;
+    world_tiles[3].hasCollision = false;
+    world_tiles[4].hasCollision = false;
+
+    world_tiles[0].name = "blank_floor";
+    world_tiles[1].name = "slightly_cracked_floor";
+    world_tiles[2].name = "medium_cracked_floor";
+    world_tiles[3].name = "square_outlined_floor";
+    world_tiles[4].name = "blank_floor_2";
+
     // WALL //
     setTileInAtlas(22,16, world_tiles[5]);        // Wall Center
 
@@ -109,32 +122,6 @@ bool _world::setTileInAtlas(int xIndex, int yIndex, _tile &tile) {
     return true;
 }
 
-void _world::generateChunk(int new_chunkX, int new_chunkY) 
-{
-    if (isChunkLoaded(new_chunkX, new_chunkY)) {
-        Logger.LogWarning("Chunk at (" + std::to_string(new_chunkX) + ", " + std::to_string(new_chunkY) + ") is already loaded. Skipping generation.", LOG_BOTH);
-        return; // Chunk is already loaded, no need to generate
-    }
-
-    uniform_int_distribution<int> dist(4, 5); 
-
-    loadedChunks[{new_chunkX, new_chunkY}] = true;  // Using pair directly
-
-    //Logger.LogDebug("Generating new chunk at (" + std::to_string(new_chunkX) + ", " + std::to_string(new_chunkY) + ")", LOG_BOTH);
-
-    _chunk newChunk;
-    newChunk.chunkX = new_chunkX;
-    newChunk.chunkY = new_chunkY;
-
-    worldChunks.push_back(newChunk);
-
-    for (int i = 0; i < 256; i++) {
-        worldChunks.back().tileData[i] = dist(rng); // Randomly assign tile type 0, 1, 2, or 3
-    }
-
-    chunkLookup[{new_chunkX, new_chunkY}] = &worldChunks.back();  // Using pair directly
-}
-
 void _world::buildChunkVBO(_chunk* chunk) {
     // 1 tile = 4 vertices, 1 vertex = 4 floats (2 for vertex, 2 for texture) = 16
     // 256 tiles * 16 from above gives 4096
@@ -161,7 +148,7 @@ void _world::buildChunkVBO(_chunk* chunk) {
         for (int x = 0; x < 16; x++) {
             int tileIndex = y * 16 + x;
             uint8_t tileType = chunk->tileData[tileIndex];
-            _tile* tile = &world_tiles[tileType];
+            const _tile* tile = &world_tiles[tileType];
             
             float worldX = (chunk->chunkX * 16 + x) * TILE_W;
             float worldY = (chunk->chunkY * 16 + y) * TILE_H;
@@ -237,7 +224,7 @@ void _world::drawWorld(float left, float right, float top, float bottom)
             if (!isChunkLoaded(chunkX, chunkY)) { continue; }
             
             // Uses unordered map to get a reference to the chunk (since we arent iterating through entire vector)
-            _chunk* chunk = getChunk(chunkX, chunkY);
+            _chunk* chunk = getChunkAt(Vec2i(chunkX, chunkY));
             if (chunk == nullptr) { continue; }
 
             // If chunk is dirty (so tiles changed) call a rebuild
@@ -253,7 +240,7 @@ void _world::drawWorld(float left, float right, float top, float bottom)
             glTexCoordPointer(2, GL_FLOAT, 4 * sizeof(float), (void*)(2 * sizeof(float)));
             glDrawArrays(GL_QUADS, 0, 256 * 4);  // 256 tiles * 4 vertices
 
-            if (displayChunkBorders) {
+            if (DEBUG_displayChunkBorders) {
                 glBindBuffer(GL_ARRAY_BUFFER, chunk->lineVboID);
                 glVertexPointer(2, GL_FLOAT, 0, (void*)0); // We use 0 because its tightly packed data
 
@@ -274,14 +261,6 @@ void _world::drawWorld(float left, float right, float top, float bottom)
 
 bool _world::isChunkLoaded(int chunkX, int chunkY) {
     return loadedChunks.find({chunkX, chunkY}) != loadedChunks.end();
-}
-
-_chunk* _world::getChunk(int chunkX, int chunkY) {
-    auto it = chunkLookup.find({chunkX,chunkY});
-    if (it != chunkLookup.end()) {
-        return it->second;
-    }
-    return nullptr;
 }
 
 /* -- >> WORLD GENERATION << -- */
@@ -480,6 +459,58 @@ void _world::finalizeWorld() {
         chunkLookup[{new_chunkX, new_chunkY}] = &worldChunks.back();
     }
     Logger.LogDebug("World noise has been mapped to tiles and has been finalized!");
+}
+
+Vec2i _world::worldToChunkPos(const Vec2f &pos) {
+    // Get chunk position (coordinates)
+    Vec2i chunkPos;
+    chunkPos.x = (int)floor(pos.x / (16 * TILE_W));
+    chunkPos.y = (int)floor(pos.y / (16 * TILE_H));
+    return chunkPos;
+}
+
+_chunk* _world::getChunkAt(const Vec2i &chunkPos) {
+    auto it = chunkLookup.find({chunkPos.x,chunkPos.y});
+    if (it != chunkLookup.end()) {
+        return it->second;
+    }
+    return nullptr;
+}
+
+_chunk* _world::getChunkAtWorld(const Vec2f &pos) {
+    // Just a wrapper of the two functions
+    return getChunkAt(worldToChunkPos(pos));
+}
+
+const _tile* _world::getTileFromChunkIndex(const _chunk* chunk, const uint8_t index) const {
+    if (index > 255) {
+        uint8_t id = chunk->tileData[index];
+        return &world_tiles[id];
+    }
+    // Out of range
+    return nullptr;
+}
+
+// https://www.desmos.com/calculator/x5cyeg8q8s
+const _tile* _world::getTileAtWorld(const Vec2f &pos) {
+    // Convert floats to ints by truncation
+    int posX = pos.x;
+    int posY = pos.y;
+
+    // The adjust pos is 0-255 for x/y (pos within the chunk). This works with negatives as well.
+    Vec2i adjustedPos(posX % 256,posY % 256);
+    
+    // Get chunk present at position
+    const _chunk* chunk = getChunkAtWorld(pos);
+    
+    // Get an index in the flat array for the tile
+    uint8_t tileIndex = (int)floor(adjustedPos.x/16)*16 + (int)floor(adjustedPos.y/16);
+
+    // Get the id stored in the chunk
+    uint8_t id = chunk->tileData[tileIndex];
+
+    // Map id -> tile and return it
+    return &world_tiles[id];
 }
 
 void _world::runWorldGeneration(int iterations) {

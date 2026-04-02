@@ -81,7 +81,7 @@ void _sprite::setDirection(const sprite_direction &direction) {
 }
 
 void _sprite::drawSprite() {
-    if (hidden) return; // Skip draw
+    if (hidden || ocapacity == 0) return; // Skip draw due to hidden image
     if (pixelsX <= 0 || pixelsY <= 0) {
         // No need to handle drawing an image of 0 size
         return;
@@ -89,7 +89,7 @@ void _sprite::drawSprite() {
     
     glPushMatrix();
         texture->bindTexture();
-        glColor3f(color.r, color.g, color.b);
+        glColor4f(color.r, color.g, color.b, ocapacity);
         
         glTranslatef(pos.x, pos.y, 0.0f);
         

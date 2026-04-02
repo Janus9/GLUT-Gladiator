@@ -59,6 +59,8 @@ class _sprite {
         _sprite();
         virtual ~_sprite();
 
+        // -- Functions -- //
+
         /**
          * Initialize sprite from a texture atlas.
          * 
@@ -130,21 +132,6 @@ class _sprite {
         // Returns current animation FPS
         int getFPS() const;
 
-        Vec2f scale = {1.0f, 1.0f};  // Scale of a sprite in multiplier (so 2,2 is a sprite 2x width by 2x height). Default sprite width/height is # of pixels
-        Vec2f pos = {0.0f, 0.0f};    // Position of a sprite in world space 
-        float rot = 0.0f; // Rotation for a 2D element is only 1 dimension (around Z-axis)
-        
-        Vec2f pivotPoint = {0.0f, 0.0f}; // Point the rot applies from
-        Vec2f offsetPoint = {0.0f, 0.0f}; // Point image is offset to for alignment purposes
-
-        Col3f color = {1.0f, 1.0f, 1.0f}; // Color of the given sprite 
-
-        bool debugging = false; // If true performs certain debug logging
-        bool DEBUG_showPivotPoint = false; // If true displays pivot location
-        bool DEBUG_showOrigin = false; // If true displays sprite origin
-
-        bool reverseAnimation = false; // If true the animation reel goes backwards (decreases rather than increases)
-        bool hidden = false; // If false sprite draw is ignored
         /**
          * Sets the pixel drawing bounds to exact pixel values.
          * 
@@ -155,13 +142,28 @@ class _sprite {
          * @param _pixelDrawStop Which pixel for the image frame to stop drawing at
          */
         void setDrawBoundsExact(int _pixelDrawStart, int _pixelDrawStop);
-
+        
         // Resets the draw bounds to be 100% the image frame
         void resetDrawBounds();
 
         // Returns the current sprite's ID (unique to each instance)
         int getID() const;
 
+        // -- Sprite Attributes -- //
+        Vec2f scale = {1.0f, 1.0f};         // Scale of a sprite in multiplier (so 2,2 is a sprite 2x width by 2x height). Default sprite width/height is # of pixels
+        Vec2f pos = {0.0f, 0.0f};           // Position of a sprite in world space 
+        float rot = 0.0f;                   // Rotation for a 2D element is only 1 dimension (around Z-axis)
+        float ocapacity = 1.0f;             // Ocapacity (0-1) of the sprite (defaults to 1.0)
+        
+        Vec2f pivotPoint = {0.0f, 0.0f};    // Point the rot applies from
+        Vec2f offsetPoint = {0.0f, 0.0f};   // Point image is offset to for alignment purposes
+
+        Col3f color = {1.0f, 1.0f, 1.0f};   // Color of the given sprite 
+
+        bool reverseAnimation = false;      // If true the animation reel goes backwards (decreases rather than increases)
+        bool hidden = false;                // If false sprite draw is ignored (overrides sprite ocapacity)
+        
+        // -- Operators -- //
         /**
          * Checks the current sprite's ID to another sprite's ID to see if they match
          * 
@@ -169,6 +171,11 @@ class _sprite {
          * @return true if sprite ID matches the other sprite ID
          */
         bool operator==(const _sprite &other) const;
+
+        // -- Debugging Flags -- //
+        bool debugging = false;             // If true performs certain debug logging
+        bool DEBUG_showPivotPoint = false;  // If true displays pivot location
+        bool DEBUG_showOrigin = false;      // If true displays sprite origin
     protected:
     private:
         // These are indexes so they start at 0

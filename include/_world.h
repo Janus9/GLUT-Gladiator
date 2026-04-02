@@ -1,8 +1,15 @@
 /**
  *  _world.h
  * 
- *  Holds helpers/containers and classes needed for rendering a world of tiles. World is broken
- *  up into chunks of (W x H) tiles. 
+ *  There are a few different position systems, world position and chunk position.
+ * 
+ *  World position is use for OpenGL orthographic drawing, it starts at (0,0) where +X is right, -X is left
+ *  +Y is up, and -Y is down. These units are in pixels.
+ * 
+ *  Chunk position is used for placement of chunks. It uses the same scheme for x,y and starts at (0,0). However, these 
+ *  are integers. More detail in the "_chunk" class. 
+ * 
+ *  
  * 
  */
 
@@ -16,24 +23,29 @@
 #include<_texture.h>
 #include<_benchmark.h>
 
+/**
+ * Tiles only hold data for their image texture coord in the atlas
+ */
 struct _tile
 {
-    float u0, v0, u1, v1; // if using atlas; otherwise 0..1
+    string name = "";
+    bool hasCollision = true;
+    float u0, v0, u1, v1; 
 };
 
-
-/*
-* For chunk generation the coordinates start at the bottom left of the chunk.
-*
-* Thus chunk (0,0) is (0,0) coordinates at the bottom left but (256,256) at the top right.
-*
-* Chunks are ordered by their own coordinate system of (X,Y) so the Center Chunk is (0,0)
-*   (-1,0) is LEFT of Center Chunk
-*   (1,0) is RIGHT of Center Chunk
-*   (0,1) is ABOVE of Center Chunk
-*   (0,-1) is BELOW of Center Chunk
-*
-*/
+/**
+ * For chunk generation the coordinates start at the bottom left of the chunk.
+ * 
+ * Thus chunk (0,0) is (0,0) coordinates at the bottom left but (256,256) at the top right.
+ * 
+ * Chunks are ordered by their own coordinate system of (X,Y) so the Center Chunk is (0,0)
+ *  - (-1,0) is LEFT of Center Chunk
+ *  - (1,0) is RIGHT of Center Chunk
+ *  - (0,1) is ABOVE of Center Chunk
+ *  - (0,-1) is BELOW of Center Chunk
+ * 
+ *  Tiles are held as IDs to a look up tables and not objects. They go bottom-left -> top-right
+ */
 struct _chunk
 {
     int chunkX;
@@ -55,22 +67,60 @@ class _world
 
         // Draw function for world
         void drawWorld(float left, float right, float top, float bottom);
-
-        // Sets the debug option to display chunk borders
-        void SET_DisplayChunkBorders(bool value) { displayChunkBorders = value; }
-
-        // Generates a chunk at the given chunk coordinates (chunkX, chunkY) and adds it to the worldChunks vector.
-        void generateChunk(int chunkX, int chunkY);
-
-        // Uses unordered map to return a given chunk 
-        _chunk* getChunk(int chunkX, int chunkY);
-
+        
         // Checks if a given chunck is loaded by looking up the chunk in the unordered map of loaded chunks.
         bool isChunkLoaded(int chunkX, int chunkY);
-
+        
         // Prints debugging information largely about storage and performance metrics of the world
         void debugPrint();
+        
+        /**
+         * Converts a world position into a chunk position
+         * 
+         * @param pos Position (in world coordinates) to convert
+         * 
+         * @return Vec2i of chunk position (x,y)
+         */
+        Vec2i worldToChunkPos(const Vec2f &pos);
 
+        /**
+         * Retrieves a chunk from a given chunk position
+         * 
+         * @param chunkPos Position (in chunk coordinates)
+         * 
+         * @return Pointer to the chunk or nullptr if not found
+         */
+        _chunk* getChunkAt(const Vec2i &chunkPos);
+        
+        /**
+         * Retrieves a chunk from a given world position
+         * 
+         * @param chunkPos Position (in world coordinates)
+         * 
+         * @return Pointer to the chunk or nullptr if not found
+         */
+        _chunk* getChunkAtWorld(const Vec2f &pos);
+
+        /**
+         * Returns a chunk's tile from a provided tile index
+         * 
+         * @param chunk Chunk to get tile from
+         * @param index The tile's index in the chunk
+         * 
+         * @return Readonly pointer to a tile or nullptr if not found
+         */
+        const _tile* getTileFromChunkIndex(const _chunk* chunk, const uint8_t index) const;
+
+        /**
+         * Returns a tile from a given world position
+         * 
+         * @param pos Position (in world coordinates)
+         * 
+         * @return Readonly pointer to a tile or nullptr if out of range
+         */
+        const _tile* getTileAtWorld(const Vec2f &pos);
+
+        bool DEBUG_displayChunkBorders = true; // When enabled puts a red border around chunks
     protected:
     private:
         // -- RNG -- //
@@ -81,11 +131,14 @@ class _world
 
         // -- WORLD DATA -- //
 
-        // This is the default number of renered chunks for the world. Starts at center and expands evenly outward as a cube 
-        // Would be better done as a sphere but cube is easier -- gives warning if # doesnt make an even cube
+        _texture* tileAtlas = new _texture(); // Texture loader
+
+        /**
+         * This is the default number of renered chunks for the world. Starts at center and expands evenly outward as a cube 
+         * Would be better done as a sphere but cube is easier -- gives warning if # doesnt make an even cube
+         */
         const int numStartingChunks = 16384;
 
-        _texture* tileAtlas = new _texture(); // Texture loader
 
         // List of all possible tile types. This is a lookup table NOT the main storage array
         _tile world_tiles[256];  
@@ -131,7 +184,6 @@ class _world
         
         _benchmark* initBenchmark = new _benchmark();
 
-        bool displayChunkBorders = true; // When enabled puts a red border around chunks (may drop performance)
 };
 
 #endif // _WORLD_H

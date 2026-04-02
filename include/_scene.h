@@ -41,7 +41,13 @@ class _scene
         // CLASSES //
     protected:
     private:
+        // Window dimensions
         int width, height; 
+        
+        // (x,y) position of the mouse in world coordinates (adjusted to camera position)
+        Vec2i mouseWorldPos;
+        // (x,y) position of the mouse in screen coordinates
+        Vec2i mouseScreenPos;
 
         // Coordinates for the view-window. These are set in applyCamera.
         float left = 0.0f;
@@ -67,6 +73,10 @@ class _scene
         _hudText* fpsText = new _hudText();
         _hudText* posText = new _hudText();
         _hudText* chunkText = new _hudText();
+
+        _hudText* mouseScreenText = new _hudText();
+        _hudText* mouseWorldText = new _hudText();
+        _hudText* testText = new _hudText();
 
         _texture texture1;
 
@@ -94,11 +104,9 @@ class _scene
 
         _benchmark* drawWorldBenchmark = new _benchmark();
 
-        bool isPerspective = false;
         bool debugEnabled = true;           // Enables specific debugging information for the scene
         bool inputDebugEnabled = false;     // Enables debug info for inputs (keyboard keys + mouse inputs)
         bool cameraFree = false;            // If true camera will not track player and can be moved freely
-        bool displayChunkBorders = true;   // If enabled chunks will have red border around them
 
         double debugPrintInterval = 5000;   // ms between debug prints
         double fpsPrintInterval = 1000;     // ms between FPS prints

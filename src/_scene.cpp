@@ -40,6 +40,15 @@ _scene::~_scene()
 
     delete chunkText;
     chunkText = nullptr;
+
+    delete mouseScreenText;
+    mouseScreenText = nullptr;
+
+    delete mouseWorldText;
+    mouseWorldText = nullptr;
+
+    delete testText;
+    testText = nullptr;
 }   
 
 
@@ -93,13 +102,20 @@ GLint _scene::initGL()
     chunkText->initText("CHUNK",{10.0f,height - 160.0f}, {1.0f,1.0f});
     chunkText->color = {1.0f,1.0f,1.0f}; 
 
+    mouseScreenText->initText("MOUSES",{10.0f,height - 180.0f}, {1.0f,1.0f});
+    mouseScreenText->color = {1.0f,1.0f,1.0f}; 
+
+    mouseWorldText->initText("MOUSEW",{10.0f,height - 200.0f}, {1.0f,1.0f});
+    mouseWorldText->color = {1.0f,1.0f,1.0f}; 
+
+    testText->initText("TEST",{10.0f,height - 220.0f}, {1.0f,1.0f});
+    testText->color = {1.0f,1.0f,1.0f}; 
+
     myLight->setLight(GL_LIGHT0); // The light onto the object from the pointer is set to be the instantiated light from before
     myModel->initModel(); // The model is initialized from the pointer to the model class
     myWorld->initWorld(); // Initialize the world
     
     debugTimer.reset();     
-    
-    myWorld->SET_DisplayChunkBorders(displayChunkBorders); // Set initial chunk border display state
     
     vbo1.vboInit();
     texture1.loadTexture("images/wood.png");
@@ -118,6 +134,9 @@ void _scene::reSize(GLint width, GLint height)
     fpsText->setScreenDimensions(width,height);
     posText->setScreenDimensions(width,height);
     chunkText->setScreenDimensions(width,height);
+    mouseScreenText->setScreenDimensions(width,height);
+    mouseWorldText->setScreenDimensions(width,height);
+    testText->setScreenDimensions(width,height);
     Logger.LogInfo("Resizing window to width: " + std::to_string(width) + " and height: " + std::to_string(height), LOG_BOTH);
     GLfloat aspectRatio = (GLfloat) width/ (GLfloat) height; //Intended to keep track of window resize
     glViewport(0,0,width,height); // Integer values taken in to take in view. Setting Viewport
@@ -152,6 +171,9 @@ void _scene::drawScene()
     chunkText->drawText();
     posText->drawText();
     fpsText->drawText();
+    mouseScreenText->drawText();
+    mouseWorldText->drawText();
+    testText->drawText();
 
     // For FPS measuring
     frameCount++;
@@ -236,11 +258,6 @@ void _scene::updateScene(double dt)
         testPlayer->getSprite("WALK")->stopAnimation();
     }
 
-
-    // Get chunk position (coordinates)
-    playerChunkPos.x = (int)floor(testPlayer->pos.x / (16 * TILE_W));
-    playerChunkPos.y = (int)floor(testPlayer->pos.y / (16 * TILE_H));
-
     dt = dt / 1000.0; // Convert dt to seconds for easier calculations
     if (cameraFree) {
         if(W) cameraY += cameraSpeed*dt;
@@ -252,16 +269,13 @@ void _scene::updateScene(double dt)
         if(A) testPlayer->pos.x -= playerSpeed*dt; 
         if(S) testPlayer->pos.y -= playerSpeed*dt;
         if(D) testPlayer->pos.x += playerSpeed*dt;
-        // If camera is not free, it will track the player (centered on player)
-
-        cameraX = testPlayer->pos.x;
-        cameraY = testPlayer->pos.y;
     }
 
-    bool inLoadedChunk = myWorld->isChunkLoaded(playerChunkPos.x, playerChunkPos.y);
-    if (!inLoadedChunk) {
-        //myWorld->generateChunk(playerChunkPos.x, playerChunkPos.y);
-    }
+    // // Chunk generation only works during world setup (for now TODO)
+    // bool inLoadedChunk = myWorld->isChunkLoaded(playerChunkPos.x, playerChunkPos.y);
+    // if (!inLoadedChunk) {
+    //     //myWorld->generateChunk(playerChunkPos.x, playerChunkPos.y);
+    // }
 
     if (debugTimer.getMilliseconds() > debugPrintInterval) 
     {
@@ -269,9 +283,20 @@ void _scene::updateScene(double dt)
         debugTimer.reset(); 
     }
 
+    playerChunkPos = myWorld->worldToChunkPos(testPlayer->pos);
+
     fpsText->text = "FPS: " + to_string(sceneFPS);
     posText->text = "Player Position: (" + to_string(testPlayer->pos.x) + ", " + to_string(testPlayer->pos.y) + ")"; 
     chunkText->text = "Chunk Position: (" + to_string(playerChunkPos.x) + ", " + to_string(playerChunkPos.y) + ")"; 
+    mouseScreenText->text = "Mouse Screen Position: " + mouseScreenPos.toString(); 
+    mouseWorldText->text = "Mouse World Position: " + mouseWorldPos.toString(); 
+    const _tile* tile = myWorld->getTileAtWorld(testPlayer->pos);
+    if (tile) {
+        //testText->text = "Tile Collision: " + to_string(tile->hasCollision);
+        testText->text = "Tile Collision: " + tile->name;
+    } else {
+        testText->text = "Tile Collision: nullptr";
+    }
 }
 
 void _scene::debugPrint()
@@ -322,9 +347,8 @@ void _scene::keyboardHandler(WPARAM wParam)
                 Logger.LogInfo("Toggled camera free mode: " + std::string(cameraFree ? "ON" : "OFF"), LOG_CONSOLE);
                 break;
             case 122: // "F11"
-                displayChunkBorders = !displayChunkBorders;
-                myWorld->SET_DisplayChunkBorders(displayChunkBorders); // Toggle chunk border display
-                Logger.LogInfo("Toggled chunk border display: " + std::string(displayChunkBorders ? "ON" : "OFF"), LOG_CONSOLE);
+                myWorld->DEBUG_displayChunkBorders = !myWorld->DEBUG_displayChunkBorders;
+                Logger.LogInfo("Toggled chunk border display: " + std::string(myWorld->DEBUG_displayChunkBorders ? "ON" : "OFF"), LOG_CONSOLE);
                 break;
         }
         inputTimer.reset(); // Reset the timer after handling a toggle key
@@ -402,7 +426,10 @@ int _scene::winMsg(HWND	hWnd, UINT uMsg, WPARAM	wParam, LPARAM lParam)
             break;
         // Mouse move
         case WM_MOUSEMOVE:
-            if (inputDebugEnabled) Logger.LogDebug("Mouse Move at (" + std::to_string(LOWORD(lParam)) + ", " + std::to_string(HIWORD(lParam)) + ")", LOG_CONSOLE); //Log the position of the mouse when it moves
+            mouseScreenPos = {LOWORD(lParam), HIWORD(lParam)};
+            if (inputDebugEnabled) Logger.LogDebug("Mouse Move at " + mouseScreenPos.toString("px"), LOG_CONSOLE); //Log the position of the mouse when it moves
+            // Adjusted to be -width to +width and +height to -height plus offset of the camera
+            mouseWorldPos = {(mouseScreenPos.x - width/2) + cameraX, (height/2 - mouseScreenPos.y) + cameraY};
             break;
         // Mouse wheel
         case WM_MOUSEWHEEL:
@@ -445,6 +472,12 @@ void _scene::commandHandler() {
 }
 
 void _scene::applyCamera() {
+    if (!cameraFree) {
+        // If camera is not free, it will track the player (centered on player)
+        cameraX = testPlayer->pos.x;
+        cameraY = testPlayer->pos.y;
+    }
+
     float renderCameraX = floor(cameraX);
     float renderCameraY = floor(cameraY);
     

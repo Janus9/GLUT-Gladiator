@@ -57,7 +57,7 @@ struct Vec2f
     Vec2f operator+(const Vec2f &other) const {
         return Vec2f(x + other.x, y + other.y);
     }
-
+    
     // Adds another Vec2f to this current object and returns it
     Vec2f& operator+=(const Vec2f &other) { // We use & to send the object by reference and not by copy (more efficient)
         x += other.x;
@@ -305,6 +305,27 @@ struct Vec2i
 {
     GLint x;
     GLint y;
+
+    Vec2i() {
+        x = 0;
+        y = 0;
+    }
+
+    Vec2i(const GLint _x, const GLint _y) {
+        x = _x;
+        y = _y;
+    }
+
+    /**
+     * Converts the Vec2i into an easy to visualize string for debugging
+     * 
+     * @param unit Unit to show next to values (defaults to nothing)
+     * 
+     * @return string formated as (x[unit], y[unit]) with no newline
+     */
+    string toString(const string &unit = "") {
+        return "(" + to_string(x) + unit + ", " + to_string(y) + unit + ")";
+    }
 };
 
 struct Col3f
