@@ -45,9 +45,11 @@ class _scene
         int width, height; 
         
         // (x,y) position of the mouse in world coordinates (adjusted to camera position)
-        Vec2i mouseWorldPos;
+        Vec2f mouseWorldPos;
         // (x,y) position of the mouse in screen coordinates
-        Vec2i mouseScreenPos;
+        Vec2f mouseScreenPos;
+        // (x,y) position of the mouse normalized for screen coordinates (0-1)
+        Vec2f mouseNormalPos;
 
         // Coordinates for the view-window. These are set in applyCamera.
         float left = 0.0f;
@@ -98,7 +100,20 @@ class _scene
 
         bool SPACE = false;
 
-        // DEBUGGING //
+        // -- FUNCTIONS -- //
+        void mouseMove(LPARAM lParam);
+        // Function that runs every [debugPrintInterval] ms for dubuggin purposes
+        void debugPrint();
+        // Function that runs every [fpsPrintInterval] ms to calculate and print the FPS of the scene
+        void debugPrintFPS();
+        // Handles keyboard inputs for toggle keys. Function regulated by a timer
+        void keyboardHandler(WPARAM wParam); 
+        // Handles commands sent from console
+        void commandHandler();
+        // Applies camera position zoom, etc
+        void applyCamera();
+
+        // -- DEBUGGING -- //
         _timerPlusPlus debugTimer;          // Timer to track time between updates for the scene
         _timerPlusPlus* fpsTimer = new _timerPlusPlus(); // Timer to track time between frames for FPS calculation
 
@@ -112,17 +127,6 @@ class _scene
         double fpsPrintInterval = 1000;     // ms between FPS prints
         double sceneFPS = 0.0;              // Current FPS of the scene (updated every [fpsPrintInterval] ms)
         int frameCount = 0;                 // Number of frames between FPS prints
-
-        // Function that runs every [debugPrintInterval] ms for dubuggin purposes
-        void debugPrint();
-        // Function that runs every [fpsPrintInterval] ms to calculate and print the FPS of the scene
-        void debugPrintFPS();
-        // Handles keyboard inputs for toggle keys. Function regulated by a timer
-        void keyboardHandler(WPARAM wParam); 
-        // Handles commands sent from console
-        void commandHandler();
-        // Applies camera position zoom, etc
-        void applyCamera();
 };
 
 #endif // _SCENE_H

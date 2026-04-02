@@ -85,6 +85,28 @@ void _world::initTiles() {
 
     setTileInAtlas(22,18, world_tiles[19]);        // Wall Column Up
     setTileInAtlas(23,18, world_tiles[20]);        // Wall Column Side
+
+    world_tiles[5].name = "wall_center";
+
+    world_tiles[6].name = "wall_left";
+    world_tiles[7].name = "wall_right";
+    world_tiles[8].name = "wall_up";
+    world_tiles[9].name = "wall_down";
+
+    world_tiles[10].name = "wall_corner_top_left";
+    world_tiles[11].name = "wall_corner_top_right";
+    world_tiles[12].name = "wall_corner_bottom_left";
+    world_tiles[13].name = "wall_corner_bottom_right";
+
+    world_tiles[14].name = "wall_island";
+
+    world_tiles[15].name = "wall_peninsula_top";
+    world_tiles[16].name = "wall_peninsula_down";
+    world_tiles[17].name = "wall_peninsula_left";
+    world_tiles[18].name = "wall_peninsula_right";
+
+    world_tiles[19].name = "wall_column_up";
+    world_tiles[20].name = "wall_column_side";
 }
 
 bool _world::setTileInAtlas(int xIndex, int yIndex, _tile &tile) {
@@ -498,16 +520,21 @@ const _tile* _world::getTileAtWorld(const Vec2f &pos) {
     int posY = pos.y;
 
     // The adjust pos is 0-255 for x/y (pos within the chunk). This works with negatives as well.
-    Vec2i adjustedPos(posX % 256,posY % 256);
+    Vec2i adjustedPos(modFloor(posX,256),modFloor(posY,256));
     
     // Get chunk present at position
     const _chunk* chunk = getChunkAtWorld(pos);
     
     // Get an index in the flat array for the tile
-    uint8_t tileIndex = (int)floor(adjustedPos.x/16)*16 + (int)floor(adjustedPos.y/16);
+    uint8_t tileIndex = (int)floor(adjustedPos.y/16)*16 + (int)floor(adjustedPos.x/16);
 
     // Get the id stored in the chunk
     uint8_t id = chunk->tileData[tileIndex];
+
+    // debugging //
+    // cout << "Position In: " << pos.toString() << "\n";
+    // cout << "Adjusted Position: " << adjustedPos.toString() << "\n";
+    // cout << "Tile Index: " << to_string(tileIndex) << "\n";
 
     // Map id -> tile and return it
     return &world_tiles[id];

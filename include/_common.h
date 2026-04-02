@@ -142,7 +142,7 @@ struct Vec2f
      * 
      * @return string formated as (x[unit], y[unit]) with no newline
      */
-    string toString(const string &unit = "") {
+    string toString(const string &unit = "") const {
         return "(" + to_string(x) + unit + ", " + to_string(y) + unit + ")";
     }
 
@@ -289,7 +289,7 @@ struct Vec3f
      * 
      * @return string formated as (x[unit], y[unit], z[unit]) with no newline
      */
-    string toString(const string &unit = "") {
+    string toString(const string &unit = "") const {
         return "(" + to_string(x) + unit + ", " + to_string(y) + unit + ", " + to_string(z) + unit + ")";
     }
 };
@@ -323,7 +323,7 @@ struct Vec2i
      * 
      * @return string formated as (x[unit], y[unit]) with no newline
      */
-    string toString(const string &unit = "") {
+    string toString(const string &unit = "") const {
         return "(" + to_string(x) + unit + ", " + to_string(y) + unit + ")";
     }
 };
@@ -390,6 +390,25 @@ inline float GetRotationAngle(const Vec2f &start, const Vec2f &end) {
     angleDeg = fmodf(angleDeg, 360.0f); // Bound angleDeg to 360 degrees
     if (angleDeg < 0.0f) angleDeg += 360.0f; // Bound angleDeg to NOT be negative
     return angleDeg;
+}
+
+/**
+ * Performs modulus of b on a using floor modulus. This is true mathematical modulus versus c++ division based.
+ * 
+ * @param a Value to mod
+ * 
+ * @param b Mod by
+ * 
+ * @return int value result
+ */
+inline int modFloor(int a, int b)
+{
+    int r = a % b;
+    if (r < 0)
+    {
+        r += b;
+    }
+    return r;
 }
 
 #endif // _COMMON_H

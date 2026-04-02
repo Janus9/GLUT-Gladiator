@@ -77,7 +77,7 @@ GLint _scene::initGL()
     testPlayer->setupSprite("WALK");
     testPlayer->getSprite("WALK")->initSprite("images/walk.png", 8, 6, sprite_direction::LEFT,12); // No natural direction due to top down
 
-    testPlayer->scale = {1.0f, 1.0f};
+    testPlayer->scale = {0.8f, 0.8f};
     testPlayer->pos = {0.0f, 0.0f}; // Start player in the center of the screen
 
     testPlayer->getSprite("WALK")->createSpriteAction(sprite_action("WALK_DOWN",0,0,7));
@@ -290,7 +290,8 @@ void _scene::updateScene(double dt)
     chunkText->text = "Chunk Position: (" + to_string(playerChunkPos.x) + ", " + to_string(playerChunkPos.y) + ")"; 
     mouseScreenText->text = "Mouse Screen Position: " + mouseScreenPos.toString(); 
     mouseWorldText->text = "Mouse World Position: " + mouseWorldPos.toString(); 
-    const _tile* tile = myWorld->getTileAtWorld(testPlayer->pos);
+    // const _tile* tile = myWorld->getTileAtWorld(testPlayer->pos);
+    const _tile* tile = myWorld->getTileAtWorld(Vec2f(mouseWorldPos.x,mouseWorldPos.y));
     if (tile) {
         //testText->text = "Tile Collision: " + to_string(tile->hasCollision);
         testText->text = "Tile Collision: " + tile->name;
@@ -353,6 +354,24 @@ void _scene::keyboardHandler(WPARAM wParam)
         }
         inputTimer.reset(); // Reset the timer after handling a toggle key
     }
+}
+
+void _scene::mouseMove(LPARAM lParam) {
+    mouseScreenPos = {LOWORD(lParam), HIWORD(lParam)};
+    if (inputDebugEnabled) Logger.LogDebug("Mouse Move at " + mouseScreenPos.toString("px"), LOG_CONSOLE); //Log the position of the mouse when it moves
+    // Adjusted to be -width to +width and +height to -height plus offset of the camera
+    
+    float mouseScreenYInverted = height - mouseScreenPos.y;
+    // Bottom-left is (0,0) and top right is (1,1)
+    mouseNormalPos = {mouseScreenPos.x/width,mouseScreenYInverted/height};
+
+    //cout << "Mouse Normal Pos: " << mouseNormalPos.toString() << "\n";
+
+    float worldWidth = right-left;
+    float worldHeight = top-bottom;
+
+    // Where the mouse is in world position (for selecting tiles etc)
+    mouseWorldPos = {mouseNormalPos.x * worldWidth + left, mouseNormalPos.y * worldHeight + bottom};
 }
 
 int _scene::winMsg(HWND	hWnd, UINT uMsg, WPARAM	wParam, LPARAM lParam)
@@ -426,10 +445,7 @@ int _scene::winMsg(HWND	hWnd, UINT uMsg, WPARAM	wParam, LPARAM lParam)
             break;
         // Mouse move
         case WM_MOUSEMOVE:
-            mouseScreenPos = {LOWORD(lParam), HIWORD(lParam)};
-            if (inputDebugEnabled) Logger.LogDebug("Mouse Move at " + mouseScreenPos.toString("px"), LOG_CONSOLE); //Log the position of the mouse when it moves
-            // Adjusted to be -width to +width and +height to -height plus offset of the camera
-            mouseWorldPos = {(mouseScreenPos.x - width/2) + cameraX, (height/2 - mouseScreenPos.y) + cameraY};
+            mouseMove(lParam);
             break;
         // Mouse wheel
         case WM_MOUSEWHEEL:
@@ -493,6 +509,9 @@ void _scene::applyCamera() {
     glLoadIdentity();
 
     // We use Orthographic projection because its a 2D game and it makes it easy to maintain scale via pixels
+    /**
+     * This 
+     */
     glOrtho(
         left, right,    // left->right = zoom of 1 means 1 world unit (1 pixel) is visible. Zooming in makes the world bigger and zooming out makes the world smaller
         bottom, top,    // top->bottom = zoom of 1 means 1 world unit (1 pixel) is visible. Zooming in makes the world bigger and zooming out makes the world smaller
