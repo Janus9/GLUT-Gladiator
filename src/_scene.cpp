@@ -186,16 +186,43 @@ void _scene::drawScene()
 // Runs in loop 60 times per second. dt is in ms.
 void _scene::updateScene(double dt)
 {
-    // // Sprite movement for player
-    // if (GetDistance(testPlayer->pos,testUnit->pos) < (16.0f*16.0f)) {   // One chunk
-    //     testUnit->focusOn(testPlayer->pos,240.0f);
-    //     testUnit->updateSprite(0);
-    // } else {
-    //     if (testUnit->rot > 0.0f) testUnit->rot -= 1.0f;
-    //     testUnit->stopAnimation();
-    // }
+    // Update mouse 
+    float mouseScreenYInverted = height - mouseScreenPos.y;
+    // Bottom-left is (0,0) and top right is (1,1)
+    mouseNormalPos = {mouseScreenPos.x/width,mouseScreenYInverted/height};
+
+    //cout << "Mouse Normal Pos: " << mouseNormalPos.toString() << "\n";
+
+    float worldWidth = right-left;
+    float worldHeight = top-bottom;
+
+    // Where the mouse is in world position (for selecting tiles etc)
+    mouseWorldPos = {mouseNormalPos.x * worldWidth + left, mouseNormalPos.y * worldHeight + bottom};
     
     bool walking = false;
+
+    /**
+     * 0 0 0
+     * 0 P 0
+     * 0 0 0
+     * 
+     * P = player
+     * 0 = tile (0 = no collision and 1 = collision)
+     */
+    bool collisionTable[9] = {false};
+    for (int i = 0; i < 9; i++) {
+        // Establish tiles right around player
+        int x = i % 3 - 1; 
+        int y = i / 3 - 1;
+        Vec2f offset(16 * x, -16 * y);
+        collisionTable[i] = myWorld->getTileAtWorld(testPlayer->pos + offset)->hasCollision;
+    }
+
+    // Debugs collision table
+    // cout << "Collision Table:" <<
+    //     "\n(" << collisionTable[0] << ", " << collisionTable[1] << ", " << collisionTable[2] << ")\n" <<
+    //     "\n(" << collisionTable[3] << ", " << collisionTable[4] << ", " << collisionTable[5] << ")\n" <<
+    //     "\n(" << collisionTable[6] << ", " << collisionTable[7] << ", " << collisionTable[8] << ")\n";
 
     if (!cameraFree) {
         // Double input -- diagonol checks //
@@ -226,25 +253,25 @@ void _scene::updateScene(double dt)
         // Prevents single inputs when were already doing a double input
         if (!walking) {
             // Sigle input checks //
-            if (W) {
+            if (W && !collisionTable[1]) {
                 testPlayer->getSprite("WALK")->loadSpriteAction("WALK_UP");
                 testPlayer->getSprite("WALK")->setIdleFrame(0,3);
                 walking = true;
             }
             
-            if (A) {
+            if (A && !collisionTable[3]) {
                 testPlayer->getSprite("WALK")->loadSpriteAction("WALK_DOWN_LEFT");
                 testPlayer->getSprite("WALK")->setIdleFrame(0,1);
                 walking = true;
             }
             
-            if (S) {
+            if (S && !collisionTable[7]) {
                 testPlayer->getSprite("WALK")->loadSpriteAction("WALK_DOWN");
                 testPlayer->getSprite("WALK")->setIdleFrame(0,0);
                 walking = true;
             }
         
-            if (D) {
+            if (D && !collisionTable[5]) {
                 testPlayer->getSprite("WALK")->loadSpriteAction("WALK_DOWN_RIGHT");
                 testPlayer->getSprite("WALK")->setIdleFrame(0,5);
                 walking = true;
@@ -265,10 +292,10 @@ void _scene::updateScene(double dt)
         if(S) cameraY -= cameraSpeed*dt;
         if(D) cameraX += cameraSpeed*dt; 
     } else {
-        if(W) testPlayer->pos.y += playerSpeed*dt;
-        if(A) testPlayer->pos.x -= playerSpeed*dt; 
-        if(S) testPlayer->pos.y -= playerSpeed*dt;
-        if(D) testPlayer->pos.x += playerSpeed*dt;
+        if(W && !collisionTable[1]) testPlayer->pos.y += playerSpeed*dt;
+        if(A && !collisionTable[3]) testPlayer->pos.x -= playerSpeed*dt; 
+        if(S && !collisionTable[7]) testPlayer->pos.y -= playerSpeed*dt;
+        if(D && !collisionTable[5]) testPlayer->pos.x += playerSpeed*dt;
     }
 
     // // Chunk generation only works during world setup (for now TODO)
@@ -290,13 +317,30 @@ void _scene::updateScene(double dt)
     chunkText->text = "Chunk Position: (" + to_string(playerChunkPos.x) + ", " + to_string(playerChunkPos.y) + ")"; 
     mouseScreenText->text = "Mouse Screen Position: " + mouseScreenPos.toString(); 
     mouseWorldText->text = "Mouse World Position: " + mouseWorldPos.toString(); 
-    // const _tile* tile = myWorld->getTileAtWorld(testPlayer->pos);
+    //const _tile* tile = myWorld->getTileAtWorld(testPlayer->pos);
+
     const _tile* tile = myWorld->getTileAtWorld(Vec2f(mouseWorldPos.x,mouseWorldPos.y));
+    _cell* cell = myWorld->getCellAtWorld(Vec2f(mouseWorldPos.x,mouseWorldPos.y));
+    _chunk* chunk = myWorld->getChunkAtWorld(Vec2f(mouseWorldPos.x,mouseWorldPos.y));
+
+    if (cell != hoveredCell) {
+        if (hoveredCell && hoveredChunk) {
+            hoveredCell->outlined = false;
+            hoveredChunk->vboDirty = true;
+        }
+
+        hoveredCell = cell;
+        hoveredChunk = chunk;
+        
+        hoveredCell->outlined = true;
+        hoveredChunk->vboDirty = true;
+    }
+
     if (tile) {
         //testText->text = "Tile Collision: " + to_string(tile->hasCollision);
-        testText->text = "Tile Collision: " + tile->name;
+        testText->text = "Tile Name: " + tile->name + " -- Tile Collision: " + (tile->hasCollision ? "TRUE" : "FALSE");
     } else {
-        testText->text = "Tile Collision: nullptr";
+        testText->text = "Tile Name: nullptr";
     }
 }
 
@@ -360,18 +404,6 @@ void _scene::mouseMove(LPARAM lParam) {
     mouseScreenPos = {LOWORD(lParam), HIWORD(lParam)};
     if (inputDebugEnabled) Logger.LogDebug("Mouse Move at " + mouseScreenPos.toString("px"), LOG_CONSOLE); //Log the position of the mouse when it moves
     // Adjusted to be -width to +width and +height to -height plus offset of the camera
-    
-    float mouseScreenYInverted = height - mouseScreenPos.y;
-    // Bottom-left is (0,0) and top right is (1,1)
-    mouseNormalPos = {mouseScreenPos.x/width,mouseScreenYInverted/height};
-
-    //cout << "Mouse Normal Pos: " << mouseNormalPos.toString() << "\n";
-
-    float worldWidth = right-left;
-    float worldHeight = top-bottom;
-
-    // Where the mouse is in world position (for selecting tiles etc)
-    mouseWorldPos = {mouseNormalPos.x * worldWidth + left, mouseNormalPos.y * worldHeight + bottom};
 }
 
 int _scene::winMsg(HWND	hWnd, UINT uMsg, WPARAM	wParam, LPARAM lParam)

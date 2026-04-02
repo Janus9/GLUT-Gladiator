@@ -23,14 +23,24 @@
 #include<_texture.h>
 #include<_benchmark.h>
 
-struct _tileCell
+/**
+ * A tileCell holds data individual to each tile instance. This allows for each tile to have a dynamic and local state. 
+ * This is called shorthand a "cell"
+ */
+struct _cell
 {
     uint8_t tileId;
     bool outlined = false;
 };
 
 /**
+ * A tile holds consistent information. Chunks hold IDs that reference a tile in the tile table and not instances themselves.
+ * This saves memory as many things like text coords and the name are static and will never change. 
  * 
+ * This is called shorthand a "tile"
+ * 
+ * 
+ * For per tile data we use tileCell
  */
 struct _tile
 {
@@ -56,14 +66,17 @@ struct _chunk
 {
     int chunkX;
     int chunkY;
-    uint8_t tileData[256]; // 16x16 chunk
-    _tileCell tileCellData[256] ;// 16x16 chunk
-    GLuint tileLineVboID = 0;  // ID for the GPU memory of lines around tiles
+    // this really should be private 
+    uint8_t tileData[256];      // 16x16 chunk
+    _cell cellData[256] ;   // 16x16 chunk
+    
+    GLuint tileLineVboID = 0;   // ID for the GPU memory of lines around tiles
     size_t tileLineVboSize;
 
-    GLuint tileVboID = 0;  // ID for the GPU memory of tiles
+    GLuint tileVboID = 0;       // ID for the GPU memory of tiles
     GLuint chunkLineVboID = 0;  // ID for the GPU memory of lines
-    bool vboDirty = true;  // If dirty then we update the chunk (when tiles change)
+    
+    bool vboDirty = true;       // If dirty then we update the chunk (when tiles change)
 };
 
 class _world
@@ -91,7 +104,7 @@ class _world
          * 
          * @return Vec2i of chunk position (x,y)
          */
-        Vec2i worldToChunkPos(const Vec2f &pos);
+        Vec2i worldToChunkPos(const Vec2f &pos) const;
 
         /**
          * Retrieves a chunk from a given chunk position
@@ -100,7 +113,7 @@ class _world
          * 
          * @return Pointer to the chunk or nullptr if not found
          */
-        _chunk* getChunkAt(const Vec2i &chunkPos);
+        _chunk* getChunkAt(const Vec2i &chunkPos) const;
         
         /**
          * Retrieves a chunk from a given world position
@@ -109,7 +122,7 @@ class _world
          * 
          * @return Pointer to the chunk or nullptr if not found
          */
-        _chunk* getChunkAtWorld(const Vec2f &pos);
+        _chunk* getChunkAtWorld(const Vec2f &pos) const;
 
         /**
          * Returns a chunk's tile from a provided tile index
@@ -128,7 +141,17 @@ class _world
          * 
          * @return Readonly pointer to a tile or nullptr if out of range
          */
-        const _tile* getTileAtWorld(const Vec2f &pos);
+        const _tile* getTileAtWorld(const Vec2f &pos) const;
+
+        /**
+         * Returns a cell from a given world position
+         * 
+         * @param pos Position (in world coordinates)
+         * 
+         * @return Pointer to a cell or nullptr if out of range
+         */
+        _cell* getCellAtWorld(const Vec2f &pos) const;
+
 
         bool DEBUG_displayChunkBorders = true; // When enabled puts a red border around chunks
     protected:

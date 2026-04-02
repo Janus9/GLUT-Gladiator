@@ -84,6 +84,9 @@ class _scene
 
         _timerPlusPlus inputTimer; // Timer to regulate toggle keys (ensures a key only pressed once)
 
+        _cell* hoveredCell = nullptr;
+        _chunk* hoveredChunk = nullptr;
+
         // Position of the player in chunk coordinates
         Vec2i playerChunkPos = {0, 0};
 

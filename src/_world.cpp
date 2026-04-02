@@ -164,8 +164,8 @@ void _world::buildChunkVBO(_chunk* chunk) {
         x1, y0, // Bottom Right
         x0, y0, // Bottom Left 
     };
-
     
+    // Vbo for line outline data
     vector<float> tileOutlineVboData;
 
     // For each tile of the chunk //
@@ -174,7 +174,7 @@ void _world::buildChunkVBO(_chunk* chunk) {
             int tileIndex = y * 16 + x;
 
             // For each tile match the cell ID and data ID to keep them in match
-            chunk->tileCellData[tileIndex].tileId = chunk->tileData[tileIndex];
+            chunk->cellData[tileIndex].tileId = chunk->tileData[tileIndex];
 
             uint8_t tileType = chunk->tileData[tileIndex];
             const _tile* tile = &world_tiles[tileType];
@@ -185,7 +185,7 @@ void _world::buildChunkVBO(_chunk* chunk) {
             // Outline VBO Setup //
 
             // Only outlined tiles have vbo data pushed
-            if (chunk->tileCellData[tileIndex].outlined) {
+            if (chunk->cellData[tileIndex].outlined) {
                 // Bottom-Left -> Bottom-Right //
                 // bottom-left
                 tileOutlineVboData.push_back(worldX);
@@ -554,7 +554,7 @@ void _world::finalizeWorld() {
     Logger.LogDebug("World noise has been mapped to tiles and has been finalized!");
 }
 
-Vec2i _world::worldToChunkPos(const Vec2f &pos) {
+Vec2i _world::worldToChunkPos(const Vec2f &pos) const {
     // Get chunk position (coordinates)
     Vec2i chunkPos;
     chunkPos.x = (int)floor(pos.x / (16 * TILE_W));
@@ -562,7 +562,7 @@ Vec2i _world::worldToChunkPos(const Vec2f &pos) {
     return chunkPos;
 }
 
-_chunk* _world::getChunkAt(const Vec2i &chunkPos) {
+_chunk* _world::getChunkAt(const Vec2i &chunkPos) const {
     auto it = chunkLookup.find({chunkPos.x,chunkPos.y});
     if (it != chunkLookup.end()) {
         return it->second;
@@ -570,7 +570,7 @@ _chunk* _world::getChunkAt(const Vec2i &chunkPos) {
     return nullptr;
 }
 
-_chunk* _world::getChunkAtWorld(const Vec2f &pos) {
+_chunk* _world::getChunkAtWorld(const Vec2f &pos) const {
     // Just a wrapper of the two functions
     return getChunkAt(worldToChunkPos(pos));
 }
@@ -585,7 +585,7 @@ const _tile* _world::getTileFromChunkIndex(const _chunk* chunk, const uint8_t in
 }
 
 // https://www.desmos.com/calculator/x5cyeg8q8s
-const _tile* _world::getTileAtWorld(const Vec2f &pos) {
+const _tile* _world::getTileAtWorld(const Vec2f &pos) const {
     // Convert floats to ints by truncation
     int posX = pos.x;
     int posY = pos.y;
@@ -602,13 +602,26 @@ const _tile* _world::getTileAtWorld(const Vec2f &pos) {
     // Get the id stored in the chunk
     uint8_t id = chunk->tileData[tileIndex];
 
-    // debugging //
-    // cout << "Position In: " << pos.toString() << "\n";
-    // cout << "Adjusted Position: " << adjustedPos.toString() << "\n";
-    // cout << "Tile Index: " << to_string(tileIndex) << "\n";
-
     // Map id -> tile and return it
     return &world_tiles[id];
+}
+
+_cell* _world::getCellAtWorld(const Vec2f &pos) const {
+     // Convert floats to ints by truncation
+    int posX = pos.x;
+    int posY = pos.y;
+
+    // The adjust pos is 0-255 for x/y (pos within the chunk). This works with negatives as well.
+    Vec2i adjustedPos(modFloor(posX,256),modFloor(posY,256));
+    
+    // Get chunk present at position
+    _chunk* chunk = getChunkAtWorld(pos);
+    
+    // Get an index in the flat array for the tile
+    uint8_t tileIndex = (int)floor(adjustedPos.y/16)*16 + (int)floor(adjustedPos.x/16);
+
+    // Get the id stored in the chunk
+    return &chunk->cellData[tileIndex];
 }
 
 void _world::runWorldGeneration(int iterations) {
