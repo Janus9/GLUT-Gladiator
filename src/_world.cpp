@@ -351,7 +351,7 @@ void _world::postProcessWorld() {
 
         // Peninsula Bottomi
         if (!neighborTiles[1] && !neighborTiles[3] && !neighborTiles[5] && neighborTiles[7]) 
-        {i
+        {
             world_noise[i] = 16; // Peninsula Bottom
             continue;
         }
