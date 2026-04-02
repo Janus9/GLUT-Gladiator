@@ -45,68 +45,68 @@ void _world::initWorld()
 
 void _world::initTiles() {
     // FLOOR //
-    setTileInAtlas(8,13, world_tiles[0]);       // Blank Floor
-    setTileInAtlas(9,12, world_tiles[1]);       // Slightly Cracked Floor
-    setTileInAtlas(10,13, world_tiles[2]);      // Medium Cracked Floor
-    setTileInAtlas(8,12, world_tiles[3]);       // Square outlined floor
-    setTileInAtlas(9,13, world_tiles[4]);       // Blank Floor 2
+    setTileInAtlas(8,13, world_tiles[TILE_FLOOR_BLANK_1]);       // Blank Floor
+    setTileInAtlas(9,12, world_tiles[TILE_FLOOR_CRACKED_1]);       // Slightly Cracked Floor
+    setTileInAtlas(10,13, world_tiles[TILE_FLOOR_CRACKED_2]);      // Medium Cracked Floor
+    setTileInAtlas(8,12, world_tiles[TILE_FLOOR_SQUARE]);       // Square outlined floor
+    setTileInAtlas(9,13, world_tiles[TILE_FLOOR_BLANK_2]);       // Blank Floor 2
 
-    world_tiles[0].hasCollision = false;
-    world_tiles[1].hasCollision = false;
-    world_tiles[2].hasCollision = false;
-    world_tiles[3].hasCollision = false;
-    world_tiles[4].hasCollision = false;
+    world_tiles[TILE_FLOOR_BLANK_1].hasCollision = false;
+    world_tiles[TILE_FLOOR_CRACKED_1].hasCollision = false;
+    world_tiles[TILE_FLOOR_CRACKED_2].hasCollision = false;
+    world_tiles[TILE_FLOOR_SQUARE].hasCollision = false;
+    world_tiles[TILE_FLOOR_BLANK_2].hasCollision = false;
 
-    world_tiles[0].name = "blank_floor";
-    world_tiles[1].name = "slightly_cracked_floor";
-    world_tiles[2].name = "medium_cracked_floor";
-    world_tiles[3].name = "square_outlined_floor";
-    world_tiles[4].name = "blank_floor_2";
+    world_tiles[TILE_FLOOR_BLANK_1].name = "blank_floor";
+    world_tiles[TILE_FLOOR_CRACKED_1].name = "slightly_cracked_floor";
+    world_tiles[TILE_FLOOR_CRACKED_2].name = "medium_cracked_floor";
+    world_tiles[TILE_FLOOR_SQUARE].name = "square_outlined_floor";
+    world_tiles[TILE_FLOOR_BLANK_2].name = "blank_floor_2";
 
     // WALL //
-    setTileInAtlas(22,16, world_tiles[5]);        // Wall Center
+    setTileInAtlas(22,16, world_tiles[TILE_WALL_CENTER]);        // Wall Center
 
-    setTileInAtlas(21,16, world_tiles[6]);        // Wall Left
-    setTileInAtlas(23,16, world_tiles[7]);        // Wall Right
-    setTileInAtlas(22,15, world_tiles[8]);        // Wall Up
-    setTileInAtlas(22,17, world_tiles[9]);        // Wall Down
+    setTileInAtlas(21,16, world_tiles[TILE_WALL_LEFT]);        // Wall Left
+    setTileInAtlas(23,16, world_tiles[TILE_WALL_RIGHT]);        // Wall Right
+    setTileInAtlas(22,15, world_tiles[TILE_WALL_UP]);        // Wall Up
+    setTileInAtlas(22,17, world_tiles[TILE_WALL_DOWN]);        // Wall Down
 
-    setTileInAtlas(21,15, world_tiles[10]);        // Wall Corner Top Left
-    setTileInAtlas(23,15, world_tiles[11]);        // Wall Corner Top Right
-    setTileInAtlas(21,17, world_tiles[12]);        // Wall Corner Bottom Left
-    setTileInAtlas(23,17, world_tiles[13]);        // Wall Corner Bottom Right
+    setTileInAtlas(21,15, world_tiles[TILE_WALL_CORNER_TOPLEFT]);        // Wall Corner Top Left
+    setTileInAtlas(23,15, world_tiles[TILE_WALL_CORNER_TOPRIGHT]);        // Wall Corner Top Right
+    setTileInAtlas(21,17, world_tiles[TILE_WALL_CORNER_BOTTOMLEFT]);        // Wall Corner Bottom Left
+    setTileInAtlas(23,17, world_tiles[TILE_WALL_CORNER_BOTTOMRIGHT]);        // Wall Corner Bottom Right
 
-    setTileInAtlas(25,16, world_tiles[14]);        // Wall Island
+    setTileInAtlas(25,16, world_tiles[TILE_WALL_ISLAND]);        // Wall Island
 
-    setTileInAtlas(25,15, world_tiles[15]);        // Wall Peninsula Top
-    setTileInAtlas(25,17, world_tiles[16]);        // Wall Peninsula Down
-    setTileInAtlas(24,16, world_tiles[17]);        // Wall Peninsula Left
-    setTileInAtlas(26,16, world_tiles[18]);        // Wall Peninsula Right
+    setTileInAtlas(25,15, world_tiles[TILE_WALL_PENINSULA_TOP]);        // Wall Peninsula Top
+    setTileInAtlas(25,17, world_tiles[TILE_WALL_PENINSULA_DOWN]);        // Wall Peninsula Down
+    setTileInAtlas(24,16, world_tiles[TILE_WALL_PENINSULA_LEFT]);        // Wall Peninsula Left
+    setTileInAtlas(26,16, world_tiles[TILE_WALL_PENINSULA_RIGHT]);        // Wall Peninsula Right
 
-    setTileInAtlas(22,18, world_tiles[19]);        // Wall Column Up
-    setTileInAtlas(23,18, world_tiles[20]);        // Wall Column Side
+    setTileInAtlas(22,18, world_tiles[TILE_WALL_COLUMN_UP]);        // Wall Column Up
+    setTileInAtlas(23,18, world_tiles[TILE_WALL_COLUMN_SIDE]);        // Wall Column Side
 
-    world_tiles[5].name = "wall_center";
+    world_tiles[TILE_WALL_CENTER].name = "wall_center";
 
-    world_tiles[6].name = "wall_left";
-    world_tiles[7].name = "wall_right";
-    world_tiles[8].name = "wall_up";
-    world_tiles[9].name = "wall_down";
+    world_tiles[TILE_WALL_LEFT].name = "wall_left";
+    world_tiles[TILE_WALL_RIGHT].name = "wall_right";
+    world_tiles[TILE_WALL_UP].name = "wall_up";
+    world_tiles[TILE_WALL_DOWN].name = "wall_down";
 
-    world_tiles[10].name = "wall_corner_top_left";
-    world_tiles[11].name = "wall_corner_top_right";
-    world_tiles[12].name = "wall_corner_bottom_left";
-    world_tiles[13].name = "wall_corner_bottom_right";
+    world_tiles[TILE_WALL_CORNER_TOPLEFT].name = "wall_corner_top_left";
+    world_tiles[TILE_WALL_CORNER_TOPRIGHT].name = "wall_corner_top_right";
+    world_tiles[TILE_WALL_CORNER_BOTTOMLEFT].name = "wall_corner_bottom_left";
+    world_tiles[TILE_WALL_CORNER_BOTTOMRIGHT].name = "wall_corner_bottom_right";
 
-    world_tiles[14].name = "wall_island";
+    world_tiles[TILE_WALL_ISLAND].name = "wall_island";
 
-    world_tiles[15].name = "wall_peninsula_top";
-    world_tiles[16].name = "wall_peninsula_down";
-    world_tiles[17].name = "wall_peninsula_left";
-    world_tiles[18].name = "wall_peninsula_right";
+    world_tiles[TILE_WALL_PENINSULA_TOP].name = "wall_peninsula_top";
+    world_tiles[TILE_WALL_PENINSULA_DOWN].name = "wall_peninsula_down";
+    world_tiles[TILE_WALL_PENINSULA_LEFT].name = "wall_peninsula_left";
+    world_tiles[TILE_WALL_PENINSULA_RIGHT].name = "wall_peninsula_right";
 
-    world_tiles[19].name = "wall_column_up";
-    world_tiles[20].name = "wall_column_side";
+    world_tiles[TILE_WALL_COLUMN_UP].name = "wall_column_up";
+    world_tiles[TILE_WALL_COLUMN_SIDE].name = "wall_column_side";
 }
 
 bool _world::setTileInAtlas(int xIndex, int yIndex, _tile &tile) {
