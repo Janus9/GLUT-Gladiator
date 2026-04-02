@@ -165,18 +165,63 @@ void _world::buildChunkVBO(_chunk* chunk) {
         x0, y0, // Bottom Left 
     };
 
-    // Tile VBO Data //
+    
+    vector<float> tileOutlineVboData;
+
+    // For each tile of the chunk //
     for (int y = 0; y < 16; y++) {
         for (int x = 0; x < 16; x++) {
             int tileIndex = y * 16 + x;
+
+            // For each tile match the cell ID and data ID to keep them in match
+            chunk->tileCellData[tileIndex].tileId = chunk->tileData[tileIndex];
+
             uint8_t tileType = chunk->tileData[tileIndex];
             const _tile* tile = &world_tiles[tileType];
             
             float worldX = (chunk->chunkX * 16 + x) * TILE_W;
             float worldY = (chunk->chunkY * 16 + y) * TILE_H;
 
-            // The VBO is set up identical to how we would do glVertex2f and glTexCoord2f
+            // Outline VBO Setup //
 
+            // Only outlined tiles have vbo data pushed
+            if (chunk->tileCellData[tileIndex].outlined) {
+                // Bottom-Left -> Bottom-Right //
+                // bottom-left
+                tileOutlineVboData.push_back(worldX);
+                tileOutlineVboData.push_back(worldY);
+                // bottom-right
+                tileOutlineVboData.push_back(worldX + TILE_W);
+                tileOutlineVboData.push_back(worldY);
+    
+                // Bottom-Right -> Top-Right //
+                // bottom-right
+                tileOutlineVboData.push_back(worldX + TILE_W);
+                tileOutlineVboData.push_back(worldY);
+                // top-right
+                tileOutlineVboData.push_back(worldX + TILE_W);
+                tileOutlineVboData.push_back(worldY + TILE_H);
+    
+                // Top-Right -> Top-Left //
+                // top-right
+                tileOutlineVboData.push_back(worldX + TILE_W);
+                tileOutlineVboData.push_back(worldY + TILE_H);
+                // top-left
+                tileOutlineVboData.push_back(worldX);
+                tileOutlineVboData.push_back(worldY + TILE_H);
+
+                // Top-Left - Bottom-Left //
+                // top-left
+                tileOutlineVboData.push_back(worldX);
+                tileOutlineVboData.push_back(worldY + TILE_H);
+                // bottom-left
+                tileOutlineVboData.push_back(worldX);
+                tileOutlineVboData.push_back(worldY);
+            }
+
+            // Tile VBO Setup //
+            // The VBO is set up identical to how we would do glVertex2f and glTexCoord2f
+            
             // Bottom-left
             tileVboData[index++] = worldX;
             tileVboData[index++] = worldY;
@@ -199,26 +244,39 @@ void _world::buildChunkVBO(_chunk* chunk) {
             tileVboData[index++] = worldX;
             tileVboData[index++] = worldY + TILE_H;
             tileVboData[index++] = tile->u0;
-            tileVboData[index++] = tile->v0;
+            tileVboData[index++] = tile->v0;  
         }
     }
 
-    // VBO uninitialized if 0
+    // VBO uninitialized if 0 -- creates an ID for the GPU buffer (only done once)
     if (chunk->tileVboID == 0) {
-        glGenBuffers(1, &chunk->tileVboID); // Create an ID for the GPU buffer for the tiles (only done once)
+        glGenBuffers(1, &chunk->tileVboID);
     }
 
-    if (chunk->lineVboID == 0) {
-        glGenBuffers(1, &chunk->lineVboID); // Create an ID for the GPU buffer for the lines
+    if (chunk->chunkLineVboID == 0) {
+        glGenBuffers(1, &chunk->chunkLineVboID); 
     }
 
+    if (chunk->tileLineVboID == 0) {
+        glGenBuffers(1, &chunk->tileLineVboID); 
+    }
+
+    // Tile Data VBO //
     glBindBuffer(GL_ARRAY_BUFFER, chunk->tileVboID); // Working with this specific buffer
     glBufferData(GL_ARRAY_BUFFER, sizeof(tileVboData), tileVboData, GL_STATIC_DRAW); // Copy the system memory buffer (tileVboData) into a GPU memory buffer
-    glBindBuffer(GL_ARRAY_BUFFER,0); // Make sure to set vbo to 0 (nothing) to signal we're done working with this tileVboID
+    glBindBuffer(GL_ARRAY_BUFFER, 0); // Make sure to set vbo to 0 (nothing) to signal we're done working with this tileVboID
 
-    glBindBuffer(GL_ARRAY_BUFFER, chunk->lineVboID); // Working with lineVboID
+    // Chunk Line Data VBO //
+    glBindBuffer(GL_ARRAY_BUFFER, chunk->chunkLineVboID); // Working with chunkLineVboID
     glBufferData(GL_ARRAY_BUFFER, sizeof(lineVboData), lineVboData, GL_STATIC_DRAW); // Copy the lineVboData into a GPU buffer. GL_STATIC_DRAW because the lines will never change
-    glBindBuffer(GL_ARRAY_BUFFER,0); // Make sure to set vbo to 0 (nothing) to signal we're done working with this lineVboID
+    glBindBuffer(GL_ARRAY_BUFFER, 0); // Make sure to set vbo to 0 (nothing) to signal we're done working with this chunkLineVboID
+
+    // Tile Line Data VBO //
+    glBindBuffer(GL_ARRAY_BUFFER, chunk->tileLineVboID);
+    glBufferData(GL_ARRAY_BUFFER, tileOutlineVboData.size() * sizeof(float), tileOutlineVboData.data(), GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    chunk->tileLineVboSize = tileOutlineVboData.size();
 
     chunk->vboDirty = false;
 }
@@ -254,7 +312,7 @@ void _world::drawWorld(float left, float right, float top, float bottom)
                 buildChunkVBO(chunk);
             }
 
-            // Draw VBO
+            // Draw Tile VBO //
             glColor3f(1.0f,1.0f,1.0f); // Reset color to white for blank canvas
 
             glBindBuffer(GL_ARRAY_BUFFER, chunk->tileVboID);
@@ -262,8 +320,21 @@ void _world::drawWorld(float left, float right, float top, float bottom)
             glTexCoordPointer(2, GL_FLOAT, 4 * sizeof(float), (void*)(2 * sizeof(float)));
             glDrawArrays(GL_QUADS, 0, 256 * 4);  // 256 tiles * 4 vertices
 
+            // Draw Tile Line VBO //
+            glBindBuffer(GL_ARRAY_BUFFER, chunk->tileLineVboID);
+            glVertexPointer(2, GL_FLOAT, 0, (void*)0); // We use 0 because its tightly packed data
+
+            glDisable(GL_TEXTURE_2D); // Textures will disrupt the lines
+            glColor3f(0.0f,0.0f,1.0f);
+            glLineWidth(2.0f);
+            
+            glDrawArrays(GL_LINES, 0, chunk->tileLineVboSize/2); // Two floats per vertex so divide by 2
+            
+            glEnable(GL_TEXTURE_2D);
+
+            // Draw Chunk Line VBO //
             if (DEBUG_displayChunkBorders) {
-                glBindBuffer(GL_ARRAY_BUFFER, chunk->lineVboID);
+                glBindBuffer(GL_ARRAY_BUFFER, chunk->chunkLineVboID);
                 glVertexPointer(2, GL_FLOAT, 0, (void*)0); // We use 0 because its tightly packed data
 
                 glDisable(GL_TEXTURE_2D); // Textures will disrupt the lines

@@ -23,6 +23,12 @@
 #include<_texture.h>
 #include<_benchmark.h>
 
+struct _tileCell
+{
+    uint8_t tileId;
+    bool outlined = false;
+};
+
 /**
  * 
  */
@@ -51,8 +57,12 @@ struct _chunk
     int chunkX;
     int chunkY;
     uint8_t tileData[256]; // 16x16 chunk
+    _tileCell tileCellData[256] ;// 16x16 chunk
+    GLuint tileLineVboID = 0;  // ID for the GPU memory of lines around tiles
+    size_t tileLineVboSize;
+
     GLuint tileVboID = 0;  // ID for the GPU memory of tiles
-    GLuint lineVboID = 0;  // ID for the GPU memory of lines
+    GLuint chunkLineVboID = 0;  // ID for the GPU memory of lines
     bool vboDirty = true;  // If dirty then we update the chunk (when tiles change)
 };
 
@@ -127,7 +137,7 @@ class _world
          * Enum mapped to TileId number as an unsigned 8 bit int. 
          * Naming goes: TILE_[TYPE]_[SUBTYPE]_[VARIANT]
          */
-        const enum TileId : uint8_t {
+        enum TileId : uint8_t {
             TILE_FLOOR_BLANK_1 = 0,
             TILE_FLOOR_CRACKED_1 = 1,
             TILE_FLOOR_CRACKED_2 = 2,
