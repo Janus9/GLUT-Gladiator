@@ -2,7 +2,10 @@
  * _hudElement.h
  * 
  * A hudElement is a multi-use container for drawing elements as UI components for the game. 
- * hudElements can be text, sprites, 
+ * hudElements can be text, sprites, or primitive shapes and feature interactivity including click events. 
+ * They can feature animations by usage of sprites.
+ * 
+ * A hudElement 
  * 
  */
 

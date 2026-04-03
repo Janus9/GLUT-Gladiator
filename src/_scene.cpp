@@ -208,18 +208,21 @@ void _scene::updateScene(double dt)
     _cell* _playerCell = myWorld->getCellAtWorld(testPlayer->pos);
     _chunk* _playerChunk = myWorld->getChunkAtWorld(testPlayer->pos);
 
-    if (_playerCell != playerCell) {
-        if (playerCell && playerChunk) {
-            playerCell->outlined = false;
-            playerChunk->vboDirty = true;
-        }
+    // if (_playerCell != playerCell) {
+    //     if (playerCell && playerChunk) {
+    //         playerCell->outlined = false;
+    //         playerChunk->vboDirty = true;
+    //     }
 
-        playerCell = _playerCell;
-        playerChunk = _playerChunk;
+    //     playerCell = _playerCell;
+    //     playerChunk = _playerChunk;
         
-        playerCell->outlined = true;
-        playerChunk->vboDirty = true;
-    }
+    //     playerCell->outlined = true;
+    //     playerChunk->vboDirty = true;
+    // }
+
+    playerCell = _playerCell;
+    playerChunk = _playerChunk;
 
     /**
      * X X X
