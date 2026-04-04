@@ -17,7 +17,7 @@
 #include<_unit.h>
 #include<_sounds.h>
 #include<_world.h>
-#include<_hudText.h>
+#include<_hud.h>
 
 class _scene
 {
@@ -72,13 +72,7 @@ class _scene
 
         _vbo vbo1 = _vbo();
 
-        _hudText* fpsText = new _hudText();
-        _hudText* posText = new _hudText();
-        _hudText* chunkText = new _hudText();
-
-        _hudText* mouseScreenText = new _hudText();
-        _hudText* mouseWorldText = new _hudText();
-        _hudText* testText = new _hudText();
+        _hud* hud = new _hud();
 
         _texture texture1;
 

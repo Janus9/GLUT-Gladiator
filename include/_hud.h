@@ -19,65 +19,16 @@ class _hudElement {
         _hudElement();
         virtual ~_hudElement();
 
-        // Draws all children
+        // Base implementation -- does nothing
         virtual void draw();
-
-        /**
-         * Adds a child
-         * 
-         * @param child Hud Element to add as a child to this object
-         */
-        void addChild(_hudElement* child);
-
-        /**
-         * Removes a child
-         * 
-         * @param child Hud element to remove
-         * 
-         * @return True if successful, False if not (child not found)
-         */
-        bool removeChild(_hudElement* child);
-
-        /**
-         * Returns parent of current hud element
-         * 
-         * @return Pointer to _hudElement 
-         */
-        _hudElement* getParent() const;
-
-        /**
-         * Returns child at index of current hud element
-         * 
-         * @return Pointer to _hudElement or nullptr if not found
-         */
-        _hudElement* getChild(int index) const;
-
-        // Returns number of children the element has
-        int getNumChildren() const;
-
-        /**
-         * Statically sets the width/height of the viewport. 
-         * 
-         * @param width Window width (in pixels)
-         * @param height Window height (in pixels)
-         */
-        static void setHudViewportDimensions(double width, double height);
 
         Col3f color {1.0f,1.0f,1.0f}; // Default to white
         Vec2f position = {0.0f, 0.0f};
         Vec2f size = {0.0f, 0.0f};
-        float ocapacity = 1.0f;
+        float opacity = 1.0f;
         // Overrides ocapcity
         bool visible = true;
     protected:
-        // Static Viewport Dimensions
-        static double Wwidth;
-        static double Wheight;
-
-        // Who owns this element
-        _hudElement* parent = nullptr;
-        // Children of the element
-        vector<_hudElement*> children;
     private:
 };
 
@@ -91,7 +42,7 @@ class _hudText : public _hudElement {
         /**
          * @param void* GLUT font definition (ex/ GLUT_BITMAP_9_BY_15)
          */
-        void setFont(const void* font);
+        void setFont(void* _font);
 
         // Sets text and automatically updates the size by the contents of the text and font
         void setText(const string &_text);
@@ -107,6 +58,68 @@ class _hudText : public _hudElement {
     private:
         string text = ""; 
         void* font = GLUT_BITMAP_9_BY_15;
+};
+
+
+class _hud {
+    public:
+        _hud();
+        virtual ~_hud();
+
+        /**
+         * Statically sets the width/height of the viewport. 
+         * 
+         * @param width Window width (in pixels)
+         * @param height Window height (in pixels)
+         */
+        static void setHudViewportDimensions(double width, double height);
+
+        /**
+         * Adds a new hud text child to the hud
+         * 
+         * Overwrites existing hud element associated with the provided name if it exists. 
+         * Safe to use same name for different hud element variants.
+         * 
+         * @param name Name associated to new hud text for future lookups
+         */
+        void addHudText(const string &name);
+
+        /**
+         * Removes a hud text associated with the provided name
+         * 
+         * @param name Name of the hud text
+         * 
+         * @return True if found and removed. False if not found
+         */
+        bool removeHudText(const string &name);
+        // todo add sprite support
+
+        /**
+         * Looks up a hud text by name in the table
+         * 
+         * @param name Name associated with the hud text
+         * 
+         * @return Pointer to the hud text or nullptr if not found
+         */
+        _hudText* getHudText(const string &name) const;
+
+        // Returns number of children the hud has
+        int getNumChildren() const;
+
+        // Draws all children of the hud
+        void drawHud();
+
+    protected:
+    private:
+        vector<_hudElement*> childrenList; // For fast iterative looping 
+        unordered_map<string,_hudElement*> childrenMap; // For lookups
+
+        // Static Viewport Dimensions
+        static double Wwidth;
+        static double Wheight;
+
+        const string text_prefix = "TEXT_";  // Applied to name for the hashmap to prevent collisions with other hudElement variants
+        const string sprite_prefix = "SPRITE_";  // Applied to name for the hashmap to prevent collisions with other hudElement variants
 };
 
 #endif // _HUD_H

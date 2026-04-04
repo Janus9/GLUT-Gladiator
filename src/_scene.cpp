@@ -32,23 +32,8 @@ _scene::~_scene()
     delete testUnit;
     testUnit = nullptr;
 
-    delete fpsText;
-    fpsText = nullptr;
-
-    delete posText;
-    posText = nullptr;
-
-    delete chunkText;
-    chunkText = nullptr;
-
-    delete mouseScreenText;
-    mouseScreenText = nullptr;
-
-    delete mouseWorldText;
-    mouseWorldText = nullptr;
-
-    delete testText;
-    testText = nullptr;
+    delete hud;
+    hud = nullptr;
 }   
 
 
@@ -67,12 +52,12 @@ GLint _scene::initGL()
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    // CLASS INIT //
+    // -- CLASS INIT -- //
 
     inputTimer.reset(); 
     fpsTimer->reset();  
 
-    // Tester Player //
+    // -- TESTER PLAYER -- //
 
     testPlayer->setupSprite("WALK");
     testPlayer->getSprite("WALK")->initSprite("images/walk.png", 8, 6, sprite_direction::LEFT,12); // No natural direction due to top down
@@ -95,23 +80,16 @@ GLint _scene::initGL()
     
     // testUnit->pos = {0.0f, 0.0f};
 
-    fpsText->initText("FPS: ",{10.0f,height - 80.0f}, {1.0f,1.0f});
-    fpsText->color = {1.0f,1.0f,1.0f}; 
+    // -- HUD -- //
 
-    posText->initText("POS",{10.0f,height - 120.0f}, {1.0f,1.0f});
-    posText->color = {1.0f,1.0f,1.0f}; 
+    float offset = 40.0f;
 
-    chunkText->initText("CHUNK",{10.0f,height - 160.0f}, {1.0f,1.0f});
-    chunkText->color = {1.0f,1.0f,1.0f}; 
+    _hud::setHudViewportDimensions(width,height);
+    hud->addHudText("FPS");
+    hud->getHudText("FPS")->position = {20.0f, height-offset};
+    hud->getHudText("FPS")->setFont(GLUT_BITMAP_9_BY_15);
 
-    mouseScreenText->initText("MOUSES",{10.0f,height - 180.0f}, {1.0f,1.0f});
-    mouseScreenText->color = {1.0f,1.0f,1.0f}; 
-
-    mouseWorldText->initText("MOUSEW",{10.0f,height - 200.0f}, {1.0f,1.0f});
-    mouseWorldText->color = {1.0f,1.0f,1.0f}; 
-
-    testText->initText("TEST",{10.0f,height - 220.0f}, {1.0f,1.0f});
-    testText->color = {1.0f,1.0f,1.0f}; 
+    cout << "Number of hud elements: " << hud->getNumChildren() << "\n";
 
     myLight->setLight(GL_LIGHT0); // The light onto the object from the pointer is set to be the instantiated light from before
     myModel->initModel(); // The model is initialized from the pointer to the model class
@@ -133,12 +111,8 @@ void _scene::reSize(GLint width, GLint height)
 {
     this->width = width;
     this->height = height;
-    fpsText->setScreenDimensions(width,height);
-    posText->setScreenDimensions(width,height);
-    chunkText->setScreenDimensions(width,height);
-    mouseScreenText->setScreenDimensions(width,height);
-    mouseWorldText->setScreenDimensions(width,height);
-    testText->setScreenDimensions(width,height);
+    _hud::setHudViewportDimensions(width,height);
+
     Logger.LogInfo("Resizing window to width: " + std::to_string(width) + " and height: " + std::to_string(height), LOG_BOTH);
     GLfloat aspectRatio = (GLfloat) width/ (GLfloat) height; //Intended to keep track of window resize
     glViewport(0,0,width,height); // Integer values taken in to take in view. Setting Viewport
@@ -170,12 +144,7 @@ void _scene::drawScene()
     testPlayer->drawUnit();
     //testUnit->drawSprite();
 
-    chunkText->drawText();
-    posText->drawText();
-    fpsText->drawText();
-    mouseScreenText->drawText();
-    mouseWorldText->drawText();
-    testText->drawText();
+    hud->drawHud();
 
     // For FPS measuring
     frameCount++;
@@ -268,7 +237,7 @@ void _scene::updateScene(double dt)
         collisionTable[2] = true;
     }
 
-    cout << "Collision Table: " << collisionTable[0] << ", " << collisionTable[1] << ", " << collisionTable[2] << ", " << collisionTable[3] << "\n";
+    //cout << "Collision Table: " << collisionTable[0] << ", " << collisionTable[1] << ", " << collisionTable[2] << ", " << collisionTable[3] << "\n";
 
     if (!cameraFree) {
         // Double input -- diagonol checks //
@@ -357,11 +326,11 @@ void _scene::updateScene(double dt)
 
     playerChunkPos = myWorld->worldToChunkPos(testPlayer->pos);
 
-    fpsText->text = "FPS: " + to_string(sceneFPS);
-    posText->text = "Player Position: (" + to_string(testPlayer->pos.x) + ", " + to_string(testPlayer->pos.y) + ")"; 
-    chunkText->text = "Chunk Position: (" + to_string(playerChunkPos.x) + ", " + to_string(playerChunkPos.y) + ")"; 
-    mouseScreenText->text = "Mouse Screen Position: " + mouseScreenPos.toString(); 
-    mouseWorldText->text = "Mouse World Position: " + mouseWorldPos.toString(); 
+    hud->getHudText("FPS")->setText("FPS: " + to_string(sceneFPS));
+    // posText->text = "Player Position: (" + to_string(testPlayer->pos.x) + ", " + to_string(testPlayer->pos.y) + ")"; 
+    // chunkText->text = "Chunk Position: (" + to_string(playerChunkPos.x) + ", " + to_string(playerChunkPos.y) + ")"; 
+    // mouseScreenText->text = "Mouse Screen Position: " + mouseScreenPos.toString(); 
+    // mouseWorldText->text = "Mouse World Position: " + mouseWorldPos.toString(); 
     //const _tile* tile = myWorld->getTileAtWorld(testPlayer->pos);
 
     const _tile* tile = myWorld->getTileAtWorld(Vec2f(mouseWorldPos.x,mouseWorldPos.y));
@@ -383,9 +352,9 @@ void _scene::updateScene(double dt)
 
     if (tile) {
         //testText->text = "Tile Collision: " + to_string(tile->hasCollision);
-        testText->text = "Tile Name: " + tile->name + " -- Tile Collision: " + (tile->hasCollision ? "TRUE" : "FALSE");
+        //testText->text = "Tile Name: " + tile->name + " -- Tile Collision: " + (tile->hasCollision ? "TRUE" : "FALSE");
     } else {
-        testText->text = "Tile Name: nullptr";
+       // testText->text = "Tile Name: nullptr";
     }
 }
 
