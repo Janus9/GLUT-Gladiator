@@ -109,8 +109,6 @@ class _scene
         void debugPrintFPS();
         // Handles keyboard inputs for toggle keys. Function regulated by a timer
         void keyboardHandler(WPARAM wParam); 
-        // Handles commands sent from console
-        void commandHandler();
         // Applies camera position zoom, etc
         void applyCamera();
 

@@ -82,14 +82,24 @@ GLint _scene::initGL()
 
     // -- HUD -- //
 
-    float offset = 40.0f;
-
-    _hud::setHudViewportDimensions(width,height);
     hud->addHudText("FPS");
-    hud->getHudText("FPS")->position = {20.0f, height-offset};
     hud->getHudText("FPS")->setFont(GLUT_BITMAP_9_BY_15);
+    
+    hud->addHudText("PLAYER_POS");
+    hud->getHudText("PLAYER_POS")->setFont(GLUT_BITMAP_9_BY_15);
 
-    cout << "Number of hud elements: " << hud->getNumChildren() << "\n";
+    hud->addHudText("CHUNK_POS");
+    hud->getHudText("CHUNK_POS")->setFont(GLUT_BITMAP_9_BY_15);
+
+    hud->addHudText("MOUSE_SCREEN");
+    hud->getHudText("MOUSE_SCREEN")->setFont(GLUT_BITMAP_9_BY_15);
+
+    hud->addHudText("MOUSE_WORLD");
+    hud->getHudText("MOUSE_WORLD")->setFont(GLUT_BITMAP_9_BY_15);
+
+    hud->addHudText("TILE_NAME");
+    hud->getHudText("TILE_NAME")->setFont(GLUT_BITMAP_9_BY_15);
+
 
     myLight->setLight(GL_LIGHT0); // The light onto the object from the pointer is set to be the instantiated light from before
     myModel->initModel(); // The model is initialized from the pointer to the model class
@@ -112,6 +122,21 @@ void _scene::reSize(GLint width, GLint height)
     this->width = width;
     this->height = height;
     _hud::setHudViewportDimensions(width,height);
+
+    float offset = 40.0f;
+    float spacing = 20.0f;
+
+    if (hud->getHudText("FPS")) hud->getHudText("FPS")->position = {20.0f, height-offset};
+    if (hud->getHudText("FPS")) offset += spacing;
+    if (hud->getHudText("PLAYER_POS")) hud->getHudText("PLAYER_POS")->position = {20.0f, height-offset};
+    if (hud->getHudText("PLAYER_POS")) offset += spacing;
+    if (hud->getHudText("CHUNK_POS")) hud->getHudText("CHUNK_POS")->position = {20.0f, height-offset};
+    if (hud->getHudText("CHUNK_POS")) offset += spacing;
+    if (hud->getHudText("MOUSE_SCREEN")) hud->getHudText("MOUSE_SCREEN")->position = {20.0f, height-offset};
+    if (hud->getHudText("MOUSE_SCREEN")) offset += spacing;
+    if (hud->getHudText("MOUSE_WORLD")) hud->getHudText("MOUSE_WORLD")->position = {20.0f, height-offset};
+    if (hud->getHudText("MOUSE_WORLD")) offset += spacing;
+    if (hud->getHudText("TILE_NAME")) hud->getHudText("TILE_NAME")->position = {20.0f, height-offset};
 
     Logger.LogInfo("Resizing window to width: " + std::to_string(width) + " and height: " + std::to_string(height), LOG_BOTH);
     GLfloat aspectRatio = (GLfloat) width/ (GLfloat) height; //Intended to keep track of window resize
@@ -327,10 +352,10 @@ void _scene::updateScene(double dt)
     playerChunkPos = myWorld->worldToChunkPos(testPlayer->pos);
 
     hud->getHudText("FPS")->setText("FPS: " + to_string(sceneFPS));
-    // posText->text = "Player Position: (" + to_string(testPlayer->pos.x) + ", " + to_string(testPlayer->pos.y) + ")"; 
-    // chunkText->text = "Chunk Position: (" + to_string(playerChunkPos.x) + ", " + to_string(playerChunkPos.y) + ")"; 
-    // mouseScreenText->text = "Mouse Screen Position: " + mouseScreenPos.toString(); 
-    // mouseWorldText->text = "Mouse World Position: " + mouseWorldPos.toString(); 
+    hud->getHudText("PLAYER_POS")->setText("Position: " + testPlayer->pos.toString());
+    hud->getHudText("CHUNK_POS")->setText("Chunk Position: " + playerChunkPos.toString());
+    hud->getHudText("MOUSE_SCREEN")->setText("Mouse Screen Coords: " + mouseScreenPos.toString());
+    hud->getHudText("MOUSE_WORLD")->setText("Mouse World Coords: " + mouseWorldPos.toString());
     //const _tile* tile = myWorld->getTileAtWorld(testPlayer->pos);
 
     const _tile* tile = myWorld->getTileAtWorld(Vec2f(mouseWorldPos.x,mouseWorldPos.y));
@@ -349,31 +374,14 @@ void _scene::updateScene(double dt)
         hoveredCell->outlined = true;
         hoveredChunk->vboDirty = true;
     }
-
     if (tile) {
-        //testText->text = "Tile Collision: " + to_string(tile->hasCollision);
-        //testText->text = "Tile Name: " + tile->name + " -- Tile Collision: " + (tile->hasCollision ? "TRUE" : "FALSE");
-    } else {
-       // testText->text = "Tile Name: nullptr";
-    }
+        hud->getHudText("TILE_NAME")->setText("Selected Tile Name: " + tile->name);
+    } 
 }
 
 void _scene::debugPrint()
 {
-    Logger.LogDebug("Debug Print: W=" + to_string(W) + " A=" + to_string(A) + " S=" + to_string(S) + " D=" + to_string(D), LOG_CONSOLE);
-    Logger.LogDebug("Camera Position: (" + to_string(cameraX) + ", " + to_string(cameraY) + ") Zoom: " + to_string(cameraZoom), LOG_CONSOLE);
-    Logger.LogDebug("Player Position: (" + to_string(testPlayer->pos.x) + ", " + to_string(testPlayer->pos.y) + ")", LOG_CONSOLE);
-    Logger.LogDebug("Player is in chunk: (" + to_string(playerChunkPos.x) + ", " + to_string(playerChunkPos.y) + ")", LOG_CONSOLE);
-    
     Logger.LogDebug("World drawing took: " + to_string(drawWorldBenchmark->getAverageResult()) + "ms");
-
-    Logger.LogDebug("Distance to test unit: " + to_string(GetDistance(testPlayer->pos,testUnit->pos)));
-
-    bool inLoadedChunk = myWorld->isChunkLoaded(playerChunkPos.x, playerChunkPos.y);
-    //Logger.LogDebug("Player is in loaded chunk: " + (inLoadedChunk ? "YES" : "NO"), LOG_CONSOLE);
-
-    Logger.LogDebug("Left: " + to_string(left) + "\n Right: " + to_string(right) + "\n Top: " + to_string(top) + "\n Bottom: " + to_string(bottom));
-
     myWorld->debugPrint();
 }
 
@@ -391,7 +399,6 @@ void _scene::keyboardHandler(WPARAM wParam)
         switch (wParam)
         {
             case 192: // "~"
-                commandHandler(); // Enter command mode to input text-based commands
                 break;
             case 221: // "]"
                 debugEnabled = !debugEnabled; 
@@ -506,31 +513,6 @@ int _scene::winMsg(HWND	hWnd, UINT uMsg, WPARAM	wParam, LPARAM lParam)
             break;
     }
     return 0;
-}
-
-void _scene::commandHandler() {
-    std::string command;
-    std::cout << "Enter command: ";
-    std::cin >> command;
-    // command checking -- hashmap would be better
-    if (command == "gg_help") {
-        // show all commands
-        std::cout << "Available commands:\n";
-    } else if (command == "gg_toggle_debug") {
-        debugEnabled = !debugEnabled;
-        std::cout << "Debug mode: " << (debugEnabled ? "ON" : "OFF") << std::endl;
-    } else if (command == "gg_toggle_input_debug") {
-        inputDebugEnabled = !inputDebugEnabled;
-        std::cout << "Input debug mode: " << (inputDebugEnabled ? "ON" : "OFF") << std::endl;
-    } else if (command == "gg_set_camera_speed") {
-        float newSpeed;
-        std::cout << "Enter new camera speed (default is " << cameraSpeed << "): ";
-        std::cin >> newSpeed;
-        cameraSpeed = newSpeed;
-        std::cout << "Camera speed set to: " << cameraSpeed << std::endl;
-    } else {
-        std::cout << "Unknown command: " << command << std::endl;
-    }
 }
 
 void _scene::applyCamera() {
