@@ -13,6 +13,7 @@
 #define _HUD_H
 
 #include <_common.h>
+#include <_sprite.h>
 
 class _hudElement {
     public:
@@ -60,19 +61,50 @@ class _hudText : public _hudElement {
         void* font = GLUT_BITMAP_9_BY_15;
 };
 
+/**
+ * Features a sprite as an interactive
+ */
+class _hudSprite : public _hudElement {
+    public:
+        _hudSprite();
+        virtual ~_hudSprite();
+
+        // Returns a pointer to the sprite
+        _sprite* getSprite() const;
+
+        /**
+         * Sets the sprite's position to element position and draws the sprite
+         */
+        virtual void draw() override;
+
+        /**
+         * @param mousePos Position of the mouse (in screen coordinates)
+         * 
+         * @return True if mouse is hovering the sprite
+         */
+        bool isMouseHovering(const Vec2f &mousePos) const;
+    protected:
+    private:
+        _sprite* sprite = new _sprite();
+};
 
 class _hud {
     public:
         _hud();
         virtual ~_hud();
 
+        // -- Hud Element -- //
+
         /**
-         * Statically sets the width/height of the viewport. 
+         * Removes a hud element associated with the provided name
          * 
-         * @param width Window width (in pixels)
-         * @param height Window height (in pixels)
+         * @param name Name of the hud element
+         * 
+         * @return True if found and removed. False if not found
          */
-        static void setHudViewportDimensions(double width, double height);
+        bool removeHudElement(const string &name);
+
+        // -- Hud Text -- //
 
         /**
          * Adds a new hud text child to the hud
@@ -85,16 +117,6 @@ class _hud {
         void addHudText(const string &name);
 
         /**
-         * Removes a hud text associated with the provided name
-         * 
-         * @param name Name of the hud text
-         * 
-         * @return True if found and removed. False if not found
-         */
-        bool removeHudText(const string &name);
-        // todo add sprite support
-
-        /**
          * Looks up a hud text by name in the table
          * 
          * @param name Name associated with the hud text
@@ -102,6 +124,38 @@ class _hud {
          * @return Pointer to the hud text or nullptr if not found
          */
         _hudText* getHudText(const string &name) const;
+
+        // -- Hud Sprite -- //
+
+        /**
+         * Adds a new hud sprite child to the hud
+         * 
+         * Overwrites existing hud element associated with the provided name if it exists. 
+         * Safe to use same name for different hud element variants.
+         * 
+         * @param name Name associated to new hud sprite for future lookups
+         */
+        void addHudSprite(const string &name);
+
+        /**
+         * Looks up a hud sprite by name in the table
+         * 
+         * @param name Name associated with the hud sprite
+         * 
+         * @return Pointer to the hud sprite or nullptr if not found
+         */
+        _hudSprite* getHudSprite(const string &name) const;
+
+        // -- Other -- //
+
+        /**
+         * Statically sets the width/height of the viewport. 
+         * 
+         * @param width Window width (in pixels)
+         * @param height Window height (in pixels)
+         */
+        static void setHudViewportDimensions(double width, double height);
+
 
         // Returns number of children the hud has
         int getNumChildren() const;
@@ -120,6 +174,9 @@ class _hud {
 
         const string text_prefix = "TEXT_";  // Applied to name for the hashmap to prevent collisions with other hudElement variants
         const string sprite_prefix = "SPRITE_";  // Applied to name for the hashmap to prevent collisions with other hudElement variants
+        
+        enum elementType { HUD_SPRITE, HUD_TEXT };
+        void addHudElement(const string &name, elementType type);
 };
 
 #endif // _HUD_H

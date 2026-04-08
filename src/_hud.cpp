@@ -26,6 +26,21 @@ void _hud::setHudViewportDimensions(double width, double height) {
 }
 
 void _hud::addHudText(const string &name) {
+    addHudElement(name, HUD_TEXT);
+}
+
+_hudText* _hud::getHudText(const string &name) const {
+    const string fullName = text_prefix + name;
+    auto it = childrenMap.find(fullName);
+    if (it == childrenMap.end()) {
+        return nullptr;
+    }
+    // Dynamic cast because were using virtual classes (polymorphism) thus we are unsure if this object found is what we expect.
+    // Ex/ user sets "TEST" to be a hudText, then later does "TEST" for a hudSprite. Now type has changed.
+    return dynamic_cast<_hudText*>(it->second);
+}
+
+void _hud::addHudElement(const string &name, elementType type) {
     const string fullName = text_prefix + name;
     // Look for element in the hashmap first (have to for adjusting Vector) -- Look in map first for O(1) lookup. Not found means we dont run O(n) vector check
     auto it = childrenMap.find(fullName);
@@ -47,13 +62,27 @@ void _hud::addHudText(const string &name) {
             cerr << "WARNING: Element existed in childrenMap but not childrenList. They were desyncronized\n";
         }
     }
-    // Regardless if it was found or not we allow overwrites so we create a new one
-    _hudText* newSprite = new _hudText();
-    childrenMap[fullName] = newSprite;  // Hashmap [] overwrites and adds new by default
-    childrenList.push_back(newSprite); 
+    switch (type) {
+        case HUD_TEXT: {
+            _hudText* newSprite = new _hudText();
+            childrenMap[fullName] = newSprite;  // Hashmap [] overwrites and adds new by default
+            childrenList.push_back(newSprite); 
+            break;
+        }
+        case HUD_SPRITE: {
+            _hudSprite* newSprite = new _hudSprite();
+            childrenMap[fullName] = newSprite;  // Hashmap [] overwrites and adds new by default
+            childrenList.push_back(newSprite); 
+            break;
+        }
+    }
 }
 
-bool _hud::removeHudText(const string &name) {
+void _hud::addHudSprite(const string &name) {
+    addHudElement(name, HUD_SPRITE);
+}
+
+bool _hud::removeHudElement(const string &name) {
     const string fullName = text_prefix + name;
     auto it = childrenMap.find(fullName);
     if (it == childrenMap.end()) {
@@ -72,7 +101,7 @@ bool _hud::removeHudText(const string &name) {
     return true;
 }
 
-_hudText* _hud::getHudText(const string &name) const {
+_hudSprite* _hud::getHudSprite(const string &name) const {
     const string fullName = text_prefix + name;
     auto it = childrenMap.find(fullName);
     if (it == childrenMap.end()) {
@@ -80,7 +109,7 @@ _hudText* _hud::getHudText(const string &name) const {
     }
     // Dynamic cast because were using virtual classes (polymorphism) thus we are unsure if this object found is what we expect.
     // Ex/ user sets "TEST" to be a hudText, then later does "TEST" for a hudSprite. Now type has changed.
-    return dynamic_cast<_hudText*>(it->second);
+    return dynamic_cast<_hudSprite*>(it->second);
 }
 
 int _hud::getNumChildren() const {
@@ -128,6 +157,34 @@ void _hud::drawHud() {
     glMatrixMode(GL_MODELVIEW);  // Go back to model view for reset state 
     
 }
+
+// -- HUD SPRITE -- //
+// ----------------
+
+_hudSprite::_hudSprite() {
+    // ctor
+}
+
+_hudSprite::~_hudSprite() {
+    delete sprite;
+    sprite = nullptr;    
+}
+
+_sprite* _hudSprite::getSprite() const {
+    return sprite;
+}
+
+void _hudSprite::draw() {
+    if (!sprite) return;
+    sprite->pos = position;
+    sprite->drawSprite();
+}
+
+bool _hudSprite::isMouseHovering(const Vec2f &mousePos) const {
+    // TODO
+    return false;
+}
+
 
 // -- HUD ELEMENT -- //
 // ----------------- //
