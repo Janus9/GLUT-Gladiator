@@ -100,6 +100,10 @@ GLint _scene::initGL()
     hud->addHudText("TILE_NAME");
     hud->getHudText("TILE_NAME")->setFont(GLUT_BITMAP_9_BY_15);
 
+    hud->addHudSprite("HEALTHBAR");
+    hud->getHudSprite("HEALTHBAR")->getSprite()->initSprite("images/health_bar.png",1,1,sprite_direction::RIGHT);
+    hud->getHudSprite("HEALTHBAR")->getSprite()->scale = {0.25f, 0.25f};
+
 
     myLight->setLight(GL_LIGHT0); // The light onto the object from the pointer is set to be the instantiated light from before
     myModel->initModel(); // The model is initialized from the pointer to the model class
@@ -134,6 +138,7 @@ void _scene::reSize(GLint width, GLint height)
     if (hud->getHudText("MOUSE_WORLD")) hud->getHudText("MOUSE_WORLD")->position = {20.0f, height-offset};
     if (hud->getHudText("MOUSE_WORLD")) offset += spacing;
     if (hud->getHudText("TILE_NAME")) hud->getHudText("TILE_NAME")->position = {20.0f, height-offset};
+    if (hud->getHudSprite("HEALTHBAR")) hud->getHudSprite("HEALTHBAR")->position = {width/2.0, 100.0f};
 
     Logger.LogInfo("Resizing window to width: " + std::to_string(width) + " and height: " + std::to_string(height), LOG_BOTH);
     GLfloat aspectRatio = (GLfloat) width/ (GLfloat) height; //Intended to keep track of window resize
