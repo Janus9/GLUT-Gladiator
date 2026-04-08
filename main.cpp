@@ -247,12 +247,13 @@ BOOL CreateGLWindow(char* title, int width, int height, int bits, bool fullscree
 	SetForegroundWindow(hWnd);						// Slightly Higher Priority. Temporary screen until front window arrives
 	SetFocus(hWnd);									// Sets Keyboard Focus To The Window. Main Active Window
 
-	myScene->reSize(width,height);  //Intended to resize the scene to match the width and height
 	if(!myScene->initGL())                          //If scene does not initialize
     {
-        KillGLWindow();    //Kills window if game does not initialize
+		KillGLWindow();    //Kills window if game does not initialize
         MessageBox(NULL,"Can't Initialize GL.", "ERROR", MB_OK|MB_ICONEXCLAMATION); //Message Box declares that OpenGL crashed
 	}
+	myScene->reSize(width,height);  //Intended to resize the scene to match the width and height
+	
 	Logger.InitLogger("logs/main.log");
 	Timer.reset();
 	return TRUE;									// Success

@@ -106,9 +106,6 @@ GLint _scene::initGL()
     myWorld->initWorld(); // Initialize the world
     
     debugTimer.reset();     
-    
-    vbo1.vboInit();
-    texture1.loadTexture("images/wood.png");
    
     drawWorldBenchmark->startBenchmark();
 
