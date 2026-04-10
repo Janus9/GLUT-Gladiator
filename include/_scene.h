@@ -18,6 +18,7 @@
 #include<_sounds.h>
 #include<_world.h>
 #include<_hud.h>
+#include<_particles.h>
 
 class _scene
 {
@@ -122,6 +123,8 @@ class _scene
         _timerPlusPlus* fpsTimer = new _timerPlusPlus(); // Timer to track time between frames for FPS calculation
 
         _benchmark* drawWorldBenchmark = new _benchmark();
+
+        _particles* test_particle = new _particles();
 
         bool debugEnabled = true;           // Enables specific debugging information for the scene
         bool inputDebugEnabled = false;     // Enables debug info for inputs (keyboard keys + mouse inputs)

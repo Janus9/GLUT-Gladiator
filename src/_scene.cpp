@@ -61,6 +61,8 @@ GLint _scene::initGL()
     fpsTimer->reset();
     interactionTimer->reset();  
 
+    test_particle->initParticles("images/chud.jpeg");
+
     // -- TESTER PLAYER -- //
 
     testPlayer->setupSprite("WALK");
@@ -185,19 +187,21 @@ void _scene::drawScene()
     if(fpsTimer->getMilliseconds() > fpsPrintInterval) {
         debugPrintFPS(); 
     }
+
+    test_particle->drawParticles();
 }
 
 // Runs in loop 60 times per second. dt is in ms.
 void _scene::updateScene(double dt)
 {
     dt = dt / 1000.0; // Convert dt to seconds for easier calculations
-
+    test_particle->updateParticles(dt);
     // Check for mouse events
     if (LMB) {
         if (interactionTimer->getSeconds() > miningSpeed/5.0f) {
             if (hud->getHudSprite("PROGRESS_BAR")->getSprite()->iterateFrame()) {
-                cout << "BLOCK HAS BEEN MINED \n";
                 if (hoveredCell && hoveredChunk) {
+                    cout << "BLOCK HAS BEEN MINED \n";
                     hoveredCell->tileId = TILE_FLOOR_BLANK_1;
                     hoveredChunk->vboDirty = true;
                 }

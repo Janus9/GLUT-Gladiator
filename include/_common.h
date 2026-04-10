@@ -1,7 +1,11 @@
 #ifndef _COMMON_H
 #define _COMMON_H
 
+// DEFINES //
+
 #define GLEW_STATIC
+#define MAX_DROPS 5000
+#define GRAVITY 9.81
 
 // INCLUDES //
 
