@@ -2,7 +2,7 @@
 
 // -- PUBLIC -- //
 
-_particles::_particles() {
+_particles::_particles() : rng(random_device{}()) {
     // ctor
 }
 
@@ -10,12 +10,10 @@ _particles::~_particles() {
     // dtor
 }
 
-void _particles::initParticles(const string &fileName) {
+void _particles::initParticles(const string &fileName, const Vec2f &pos) {
     texture.loadTexture(fileName);
 
     glGenBuffers(1, &vboID); // Create a VBO buffer for particles
-
-    rng = mt19937(eng());
 
     uniform_real_distribution<float> vel_dist(-10.0f, 10.0f);
     uniform_real_distribution<float> radius_dist(1.0f, 3.0f);
@@ -23,6 +21,7 @@ void _particles::initParticles(const string &fileName) {
 
     for(int i = 0; i < MAX_DROPS; i++) {
         particle* p = &drops[i];
+        p->pos = pos;
         p->alive = true;
         p->vel = {vel_dist(rng), vel_dist(rng)};
         p->radius = radius_dist(rng);

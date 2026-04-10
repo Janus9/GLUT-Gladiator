@@ -124,7 +124,7 @@ class _scene
 
         _benchmark* drawWorldBenchmark = new _benchmark();
 
-        _particles* test_particle = new _particles();
+        vector<_particles> particleEffects;
 
         bool debugEnabled = true;           // Enables specific debugging information for the scene
         bool inputDebugEnabled = false;     // Enables debug info for inputs (keyboard keys + mouse inputs)

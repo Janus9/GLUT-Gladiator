@@ -61,8 +61,6 @@ GLint _scene::initGL()
     fpsTimer->reset();
     interactionTimer->reset();  
 
-    test_particle->initParticles("images/chud.jpeg");
-
     // -- TESTER PLAYER -- //
 
     testPlayer->setupSprite("WALK");
@@ -181,6 +179,10 @@ void _scene::drawScene()
 
     hud->drawHud();
 
+    for (int i = 0; i < particleEffects.size(); i++) {
+        particleEffects[i].drawParticles();
+    }
+
     // For FPS measuring
     frameCount++;
 
@@ -188,14 +190,21 @@ void _scene::drawScene()
         debugPrintFPS(); 
     }
 
-    test_particle->drawParticles();
 }
 
 // Runs in loop 60 times per second. dt is in ms.
 void _scene::updateScene(double dt)
 {
     dt = dt / 1000.0; // Convert dt to seconds for easier calculations
-    test_particle->updateParticles(dt);
+
+    for (int i = particleEffects.size()-1; i >= 0; i--) {
+        if (!particleEffects[i].hasParticles()) {
+            particleEffects.erase(particleEffects.begin() + i);
+            continue;
+        }
+        particleEffects[i].updateParticles(dt);
+    }
+
     // Check for mouse events
     if (LMB) {
         if (interactionTimer->getSeconds() > miningSpeed/5.0f) {
@@ -509,11 +518,16 @@ int _scene::winMsg(HWND	hWnd, UINT uMsg, WPARAM	wParam, LPARAM lParam)
             }
             break;
         // Left Mouse button down
-        case WM_LBUTTONDOWN:
+        case WM_LBUTTONDOWN: {
             if (inputDebugEnabled) Logger.LogDebug("Left Mouse Button Down at (" + std::to_string(LOWORD(lParam)) + ", " + std::to_string(HIWORD(lParam)) + ")", LOG_CONSOLE); //Log the position of the mouse when left button is pressed
             LMB = true;
             interactionTimer->reset();
+            
+            particleEffects.emplace_back();
+            particleEffects.back().initParticles("images/chud.jpeg", mouseWorldPos);
+
             break;
+        }
         // Right Mouse button down
         case WM_RBUTTONDOWN:
             if (inputDebugEnabled) Logger.LogDebug("Right Mouse Button Down at (" + std::to_string(LOWORD(lParam)) + ", " + std::to_string(HIWORD(lParam)) + ")", LOG_CONSOLE); //Log the position of the mouse when right button is pressed

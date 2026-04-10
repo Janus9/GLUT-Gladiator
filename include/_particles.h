@@ -24,7 +24,7 @@ class _particles {
         virtual ~_particles();
 
         // Set image to render for particles
-        void initParticles(const string &fileName);
+        void initParticles(const string &fileName, const Vec2f &pos);
 
         /**
          * Update loop for applying physics/movement
@@ -41,7 +41,6 @@ class _particles {
 
     protected:
     private:
-        random_device eng;
         mt19937 rng;
 
         // Builds the VBO for draw renders
