@@ -45,18 +45,22 @@ void _world::initWorld()
 
 void _world::initTiles() {
     // FLOOR //
+    setTileInAtlas(0,0, world_tiles[TILE_NULL]);       // Undefined Tile
+    
     setTileInAtlas(8,13, world_tiles[TILE_FLOOR_BLANK_1]);       // Blank Floor
     setTileInAtlas(9,12, world_tiles[TILE_FLOOR_CRACKED_1]);       // Slightly Cracked Floor
     setTileInAtlas(10,13, world_tiles[TILE_FLOOR_CRACKED_2]);      // Medium Cracked Floor
     setTileInAtlas(8,12, world_tiles[TILE_FLOOR_SQUARE]);       // Square outlined floor
     setTileInAtlas(9,13, world_tiles[TILE_FLOOR_BLANK_2]);       // Blank Floor 2
 
+    world_tiles[TILE_NULL].hasCollision = false;
     world_tiles[TILE_FLOOR_BLANK_1].hasCollision = false;
     world_tiles[TILE_FLOOR_CRACKED_1].hasCollision = false;
     world_tiles[TILE_FLOOR_CRACKED_2].hasCollision = false;
     world_tiles[TILE_FLOOR_SQUARE].hasCollision = false;
     world_tiles[TILE_FLOOR_BLANK_2].hasCollision = false;
 
+    world_tiles[TILE_NULL].name = "null";
     world_tiles[TILE_FLOOR_BLANK_1].name = "blank_floor";
     world_tiles[TILE_FLOOR_CRACKED_1].name = "slightly_cracked_floor";
     world_tiles[TILE_FLOOR_CRACKED_2].name = "medium_cracked_floor";
@@ -174,7 +178,13 @@ void _world::buildChunkVBO(_chunk* chunk) {
             int tileIndex = y * 16 + x;
 
             // For each tile match the cell ID and data ID to keep them in match
-            chunk->cellData[tileIndex].tileId = chunk->tileData[tileIndex];
+            if (chunk->cellData[tileIndex].tileId == TILE_NULL) {
+                // Undefined tiles are set to the chunks tiles for start
+                chunk->cellData[tileIndex].tileId = chunk->tileData[tileIndex];
+            } else if (chunk->cellData[tileIndex].tileId != chunk->tileData[tileIndex]) {
+                // If tiles differ (but cell isnt 0) then it was changed
+                chunk->tileData[tileIndex] = chunk->cellData[tileIndex].tileId;
+            }
 
             uint8_t tileType = chunk->tileData[tileIndex];
             const _tile* tile = &world_tiles[tileType];

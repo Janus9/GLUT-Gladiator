@@ -23,6 +23,9 @@ _scene::~_scene()
     delete fpsTimer;
     fpsTimer = nullptr;
 
+    delete interactionTimer;
+    interactionTimer = nullptr;    
+
     delete drawWorldBenchmark;
     drawWorldBenchmark = nullptr;
 
@@ -55,7 +58,8 @@ GLint _scene::initGL()
     // -- CLASS INIT -- //
 
     inputTimer.reset(); 
-    fpsTimer->reset();  
+    fpsTimer->reset();
+    interactionTimer->reset();  
 
     // -- TESTER PLAYER -- //
 
@@ -100,9 +104,11 @@ GLint _scene::initGL()
     hud->addHudText("TILE_NAME");
     hud->getHudText("TILE_NAME")->setFont(GLUT_BITMAP_9_BY_15);
 
-    hud->addHudSprite("HEALTHBAR");
-    hud->getHudSprite("HEALTHBAR")->getSprite()->initSprite("images/health_bar.png",1,1,sprite_direction::RIGHT);
-    hud->getHudSprite("HEALTHBAR")->getSprite()->scale = {0.25f, 0.25f};
+    hud->addHudSprite("PROGRESS_BAR");
+    hud->getHudSprite("PROGRESS_BAR")->getSprite()->initSprite("images/progress_bar.png",5,1,sprite_direction::RIGHT);
+    hud->getHudSprite("PROGRESS_BAR")->getSprite()->scale = {1.5f, 1.5f};
+    hud->getHudSprite("PROGRESS_BAR")->getSprite()->createSpriteAction(sprite_action("DEFAULT",0,0,4));
+    hud->getHudSprite("PROGRESS_BAR")->getSprite()->loadSpriteAction("DEFAULT");
 
 
     myLight->setLight(GL_LIGHT0); // The light onto the object from the pointer is set to be the instantiated light from before
@@ -138,7 +144,7 @@ void _scene::reSize(GLint width, GLint height)
     if (hud->getHudText("MOUSE_WORLD")) hud->getHudText("MOUSE_WORLD")->position = {20.0f, height-offset};
     if (hud->getHudText("MOUSE_WORLD")) offset += spacing;
     if (hud->getHudText("TILE_NAME")) hud->getHudText("TILE_NAME")->position = {20.0f, height-offset};
-    if (hud->getHudSprite("HEALTHBAR")) hud->getHudSprite("HEALTHBAR")->position = {width/2.0, 100.0f};
+    if (hud->getHudSprite("PROGRESS_BAR")) hud->getHudSprite("PROGRESS_BAR")->position = {width/2.0, 100.0f};
 
     Logger.LogInfo("Resizing window to width: " + std::to_string(width) + " and height: " + std::to_string(height), LOG_BOTH);
     GLfloat aspectRatio = (GLfloat) width/ (GLfloat) height; //Intended to keep track of window resize
@@ -185,6 +191,22 @@ void _scene::drawScene()
 void _scene::updateScene(double dt)
 {
     dt = dt / 1000.0; // Convert dt to seconds for easier calculations
+
+    // Check for mouse events
+    if (LMB) {
+        if (interactionTimer->getSeconds() > miningSpeed/5.0f) {
+            if (hud->getHudSprite("PROGRESS_BAR")->getSprite()->iterateFrame()) {
+                cout << "BLOCK HAS BEEN MINED \n";
+                if (hoveredCell && hoveredChunk) {
+                    hoveredCell->tileId = TILE_FLOOR_BLANK_1;
+                    hoveredChunk->vboDirty = true;
+                }
+            }
+            interactionTimer->reset();
+        }
+    } else {
+        interactionTimer->reset();
+    }
 
     // Update mouse 
     float mouseScreenYInverted = height - mouseScreenPos.y;
@@ -485,6 +507,8 @@ int _scene::winMsg(HWND	hWnd, UINT uMsg, WPARAM	wParam, LPARAM lParam)
         // Left Mouse button down
         case WM_LBUTTONDOWN:
             if (inputDebugEnabled) Logger.LogDebug("Left Mouse Button Down at (" + std::to_string(LOWORD(lParam)) + ", " + std::to_string(HIWORD(lParam)) + ")", LOG_CONSOLE); //Log the position of the mouse when left button is pressed
+            LMB = true;
+            interactionTimer->reset();
             break;
         // Right Mouse button down
         case WM_RBUTTONDOWN:
@@ -493,6 +517,7 @@ int _scene::winMsg(HWND	hWnd, UINT uMsg, WPARAM	wParam, LPARAM lParam)
         // Left Mouse button up
         case WM_LBUTTONUP:
             if (inputDebugEnabled) Logger.LogDebug("Left Mouse Button Up at (" + std::to_string(LOWORD(lParam)) + ", " + std::to_string(HIWORD(lParam)) + ")", LOG_CONSOLE); //Log the position of the mouse when left button is released
+            LMB = false;
             break;
         // Right Mouse button up
         case WM_RBUTTONUP:

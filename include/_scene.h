@@ -77,6 +77,7 @@ class _scene
         _texture texture1;
 
         _timerPlusPlus inputTimer; // Timer to regulate toggle keys (ensures a key only pressed once)
+        _timerPlusPlus* interactionTimer = new _timerPlusPlus(); // Timer for interactive events
 
         _cell* hoveredCell = nullptr;
         _chunk* hoveredChunk = nullptr;
@@ -94,12 +95,16 @@ class _scene
         float cameraSpeed = 1024.0f; // Units per second
         float cameraZoom = 1.0f;
 
+        float miningSpeed = 2.5f; // In seconds
+
         bool W = false; 
         bool A = false; 
         bool S = false; 
         bool D = false;
 
         bool SPACE = false;
+
+        bool LMB = false;
 
         // -- FUNCTIONS -- //
         void mouseMove(LPARAM lParam);

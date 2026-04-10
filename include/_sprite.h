@@ -149,6 +149,15 @@ class _sprite {
         // Returns the current sprite's ID (unique to each instance)
         int getID() const;
 
+        /**
+         * Iterates a frame of the current loaded action. 
+         * This bypasses animation FPS and the idle frame. 
+         * Use stopAnimation to reset back to idleFrame.
+         * 
+         * @return True when called on the final frame iterating back to the start. 
+         */
+        bool iterateFrame();
+
         // -- Sprite Attributes -- //
         Vec2f scale = {1.0f, 1.0f};         // Scale of a sprite in multiplier (so 2,2 is a sprite 2x width by 2x height). Default sprite width/height is # of pixels
         Vec2f pos = {0.0f, 0.0f};           // Position of a sprite in world space 
@@ -180,7 +189,7 @@ class _sprite {
     private:
         // These are indexes so they start at 0
         int pixelDrawStart = 0; // Which Y pixel we start drawing at (0 is top of image)
-        int pixelDrawStop = 0; // Which Y pixel we stop drawing at (pixelsY is bototm of image)
+        int pixelDrawStop = 0; // Which Y pixel we stop drawing at (pixelsY is bottom of image)
 
         _timerPlusPlus* animationTimer = new _timerPlusPlus();
         _texture* texture = new _texture();

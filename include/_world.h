@@ -24,12 +24,41 @@
 #include<_benchmark.h>
 
 /**
+ * Enum mapped to TileId number as an unsigned 8 bit int. 
+ * Naming goes: TILE_[TYPE]_[SUBTYPE]_[VARIANT]
+ */
+enum TileId : uint8_t {
+    TILE_FLOOR_BLANK_1,
+    TILE_FLOOR_CRACKED_1,
+    TILE_FLOOR_CRACKED_2,
+    TILE_FLOOR_SQUARE,
+    TILE_FLOOR_BLANK_2,
+    TILE_WALL_CENTER,
+    TILE_WALL_LEFT,
+    TILE_WALL_RIGHT,
+    TILE_WALL_UP,
+    TILE_WALL_DOWN,
+    TILE_WALL_CORNER_TOPLEFT,
+    TILE_WALL_CORNER_TOPRIGHT,
+    TILE_WALL_CORNER_BOTTOMLEFT,
+    TILE_WALL_CORNER_BOTTOMRIGHT,
+    TILE_WALL_ISLAND,
+    TILE_WALL_PENINSULA_TOP,
+    TILE_WALL_PENINSULA_DOWN,
+    TILE_WALL_PENINSULA_LEFT,
+    TILE_WALL_PENINSULA_RIGHT,
+    TILE_WALL_COLUMN_UP,
+    TILE_WALL_COLUMN_SIDE,
+    TILE_NULL, // Special undefined tile
+};
+
+/**
  * A tileCell holds data individual to each tile instance. This allows for each tile to have a dynamic and local state. 
  * This is called shorthand a "cell"
  */
 struct _cell
 {
-    uint8_t tileId;
+    uint8_t tileId = TILE_NULL; // Defaults to undefined tile
     bool outlined = false;
 };
 
@@ -156,34 +185,6 @@ class _world
         bool DEBUG_displayChunkBorders = true; // When enabled puts a red border around chunks
     protected:
     private:
-        /**
-         * Enum mapped to TileId number as an unsigned 8 bit int. 
-         * Naming goes: TILE_[TYPE]_[SUBTYPE]_[VARIANT]
-         */
-        enum TileId : uint8_t {
-            TILE_FLOOR_BLANK_1 = 0,
-            TILE_FLOOR_CRACKED_1 = 1,
-            TILE_FLOOR_CRACKED_2 = 2,
-            TILE_FLOOR_SQUARE = 3,
-            TILE_FLOOR_BLANK_2 = 4,
-            TILE_WALL_CENTER = 5,
-            TILE_WALL_LEFT = 6,
-            TILE_WALL_RIGHT = 7,
-            TILE_WALL_UP = 8,
-            TILE_WALL_DOWN = 9,
-            TILE_WALL_CORNER_TOPLEFT = 10,
-            TILE_WALL_CORNER_TOPRIGHT = 11,
-            TILE_WALL_CORNER_BOTTOMLEFT = 12,
-            TILE_WALL_CORNER_BOTTOMRIGHT = 13,
-            TILE_WALL_ISLAND = 14,
-            TILE_WALL_PENINSULA_TOP = 15,
-            TILE_WALL_PENINSULA_DOWN = 16,
-            TILE_WALL_PENINSULA_LEFT = 17,
-            TILE_WALL_PENINSULA_RIGHT = 18,
-            TILE_WALL_COLUMN_UP = 19,
-            TILE_WALL_COLUMN_SIDE = 20,
-        };
-
         // -- RNG -- //
 
         // Using a current time for the seed is chose because the normal std::random_device doesnt work for some reason
