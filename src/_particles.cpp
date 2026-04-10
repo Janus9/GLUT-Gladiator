@@ -1,45 +1,57 @@
 #include <_particles.h>
 
+// -- PUBLIC -- //
+
 _particles::_particles() {
     // ctor
 }
 
 _particles::~_particles() {
-    delete timer;
-    timer = nullptr;
-
-    delete texture;
-    texture = nullptr;
+    // dtor
 }
 
 void _particles::initParticles(const string &fileName) {
-    texture->loadTexture(fileName);
+    texture.loadTexture(fileName);
 
     glGenBuffers(1, &vboID); // Create a VBO buffer for particles
 
     rng = mt19937(eng());
 
-    uniform_real_distribution<float> vel_dist(-5.0f, 5.0f);
-    uniform_real_distribution<float> radius_dist(1.0f, 4.0f);
+    uniform_real_distribution<float> vel_dist(-10.0f, 10.0f);
+    uniform_real_distribution<float> radius_dist(1.0f, 3.0f);
+    uniform_real_distribution<float> lifeTime_dist(1.5f, 4.0f);
 
     for(int i = 0; i < MAX_DROPS; i++) {
         particle* p = &drops[i];
+        p->alive = true;
         p->vel = {vel_dist(rng), vel_dist(rng)};
         p->radius = radius_dist(rng);
+        p->lifeTime = lifeTime_dist(rng);
     }
+
+    timer.reset();
 }
 
 void _particles::updateParticles(double dt) {
+    bool hasDrops = false;
     for (int i = 0; i < MAX_DROPS; i++) {
-        drops[i].acc.y = -GRAVITY * dt;
-        drops[i].vel += drops[i].acc * dt;
-        drops[i].pos += drops[i].vel * dt;
+        particle* p = &drops[i];
+
+        if (timer.getSeconds() > p->lifeTime) p->alive = false;
+        if (!p->alive) continue;
+
+        p->acc.y = -GRAVITY * 16 * dt;
+        p->vel += p->acc * dt;
+        p->pos += p->vel * dt;
+
+        hasDrops = true; // Any particle found keeps class alive
     }
+    isAlive = hasDrops; // Will be false when loop stops running (all particles dead)
 }
 
 void _particles::drawParticles() {
     buildParticleBuffer();
-    texture->bindTexture();
+    texture.bindTexture();
 
     glEnableClientState(GL_VERTEX_ARRAY);
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -48,48 +60,75 @@ void _particles::drawParticles() {
         glBindBuffer(GL_ARRAY_BUFFER, vboID);
         glVertexPointer(2, GL_FLOAT, 4 * sizeof(float), (void*)0);
         glTexCoordPointer(2, GL_FLOAT, 4 * sizeof(float), (void*)(2 * sizeof(float)));
-        glDrawArrays(GL_QUADS, 0, MAX_DROPS * 4);
+        glDrawArrays(GL_TRIANGLES, 0, numDropsRendered * 6);
     glPopMatrix();
 
     glDisableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 }
 
+bool _particles::hasParticles() const {
+    return isAlive;
+}
+
+// -- PRIVATE -- //
+
 void _particles::buildParticleBuffer() {
     /**
-     * MAX_DROP partics * 4 vertices * 2 floats + 4 textures * 2 floats
+     * Total * primatives * verticies per primative * floats per vertex
+     * MAX_DROP * 2 * 3 * 4
      */
-    float particleVboData[MAX_DROPS * 4 * 4];
+    float particleVboData[MAX_DROPS * 2 * 3 * 4];
     int index = 0;
-
+    
+    numDropsRendered = 0;
     for (int i = 0; i < MAX_DROPS; i++) {
         particle* p = &drops[i];
         if (!p->alive) continue; // Skips particles that are dead
 
+        float x = p->pos.x;
+        float y = p->pos.y;
+        float r = p->radius;
+        
+        // Triangle 1
         // Bottom-left
-        particleVboData[index++] = p->pos.x; 
-        particleVboData[index++] = p->pos.y; 
+        particleVboData[index++] = x; 
+        particleVboData[index++] = y; 
         particleVboData[index++] = 0; 
-        particleVboData[index++] = 0; 
+        particleVboData[index++] = 1; 
         // Bottom-right
-        particleVboData[index++] = p->pos.x + p->radius; 
-        particleVboData[index++] = p->pos.y; 
+        particleVboData[index++] = x + r; 
+        particleVboData[index++] = y; 
         particleVboData[index++] = 1; 
-        particleVboData[index++] = 0; 
+        particleVboData[index++] = 1; 
         // Top-right
-        particleVboData[index++] = p->pos.x + p->radius; 
-        particleVboData[index++] = p->pos.y + p->radius; 
+        particleVboData[index++] = x + r; 
+        particleVboData[index++] = y + r; 
         particleVboData[index++] = 1; 
-        particleVboData[index++] = 1; 
-        // Top-left
-        particleVboData[index++] = p->pos.x; 
-        particleVboData[index++] = p->pos.y + p->radius; 
+        particleVboData[index++] = 0; 
+
+        // Triangle 2
+        // Bottom-left
+        particleVboData[index++] = x; 
+        particleVboData[index++] = y; 
         particleVboData[index++] = 0; 
         particleVboData[index++] = 1; 
+        // Top-right
+        particleVboData[index++] = x + r; 
+        particleVboData[index++] = y + r; 
+        particleVboData[index++] = 1; 
+        particleVboData[index++] = 0; 
+        // Top-left
+        particleVboData[index++] = x; 
+        particleVboData[index++] = y + r; 
+        particleVboData[index++] = 0; 
+        particleVboData[index++] = 0; 
+
+        numDropsRendered++;
     }
 
     glBindBuffer(GL_ARRAY_BUFFER, vboID);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(particleVboData), particleVboData, GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, index * sizeof(float), particleVboData, GL_DYNAMIC_DRAW); // We only send the particles that are alive
     glBindBuffer(GL_ARRAY_BUFFER,0);
 }
 

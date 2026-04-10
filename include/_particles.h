@@ -6,21 +6,16 @@
 #include <_texture.h>
 
 struct particle {
-    bool alive = true;     // Life time
+    bool alive = false;
 
     // Physics //
-    Vec2f pos = {0.0f,0.0f};              // Position
-    Vec2f vel = {0.0f,0.0f};              // Velocity
-    Vec2f acc = {0.0f,0.0f};              // Acceleration
-    float mass = 0.0f;       // For gravity
-
-    Col3f col;              // Color
-    float opacity = 1.0f;   // Visibility
+    Vec2f pos = {0.0f,0.0f};              
+    Vec2f vel = {0.0f,0.0f};              
+    Vec2f acc = {0.0f,0.0f};
     
-    float t = 0.0f;          // For parametric equations
     float radius = 0.0f;
-    float expandRadius = 0.0f;
-    float theta = 0.0f;
+
+    float lifeTime = 0.0f; // Seconds
 };
 
 class _particles {
@@ -41,11 +36,13 @@ class _particles {
         // Main draw loop
         void drawParticles();
 
+        // Returns True if particles are still being rendered
+        bool hasParticles() const;
+
     protected:
     private:
         random_device eng;
         mt19937 rng;
-
 
         // Builds the VBO for draw renders
         void buildParticleBuffer();
@@ -56,8 +53,12 @@ class _particles {
         int numDrops = 0;
         int newDrops = 0;
 
-        _timerPlusPlus* timer = new _timerPlusPlus();
-        _texture* texture = new _texture();
+        _timerPlusPlus timer;
+        _texture texture;
+
+        int numDropsRendered = 0; // Number of drops actually being rendered
+
+        bool isAlive = true; // Whether the class has any particles left to render 
 };
 
 #endif // _PARTICLES_H
