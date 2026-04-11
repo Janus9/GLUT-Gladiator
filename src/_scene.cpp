@@ -213,6 +213,10 @@ void _scene::updateScene(double dt)
                     cout << "BLOCK HAS BEEN MINED \n";
                     hoveredCell->tileId = TILE_FLOOR_BLANK_1;
                     hoveredChunk->vboDirty = true;
+
+                    // Spawn particle effect
+                    particleEffects.emplace_back();
+                    particleEffects.back().initParticles("images/particle.png", mouseWorldPos);
                 }
             }
             interactionTimer->reset();
@@ -523,8 +527,8 @@ int _scene::winMsg(HWND	hWnd, UINT uMsg, WPARAM	wParam, LPARAM lParam)
             LMB = true;
             interactionTimer->reset();
             
-            particleEffects.emplace_back();
-            particleEffects.back().initParticles("images/chud.jpeg", mouseWorldPos);
+            // particleEffects.emplace_back();
+            // particleEffects.back().initParticles("images/particle.png", mouseWorldPos);
 
             break;
         }

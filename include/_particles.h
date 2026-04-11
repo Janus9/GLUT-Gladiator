@@ -53,7 +53,9 @@ class _particles {
         int newDrops = 0;
 
         _timerPlusPlus timer;
-        _texture texture;
+
+        static _texture texture;
+        static bool textureLoaded;
 
         int numDropsRendered = 0; // Number of drops actually being rendered
 

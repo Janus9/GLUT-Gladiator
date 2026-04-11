@@ -1,5 +1,10 @@
 #include <_particles.h>
 
+// -- STATIC -- //
+bool _particles::textureLoaded = false;
+_texture _particles::texture;
+
+
 // -- PUBLIC -- //
 
 _particles::_particles() : rng(random_device{}()) {
@@ -7,11 +12,16 @@ _particles::_particles() : rng(random_device{}()) {
 }
 
 _particles::~_particles() {
-    // dtor
+    if (vboID != 0) {
+        glDeleteBuffers(1,&vboID); // tell the GPU to delete the buffer
+        vboID = 0;
+    }
 }
 
 void _particles::initParticles(const string &fileName, const Vec2f &pos) {
-    texture.loadTexture(fileName);
+    if (!textureLoaded) {
+        texture.loadTexture(fileName);
+    }
 
     glGenBuffers(1, &vboID); // Create a VBO buffer for particles
 
@@ -55,12 +65,11 @@ void _particles::drawParticles() {
     glEnableClientState(GL_VERTEX_ARRAY);
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
-    glPushMatrix();
-        glBindBuffer(GL_ARRAY_BUFFER, vboID);
-        glVertexPointer(2, GL_FLOAT, 4 * sizeof(float), (void*)0);
-        glTexCoordPointer(2, GL_FLOAT, 4 * sizeof(float), (void*)(2 * sizeof(float)));
-        glDrawArrays(GL_TRIANGLES, 0, numDropsRendered * 6);
-    glPopMatrix();
+    glBindBuffer(GL_ARRAY_BUFFER, vboID);
+    glVertexPointer(2, GL_FLOAT, 4 * sizeof(float), (void*)0);
+    glTexCoordPointer(2, GL_FLOAT, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+    glDrawArrays(GL_TRIANGLES, 0, numDropsRendered * 6);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     glDisableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_TEXTURE_COORD_ARRAY);
