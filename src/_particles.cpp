@@ -13,17 +13,23 @@ _particles::_particles() : rng(random_device{}()) {
 
 _particles::~_particles() {
     if (vboID != 0) {
-        glDeleteBuffers(1,&vboID); // tell the GPU to delete the buffer
+        glDeleteBuffers(1,&vboID); // tell the GPU to delete the vertex buffer
         vboID = 0;
+    }
+    if (eboID != 0) {
+        glDeleteBuffers(1,&eboID); // tell the GPU to delete the index buffer
+        eboID = 0;
     }
 }
 
 void _particles::initParticles(const string &fileName, const Vec2f &pos) {
     if (!textureLoaded) {
         texture.loadTexture(fileName);
+        textureLoaded = true;
     }
 
     glGenBuffers(1, &vboID); // Create a VBO buffer for particles
+    glGenBuffers(1, &eboID); // Create a VBO buffer for particles
 
     uniform_real_distribution<float> vel_dist(-10.0f, 10.0f);
     uniform_real_distribution<float> radius_dist(1.0f, 3.0f);
@@ -66,10 +72,15 @@ void _particles::drawParticles() {
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
     glBindBuffer(GL_ARRAY_BUFFER, vboID);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboID);
+
     glVertexPointer(2, GL_FLOAT, 4 * sizeof(float), (void*)0);
     glTexCoordPointer(2, GL_FLOAT, 4 * sizeof(float), (void*)(2 * sizeof(float)));
-    glDrawArrays(GL_TRIANGLES, 0, numDropsRendered * 6);
+
+    glDrawElements(GL_TRIANGLES, numDropsRendered * 6, GL_UNSIGNED_INT, (void*)0);
+    
     glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
     glDisableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -83,11 +94,21 @@ bool _particles::hasParticles() const {
 
 void _particles::buildParticleBuffer() {
     /**
-     * Total * primatives * verticies per primative * floats per vertex
-     * MAX_DROP * 2 * 3 * 4
+     * Particles are rendered as a quad.
+     * They require 4 vertices of 2 components of 2 floats each (x,y,u,v) 
+     * 4 vertices * 2 components (pos/tex) * 2 floats each (x,y/u,v) for 2D
      */
-    float particleVboData[MAX_DROPS * 2 * 3 * 4];
-    int index = 0;
+    float particleVboData[MAX_DROPS * 4 * 2 * 2];
+    int vIndex = 0;
+    /**
+     * The ebo is what we actually use to build the object, it holds indicies TO the vbo. 
+     * However, it doesnt hold indicies to each variable (float) its to each vertex. Despite a quad being used for the particles,
+     * we treat it as 2 triangles (quads are depricated in modern openGL), each triangle requires 3 verticies so 3*2 is 6 verticies per tile.
+     */
+    uint32_t particleEboData[MAX_DROPS * 6];
+    int eIndex = 0;
+
+    int vertexOffset = 0;
     
     numDropsRendered = 0;
     for (int i = 0; i < MAX_DROPS; i++) {
@@ -98,45 +119,50 @@ void _particles::buildParticleBuffer() {
         float y = p->pos.y;
         float r = p->radius;
         
-        // Triangle 1
-        // Bottom-left
-        particleVboData[index++] = x; 
-        particleVboData[index++] = y; 
-        particleVboData[index++] = 0; 
-        particleVboData[index++] = 1; 
-        // Bottom-right
-        particleVboData[index++] = x + r; 
-        particleVboData[index++] = y; 
-        particleVboData[index++] = 1; 
-        particleVboData[index++] = 1; 
-        // Top-right
-        particleVboData[index++] = x + r; 
-        particleVboData[index++] = y + r; 
-        particleVboData[index++] = 1; 
-        particleVboData[index++] = 0; 
+        // Vbo (Quad) //
+        // Bottom-left (0)
+        particleVboData[vIndex++] = x; 
+        particleVboData[vIndex++] = y; 
+        particleVboData[vIndex++] = 0.0f; 
+        particleVboData[vIndex++] = 1.0f; 
+        // Bottom-right (1)
+        particleVboData[vIndex++] = x + r; 
+        particleVboData[vIndex++] = y; 
+        particleVboData[vIndex++] = 1.0f; 
+        particleVboData[vIndex++] = 1.0f; 
+        // Top-right (2)
+        particleVboData[vIndex++] = x + r; 
+        particleVboData[vIndex++] = y + r; 
+        particleVboData[vIndex++] = 1.0f; 
+        particleVboData[vIndex++] = 0.0f; 
+        // Top-left (3)
+        particleVboData[vIndex++] = x; 
+        particleVboData[vIndex++] = y + r; 
+        particleVboData[vIndex++] = 0.0f; 
+        particleVboData[vIndex++] = 0.0f; 
 
+        // Ebo (Two Triangles) //
+        // Triangle 1
+        particleEboData[eIndex++] = vertexOffset + 0; // BL   
+        particleEboData[eIndex++] = vertexOffset + 1; // BR
+        particleEboData[eIndex++] = vertexOffset + 2; // TR
         // Triangle 2
-        // Bottom-left
-        particleVboData[index++] = x; 
-        particleVboData[index++] = y; 
-        particleVboData[index++] = 0; 
-        particleVboData[index++] = 1; 
-        // Top-right
-        particleVboData[index++] = x + r; 
-        particleVboData[index++] = y + r; 
-        particleVboData[index++] = 1; 
-        particleVboData[index++] = 0; 
-        // Top-left
-        particleVboData[index++] = x; 
-        particleVboData[index++] = y + r; 
-        particleVboData[index++] = 0; 
-        particleVboData[index++] = 0; 
+        particleEboData[eIndex++] = vertexOffset + 0; // BL
+        particleEboData[eIndex++] = vertexOffset + 2; // TR
+        particleEboData[eIndex++] = vertexOffset + 3; // TL
+
+        vertexOffset += 4; // Offset the Vbo verticies (4)
 
         numDropsRendered++;
     }
 
     glBindBuffer(GL_ARRAY_BUFFER, vboID);
-    glBufferData(GL_ARRAY_BUFFER, index * sizeof(float), particleVboData, GL_DYNAMIC_DRAW); // We only send the particles that are alive
+    glBufferData(GL_ARRAY_BUFFER, vIndex * sizeof(float), particleVboData, GL_DYNAMIC_DRAW); // We only send the particles that are alive
+    
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboID);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, eIndex * sizeof(uint32_t), particleEboData, GL_DYNAMIC_DRAW);
+    
     glBindBuffer(GL_ARRAY_BUFFER,0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0);
 }
 

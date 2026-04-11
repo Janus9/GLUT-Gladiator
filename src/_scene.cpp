@@ -527,8 +527,8 @@ int _scene::winMsg(HWND	hWnd, UINT uMsg, WPARAM	wParam, LPARAM lParam)
             LMB = true;
             interactionTimer->reset();
             
-            // particleEffects.emplace_back();
-            // particleEffects.back().initParticles("images/particle.png", mouseWorldPos);
+            particleEffects.emplace_back();
+            particleEffects.back().initParticles("images/particle.png", mouseWorldPos);
 
             break;
         }

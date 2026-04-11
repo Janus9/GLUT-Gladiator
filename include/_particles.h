@@ -41,25 +41,28 @@ class _particles {
 
     protected:
     private:
-        mt19937 rng;
-
         // Builds the VBO for draw renders
         void buildParticleBuffer();
 
+        // Rng machine for each particle instance
+        mt19937 rng;
+
+        // List of particles set by MAX_DROPS
         particle drops[MAX_DROPS];
-        GLuint vboID = 0; 
 
-        int numDrops = 0;
-        int newDrops = 0;
-
-        _timerPlusPlus timer;
-
+        // Buffers //
+        GLuint vboID = 0; // Vertex Buffer 
+        GLuint eboID = 0; // Index Buffer
+        
         static _texture texture;
         static bool textureLoaded;
-
+        
         int numDropsRendered = 0; // Number of drops actually being rendered
-
+        
         bool isAlive = true; // Whether the class has any particles left to render 
+        
+        // For lifetime checks
+        _timerPlusPlus timer;
 };
 
 #endif // _PARTICLES_H
