@@ -4,7 +4,6 @@
 // DEFINES //
 
 #define GLEW_STATIC
-#define MAX_DROPS 1000
 #define GRAVITY 9.81
 
 // INCLUDES //

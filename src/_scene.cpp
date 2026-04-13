@@ -37,6 +37,9 @@ _scene::~_scene()
 
     delete hud;
     hud = nullptr;
+
+    delete blockParticleManager;
+    blockParticleManager = nullptr;
 }   
 
 
@@ -119,6 +122,27 @@ GLint _scene::initGL()
    
     drawWorldBenchmark->startBenchmark();
 
+    // -- Particles -- //
+    test.amount = 100;
+
+    test.minVelX = -3.0f;
+    test.maxVelX = 3.0f;
+    test.minVelY = 5.0f;
+    test.maxVelY = 20.0f;
+
+    test.minRadius = 1.0f;
+    test.maxRadius = 3.0f;
+
+    test.minLifeTime = 0.5f;
+    test.maxLifeTime = 1.1f;
+
+    test.minSpawnOffsetX = -4.0f;
+    test.maxSpawnOffsetX = 4.0f;
+    test.minSpawnOffsetY = -4.0f;
+    test.maxSpawnOffsetY = 4.0f;
+
+    blockParticleManager->initParticleManager("images/particle.png",10000);
+
     //testSounds->playSounds("sounds/level_transition.mp3");
 
     return true;
@@ -179,9 +203,7 @@ void _scene::drawScene()
 
     hud->drawHud();
 
-    for (int i = 0; i < particleEffects.size(); i++) {
-        particleEffects[i].drawParticles();
-    }
+    blockParticleManager->drawParticleManager();
 
     // For FPS measuring
     frameCount++;
@@ -197,13 +219,7 @@ void _scene::updateScene(double dt)
 {
     dt = dt / 1000.0; // Convert dt to seconds for easier calculations
 
-    for (int i = particleEffects.size()-1; i >= 0; i--) {
-        if (!particleEffects[i].hasParticles()) {
-            particleEffects.erase(particleEffects.begin() + i);
-            continue;
-        }
-        particleEffects[i].updateParticles(dt);
-    }
+    blockParticleManager->updateParticleManger(dt);
 
     // Check for mouse events
     if (LMB) {
@@ -213,10 +229,7 @@ void _scene::updateScene(double dt)
                     cout << "BLOCK HAS BEEN MINED \n";
                     hoveredCell->tileId = TILE_FLOOR_BLANK_1;
                     hoveredChunk->vboDirty = true;
-
-                    // Spawn particle effect
-                    particleEffects.emplace_back();
-                    particleEffects.back().initParticles("images/particle.png", mouseWorldPos);
+                    blockParticleManager->spawnEffect(mouseWorldPos,test);
                 }
             }
             interactionTimer->reset();
@@ -526,10 +539,6 @@ int _scene::winMsg(HWND	hWnd, UINT uMsg, WPARAM	wParam, LPARAM lParam)
             if (inputDebugEnabled) Logger.LogDebug("Left Mouse Button Down at (" + std::to_string(LOWORD(lParam)) + ", " + std::to_string(HIWORD(lParam)) + ")", LOG_CONSOLE); //Log the position of the mouse when left button is pressed
             LMB = true;
             interactionTimer->reset();
-            
-            particleEffects.emplace_back();
-            particleEffects.back().initParticles("images/particle.png", mouseWorldPos);
-
             break;
         }
         // Right Mouse button down

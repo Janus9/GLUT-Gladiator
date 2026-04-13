@@ -18,7 +18,7 @@
 #include<_sounds.h>
 #include<_world.h>
 #include<_hud.h>
-#include<_particles.h>
+#include<_particleManager.h>
 
 class _scene
 {
@@ -124,7 +124,8 @@ class _scene
 
         _benchmark* drawWorldBenchmark = new _benchmark();
 
-        vector<_particles> particleEffects;
+        _particleManager* blockParticleManager = new _particleManager();
+        particle_effect test;
 
         bool debugEnabled = true;           // Enables specific debugging information for the scene
         bool inputDebugEnabled = false;     // Enables debug info for inputs (keyboard keys + mouse inputs)
