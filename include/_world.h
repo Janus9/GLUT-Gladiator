@@ -23,16 +23,21 @@
 #include<_texture.h>
 #include<_benchmark.h>
 
+class _chunk; // Forward declaration for cell
+
 /**
  * Enum mapped to TileId number as an unsigned 8 bit int. 
  * Naming goes: TILE_[TYPE]_[SUBTYPE]_[VARIANT]
  */
 enum TileId : uint8_t {
+    // Floor //
     TILE_FLOOR_BLANK_1,
     TILE_FLOOR_CRACKED_1,
     TILE_FLOOR_CRACKED_2,
     TILE_FLOOR_SQUARE,
     TILE_FLOOR_BLANK_2,
+
+    // Wall //
     TILE_WALL_CENTER,
     TILE_WALL_LEFT,
     TILE_WALL_RIGHT,
@@ -49,6 +54,8 @@ enum TileId : uint8_t {
     TILE_WALL_PENINSULA_RIGHT,
     TILE_WALL_COLUMN_UP,
     TILE_WALL_COLUMN_SIDE,
+
+    // Special //
     TILE_NULL, // Special undefined tile
 };
 
@@ -59,8 +66,11 @@ enum TileId : uint8_t {
 struct _cell
 {
     Vec2f pos; // Position of the cell 
-    uint8_t tileId = TILE_NULL; // Defaults to undefined tile
+    TileId tileId = TILE_NULL; // Defaults to undefined tile
     bool outlined = false;
+
+    int index = 0; // Index cell lives in chunk data array
+    _chunk* parentChunk = nullptr; // Who owns this cell
 };
 
 /**
@@ -92,21 +102,53 @@ struct _tile
  * 
  *  Tiles are held as IDs to a look up tables and not objects. They go bottom-left -> top-right
  */
-struct _chunk
+class _chunk
 {
-    int chunkX;
-    int chunkY;
-    // this really should be private 
-    uint8_t tileData[256];      // 16x16 chunk
-    _cell cellData[256] ;   // 16x16 chunk
-    
-    GLuint tileLineVboID = 0;   // ID for the GPU memory of lines around tiles
-    size_t tileLineVboSize;
+    public:
+        int chunkX;
+        int chunkY;
 
-    GLuint tileVboID = 0;       // ID for the GPU memory of tiles
-    GLuint chunkLineVboID = 0;  // ID for the GPU memory of lines
-    
-    bool vboDirty = true;       // If dirty then we update the chunk (when tiles change)
+        GLuint tileLineVboID = 0;   // ID for the GPU memory of lines around tiles
+        size_t tileLineVboSize;
+
+        GLuint tileVboID = 0;       // ID for the GPU memory of tiles
+        GLuint chunkLineVboID = 0;  // ID for the GPU memory of lines
+        
+        bool vboDirty = true;       // If dirty then we update the chunk (when tiles change)
+
+        /**
+         * Gets a tile at the given index
+         * 
+         * @param index Index in tile data array
+         * 
+         * @return Copy of tile id (unsigned 8 bit int)
+         */
+        TileId getTileIdAt(int index) const;
+
+        /**
+         * Gets a cell at the given index
+         * 
+         * @param index Index in cell data array
+         * 
+         * @return Reference to the cell (mutable)
+         */
+        _cell& cellAt(int index);
+
+        /**
+         * Sets a tile at the given index with bounds checking
+         * 
+         * @param id TileId to set
+         * 
+         * @param index Index to set tile id at
+         * 
+         * @return True if operation succeeded 
+         */
+        bool setTileIdAt(TileId id, int index);
+
+    protected:
+    private:
+        TileId tileData[256];  // 16x16 chunk
+        _cell cellData[256];   // 16x16 chunk
 };
 
 class _world
@@ -162,7 +204,7 @@ class _world
          * 
          * @return Readonly pointer to a tile or nullptr if not found
          */
-        const _tile* getTileFromChunkIndex(const _chunk* chunk, const uint8_t index) const;
+        const _tile* getTileFromChunkIndex(const _chunk* chunk, const int index) const;
 
         /**
          * Returns a tile from a given world position
@@ -173,6 +215,7 @@ class _world
          */
         const _tile* getTileAtWorld(const Vec2f &pos) const;
 
+
         /**
          * Returns a cell from a given world position
          * 
@@ -182,6 +225,17 @@ class _world
          */
         _cell* getCellAtWorld(const Vec2f &pos) const;
 
+
+        /**
+         * Changes a tile to a different id based on a matched cell.
+         * 
+         * @param cell The cell that is attached to the tile 
+         * 
+         * @param id Tile ID to set
+         * 
+         * @return True if success
+         */
+        bool setTileAtChunk(_cell* cell, TileId id);
 
         bool DEBUG_displayChunkBorders = true; // When enabled puts a red border around chunks
     protected:
@@ -237,11 +291,29 @@ class _world
         // Puts the world through post processing converting bools to tile IDs for texturing
         void postProcessWorld();
 
+        // Determines the tile type for wall connections
+        TileId determineTileType(const bool neighborTiles[9]) const;
+
         // Finalizes the world generation binding the vector -> unordered map for rendering
         void finalizeWorld();
 
         // runs through all iterations of the world generation
         void runWorldGeneration(int iterations);
+
+        /**
+         * Maps a 3x3 grid of neighbor cells around the given cell
+         * 
+         * 8 7 6
+         * 5 4 3
+         * 2 1 0
+         * 
+         * Where 4 is the host cell
+         */
+        void mapCellNeighbors(_cell* cell, _cell* outNeighbors[9]);
+
+
+        // Checks if a tile is a wall based on if its in the WALL group (be careful changing WALL tiles, maintain first/last)
+        bool isTileWall(TileId tileId) const;
 
         // -- DEBUGGING -- //
         

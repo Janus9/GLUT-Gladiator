@@ -107,6 +107,9 @@ GLint _scene::initGL()
     hud->addHudText("TILE_NAME");
     hud->getHudText("TILE_NAME")->setFont(GLUT_BITMAP_9_BY_15);
 
+    hud->addHudText("CHUNK_REDRAW");
+    hud->getHudText("CHUNK_REDRAW")->setFont(GLUT_BITMAP_9_BY_15);
+
     hud->addHudSprite("PROGRESS_BAR");
     hud->getHudSprite("PROGRESS_BAR")->getSprite()->initSprite("images/progress_bar.png",5,1,sprite_direction::RIGHT);
     hud->getHudSprite("PROGRESS_BAR")->getSprite()->scale = {1.5f, 1.5f};
@@ -168,6 +171,9 @@ void _scene::reSize(GLint width, GLint height)
     if (hud->getHudText("MOUSE_WORLD")) hud->getHudText("MOUSE_WORLD")->position = {20.0f, height-offset};
     if (hud->getHudText("MOUSE_WORLD")) offset += spacing;
     if (hud->getHudText("TILE_NAME")) hud->getHudText("TILE_NAME")->position = {20.0f, height-offset};
+    if (hud->getHudText("TILE_NAME")) offset += spacing;
+    if (hud->getHudText("CHUNK_REDRAW")) hud->getHudText("CHUNK_REDRAW")->position = {20.0f, height-offset};
+    if (hud->getHudText("CHUNK_REDRAW")) offset += spacing;
     if (hud->getHudSprite("PROGRESS_BAR")) hud->getHudSprite("PROGRESS_BAR")->position = {width/2.0, 100.0f};
 
     Logger.LogInfo("Resizing window to width: " + std::to_string(width) + " and height: " + std::to_string(height), LOG_BOTH);
@@ -227,8 +233,7 @@ void _scene::updateScene(double dt)
             if (hud->getHudSprite("PROGRESS_BAR")->getSprite()->iterateFrame()) {
                 if (hoveredCell && hoveredChunk) {
                     cout << "BLOCK HAS BEEN MINED \n";
-                    hoveredCell->tileId = TILE_FLOOR_BLANK_1;
-                    hoveredChunk->vboDirty = true;
+                    myWorld->setTileAtChunk(hoveredCell,TILE_FLOOR_BLANK_1);
                     blockParticleManager->spawnEffect(hoveredCell->pos,test);
                 }
             }
@@ -430,7 +435,11 @@ void _scene::updateScene(double dt)
     }
     if (tile) {
         hud->getHudText("TILE_NAME")->setText("Selected Tile Name: " + tile->name);
-    } 
+    }
+    if (hoveredChunk) {
+        string text = "Chunk Redraw: " + (hoveredChunk->vboDirty) ? "TRUE" : "FALSE";
+        hud->getHudText("CHUNK_REDRAW")->setText(text); 
+    }
 }
 
 void _scene::debugPrint()

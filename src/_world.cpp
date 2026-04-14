@@ -1,5 +1,24 @@
 #include <_world.h>
 
+// -- CHUNK -- //
+
+TileId _chunk::getTileIdAt(int index) const {
+    return tileData[index];
+}
+
+_cell& _chunk::cellAt(int index) {
+    return cellData[index];
+}
+
+bool _chunk::setTileIdAt(TileId id, int index) {
+    if (index < 0 || index > 255) return false;
+    tileData[index] = id;
+    cellData[index].tileId = id;
+    return true;
+}
+
+// -- WORLD -- //
+
 _world::_world()
 {
     //ctor
@@ -87,8 +106,8 @@ void _world::initTiles() {
     setTileInAtlas(24,16, world_tiles[TILE_WALL_PENINSULA_LEFT]);        // Wall Peninsula Left
     setTileInAtlas(26,16, world_tiles[TILE_WALL_PENINSULA_RIGHT]);        // Wall Peninsula Right
 
-    setTileInAtlas(22,18, world_tiles[TILE_WALL_COLUMN_UP]);        // Wall Column Up
-    setTileInAtlas(23,18, world_tiles[TILE_WALL_COLUMN_SIDE]);        // Wall Column Side
+    setTileInAtlas(23,18, world_tiles[TILE_WALL_COLUMN_UP]);        // Wall Column Up
+    setTileInAtlas(22,18, world_tiles[TILE_WALL_COLUMN_SIDE]);        // Wall Column Side
 
     world_tiles[TILE_WALL_CENTER].name = "wall_center";
 
@@ -177,28 +196,23 @@ void _world::buildChunkVBO(_chunk* chunk) {
         for (int x = 0; x < 16; x++) {
             int tileIndex = y * 16 + x;
 
-            // For each tile match the cell ID and data ID to keep them in match
-            if (chunk->cellData[tileIndex].tileId == TILE_NULL) {
-                // Undefined tiles are set to the chunks tiles for start
-                chunk->cellData[tileIndex].tileId = chunk->tileData[tileIndex];
-            } else if (chunk->cellData[tileIndex].tileId != chunk->tileData[tileIndex]) {
-                // If tiles differ (but cell isnt 0) then it was changed
-                chunk->tileData[tileIndex] = chunk->cellData[tileIndex].tileId;
-            }
-
-            uint8_t tileType = chunk->tileData[tileIndex];
-            const _tile* tile = &world_tiles[tileType];
+            TileId tileId = chunk->getTileIdAt(tileIndex);
+            _cell* cell = &chunk->cellAt(tileIndex);
+            const _tile* tile = &world_tiles[tileId];
             
+            cell->tileId = tileId;
+            cell->index = tileIndex; // Match every draw cycle
+            cell->parentChunk = chunk;
+
             float worldX = (chunk->chunkX * 16 + x) * TILE_W;
             float worldY = (chunk->chunkY * 16 + y) * TILE_H;
 
-
-            chunk->cellData[tileIndex].pos = {worldX + TILE_W/2.0f, worldY + TILE_H/2.0f};
+            cell->pos = {worldX + TILE_W/2.0f, worldY + TILE_H/2.0f};
 
             // Outline VBO Setup //
 
             // Only outlined tiles have vbo data pushed
-            if (chunk->cellData[tileIndex].outlined) {
+            if (cell->outlined) {
                 // Bottom-Left -> Bottom-Right //
                 // bottom-left
                 tileOutlineVboData.push_back(worldX);
@@ -395,13 +409,17 @@ void _world::postProcessWorld() {
         5 4 3
         2 1 0
 
+        0 1 2
+        3 4 5
+        6 7 8
+
         Where 4 is ourselves
         */
         bool neighborTiles[9] = { false };
         
         for (int j = 0; j < 9; j++) {
             int xOffset = j % 3 - 1;    // Gets xOffset for tiles [-1,1]
-            int yOffset = j / 3 - 1;    // Gets yOffset for tiles [-1,1] -- Applies worldWidth later
+            int yOffset = (8-j) / 3 - 1;    // Gets yOffset for tiles [-1,1] -- Applies worldWidth later
             int index = i + xOffset + yOffset * worldWidth; // Gets the given index to check
             if (index == i) continue;   // Skip checking ourselves
             if (index < 0 || index >= world_noise.size()) { // If index is out of bounds, treat as wall
@@ -412,113 +430,103 @@ void _world::postProcessWorld() {
                 neighborTiles[j] = true;
             }
         }
-        // Island Check //
-        if (!neighborTiles[1] && !neighborTiles[3] && !neighborTiles[5] && !neighborTiles[7]) 
-        {
-            world_noise[i] = 14; // Island
-            continue;
-        }
-        // Peninsula Checks //
-
-        // Peninsula Right
-        if (!neighborTiles[1] && !neighborTiles[3] && !neighborTiles[7] && neighborTiles[5]) 
-        {
-            world_noise[i] = 17; // Peninsula Right
-            continue;
-        }
-
-        // Peninsula Leftm
-        if (!neighborTiles[1] && !neighborTiles[5] && !neighborTiles[7] && neighborTiles[3]) 
-        {
-            world_noise[i] = 18; // Peninsula Left
-            continue;
-        }
-
-        // Peninsula Bottomi
-        if (!neighborTiles[1] && !neighborTiles[3] && !neighborTiles[5] && neighborTiles[7]) 
-        {
-            world_noise[i] = 16; // Peninsula Bottom
-            continue;
-        }
-
-        // Peninsula Top
-        if (!neighborTiles[3] && !neighborTiles[5] && !neighborTiles[7] && neighborTiles[1]) 
-        {
-            world_noise[i] = 15; // Peninsula Top
-            continue;
-        }
-
-        // Column Checks //
-
-        // Column Up
-        if (!neighborTiles[1] && !neighborTiles[7] && neighborTiles[3] && neighborTiles[5]) {
-            world_noise[i] = 19; // Peninsula Up
-            continue;
-
-        }
-
-        // Column Side
-        if (neighborTiles[1] && neighborTiles[7] && !neighborTiles[3] && !neighborTiles[5]) {
-            world_noise[i] = 20; // Peninsula Side
-            continue;
-        }
-
-        // Wall Checks //
-
-        // Wall Left
-        if (!neighborTiles[3] && neighborTiles[1] && neighborTiles[7]) {
-            world_noise[i] = 6; // Wall Left 
-            continue;
-        }
-
-        // Wall Right
-        if (!neighborTiles[5] && neighborTiles[1] && neighborTiles[7]) {
-            world_noise[i] = 7; // Wall Right 
-            continue;
-        }
-
-        // Wall Down
-        if (!neighborTiles[1] && neighborTiles[3] && neighborTiles[5]) {
-            world_noise[i] = 9; // Wall Down 
-            continue;
-        }
-
-        // Wall Up
-        if (!neighborTiles[7] && neighborTiles[3] && neighborTiles[5]) {
-            world_noise[i] = 8; // Wall Up 
-            continue;
-        }
-
-        // Wall Corners //
-
-        // Wall Corner Bottom Left
-        if (neighborTiles[5] && neighborTiles[7] && !neighborTiles[1] && !neighborTiles[3]) {
-            world_noise[i] = 12; // Wall Corner Bottom Left 
-            continue;
-        }
-
-        // Wall Corner Top Right
-        if (neighborTiles[1] && neighborTiles[3] && !neighborTiles[5] && !neighborTiles[7]) {
-            world_noise[i] = 11; // Wall Corner Top Right 
-            continue;
-        }
-
-        // Wall Corner Bottom Right
-        if (neighborTiles[3] && neighborTiles[7] && !neighborTiles[1] && !neighborTiles[5]) {
-            world_noise[i] = 13; // Wall Corner Bottom Right 
-            continue;
-        }
-
-        // Wall Corner Top Left
-        if (neighborTiles[1] && neighborTiles[5] && !neighborTiles[3] && !neighborTiles[7]) {
-            world_noise[i] = 10; // Wall Corner Top Left
-            continue;
-        }
-
-        world_noise[i] = 5;
+        world_noise[i] = determineTileType(neighborTiles);
     }
     Logger.LogInfo("Finishing post processing of world");
 }
+
+TileId _world::determineTileType(const bool neighborTiles[9]) const {
+    // Island Check //
+    if (!neighborTiles[1] && !neighborTiles[3] && !neighborTiles[5] && !neighborTiles[7]) 
+    {
+        return TILE_WALL_ISLAND; // Island
+    }
+    // Peninsula Checks //
+
+    // Peninsula Left
+    if (!neighborTiles[1] && !neighborTiles[3] && !neighborTiles[7] && neighborTiles[5]) 
+    {
+        return TILE_WALL_PENINSULA_LEFT; // Peninsula Left
+    }
+
+    // Peninsula Right
+    if (!neighborTiles[1] && !neighborTiles[5] && !neighborTiles[7] && neighborTiles[3]) 
+    {
+        return TILE_WALL_PENINSULA_RIGHT; // Peninsula Right
+    }
+
+    // Peninsula Bottom
+    if (neighborTiles[1] && !neighborTiles[3] && !neighborTiles[5] && !neighborTiles[7]) 
+    {
+        return TILE_WALL_PENINSULA_DOWN; // Peninsula Bottom
+    }
+
+    // Peninsula Top
+    if (!neighborTiles[3] && !neighborTiles[5] && neighborTiles[7] && !neighborTiles[1]) 
+    {
+        return TILE_WALL_PENINSULA_TOP; // Peninsula Top
+    }
+
+    // Column Checks //
+
+    // Column Up
+    if (neighborTiles[1] && neighborTiles[7] && !neighborTiles[3] && !neighborTiles[5]) {
+        return TILE_WALL_COLUMN_UP; // Column Up
+
+    }
+
+    // Column Side
+    if (!neighborTiles[1] && !neighborTiles[7] && neighborTiles[3] && neighborTiles[5]) {
+        return TILE_WALL_COLUMN_SIDE; // Column Side
+    }
+
+    // Wall Checks //
+
+    // Wall Left
+    if (!neighborTiles[3] && neighborTiles[1] && neighborTiles[7] && neighborTiles[5]) {
+        return TILE_WALL_LEFT; // Wall Left 
+    }
+
+    // Wall Right
+    if (!neighborTiles[5] && neighborTiles[1] && neighborTiles[7] && neighborTiles[3]) {
+        return TILE_WALL_RIGHT; // Wall Right 
+    }
+
+    // Wall Down
+    if (neighborTiles[1] && neighborTiles[3] && neighborTiles[5] && !neighborTiles[7]) {
+        return TILE_WALL_DOWN; // Wall Down 
+    }
+
+    // Wall Up
+    if (!neighborTiles[1] && neighborTiles[3] && neighborTiles[5] && neighborTiles[7]) {
+        return TILE_WALL_UP; // Wall Up 
+    }
+
+    // Wall Corners //
+
+    // Wall Corner Bottom Left
+    if (!neighborTiles[3] && !neighborTiles[7] && neighborTiles[1] && neighborTiles[5]) {
+        return TILE_WALL_CORNER_BOTTOMLEFT; // Wall Corner Bottom Left 
+    }
+
+    // Wall Corner Top Left
+    if (!neighborTiles[1] && !neighborTiles[3] && neighborTiles[5] && neighborTiles[7]) {
+        return TILE_WALL_CORNER_TOPLEFT; // Wall Corner Top Left 
+    }
+
+    // Wall Corner Bottom Right
+    if (!neighborTiles[5] && !neighborTiles[7] && neighborTiles[1] && neighborTiles[3]) {
+        return TILE_WALL_CORNER_BOTTOMRIGHT; // Wall Corner Bottom Right 
+    }
+
+    // Wall Corner Top Right
+    if (!neighborTiles[1] && !neighborTiles[5] && neighborTiles[3] && neighborTiles[7]) {
+        return TILE_WALL_CORNER_TOPRIGHT; // Wall Corner Top Right
+    }
+
+    return TILE_WALL_CENTER;
+}
+
 
 /*
 When tiles are made from noise its flat but since we load chunk by chunk we have to convert this flat array into 
@@ -555,7 +563,9 @@ void _world::finalizeWorld() {
                 // Convert to chunk tile index (tileY * 16 + tileX gives position in chunk's 16x16 grid)
                 int chunk_tile_index = tileY * 16 + tileX;
                 
-                newChunk.tileData[chunk_tile_index] = world_noise[world_noise_index];
+                TileId newId = static_cast<TileId>(world_noise[world_noise_index]);
+
+                newChunk.setTileIdAt(newId,chunk_tile_index);
             }
         }
 
@@ -588,13 +598,10 @@ _chunk* _world::getChunkAtWorld(const Vec2f &pos) const {
     return getChunkAt(worldToChunkPos(pos));
 }
 
-const _tile* _world::getTileFromChunkIndex(const _chunk* chunk, const uint8_t index) const {
-    if (index > 255) {
-        uint8_t id = chunk->tileData[index];
-        return &world_tiles[id];
-    }
-    // Out of range
-    return nullptr;
+
+const _tile* _world::getTileFromChunkIndex(const _chunk* chunk, const int index) const {
+    if (index < 0 || index > 255) return nullptr;
+    return &world_tiles[chunk->getTileIdAt(index)];
 }
 
 // https://www.desmos.com/calculator/x5cyeg8q8s
@@ -612,11 +619,8 @@ const _tile* _world::getTileAtWorld(const Vec2f &pos) const {
     // Get an index in the flat array for the tile
     uint8_t tileIndex = (int)floor(adjustedPos.y/16)*16 + (int)floor(adjustedPos.x/16);
 
-    // Get the id stored in the chunk
-    uint8_t id = chunk->tileData[tileIndex];
-
     // Map id -> tile and return it
-    return &world_tiles[id];
+    return &world_tiles[chunk->getTileIdAt(tileIndex)];
 }
 
 _cell* _world::getCellAtWorld(const Vec2f &pos) const {
@@ -634,8 +638,39 @@ _cell* _world::getCellAtWorld(const Vec2f &pos) const {
     uint8_t tileIndex = (int)floor(adjustedPos.y/16)*16 + (int)floor(adjustedPos.x/16);
 
     // Get the id stored in the chunk
-    return &chunk->cellData[tileIndex];
+    return &chunk->cellAt(tileIndex);
 }
+
+bool _world::setTileAtChunk(_cell* cell, TileId id) {
+    if (!cell || cell->parentChunk == nullptr) return false;
+    
+    bool success = cell->parentChunk->setTileIdAt(id, cell->index);
+    if (success) {
+        _cell* neighborCells[9];
+        mapCellNeighbors(cell,neighborCells); // Gets a 3x3 map of cell pointers around the center
+
+        // For each cell, rerun the post-processing tile type (requires checking all 8 around it)
+        for (int i = 0; i < 9; i++) {
+            if (i == 4 || !isTileWall(neighborCells[i]->tileId)) continue; // Skip center cell and floors
+            bool neighborTiles[9];
+            for (int j = 0; j < 9; j++) {
+                if (neighborCells[j]) {
+                    neighborTiles[j] = isTileWall(neighborCells[j]->tileId);
+                } else {
+                    // nullptr (out of bounds treat as wall)
+                    neighborTiles[j] = true;
+                }
+            }
+            TileId localTileId = determineTileType(neighborTiles);
+            _cell* locelCell = neighborCells[i];
+            locelCell->parentChunk->setTileIdAt(localTileId, locelCell->index);
+        }
+        
+        cell->parentChunk->vboDirty = true;  // Mark chunk for rebuild
+    }
+    return success;
+}
+
 
 void _world::runWorldGeneration(int iterations) {
     Logger.LogInfo("Running world generation for parameters: ");
@@ -697,6 +732,33 @@ void _world::runWorldGeneration(int iterations) {
     Logger.LogDebug("Post processing completed! Finalizing world now ...");
     finalizeWorld();
 }
+
+void _world::mapCellNeighbors(_cell* cell, _cell* outNeighbors[9]) {
+    if (!cell) return;
+    
+    outNeighbors[0] = getCellAtWorld({cell->pos.x - TILE_W, cell->pos.y + TILE_H}); // top-left
+    outNeighbors[1] = getCellAtWorld({cell->pos.x,          cell->pos.y + TILE_H}); // top
+    outNeighbors[2] = getCellAtWorld({cell->pos.x + TILE_W, cell->pos.y + TILE_H}); // top-right
+    
+    outNeighbors[3] = getCellAtWorld({cell->pos.x - TILE_W, cell->pos.y});          // left
+    outNeighbors[4] = cell;                                                           // center
+    outNeighbors[5] = getCellAtWorld({cell->pos.x + TILE_W, cell->pos.y});          // right
+
+    outNeighbors[6] = getCellAtWorld({cell->pos.x - TILE_W, cell->pos.y - TILE_H}); // bottom-left
+    outNeighbors[7] = getCellAtWorld({cell->pos.x,          cell->pos.y - TILE_H}); // bottom
+    outNeighbors[8] = getCellAtWorld({cell->pos.x + TILE_W, cell->pos.y - TILE_H}); // bottom-right
+
+    cout << "Neighbors: \n" 
+     << outNeighbors[0]->tileId << ", " << outNeighbors[1]->tileId << ", " << outNeighbors[2]->tileId << "\n"
+     << outNeighbors[3]->tileId << ", " << outNeighbors[4]->tileId << ", " << outNeighbors[5]->tileId << "\n"
+     << outNeighbors[6]->tileId << ", " << outNeighbors[7]->tileId << ", " << outNeighbors[8]->tileId << "\n";
+}
+
+
+bool _world::isTileWall(TileId tileId) const {
+    return (tileId >= TILE_WALL_CENTER && tileId <= TILE_WALL_COLUMN_SIDE);
+}
+
 
 /* -- >> DEBUGING << -- */
 
