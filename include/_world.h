@@ -58,6 +58,7 @@ enum TileId : uint8_t {
  */
 struct _cell
 {
+    Vec2f pos; // Position of the cell 
     uint8_t tileId = TILE_NULL; // Defaults to undefined tile
     bool outlined = false;
 };

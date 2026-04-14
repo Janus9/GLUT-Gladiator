@@ -229,7 +229,7 @@ void _scene::updateScene(double dt)
                     cout << "BLOCK HAS BEEN MINED \n";
                     hoveredCell->tileId = TILE_FLOOR_BLANK_1;
                     hoveredChunk->vboDirty = true;
-                    blockParticleManager->spawnEffect(mouseWorldPos,test);
+                    blockParticleManager->spawnEffect(hoveredCell->pos,test);
                 }
             }
             interactionTimer->reset();

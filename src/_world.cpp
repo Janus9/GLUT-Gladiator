@@ -192,6 +192,9 @@ void _world::buildChunkVBO(_chunk* chunk) {
             float worldX = (chunk->chunkX * 16 + x) * TILE_W;
             float worldY = (chunk->chunkY * 16 + y) * TILE_H;
 
+
+            chunk->cellData[tileIndex].pos = {worldX + TILE_W/2.0f, worldY + TILE_H/2.0f};
+
             // Outline VBO Setup //
 
             // Only outlined tiles have vbo data pushed
