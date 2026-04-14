@@ -12,8 +12,11 @@ _cell& _chunk::cellAt(int index) {
 
 bool _chunk::setTileIdAt(TileId id, int index) {
     if (index < 0 || index > 255) return false;
+    
     tileData[index] = id;
     cellData[index].tileId = id;
+    vboDirty = true;
+
     return true;
 }
 
@@ -652,18 +655,23 @@ bool _world::setTileAtChunk(_cell* cell, TileId id) {
         // For each cell, rerun the post-processing tile type (requires checking all 8 around it)
         for (int i = 0; i < 9; i++) {
             if (i == 4 || !isTileWall(neighborCells[i]->tileId)) continue; // Skip center cell and floors
+            _cell* localCell = neighborCells[i];
+            // We need all 9 cells around each cell we check
+            _cell* localNeighborCells[9];
+            mapCellNeighbors(localCell,localNeighborCells);
+
+            // Map the cells to booleans for tiles
             bool neighborTiles[9];
             for (int j = 0; j < 9; j++) {
                 if (neighborCells[j]) {
-                    neighborTiles[j] = isTileWall(neighborCells[j]->tileId);
+                    neighborTiles[j] = isTileWall(localNeighborCells[j]->tileId);
                 } else {
                     // nullptr (out of bounds treat as wall)
                     neighborTiles[j] = true;
                 }
             }
             TileId localTileId = determineTileType(neighborTiles);
-            _cell* locelCell = neighborCells[i];
-            locelCell->parentChunk->setTileIdAt(localTileId, locelCell->index);
+            localCell->parentChunk->setTileIdAt(localTileId, localCell->index);
         }
         
         cell->parentChunk->vboDirty = true;  // Mark chunk for rebuild
