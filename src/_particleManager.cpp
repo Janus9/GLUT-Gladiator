@@ -39,6 +39,8 @@ void _particleManager::drawParticleManager() {
     buildVBO();
     texture->bindTexture();
 
+    // glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+
     glEnableClientState(GL_VERTEX_ARRAY);
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
@@ -55,6 +57,8 @@ void _particleManager::drawParticleManager() {
 
     glDisableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+
+    // glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ZERO);
 }
 
 void _particleManager::updateParticleManger(double dt) {

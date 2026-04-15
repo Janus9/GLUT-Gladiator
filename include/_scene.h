@@ -19,6 +19,7 @@
 #include<_world.h>
 #include<_hud.h>
 #include<_particleManager.h>
+#include<_shader.h>
 
 class _scene
 {
@@ -79,6 +80,8 @@ class _scene
 
         _timerPlusPlus inputTimer; // Timer to regulate toggle keys (ensures a key only pressed once)
         _timerPlusPlus* interactionTimer = new _timerPlusPlus(); // Timer for interactive events
+
+        _shader* sh = new _shader();
 
         _cell* hoveredCell = nullptr;
         _chunk* hoveredChunk = nullptr;

@@ -40,6 +40,9 @@ _scene::~_scene()
 
     delete blockParticleManager;
     blockParticleManager = nullptr;
+
+    delete sh;
+    sh = nullptr;
 }   
 
 
@@ -147,6 +150,10 @@ GLint _scene::initGL()
     blockParticleManager->initParticleManager("images/particle.png",10000);
 
     //testSounds->playSounds("sounds/level_transition.mp3");
+
+    // -- SHADERS -- //
+    sh->initShader("shaders/V.vs","shaders/F.fs");
+    glUseProgram(sh->program);
 
     return true;
 }
