@@ -65,6 +65,8 @@ enum TileId : uint8_t {
  */
 struct _cell
 {
+    float health = 100.0f;
+
     Vec2f pos; // Position of the cell 
     TileId tileId = TILE_NULL; // Defaults to undefined tile
     bool outlined = false;
@@ -237,6 +239,18 @@ class _world
          */
         bool setTileAtChunk(_cell* cell, TileId id);
 
+        // Checks if a tile is a wall based on if its in the WALL group (be careful changing WALL tiles, maintain first/last)
+        bool isTileWall(TileId tileId) const;
+
+        /**
+         * Checks if a given cell is of type Wall
+         * 
+         * @param cell Pointer to cell to check
+         * 
+         * @return True if Cell is of type Wall (false if nullptr)
+         */
+        bool isCellWall(const _cell* cell) const;
+
         bool DEBUG_displayChunkBorders = true; // When enabled puts a red border around chunks
     protected:
     private:
@@ -311,9 +325,6 @@ class _world
          */
         void mapCellNeighbors(_cell* cell, _cell* outNeighbors[9]);
 
-
-        // Checks if a tile is a wall based on if its in the WALL group (be careful changing WALL tiles, maintain first/last)
-        bool isTileWall(TileId tileId) const;
 
         // -- DEBUGGING -- //
         

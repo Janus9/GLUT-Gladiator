@@ -679,6 +679,14 @@ bool _world::setTileAtChunk(_cell* cell, TileId id) {
     return success;
 }
 
+bool _world::isTileWall(TileId tileId) const {
+    return (tileId >= TILE_WALL_CENTER && tileId <= TILE_WALL_COLUMN_SIDE);
+}
+
+bool _world::isCellWall(const _cell* cell) const {
+    if (!cell) return false;
+    return (cell->tileId >= TILE_WALL_CENTER && cell->tileId <= TILE_WALL_COLUMN_SIDE);
+}
 
 void _world::runWorldGeneration(int iterations) {
     Logger.LogInfo("Running world generation for parameters: ");
@@ -761,12 +769,6 @@ void _world::mapCellNeighbors(_cell* cell, _cell* outNeighbors[9]) {
      << outNeighbors[3]->tileId << ", " << outNeighbors[4]->tileId << ", " << outNeighbors[5]->tileId << "\n"
      << outNeighbors[6]->tileId << ", " << outNeighbors[7]->tileId << ", " << outNeighbors[8]->tileId << "\n";
 }
-
-
-bool _world::isTileWall(TileId tileId) const {
-    return (tileId >= TILE_WALL_CENTER && tileId <= TILE_WALL_COLUMN_SIDE);
-}
-
 
 /* -- >> DEBUGING << -- */
 
