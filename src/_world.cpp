@@ -6,8 +6,9 @@ TileId _chunk::getTileIdAt(int index) const {
     return tileData[index];
 }
 
-_cell& _chunk::cellAt(int index) {
-    return cellData[index];
+_cell* _chunk::cellAt(int index) {
+    if (index < 0 || index > 255) return nullptr;
+    return &cellData[index];
 }
 
 bool _chunk::setTileIdAt(TileId id, int index) {
@@ -200,7 +201,7 @@ void _world::buildChunkVBO(_chunk* chunk) {
             int tileIndex = y * 16 + x;
 
             TileId tileId = chunk->getTileIdAt(tileIndex);
-            _cell* cell = &chunk->cellAt(tileIndex);
+            _cell* cell = chunk->cellAt(tileIndex);
             const _tile* tile = &world_tiles[tileId];
             
             cell->tileId = tileId;
@@ -641,7 +642,7 @@ _cell* _world::getCellAtWorld(const Vec2f &pos) const {
     uint8_t tileIndex = (int)floor(adjustedPos.y/16)*16 + (int)floor(adjustedPos.x/16);
 
     // Get the id stored in the chunk
-    return &chunk->cellAt(tileIndex);
+    return chunk->cellAt(tileIndex);
 }
 
 bool _world::setTileAtChunk(_cell* cell, TileId id) {
@@ -678,6 +679,12 @@ bool _world::setTileAtChunk(_cell* cell, TileId id) {
     }
     return success;
 }
+
+bool _world::setCellOutined(_cell* cell, bool state) {
+    if (!cell || !cell->parentChunk) return false;
+    cell->outlined = state;
+    cell->parentChunk->vboDirty = true;
+}   
 
 bool _world::isTileWall(TileId tileId) const {
     return (tileId >= TILE_WALL_CENTER && tileId <= TILE_WALL_COLUMN_SIDE);

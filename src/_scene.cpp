@@ -429,16 +429,12 @@ void _scene::updateScene(double dt)
     _chunk* chunk = myWorld->getChunkAtWorld(Vec2f(mouseWorldPos.x,mouseWorldPos.y));
 
     if (cell != hoveredCell) {
-        if (hoveredCell && hoveredChunk) {
-            hoveredCell->outlined = false;
-            hoveredChunk->vboDirty = true;
-        }
+        myWorld->setCellOutined(hoveredCell,false); // Disable outline
 
         hoveredCell = cell;
         hoveredChunk = chunk;
-        
-        hoveredCell->outlined = true;
-        hoveredChunk->vboDirty = true;
+
+        myWorld->setCellOutined(hoveredCell,true); // Enable new outline
     }
     if (tile) {
         hud->getHudText("TILE_NAME")->setText("Selected Tile Name: " + tile->name);

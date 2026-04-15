@@ -65,12 +65,13 @@ enum TileId : uint8_t {
  */
 struct _cell
 {
+    // Mutable //
     float health = 100.0f;
-
-    Vec2f pos; // Position of the cell 
-    TileId tileId = TILE_NULL; // Defaults to undefined tile
     bool outlined = false;
+    TileId tileId = TILE_NULL; // Defaults to undefined tile
 
+    // Immutable //
+    Vec2f pos; // Position of the cell 
     int index = 0; // Index cell lives in chunk data array
     _chunk* parentChunk = nullptr; // Who owns this cell
 };
@@ -130,11 +131,11 @@ class _chunk
         /**
          * Gets a cell at the given index
          * 
-         * @param index Index in cell data array
+         * @param index Index in cell data array (bounds checking)
          * 
-         * @return Reference to the cell (mutable)
+         * @return Pointer to the cell (nullptr if not found)
          */
-        _cell& cellAt(int index);
+        _cell* cellAt(int index);
 
         /**
          * Sets a tile at the given index with bounds checking
@@ -238,6 +239,18 @@ class _world
          * @return True if success
          */
         bool setTileAtChunk(_cell* cell, TileId id);
+
+        /**
+         * Sets a cell's outline state and update's its owning chunk to redraw. 
+         * Does not require _chunk as cell holds a pointer to it
+         * 
+         * @param cell Pointer to the cell
+         * 
+         * @param state True to outline / False to remove outline
+         * 
+         * @return True if success
+         */
+        bool setCellOutined(_cell* cell, bool state);
 
         // Checks if a tile is a wall based on if its in the WALL group (be careful changing WALL tiles, maintain first/last)
         bool isTileWall(TileId tileId) const;
