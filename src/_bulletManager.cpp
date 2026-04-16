@@ -39,10 +39,10 @@ void _bulletManager::initBulletManager(const string &fileName, _world* currentWo
     bulletDrops->initParticleManager("images/test_bullet.png",1000);
     bullet_shell_effect.amount = 1;
 
-    bullet_shell_effect.minVelX = 0.5f;
-    bullet_shell_effect.maxVelX = 1.5f;
-    bullet_shell_effect.minVelY = 6.0f;
-    bullet_shell_effect.maxVelY = 12.0f;
+    bullet_shell_effect.minVelX = 5.5f;
+    bullet_shell_effect.maxVelX = 10.5f;
+    bullet_shell_effect.minVelY = 12.0f;
+    bullet_shell_effect.maxVelY = 24.0f;
 
     bullet_shell_effect.minRadius = 2.0f;
     bullet_shell_effect.maxRadius = 2.0f;
