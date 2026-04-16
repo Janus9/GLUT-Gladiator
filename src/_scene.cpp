@@ -38,6 +38,8 @@ _scene::~_scene()
     delete hud;
     hud = nullptr;
 
+    delete bulletManager;
+    bulletManager = nullptr;
     delete blockParticleManager;
     blockParticleManager = nullptr;
 
@@ -110,6 +112,9 @@ GLint _scene::initGL()
     hud->addHudText("TILE_NAME");
     hud->getHudText("TILE_NAME")->setFont(GLUT_BITMAP_9_BY_15);
 
+    hud->addHudText("CELL_HEALTH");
+    hud->getHudText("CELL_HEALTH")->setFont(GLUT_BITMAP_9_BY_15);
+
     hud->addHudText("CHUNK_REDRAW");
     hud->getHudText("CHUNK_REDRAW")->setFont(GLUT_BITMAP_9_BY_15);
 
@@ -118,8 +123,8 @@ GLint _scene::initGL()
     hud->getHudSprite("PROGRESS_BAR")->getSprite()->scale = {1.5f, 1.5f};
     hud->getHudSprite("PROGRESS_BAR")->getSprite()->createSpriteAction(sprite_action("DEFAULT",0,0,4));
     hud->getHudSprite("PROGRESS_BAR")->getSprite()->loadSpriteAction("DEFAULT");
-
-
+    hud->getHudSprite("PROGRESS_BAR")->getSprite()->setIdleFrame(0,0);
+    
     myLight->setLight(GL_LIGHT0); // The light onto the object from the pointer is set to be the instantiated light from before
     myModel->initModel(); // The model is initialized from the pointer to the model class
     myWorld->initWorld(); // Initialize the world
@@ -128,32 +133,18 @@ GLint _scene::initGL()
    
     drawWorldBenchmark->startBenchmark();
 
-    // -- Particles -- //
-    test.amount = 100;
-
-    test.minVelX = -3.0f;
-    test.maxVelX = 3.0f;
-    test.minVelY = 5.0f;
-    test.maxVelY = 20.0f;
-
-    test.minRadius = 1.0f;
-    test.maxRadius = 3.0f;
-
-    test.minLifeTime = 0.5f;
-    test.maxLifeTime = 1.1f;
-
-    test.minSpawnOffsetX = -4.0f;
-    test.maxSpawnOffsetX = 4.0f;
-    test.minSpawnOffsetY = -4.0f;
-    test.maxSpawnOffsetY = 4.0f;
-
-    blockParticleManager->initParticleManager("images/particle.png",10000);
-
     //testSounds->playSounds("sounds/level_transition.mp3");
 
     // -- SHADERS -- //
     sh->initShader("shaders/V.vs","shaders/F.fs");
     glUseProgram(sh->program);
+
+    bulletManager->initBulletManager("images/test_bullet.png", myWorld);
+    test_bullet.amount = 1;
+    test_bullet.speed = 512.0f;
+    test_bullet.width = 10.0f;
+    test_bullet.height = 2.0f;
+    test_bullet.lifespan = 3.0f;
 
     return true;
 }
@@ -179,6 +170,8 @@ void _scene::reSize(GLint width, GLint height)
     if (hud->getHudText("MOUSE_WORLD")) offset += spacing;
     if (hud->getHudText("TILE_NAME")) hud->getHudText("TILE_NAME")->position = {20.0f, height-offset};
     if (hud->getHudText("TILE_NAME")) offset += spacing;
+    if (hud->getHudText("CELL_HEALTH")) hud->getHudText("CELL_HEALTH")->position = {20.0f, height-offset};
+    if (hud->getHudText("CELL_HEALTH")) offset += spacing;
     if (hud->getHudText("CHUNK_REDRAW")) hud->getHudText("CHUNK_REDRAW")->position = {20.0f, height-offset};
     if (hud->getHudText("CHUNK_REDRAW")) offset += spacing;
     if (hud->getHudSprite("PROGRESS_BAR")) hud->getHudSprite("PROGRESS_BAR")->position = {width/2.0, 100.0f};
@@ -214,9 +207,9 @@ void _scene::drawScene()
     testPlayer->drawUnit();
     //testUnit->drawSprite();
 
-    hud->drawHud();
+    bulletManager->drawBulletManager();
 
-    blockParticleManager->drawParticleManager();
+    hud->drawHud();
 
     // For FPS measuring
     frameCount++;
@@ -232,17 +225,21 @@ void _scene::updateScene(double dt)
 {
     dt = dt / 1000.0; // Convert dt to seconds for easier calculations
 
-    blockParticleManager->updateParticleManger(dt);
+    bulletManager->updateBulletManager(dt);
+    myWorld->updateWorld(dt);
+
+    if (SPACE) {
+        bulletManager->spawnBulletEffect(testPlayer->pos, mouseWorldPos,test_bullet);
+    }
 
     // Check for mouse events
-    if (LMB) {
+    if (LMB && hoveredCell && hoveredChunk && myWorld->isCellWall(hoveredCell)) {
         if (interactionTimer->getSeconds() > miningSpeed/5.0f) {
-            if (hud->getHudSprite("PROGRESS_BAR")->getSprite()->iterateFrame()) {
-                if (hoveredCell && hoveredChunk) {
-                    cout << "BLOCK HAS BEEN MINED \n";
-                    myWorld->setTileAtChunk(hoveredCell,TILE_FLOOR_BLANK_1);
-                    blockParticleManager->spawnEffect(hoveredCell->pos,test);
-                }
+            hud->getHudSprite("PROGRESS_BAR")->getSprite()->iterateFrame();
+            myWorld->damageCell(hoveredCell,25.0f);
+            if (!hoveredCell->isAlive()) {
+                cout << "BLOCK HAS BEEN MINED \n";
+                hud->getHudSprite("PROGRESS_BAR")->getSprite()->stopAnimation(); // Mining finished, reset progress bar animation
             }
             interactionTimer->reset();
         }
@@ -429,23 +426,23 @@ void _scene::updateScene(double dt)
     _chunk* chunk = myWorld->getChunkAtWorld(Vec2f(mouseWorldPos.x,mouseWorldPos.y));
 
     if (cell != hoveredCell) {
-        if (hoveredCell && hoveredChunk) {
-            hoveredCell->outlined = false;
-            hoveredChunk->vboDirty = true;
-        }
+        hoveredCell->setOutline(false);
 
         hoveredCell = cell;
         hoveredChunk = chunk;
-        
-        hoveredCell->outlined = true;
-        hoveredChunk->vboDirty = true;
+
+        hoveredCell->setOutline(true);
     }
     if (tile) {
         hud->getHudText("TILE_NAME")->setText("Selected Tile Name: " + tile->name);
     }
+    if (hoveredCell) {
+        hud->getHudText("CELL_HEALTH")->setText("Selected Cell Health: " + to_string(hoveredCell->getHealth()));
+    }
     if (hoveredChunk) {
-        string text = "Chunk Redraw: " + (hoveredChunk->vboDirty) ? "TRUE" : "FALSE";
-        hud->getHudText("CHUNK_REDRAW")->setText(text); 
+        string text_main = "Chunk Redraw: ";
+        string test_con = hoveredChunk->vboDirty ? "TRUE" : "FALSE";
+        hud->getHudText("CHUNK_REDRAW")->setText(text_main + test_con);
     }
 }
 
@@ -469,6 +466,8 @@ void _scene::keyboardHandler(WPARAM wParam)
         switch (wParam)
         {
             case 192: // "~"
+                break;
+            case ' ': // SPACE
                 break;
             case 221: // "]"
                 debugEnabled = !debugEnabled; 

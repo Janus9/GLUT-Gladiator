@@ -1,16 +1,56 @@
 #include <_world.h>
 
+// -- CELL -- // 
+
+bool _cell::setOutline(bool state) {
+    if (!this || !parentChunk) return false;
+    outlined = state;
+    parentChunk->vboDirty = true;
+    return true;
+}   
+
+bool _cell::isOutlined() const {
+    return outlined;
+}
+
+bool _cell::impluseHealth(float amount) {
+    health += amount;
+    if (health <= 0) {
+        health = 0; // Bound health to 0
+        alive = false;
+        return true;
+    }
+    return false;
+}
+
+void _cell::setHealth(float amount) {
+    if (amount < 0) amount = 0;
+    health = amount;
+}
+
+float _cell::getHealth() const {
+    return health;
+}
+
+bool _cell::isAlive() const {
+    return alive;
+}
+
 // -- CHUNK -- //
 
 TileId _chunk::getTileIdAt(int index) const {
+    if (!this) return TILE_NULL;
+    if (index < 0 || index > 255) return TILE_NULL;
     return tileData[index];
 }
 
-_cell& _chunk::cellAt(int index) {
-    return cellData[index];
+_cell* _chunk::cellAt(int index) {
+    if (index < 0 || index > 255) return nullptr;
+    return &cellData[index];
 }
 
 bool _chunk::setTileIdAt(TileId id, int index) {
+    if (!this) return false;
     if (index < 0 || index > 255) return false;
     
     tileData[index] = id;
@@ -35,33 +75,80 @@ _world::~_world()
 
     delete initBenchmark;
     initBenchmark = nullptr;
+
+    delete cellParticles;
+    cellParticles = nullptr;
 }
 
 void _world::initWorld()
 {
     initBenchmark->startBenchmark();
 
-        Logger.LogInfo("Initializing world for seed " + to_string(seed), LOG_BOTH);
-        Logger.LogInfo("World has " + to_string(numStartingChunks) + " starting chunks.", LOG_BOTH);
+    Logger.LogInfo("Initializing world for seed " + to_string(seed), LOG_BOTH);
+    Logger.LogInfo("World has " + to_string(numStartingChunks) + " starting chunks.", LOG_BOTH);
 
-        tileAtlas->loadTexture("images/set_1.png"); // Load the tile atlas texture
-        // Reserve allocates memory but does not instantiate it -- resize allocates AND instantiates it (dont want that)
-        worldChunks.reserve(numStartingChunks); // Resize the vector to hold numStartingChunks chunks
-        world_noise.resize(numStartingChunks*256);  // 256 tiles per chunk
+    tileAtlas->loadTexture("images/set_1.png"); // Load the tile atlas texture
+    // Reserve allocates memory but does not instantiate it -- resize allocates AND instantiates it (dont want that)
+    worldChunks.reserve(numStartingChunks); // Resize the vector to hold numStartingChunks chunks
+    world_noise.resize(numStartingChunks*256);  // 256 tiles per chunk
 
-        initTiles(); // Setup tiles
-        
-        double sqrtNumChunks = sqrt(numStartingChunks);
-        // This checks if a decimal (like 1.3) is equal to its floor (1.0) which indicates the sqrt wasn't perfect
-        if (sqrtNumChunks != floor(sqrtNumChunks)) {
-            Logger.LogWarning("numStartingChunks is not a perfect square. This may lead to an uneven distribution of chunks around the center.", LOG_BOTH);
-        }
+    initTiles(); // Setup tiles
+    
+    double sqrtNumChunks = sqrt(numStartingChunks);
+    // This checks if a decimal (like 1.3) is equal to its floor (1.0) which indicates the sqrt wasn't perfect
+    if (sqrtNumChunks != floor(sqrtNumChunks)) {
+        Logger.LogWarning("numStartingChunks is not a perfect square. This may lead to an uneven distribution of chunks around the center.", LOG_BOTH);
+    }
 
-        // Initialize world tiles and chunks here
-        runWorldGeneration(generation_iterations); 
+    // Initialize world tiles and chunks here
+    runWorldGeneration(generation_iterations); 
+
+    // PARTICLE EFFECTS //
+
+    cellParticles->initParticleManager("images/particle.png",10000); // Particles for cell usage
+    // wall_break_effect
+    wall_break_effect.amount = 100;
+
+    wall_break_effect.minVelX = -3.0f;
+    wall_break_effect.maxVelX = 3.0f;
+    wall_break_effect.minVelY = 5.0f;
+    wall_break_effect.maxVelY = 20.0f;
+
+    wall_break_effect.minRadius = 1.0f;
+    wall_break_effect.maxRadius = 3.0f;
+
+    wall_break_effect.minLifeTime = 0.6f;
+    wall_break_effect.maxLifeTime = 1.3f;
+
+    wall_break_effect.minSpawnOffsetX = -8.0f;
+    wall_break_effect.maxSpawnOffsetX = 8.0f;
+    wall_break_effect.minSpawnOffsetY = -8.0f;
+    wall_break_effect.maxSpawnOffsetY = 8.0f;
+
+    // _wall_damage_effect
+    wall_damage_effect.amount = 10;
+
+    wall_damage_effect.minVelX = -3.0f;
+    wall_damage_effect.maxVelX = 3.0f;
+    wall_damage_effect.minVelY = 5.0f;
+    wall_damage_effect.maxVelY = 15.0f;
+
+    wall_damage_effect.minRadius = 1.0f;
+    wall_damage_effect.maxRadius = 3.0f;
+
+    wall_damage_effect.minLifeTime = 0.4f;
+    wall_damage_effect.maxLifeTime = 1.1f;
+
+    wall_damage_effect.minSpawnOffsetX = -4.0f;
+    wall_damage_effect.maxSpawnOffsetX = 4.0f;
+    wall_damage_effect.minSpawnOffsetY = -4.0f;
+    wall_damage_effect.maxSpawnOffsetY = 4.0f;
+
+    // BENCHMARK //
 
     initBenchmark->clickBenchmark();
     double time = initBenchmark->getAverageResult();
+
     Logger.LogInfo("World initialization for " + to_string(worldChunks.size()) + "chunks took " + to_string(time) + "ms");
 }
 
@@ -200,7 +287,7 @@ void _world::buildChunkVBO(_chunk* chunk) {
             int tileIndex = y * 16 + x;
 
             TileId tileId = chunk->getTileIdAt(tileIndex);
-            _cell* cell = &chunk->cellAt(tileIndex);
+            _cell* cell = chunk->cellAt(tileIndex);
             const _tile* tile = &world_tiles[tileId];
             
             cell->tileId = tileId;
@@ -215,7 +302,7 @@ void _world::buildChunkVBO(_chunk* chunk) {
             // Outline VBO Setup //
 
             // Only outlined tiles have vbo data pushed
-            if (cell->outlined) {
+            if (cell->isOutlined()) {
                 // Bottom-Left -> Bottom-Right //
                 // bottom-left
                 tileOutlineVboData.push_back(worldX);
@@ -380,6 +467,13 @@ void _world::drawWorld(float left, float right, float top, float bottom)
 
     glDisableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+
+    // Draw everything else before image bind of world
+    cellParticles->drawParticleManager();
+}
+
+void _world::updateWorld(double dt) {
+    cellParticles->updateParticleManger(dt);
 }
 
 bool _world::isChunkLoaded(int chunkX, int chunkY) {
@@ -641,10 +735,10 @@ _cell* _world::getCellAtWorld(const Vec2f &pos) const {
     uint8_t tileIndex = (int)floor(adjustedPos.y/16)*16 + (int)floor(adjustedPos.x/16);
 
     // Get the id stored in the chunk
-    return &chunk->cellAt(tileIndex);
+    return chunk->cellAt(tileIndex);
 }
 
-bool _world::setTileAtChunk(_cell* cell, TileId id) {
+bool _world::setCellTile(_cell* cell, TileId id) {
     if (!cell || cell->parentChunk == nullptr) return false;
     
     bool success = cell->parentChunk->setTileIdAt(id, cell->index);
@@ -677,6 +771,25 @@ bool _world::setTileAtChunk(_cell* cell, TileId id) {
         cell->parentChunk->vboDirty = true;  // Mark chunk for rebuild
     }
     return success;
+}
+
+bool _world::isTileWall(TileId tileId) const {
+    return (tileId >= TILE_WALL_CENTER && tileId <= TILE_WALL_COLUMN_SIDE);
+}
+
+bool _world::isCellWall(const _cell* cell) const {
+    if (!cell) return false;
+    return (cell->tileId >= TILE_WALL_CENTER && cell->tileId <= TILE_WALL_COLUMN_SIDE);
+}
+
+bool _world::damageCell(_cell* cell, float amount) {
+    if (!cell) return false;
+    cell->impluseHealth(-amount); // Reverse sign since function expects healing
+    cellParticles->spawnEffect(cell->pos, wall_damage_effect);
+    if (!cell->isAlive()) {
+        setCellTile(cell,TILE_FLOOR_BLANK_1);
+        cellParticles->spawnEffect(cell->pos,wall_break_effect);
+    }
 }
 
 
@@ -756,17 +869,11 @@ void _world::mapCellNeighbors(_cell* cell, _cell* outNeighbors[9]) {
     outNeighbors[7] = getCellAtWorld({cell->pos.x,          cell->pos.y - TILE_H}); // bottom
     outNeighbors[8] = getCellAtWorld({cell->pos.x + TILE_W, cell->pos.y - TILE_H}); // bottom-right
 
-    cout << "Neighbors: \n" 
-     << outNeighbors[0]->tileId << ", " << outNeighbors[1]->tileId << ", " << outNeighbors[2]->tileId << "\n"
-     << outNeighbors[3]->tileId << ", " << outNeighbors[4]->tileId << ", " << outNeighbors[5]->tileId << "\n"
-     << outNeighbors[6]->tileId << ", " << outNeighbors[7]->tileId << ", " << outNeighbors[8]->tileId << "\n";
+    // cout << "Neighbors: \n" 
+    //  << outNeighbors[0]->tileId << ", " << outNeighbors[1]->tileId << ", " << outNeighbors[2]->tileId << "\n"
+    //  << outNeighbors[3]->tileId << ", " << outNeighbors[4]->tileId << ", " << outNeighbors[5]->tileId << "\n"
+    //  << outNeighbors[6]->tileId << ", " << outNeighbors[7]->tileId << ", " << outNeighbors[8]->tileId << "\n";
 }
-
-
-bool _world::isTileWall(TileId tileId) const {
-    return (tileId >= TILE_WALL_CENTER && tileId <= TILE_WALL_COLUMN_SIDE);
-}
-
 
 /* -- >> DEBUGING << -- */
 

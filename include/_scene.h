@@ -19,6 +19,7 @@
 #include<_world.h>
 #include<_hud.h>
 #include<_particleManager.h>
+#include<_bulletManager.h>
 #include<_shader.h>
 
 class _scene
@@ -59,7 +60,9 @@ class _scene
         float bottom = 0.0f;
         float top = 0.0f;
 
-        // Sounds //
+        _bulletManager* bulletManager = new _bulletManager();
+        _bullet_config test_bullet;
+
         _sounds* testSounds = new _sounds();
 
         _lightSettings *myLight = new _lightSettings();     
@@ -126,9 +129,6 @@ class _scene
         _timerPlusPlus* fpsTimer = new _timerPlusPlus(); // Timer to track time between frames for FPS calculation
 
         _benchmark* drawWorldBenchmark = new _benchmark();
-
-        _particleManager* blockParticleManager = new _particleManager();
-        particle_effect test;
 
         bool debugEnabled = true;           // Enables specific debugging information for the scene
         bool inputDebugEnabled = false;     // Enables debug info for inputs (keyboard keys + mouse inputs)

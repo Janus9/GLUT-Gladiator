@@ -39,7 +39,7 @@ void _particleManager::drawParticleManager() {
     buildVBO();
     texture->bindTexture();
 
-    // glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+    glColor3f(1.0f,1.0f,1.0f); // Reset color
 
     glEnableClientState(GL_VERTEX_ARRAY);
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -68,8 +68,9 @@ void _particleManager::updateParticleManger(double dt) {
         p->age += dt; // Add delta time seconds to age
         if (p->age >= p->death) {
             p->alive = false;
-            continue;
         }
+
+        if (!p->alive) continue;
 
         p->acc.x = 0.0f;
         p->acc.y = -GRAVITY * 4;
