@@ -93,7 +93,7 @@ class _particleManager {
 
         vector<particle> particles;
 
-        // Rng machine for each particle instance
+        // Rng machine
         mt19937 rng;
 };
 
