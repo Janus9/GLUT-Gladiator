@@ -124,9 +124,6 @@ class _scene
 
         _benchmark* drawWorldBenchmark = new _benchmark();
 
-        _particleManager* blockParticleManager = new _particleManager();
-        particle_effect test;
-
         bool debugEnabled = true;           // Enables specific debugging information for the scene
         bool inputDebugEnabled = false;     // Enables debug info for inputs (keyboard keys + mouse inputs)
         bool cameraFree = false;            // If true camera will not track player and can be moved freely

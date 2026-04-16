@@ -1,8 +1,45 @@
 #include <_world.h>
 
+// -- CELL -- // 
+
+bool _cell::setOutline(bool state) {
+    if (!this || !parentChunk) return false;
+    outlined = state;
+    parentChunk->vboDirty = true;
+    return true;
+}   
+
+bool _cell::isOutlined() const {
+    return outlined;
+}
+
+bool _cell::impluseHealth(float amount) {
+    health += amount;
+    if (health <= 0) {
+        health = 0; // Bound health to 0
+        alive = false;
+        return true;
+    }
+    return false;
+}
+
+void _cell::setHealth(float amount) {
+    if (amount < 0) amount = 0;
+    health = amount;
+}
+
+float _cell::getHealth() const {
+    return health;
+}
+
+bool _cell::isAlive() const {
+    return alive;
+}
+
 // -- CHUNK -- //
 
 TileId _chunk::getTileIdAt(int index) const {
+    if (index < 0 || index > 255) return TILE_NULL;
     return tileData[index];
 }
 
@@ -36,6 +73,9 @@ _world::~_world()
 
     delete initBenchmark;
     initBenchmark = nullptr;
+
+    delete cellParticles;
+    cellParticles = nullptr;
 }
 
 void _world::initWorld()
@@ -63,6 +103,26 @@ void _world::initWorld()
 
     initBenchmark->clickBenchmark();
     double time = initBenchmark->getAverageResult();
+
+    cellParticles->initParticleManager("images/particle.png",10000); // Particles for cell usage
+    wall_break_effect.amount = 100;
+
+    wall_break_effect.minVelX = -3.0f;
+    wall_break_effect.maxVelX = 3.0f;
+    wall_break_effect.minVelY = 5.0f;
+    wall_break_effect.maxVelY = 20.0f;
+
+    wall_break_effect.minRadius = 1.0f;
+    wall_break_effect.maxRadius = 3.0f;
+
+    wall_break_effect.minLifeTime = 0.5f;
+    wall_break_effect.maxLifeTime = 1.1f;
+
+    wall_break_effect.minSpawnOffsetX = -4.0f;
+    wall_break_effect.maxSpawnOffsetX = 4.0f;
+    wall_break_effect.minSpawnOffsetY = -4.0f;
+    wall_break_effect.maxSpawnOffsetY = 4.0f;
+
     Logger.LogInfo("World initialization for " + to_string(worldChunks.size()) + "chunks took " + to_string(time) + "ms");
 }
 
@@ -216,7 +276,7 @@ void _world::buildChunkVBO(_chunk* chunk) {
             // Outline VBO Setup //
 
             // Only outlined tiles have vbo data pushed
-            if (cell->outlined) {
+            if (cell->isOutlined()) {
                 // Bottom-Left -> Bottom-Right //
                 // bottom-left
                 tileOutlineVboData.push_back(worldX);
@@ -381,6 +441,13 @@ void _world::drawWorld(float left, float right, float top, float bottom)
 
     glDisableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+
+    // Draw everything else before image bind of world
+    cellParticles->drawParticleManager();
+}
+
+void _world::updateWorld(double dt) {
+    cellParticles->updateParticleManger(dt);
 }
 
 bool _world::isChunkLoaded(int chunkX, int chunkY) {
@@ -645,7 +712,7 @@ _cell* _world::getCellAtWorld(const Vec2f &pos) const {
     return chunk->cellAt(tileIndex);
 }
 
-bool _world::setTileAtChunk(_cell* cell, TileId id) {
+bool _world::setCellTile(_cell* cell, TileId id) {
     if (!cell || cell->parentChunk == nullptr) return false;
     
     bool success = cell->parentChunk->setTileIdAt(id, cell->index);
@@ -680,12 +747,6 @@ bool _world::setTileAtChunk(_cell* cell, TileId id) {
     return success;
 }
 
-bool _world::setCellOutined(_cell* cell, bool state) {
-    if (!cell || !cell->parentChunk) return false;
-    cell->outlined = state;
-    cell->parentChunk->vboDirty = true;
-}   
-
 bool _world::isTileWall(TileId tileId) const {
     return (tileId >= TILE_WALL_CENTER && tileId <= TILE_WALL_COLUMN_SIDE);
 }
@@ -694,6 +755,16 @@ bool _world::isCellWall(const _cell* cell) const {
     if (!cell) return false;
     return (cell->tileId >= TILE_WALL_CENTER && cell->tileId <= TILE_WALL_COLUMN_SIDE);
 }
+
+bool _world::damageCell(_cell* cell, float amount) {
+    if (!cell) return false;
+    cell->impluseHealth(-amount); // Reverse sign since function expects healing
+    if (!cell->isAlive()) {
+        setCellTile(cell,TILE_FLOOR_BLANK_1);
+        cellParticles->spawnEffect(cell->pos,wall_break_effect);
+    }
+}
+
 
 void _world::runWorldGeneration(int iterations) {
     Logger.LogInfo("Running world generation for parameters: ");

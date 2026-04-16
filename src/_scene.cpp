@@ -37,9 +37,6 @@ _scene::~_scene()
 
     delete hud;
     hud = nullptr;
-
-    delete blockParticleManager;
-    blockParticleManager = nullptr;
 }   
 
 
@@ -128,27 +125,6 @@ GLint _scene::initGL()
    
     drawWorldBenchmark->startBenchmark();
 
-    // -- Particles -- //
-    test.amount = 100;
-
-    test.minVelX = -3.0f;
-    test.maxVelX = 3.0f;
-    test.minVelY = 5.0f;
-    test.maxVelY = 20.0f;
-
-    test.minRadius = 1.0f;
-    test.maxRadius = 3.0f;
-
-    test.minLifeTime = 0.5f;
-    test.maxLifeTime = 1.1f;
-
-    test.minSpawnOffsetX = -4.0f;
-    test.maxSpawnOffsetX = 4.0f;
-    test.minSpawnOffsetY = -4.0f;
-    test.maxSpawnOffsetY = 4.0f;
-
-    blockParticleManager->initParticleManager("images/particle.png",10000);
-
     //testSounds->playSounds("sounds/level_transition.mp3");
 
     return true;
@@ -214,8 +190,6 @@ void _scene::drawScene()
 
     hud->drawHud();
 
-    blockParticleManager->drawParticleManager();
-
     // For FPS measuring
     frameCount++;
 
@@ -230,18 +204,16 @@ void _scene::updateScene(double dt)
 {
     dt = dt / 1000.0; // Convert dt to seconds for easier calculations
 
-    blockParticleManager->updateParticleManger(dt);
+    myWorld->updateWorld(dt);
 
     // Check for mouse events
     if (LMB && hoveredCell && hoveredChunk && myWorld->isCellWall(hoveredCell)) {
         if (interactionTimer->getSeconds() > miningSpeed/5.0f) {
             hud->getHudSprite("PROGRESS_BAR")->getSprite()->iterateFrame();
-            hoveredCell->health -= 25.0f;
-            if (hoveredCell->health <= 0.0f) {
+            myWorld->damageCell(hoveredCell,25.0f);
+            if (!hoveredCell->isAlive()) {
                 cout << "BLOCK HAS BEEN MINED \n";
-                myWorld->setTileAtChunk(hoveredCell,TILE_FLOOR_BLANK_1);
-                blockParticleManager->spawnEffect(hoveredCell->pos,test);
-                hoveredCell->health = 100.0f;
+                // blockParticleManager->spawnEffect(hoveredCell->pos,test);
                 hud->getHudSprite("PROGRESS_BAR")->getSprite()->stopAnimation(); // Mining finished, reset progress bar animation
             }
             interactionTimer->reset();
@@ -429,18 +401,18 @@ void _scene::updateScene(double dt)
     _chunk* chunk = myWorld->getChunkAtWorld(Vec2f(mouseWorldPos.x,mouseWorldPos.y));
 
     if (cell != hoveredCell) {
-        myWorld->setCellOutined(hoveredCell,false); // Disable outline
+        hoveredCell->setOutline(false);
 
         hoveredCell = cell;
         hoveredChunk = chunk;
 
-        myWorld->setCellOutined(hoveredCell,true); // Enable new outline
+        hoveredCell->setOutline(true);
     }
     if (tile) {
         hud->getHudText("TILE_NAME")->setText("Selected Tile Name: " + tile->name);
     }
     if (hoveredCell) {
-        hud->getHudText("CELL_HEALTH")->setText("Selected Cell Health: " + to_string(hoveredCell->health));
+        hud->getHudText("CELL_HEALTH")->setText("Selected Cell Health: " + to_string(hoveredCell->getHealth()));
     }
     if (hoveredChunk) {
         string text_main = "Chunk Redraw: ";

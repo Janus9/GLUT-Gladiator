@@ -12,16 +12,16 @@
  *  
  * 
  */
-
 #ifndef _WORLD_H
 #define _WORLD_H
 
 #define TILE_W 16.0f   // Tile width in world units is ALWAYS the same of 16
 #define TILE_H 16.0f   // Tile height in world units is ALWAYS the same of 16
 
-#include<_common.h>
-#include<_texture.h>
-#include<_benchmark.h>
+#include <_common.h>
+#include <_texture.h>
+#include <_benchmark.h>
+#include <_particleManager.h>
 
 class _chunk; // Forward declaration for cell
 
@@ -63,17 +63,50 @@ enum TileId : uint8_t {
  * A tileCell holds data individual to each tile instance. This allows for each tile to have a dynamic and local state. 
  * This is called shorthand a "cell"
  */
-struct _cell
+class _cell
 {
-    // Mutable //
-    float health = 100.0f;
-    bool outlined = false;
-    TileId tileId = TILE_NULL; // Defaults to undefined tile
+    public:
+        TileId tileId = TILE_NULL; // Defaults to undefined tile
+        uint8_t index = 0; // Index cell lives in chunk data array
 
-    // Immutable //
-    Vec2f pos; // Position of the cell 
-    int index = 0; // Index cell lives in chunk data array
-    _chunk* parentChunk = nullptr; // Who owns this cell
+        Vec2f pos; // Position of the cell 
+        _chunk* parentChunk = nullptr; // Who owns this cell
+
+        /**
+         * Sets cell's outline state and update's its owning chunk to redraw. 
+         * 
+         * @param state True to outline / False to remove outline
+         * 
+         * @return True if success
+         */
+        bool setOutline(bool state);
+
+        // Returns true if the cell is outlined
+        bool isOutlined() const;
+
+        /**
+         * Impulses an amount of HP onto the cell (positive for health / negative for damage)
+         * Manages cell's alive state from impulse
+         * 
+         * @param amount Health to add (negative for damage)
+         * 
+         * @return True if impulse kills cell (always false for healing)
+         */
+        bool impluseHealth(float amount);
+        
+        // Set cell to an HP number (bounds to 0 if negative)
+        void setHealth(float amount);
+
+        // Get cell HP
+        float getHealth() const;
+
+        // Returns true of cell is alive
+        bool isAlive() const;
+    protected:
+    private:
+        bool alive = true;
+        bool outlined = false;
+        float health = 100.0f;
 };
 
 /**
@@ -165,6 +198,13 @@ class _world
 
         // Draw function for world
         void drawWorld(float left, float right, float top, float bottom);
+
+        /**
+         * Update loop for the world
+         * 
+         * @param dt Time (in seconds) for update loop
+         */
+        void updateWorld(double dt);
         
         // Checks if a given chunck is loaded by looking up the chunk in the unordered map of loaded chunks.
         bool isChunkLoaded(int chunkX, int chunkY);
@@ -230,27 +270,16 @@ class _world
 
 
         /**
-         * Changes a tile to a different id based on a matched cell.
+         * Changes a cell to a different tile id. 
+         * Handles directional tile changes for walls and redraw.
          * 
          * @param cell The cell that is attached to the tile 
          * 
          * @param id Tile ID to set
          * 
-         * @return True if success
+         * @return True if operation successfull
          */
-        bool setTileAtChunk(_cell* cell, TileId id);
-
-        /**
-         * Sets a cell's outline state and update's its owning chunk to redraw. 
-         * Does not require _chunk as cell holds a pointer to it
-         * 
-         * @param cell Pointer to the cell
-         * 
-         * @param state True to outline / False to remove outline
-         * 
-         * @return True if success
-         */
-        bool setCellOutined(_cell* cell, bool state);
+        bool setCellTile(_cell* cell, TileId id);
 
         // Checks if a tile is a wall based on if its in the WALL group (be careful changing WALL tiles, maintain first/last)
         bool isTileWall(TileId tileId) const;
@@ -263,10 +292,26 @@ class _world
          * @return True if Cell is of type Wall (false if nullptr)
          */
         bool isCellWall(const _cell* cell) const;
+        
+        /**
+         * Applys an amount of damage onto a given cell.
+         * Automatically handles cell death tile change and particle effect
+         * 
+         * @param cell Pointer to cell to damage
+         * 
+         * @param amount Damage to apply (negative for healing)
+         * 
+         * @return True if operation successfull
+         */
+        bool damageCell(_cell* cell, float amount);
 
         bool DEBUG_displayChunkBorders = true; // When enabled puts a red border around chunks
     protected:
     private:
+        // -- PARTICLE MANAGER -- //
+        _particleManager* cellParticles = new _particleManager();
+        particle_effect wall_break_effect;
+
         // -- RNG -- //
 
         // Using a current time for the seed is chose because the normal std::random_device doesnt work for some reason
