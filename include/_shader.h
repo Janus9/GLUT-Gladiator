@@ -40,9 +40,18 @@ class _shader {
         // Cleans the shaders
         void cleanUp();
 
-        uint32_t vs, fs, program; // Handlers
+        // Uses the setup program
+        void useProgram();
+
+        // Returns the program
+        uint32_t getProgram();
+
+        // Sets program to 0
+        void clearProgram();
     protected:
     private:
+        uint32_t vs, fs; // Handlers
+        uint32_t program;
 };
 
 #endif // _SHADER_H

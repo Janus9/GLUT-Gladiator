@@ -47,9 +47,13 @@ uint32_t _shader::loadShader(const string &source, uint32_t mode) {
 }
 
 void _shader::initShader(const string &vertShader, const string &fragShader) {
+    cout << "Loading Shader: " << vertShader << "\n";
+
     // Load vertex shader
     string source = loadFile(vertShader);
     vs = loadShader(source,GL_VERTEX_SHADER);
+
+    cout << "Loading Shader: " << fragShader << "\n";
 
     // Load fragment shader
     source = loadFile(fragShader);
@@ -71,5 +75,17 @@ void _shader::cleanUp() {
     glDeleteShader(vs);
     glDeleteShader(fs);
     glDeleteShader(program);
+}
+
+void _shader::useProgram() {
+    glUseProgram(program);
+}
+
+uint32_t _shader::getProgram() {
+    return program;
+}
+
+void _shader::clearProgram() {
+    glUseProgram(0);
 }
 

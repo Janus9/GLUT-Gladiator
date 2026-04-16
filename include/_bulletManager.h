@@ -6,6 +6,7 @@
 #include <_common.h>
 #include <_world.h>
 #include <_particleManager.h>
+#include <_shader.h>
 
 /**
  * Bullet Config
@@ -67,6 +68,7 @@ class _bulletManager {
          */
         void spawnBulletEffect(const Vec2f &pos, const Vec2f &dest, const _bullet_config &config);
 
+        static void setViewportDimensions(float _left, float _right, float _top, float _bottom);    
     protected:
     private:
         _world* world = nullptr; // What world this bullet exists in, set in init
@@ -74,6 +76,8 @@ class _bulletManager {
         _texture* texture = new _texture();
         _particleManager* bulletDrops = new _particleManager();
         particle_effect bullet_shell_effect;
+
+        _shader bulletShader;
         
         // Bullet instance
         struct _bullet {
@@ -88,6 +92,8 @@ class _bulletManager {
             float width = 0.0f;
             float height = 0.0f;
 
+            float angle = 0.0f; // Direction to face (in radians)
+
             float lifespan = 0.0f; // How long (in seconds) bullet lives 
             float age = 0.0f; // Bullets current age
         };
@@ -99,9 +105,23 @@ class _bulletManager {
         GLuint vboID = 0;
         GLuint eboID = 0;
 
+        GLint a_localPos = -1;
+        GLint a_texCoord = -1;
+        GLint a_center = -1;
+        GLint a_angle = -1;
+
+        GLint u_dimensions = -1;
+        GLint u_texture = -1;
+
         void buildVbo(); // Builds the VBO
         void buildEbo(); // Builds the EBO (only done once)
 
+        // Static Viewport Dimensions
+        static float left;
+        static float right;
+        static float top;
+        static float bottom;
+        
         // Rng machine
         mt19937 rng;
 };

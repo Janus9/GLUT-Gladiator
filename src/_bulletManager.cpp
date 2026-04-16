@@ -1,5 +1,19 @@
 #include <_bulletManager.h>
 
+// -- STATIC MEMBERS -- //
+
+float _bulletManager::left = 0.0f;
+float _bulletManager::right = 0.0f;
+float _bulletManager::top = 0.0f;
+float _bulletManager::bottom = 0.0f;
+
+void _bulletManager::setViewportDimensions(float _left, float _right, float _top, float _bottom) {
+    left = _left;
+    right = _right;
+    top = _top;
+    bottom = _bottom;
+}    
+
 // -- PUBLIC -- //
 
 _bulletManager::_bulletManager() {
@@ -35,6 +49,21 @@ void _bulletManager::initBulletManager(const string &fileName, _world* currentWo
     texture->loadTexture(fileName);
 
     world = currentWorld;
+    
+    // -- SHADER SETUP -- //
+    bulletShader.initShader("shaders/bullet_manager/vertex.vs","shaders/bullet_manager/fragment.fs");
+
+    uint32_t program = bulletShader.getProgram();
+    
+    // Attributes
+    a_localPos = glGetAttribLocation(program,"a_localPos");
+    a_texCoord = glGetAttribLocation(program,"a_texCoord");
+    a_center = glGetAttribLocation(program,"a_center");
+    a_angle = glGetAttribLocation(program,"a_angle");
+
+    // Uniforms
+    u_dimensions = glGetUniformLocation(program,"u_dimensions");
+    u_texture = glGetUniformLocation(program,"u_texture");
 
     bulletDrops->initParticleManager("images/test_bullet.png",1000);
     bullet_shell_effect.amount = 1;
@@ -54,27 +83,64 @@ void _bulletManager::initBulletManager(const string &fileName, _world* currentWo
 } 
 
 void _bulletManager::drawBulletManager() {
+    // Build buffers and send data into the GPU
     buildVbo();
+
+    if (aliveBullets <= 0) {
+        // Skip drawing if now bullets, but particle manager still needs to run
+        bulletDrops->drawParticleManager();
+        return;
+    }
+
+    bulletShader.useProgram();
+
     texture->bindTexture();
 
-    glColor3f(1.0f,1.0f,0.0f); // Yellow bullet
+    // Setup uniforms
+    glUniform4f(u_dimensions,left,right,top,bottom);
+    glUniform1i(u_texture, 0); // Uses texture slot not ID thus its 0
 
-    glEnableClientState(GL_VERTEX_ARRAY);
-    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+    // Bind the buffers (setup before attributes since they read from the VBO)
+    glBindBuffer(GL_ARRAY_BUFFER,vboID);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,eboID);
 
-    glBindBuffer(GL_ARRAY_BUFFER, vboID);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboID);
+    // Enable the attribute arrays (not setup with data yet, just enabled)
+    glEnableVertexAttribArray(a_localPos);
+    glEnableVertexAttribArray(a_texCoord);
+    glEnableVertexAttribArray(a_center);
+    glEnableVertexAttribArray(a_angle);
 
-    glVertexPointer(2, GL_FLOAT, 4 * sizeof(float), (void*)0);
-    glTexCoordPointer(2, GL_FLOAT, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+    GLsizei stride = 7 * sizeof(float);
 
-    glDrawElements(GL_TRIANGLES, aliveBullets * 6, GL_UNSIGNED_INT, (void*)0);
-    
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    /**
+     * void glVertexAttribPointer 	
+     * ---------------------------
+     * GLuint index          - Attribute to be modified (like a cache)
+     * GLint size            - Number of components in the attribute (ex/ vec2 is 2)
+  	 * GLenum type           - Type of data (ex/ float is GL_FLOAT)
+  	 * GLboolean normalized  - ??? just set to GL_FALSE
+  	 * GLsizei stride        - How much data per vertex (here its 7 floats so 7 * sizeof(float))
+  	 * const void * pointer  - Offset of data for first component to start at (ex/ localPos is 0 since its first in the VBO structure setup)
+     * 
+     */
 
-    glDisableClientState(GL_VERTEX_ARRAY);
-    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+    // Setup a data array for the attributes (data is per vertex!)
+    glVertexAttribPointer(a_localPos,2,GL_FLOAT,GL_FALSE,stride,(void*)(0 * sizeof(float)));
+    glVertexAttribPointer(a_texCoord,2,GL_FLOAT,GL_FALSE,stride,(void*)(2 * sizeof(float)));
+    glVertexAttribPointer(a_center,2,GL_FLOAT,GL_FALSE,stride,(void*)(4 * sizeof(float)));
+    glVertexAttribPointer(a_angle,1,GL_FLOAT,GL_FALSE,stride,(void*)(6 * sizeof(float)));
+
+    glDrawElements(GL_TRIANGLES,aliveBullets * 6, GL_UNSIGNED_INT, (void*)(0 * sizeof(unsigned int)));
+
+    glDisableVertexAttribArray(a_localPos);
+    glDisableVertexAttribArray(a_texCoord);
+    glDisableVertexAttribArray(a_center);
+    glDisableVertexAttribArray(a_angle);
+
+    glBindBuffer(GL_ARRAY_BUFFER,0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0);
+
+    glUseProgram(0); // Stop using program (prevent using on bullet particle drops)
 
     bulletDrops->drawParticleManager();
 }
@@ -87,13 +153,15 @@ void _bulletManager::updateBulletManager(double dt) {
     if (aliveBullets <= 0) return; // Skip update loops when no bullets are alive
     for (int i = 0; i < MAX_BULLETS; i++) {
         _bullet* b = &bulletPool[i];
+        if (!b->alive) continue;
+        
         b->age += dt;
         if (b->age >= b->lifespan) {
             // Bullet outlived lifespan - kill
             b->alive = false;
+            continue;
         }
 
-        if (!b->alive) continue;
         
         // Physics
         b->pos += b->vel * dt;
@@ -131,6 +199,7 @@ void _bulletManager::spawnBulletEffect(const Vec2f &pos, const Vec2f &dest, cons
         b->vel = vel;
         b->width = config.width;
         b->height = config.height;
+        b->angle = atan2(b->vel.y, b->vel.x); // Gets angle bullet must rotate for its velocity 
         b->lifespan = config.lifespan;
         b->age = 0.0f;
 
@@ -144,13 +213,25 @@ void _bulletManager::spawnBulletEffect(const Vec2f &pos, const Vec2f &dest, cons
 
 void _bulletManager::buildVbo() {
     /**
-     * Particles are rendered as a quad.
-     * They require 4 vertices of 2 components of 2 floats each (x,y,u,v) 
-     * 4 vertices * 2 components (pos/tex) * 2 floats each (x,y/u,v) for 2D
+     * VBO Structure -> localX, localY, u, v, centerX, centerY, angle
+     * localX - X component of the quad's position 
+     * localY - Y component of the quad's position 
+     * u - X component of the quad's texture 
+     * v - Y component of the quad's texture 
+     * centerX - X component of bullet's position
+     * centerY - Y component of bullets's position
+     * angle - Angle bullet is facing 
+     * (7 floats)
      * 
-     * Texture coords added but unused (for now)
+     * Before, we sent up posX/posY for the x,y components meaning the CPU decided the drawing position.
+     * Here, the shader uses a fixed localX and localY and applies centerX, centerY, and angle onto it to modify it's drawing position INSIDE the GPU
+     * 
+     * Bullets are rendered as a quad (2 triangles) and require 4 verticies. 
+     * 
+     * 4 * 7 * MAX_BULLETS
+     * 
      */
-    float particleVboData[MAX_BULLETS * 4 * 2 * 2];
+    float bulletVboData[4 * 7 * MAX_BULLETS];
     int vIndex = 0;
     
     aliveBullets = 0;
@@ -158,39 +239,53 @@ void _bulletManager::buildVbo() {
         _bullet* b = &bulletPool[i];
         if (!b->alive) continue; // Skips particles that are dead
 
-        float x = b->pos.x;
-        float y = b->pos.y;
+        float angle = b->angle;
 
-        float w = b->width;
-        float h = b->height;
+        float centerX = b->pos.x;
+        float centerY = b->pos.y;
+
+        float halfWidth = b->width * 0.5f;
+        float halfHeight = b->height * 0.5f;
         
         // Vbo (Quad) //
         // Bottom-left (0)
-        particleVboData[vIndex++] = x; 
-        particleVboData[vIndex++] = y; 
-        particleVboData[vIndex++] = 0.0f; 
-        particleVboData[vIndex++] = 1.0f; 
+        bulletVboData[vIndex++] = -halfWidth; 
+        bulletVboData[vIndex++] = -halfHeight; 
+        bulletVboData[vIndex++] = 0.0f; 
+        bulletVboData[vIndex++] = 1.0f; 
+        bulletVboData[vIndex++] = centerX; 
+        bulletVboData[vIndex++] = centerY; 
+        bulletVboData[vIndex++] = angle; 
         // Bottom-right (1)
-        particleVboData[vIndex++] = x + w; 
-        particleVboData[vIndex++] = y; 
-        particleVboData[vIndex++] = 1.0f; 
-        particleVboData[vIndex++] = 1.0f; 
+        bulletVboData[vIndex++] = halfWidth; 
+        bulletVboData[vIndex++] = -halfHeight; 
+        bulletVboData[vIndex++] = 1.0f; 
+        bulletVboData[vIndex++] = 1.0f; 
+        bulletVboData[vIndex++] = centerX; 
+        bulletVboData[vIndex++] = centerY; 
+        bulletVboData[vIndex++] = angle; 
         // Top-right (2)
-        particleVboData[vIndex++] = x + w; 
-        particleVboData[vIndex++] = y + h; 
-        particleVboData[vIndex++] = 1.0f; 
-        particleVboData[vIndex++] = 0.0f; 
+        bulletVboData[vIndex++] = halfWidth; 
+        bulletVboData[vIndex++] = halfHeight; 
+        bulletVboData[vIndex++] = 1.0f; 
+        bulletVboData[vIndex++] = 0.0f; 
+        bulletVboData[vIndex++] = centerX; 
+        bulletVboData[vIndex++] = centerY; 
+        bulletVboData[vIndex++] = angle; 
         // Top-left (3)
-        particleVboData[vIndex++] = x; 
-        particleVboData[vIndex++] = y + h; 
-        particleVboData[vIndex++] = 0.0f; 
-        particleVboData[vIndex++] = 0.0f; 
+        bulletVboData[vIndex++] = -halfWidth; 
+        bulletVboData[vIndex++] = halfHeight; 
+        bulletVboData[vIndex++] = 0.0f; 
+        bulletVboData[vIndex++] = 0.0f; 
+        bulletVboData[vIndex++] = centerX; 
+        bulletVboData[vIndex++] = centerY; 
+        bulletVboData[vIndex++] = angle; 
 
         aliveBullets++;
     }
 
     glBindBuffer(GL_ARRAY_BUFFER, vboID);
-    glBufferData(GL_ARRAY_BUFFER, vIndex * sizeof(float), particleVboData, GL_DYNAMIC_DRAW); // We only send the particles that are alive
+    glBufferData(GL_ARRAY_BUFFER, vIndex * sizeof(float), bulletVboData, GL_DYNAMIC_DRAW); // We only send the particles that are alive
     glBindBuffer(GL_ARRAY_BUFFER,0);
 }
 

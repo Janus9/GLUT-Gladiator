@@ -40,8 +40,6 @@ _scene::~_scene()
 
     delete bulletManager;
     bulletManager = nullptr;
-    delete blockParticleManager;
-    blockParticleManager = nullptr;
 
     delete sh;
     sh = nullptr;
@@ -136,14 +134,14 @@ GLint _scene::initGL()
     //testSounds->playSounds("sounds/level_transition.mp3");
 
     // -- SHADERS -- //
-    sh->initShader("shaders/V.vs","shaders/F.fs");
-    glUseProgram(sh->program);
+    // sh->initShader("shaders/V.vs","shaders/F.fs");
+    // glUseProgram(sh->program);
 
     bulletManager->initBulletManager("images/test_bullet.png", myWorld);
     test_bullet.amount = 1;
     test_bullet.speed = 512.0f;
-    test_bullet.width = 10.0f;
-    test_bullet.height = 2.0f;
+    test_bullet.width = 20.0f;
+    test_bullet.height = 6.0f;
     test_bullet.lifespan = 3.0f;
 
     return true;
@@ -153,6 +151,8 @@ void _scene::reSize(GLint width, GLint height)
 {
     this->width = width;
     this->height = height;
+
+    // These should be moved to main at some point
     _hud::setHudViewportDimensions(width,height);
 
     float offset = 40.0f;
@@ -594,7 +594,7 @@ void _scene::applyCamera() {
         cameraX = testPlayer->pos.x;
         cameraY = testPlayer->pos.y;
     }
-
+    
     float renderCameraX = floor(cameraX);
     float renderCameraY = floor(cameraY);
     
@@ -605,6 +605,8 @@ void _scene::applyCamera() {
     right = renderCameraX + halfWidth;
     bottom = renderCameraY - halfHeight;
     top = renderCameraY + halfHeight;
+
+    _bulletManager::setViewportDimensions(left, right, top, bottom);
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
