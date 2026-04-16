@@ -37,6 +37,9 @@ _scene::~_scene()
 
     delete hud;
     hud = nullptr;
+
+    delete bulletManager;
+    bulletManager = nullptr;
 }   
 
 
@@ -127,6 +130,13 @@ GLint _scene::initGL()
 
     //testSounds->playSounds("sounds/level_transition.mp3");
 
+    bulletManager->initBulletManager("images/test_bullet.png", myWorld);
+    test_bullet.amount = 1;
+    test_bullet.speed = 512.0f;
+    test_bullet.width = 10.0f;
+    test_bullet.height = 10.0f;
+    test_bullet.lifespan = 3.0f;
+
     return true;
 }
 
@@ -188,6 +198,8 @@ void _scene::drawScene()
     testPlayer->drawUnit();
     //testUnit->drawSprite();
 
+    bulletManager->drawBulletManager();
+
     hud->drawHud();
 
     // For FPS measuring
@@ -204,6 +216,7 @@ void _scene::updateScene(double dt)
 {
     dt = dt / 1000.0; // Convert dt to seconds for easier calculations
 
+    bulletManager->updateBulletManager(dt);
     myWorld->updateWorld(dt);
 
     // Check for mouse events
@@ -213,7 +226,6 @@ void _scene::updateScene(double dt)
             myWorld->damageCell(hoveredCell,25.0f);
             if (!hoveredCell->isAlive()) {
                 cout << "BLOCK HAS BEEN MINED \n";
-                // blockParticleManager->spawnEffect(hoveredCell->pos,test);
                 hud->getHudSprite("PROGRESS_BAR")->getSprite()->stopAnimation(); // Mining finished, reset progress bar animation
             }
             interactionTimer->reset();
@@ -441,6 +453,10 @@ void _scene::keyboardHandler(WPARAM wParam)
         switch (wParam)
         {
             case 192: // "~"
+                break;
+            case ' ': // SPACE
+                cout << "SPACE KEY PRESSED";
+                bulletManager->spawnBulletEffect(testPlayer->pos, mouseWorldPos,test_bullet);
                 break;
             case 221: // "]"
                 debugEnabled = !debugEnabled; 

@@ -19,6 +19,7 @@
 #include<_world.h>
 #include<_hud.h>
 #include<_particleManager.h>
+#include<_bulletManager.h>
 
 class _scene
 {
@@ -58,7 +59,9 @@ class _scene
         float bottom = 0.0f;
         float top = 0.0f;
 
-        // Sounds //
+        _bulletManager* bulletManager = new _bulletManager();
+        _bullet_config test_bullet;
+
         _sounds* testSounds = new _sounds();
 
         _lightSettings *myLight = new _lightSettings();     
