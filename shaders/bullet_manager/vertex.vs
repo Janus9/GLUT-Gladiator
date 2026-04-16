@@ -25,7 +25,7 @@ void main() {
     // Rotate the mesh but we still need to translate it
     vec2 rotatedPos;
     rotatedPos.x = a_localPos.x * c - a_localPos.y * s;
-    rotatedPos.y = a_localPos.y * s + a_localPos.y * c;
+    rotatedPos.y = a_localPos.x * s + a_localPos.y * c;
     
     // Translate mesh to its position
     vec2 worldPos = a_center + rotatedPos;

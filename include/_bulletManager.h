@@ -68,6 +68,16 @@ class _bulletManager {
          */
         void spawnBulletEffect(const Vec2f &pos, const Vec2f &dest, const _bullet_config &config);
 
+        /**
+         * Statically sets the window viewport.
+         * Needed for bullet shaders.
+         * Call in the scene cameraUpdate function or where the glOrtho command is called.
+         * 
+         * @param _left Window left bound from scene
+         * @param _right Window right bound from scene
+         * @param _top Window top bound from scene
+         * @param _bottom Window bottom bound from scene
+         */
         static void setViewportDimensions(float _left, float _right, float _top, float _bottom);    
     protected:
     private:
