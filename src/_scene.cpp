@@ -134,7 +134,7 @@ GLint _scene::initGL()
     test_bullet.amount = 1;
     test_bullet.speed = 512.0f;
     test_bullet.width = 10.0f;
-    test_bullet.height = 10.0f;
+    test_bullet.height = 2.0f;
     test_bullet.lifespan = 3.0f;
 
     return true;

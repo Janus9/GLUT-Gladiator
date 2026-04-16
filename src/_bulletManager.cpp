@@ -91,8 +91,9 @@ void _bulletManager::updateBulletManager(double dt) {
         if (b->age >= b->lifespan) {
             // Bullet outlived lifespan - kill
             b->alive = false;
-            continue;
         }
+
+        if (!b->alive) continue;
         
         // Physics
         b->pos += b->vel * dt;
