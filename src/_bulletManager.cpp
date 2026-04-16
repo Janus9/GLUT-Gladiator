@@ -96,6 +96,9 @@ void _bulletManager::drawBulletManager() {
 
     texture->bindTexture();
 
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+
     // Setup uniforms
     glUniform4f(u_dimensions,left,right,top,bottom);
     glUniform1i(u_texture, 0); // Uses texture slot not ID thus its 0
@@ -141,6 +144,8 @@ void _bulletManager::drawBulletManager() {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0);
 
     glUseProgram(0); // Stop using program (prevent using on bullet particle drops)
+
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     bulletDrops->drawParticleManager();
 }
