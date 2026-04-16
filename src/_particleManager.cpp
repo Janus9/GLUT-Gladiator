@@ -66,8 +66,9 @@ void _particleManager::updateParticleManger(double dt) {
         p->age += dt; // Add delta time seconds to age
         if (p->age >= p->death) {
             p->alive = false;
-            continue;
         }
+
+        if (!p->alive) continue;
 
         p->acc.x = 0.0f;
         p->acc.y = -GRAVITY * 4;

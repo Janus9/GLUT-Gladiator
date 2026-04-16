@@ -219,6 +219,10 @@ void _scene::updateScene(double dt)
     bulletManager->updateBulletManager(dt);
     myWorld->updateWorld(dt);
 
+    if (SPACE) {
+        bulletManager->spawnBulletEffect(testPlayer->pos, mouseWorldPos,test_bullet);
+    }
+
     // Check for mouse events
     if (LMB && hoveredCell && hoveredChunk && myWorld->isCellWall(hoveredCell)) {
         if (interactionTimer->getSeconds() > miningSpeed/5.0f) {
@@ -455,8 +459,6 @@ void _scene::keyboardHandler(WPARAM wParam)
             case 192: // "~"
                 break;
             case ' ': // SPACE
-                cout << "SPACE KEY PRESSED";
-                bulletManager->spawnBulletEffect(testPlayer->pos, mouseWorldPos,test_bullet);
                 break;
             case 221: // "]"
                 debugEnabled = !debugEnabled; 

@@ -39,6 +39,7 @@ bool _cell::isAlive() const {
 // -- CHUNK -- //
 
 TileId _chunk::getTileIdAt(int index) const {
+    if (!this) return TILE_NULL;
     if (index < 0 || index > 255) return TILE_NULL;
     return tileData[index];
 }
@@ -49,6 +50,7 @@ _cell* _chunk::cellAt(int index) {
 }
 
 bool _chunk::setTileIdAt(TileId id, int index) {
+    if (!this) return false;
     if (index < 0 || index > 255) return false;
     
     tileData[index] = id;
