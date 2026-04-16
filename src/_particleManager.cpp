@@ -39,6 +39,8 @@ void _particleManager::drawParticleManager() {
     buildVBO();
     texture->bindTexture();
 
+    glColor3f(1.0f,1.0f,1.0f); // Reset color
+
     glEnableClientState(GL_VERTEX_ARRAY);
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 

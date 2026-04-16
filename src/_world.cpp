@@ -82,29 +82,29 @@ void _world::initWorld()
 {
     initBenchmark->startBenchmark();
 
-        Logger.LogInfo("Initializing world for seed " + to_string(seed), LOG_BOTH);
-        Logger.LogInfo("World has " + to_string(numStartingChunks) + " starting chunks.", LOG_BOTH);
+    Logger.LogInfo("Initializing world for seed " + to_string(seed), LOG_BOTH);
+    Logger.LogInfo("World has " + to_string(numStartingChunks) + " starting chunks.", LOG_BOTH);
 
-        tileAtlas->loadTexture("images/set_1.png"); // Load the tile atlas texture
-        // Reserve allocates memory but does not instantiate it -- resize allocates AND instantiates it (dont want that)
-        worldChunks.reserve(numStartingChunks); // Resize the vector to hold numStartingChunks chunks
-        world_noise.resize(numStartingChunks*256);  // 256 tiles per chunk
+    tileAtlas->loadTexture("images/set_1.png"); // Load the tile atlas texture
+    // Reserve allocates memory but does not instantiate it -- resize allocates AND instantiates it (dont want that)
+    worldChunks.reserve(numStartingChunks); // Resize the vector to hold numStartingChunks chunks
+    world_noise.resize(numStartingChunks*256);  // 256 tiles per chunk
 
-        initTiles(); // Setup tiles
-        
-        double sqrtNumChunks = sqrt(numStartingChunks);
-        // This checks if a decimal (like 1.3) is equal to its floor (1.0) which indicates the sqrt wasn't perfect
-        if (sqrtNumChunks != floor(sqrtNumChunks)) {
-            Logger.LogWarning("numStartingChunks is not a perfect square. This may lead to an uneven distribution of chunks around the center.", LOG_BOTH);
-        }
+    initTiles(); // Setup tiles
+    
+    double sqrtNumChunks = sqrt(numStartingChunks);
+    // This checks if a decimal (like 1.3) is equal to its floor (1.0) which indicates the sqrt wasn't perfect
+    if (sqrtNumChunks != floor(sqrtNumChunks)) {
+        Logger.LogWarning("numStartingChunks is not a perfect square. This may lead to an uneven distribution of chunks around the center.", LOG_BOTH);
+    }
 
-        // Initialize world tiles and chunks here
-        runWorldGeneration(generation_iterations); 
+    // Initialize world tiles and chunks here
+    runWorldGeneration(generation_iterations); 
 
-    initBenchmark->clickBenchmark();
-    double time = initBenchmark->getAverageResult();
+    // PARTICLE EFFECTS //
 
     cellParticles->initParticleManager("images/particle.png",10000); // Particles for cell usage
+    // wall_break_effect
     wall_break_effect.amount = 100;
 
     wall_break_effect.minVelX = -3.0f;
@@ -115,13 +115,37 @@ void _world::initWorld()
     wall_break_effect.minRadius = 1.0f;
     wall_break_effect.maxRadius = 3.0f;
 
-    wall_break_effect.minLifeTime = 0.5f;
-    wall_break_effect.maxLifeTime = 1.1f;
+    wall_break_effect.minLifeTime = 0.6f;
+    wall_break_effect.maxLifeTime = 1.3f;
 
-    wall_break_effect.minSpawnOffsetX = -4.0f;
-    wall_break_effect.maxSpawnOffsetX = 4.0f;
-    wall_break_effect.minSpawnOffsetY = -4.0f;
-    wall_break_effect.maxSpawnOffsetY = 4.0f;
+    wall_break_effect.minSpawnOffsetX = -8.0f;
+    wall_break_effect.maxSpawnOffsetX = 8.0f;
+    wall_break_effect.minSpawnOffsetY = -8.0f;
+    wall_break_effect.maxSpawnOffsetY = 8.0f;
+
+    // _wall_damage_effect
+    wall_damage_effect.amount = 10;
+
+    wall_damage_effect.minVelX = -3.0f;
+    wall_damage_effect.maxVelX = 3.0f;
+    wall_damage_effect.minVelY = 5.0f;
+    wall_damage_effect.maxVelY = 15.0f;
+
+    wall_damage_effect.minRadius = 1.0f;
+    wall_damage_effect.maxRadius = 3.0f;
+
+    wall_damage_effect.minLifeTime = 0.4f;
+    wall_damage_effect.maxLifeTime = 1.1f;
+
+    wall_damage_effect.minSpawnOffsetX = -4.0f;
+    wall_damage_effect.maxSpawnOffsetX = 4.0f;
+    wall_damage_effect.minSpawnOffsetY = -4.0f;
+    wall_damage_effect.maxSpawnOffsetY = 4.0f;
+
+    // BENCHMARK //
+
+    initBenchmark->clickBenchmark();
+    double time = initBenchmark->getAverageResult();
 
     Logger.LogInfo("World initialization for " + to_string(worldChunks.size()) + "chunks took " + to_string(time) + "ms");
 }
@@ -759,6 +783,7 @@ bool _world::isCellWall(const _cell* cell) const {
 bool _world::damageCell(_cell* cell, float amount) {
     if (!cell) return false;
     cell->impluseHealth(-amount); // Reverse sign since function expects healing
+    cellParticles->spawnEffect(cell->pos, wall_damage_effect);
     if (!cell->isAlive()) {
         setCellTile(cell,TILE_FLOOR_BLANK_1);
         cellParticles->spawnEffect(cell->pos,wall_break_effect);

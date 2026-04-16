@@ -311,6 +311,7 @@ class _world
         // -- PARTICLE MANAGER -- //
         _particleManager* cellParticles = new _particleManager();
         particle_effect wall_break_effect;
+        particle_effect wall_damage_effect;
 
         // -- RNG -- //
 
