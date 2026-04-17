@@ -114,6 +114,7 @@ class _bulletManager {
 
         GLuint vboID = 0;
         GLuint eboID = 0;
+        GLuint vaoID = 0;
 
         GLint a_localPos = -1;
         GLint a_texCoord = -1;
@@ -125,6 +126,7 @@ class _bulletManager {
 
         void buildVbo(); // Builds the VBO
         void buildEbo(); // Builds the EBO (only done once)
+        void buildVao(); // Builds the VAO (only done once)
 
         // Static Viewport Dimensions
         static float left;

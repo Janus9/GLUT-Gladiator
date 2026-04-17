@@ -31,6 +31,10 @@ _bulletManager::~_bulletManager() {
         glDeleteBuffers(1,&eboID); // tell the GPU to delete the index buffer
         eboID = 0;
     }
+    if (vaoID != 0) {
+        glDeleteVertexArrays(1,&vaoID); // tell the GPU to delete the array buffer
+        vaoID = 0;
+    }
 
     delete texture;
     texture = nullptr;
@@ -45,6 +49,7 @@ void _bulletManager::initBulletManager(const string &fileName, _world* currentWo
     // Generate new buffers
     glGenBuffers(1,&vboID);
     glGenBuffers(1,&eboID);
+    glGenVertexArrays(1,&vaoID);
 
     texture->loadTexture(fileName);
 
@@ -80,6 +85,7 @@ void _bulletManager::initBulletManager(const string &fileName, _world* currentWo
     bullet_shell_effect.maxLifeTime = 3.0f;
 
     buildEbo();
+    buildVao();
 } 
 
 void _bulletManager::drawBulletManager() {
@@ -103,45 +109,9 @@ void _bulletManager::drawBulletManager() {
     glUniform4f(u_dimensions,left,right,top,bottom);
     glUniform1i(u_texture, 0); // Uses texture slot not ID thus its 0
 
-    // Bind the buffers (setup before attributes since they read from the VBO)
-    glBindBuffer(GL_ARRAY_BUFFER,vboID);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,eboID);
-
-    // Enable the attribute arrays (not setup with data yet, just enabled)
-    glEnableVertexAttribArray(a_localPos);
-    glEnableVertexAttribArray(a_texCoord);
-    glEnableVertexAttribArray(a_center);
-    glEnableVertexAttribArray(a_angle);
-
-    GLsizei stride = 7 * sizeof(float);
-
-    /**
-     * void glVertexAttribPointer 	
-     * ---------------------------
-     * GLuint index          - Attribute to be modified (like a cache)
-     * GLint size            - Number of components in the attribute (ex/ vec2 is 2)
-  	 * GLenum type           - Type of data (ex/ float is GL_FLOAT)
-  	 * GLboolean normalized  - ??? just set to GL_FALSE
-  	 * GLsizei stride        - How much data per vertex (here its 7 floats so 7 * sizeof(float))
-  	 * const void * pointer  - Offset of data for first component to start at (ex/ localPos is 0 since its first in the VBO structure setup)
-     * 
-     */
-
-    // Setup a data array for the attributes (data is per vertex!)
-    glVertexAttribPointer(a_localPos,2,GL_FLOAT,GL_FALSE,stride,(void*)(0 * sizeof(float)));
-    glVertexAttribPointer(a_texCoord,2,GL_FLOAT,GL_FALSE,stride,(void*)(2 * sizeof(float)));
-    glVertexAttribPointer(a_center,2,GL_FLOAT,GL_FALSE,stride,(void*)(4 * sizeof(float)));
-    glVertexAttribPointer(a_angle,1,GL_FLOAT,GL_FALSE,stride,(void*)(6 * sizeof(float)));
-
-    glDrawElements(GL_TRIANGLES,aliveBullets * 6, GL_UNSIGNED_INT, (void*)(0 * sizeof(unsigned int)));
-
-    glDisableVertexAttribArray(a_localPos);
-    glDisableVertexAttribArray(a_texCoord);
-    glDisableVertexAttribArray(a_center);
-    glDisableVertexAttribArray(a_angle);
-
-    glBindBuffer(GL_ARRAY_BUFFER,0);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0);
+    glBindVertexArray(vaoID);
+    glDrawElements(GL_TRIANGLES, aliveBullets * 6, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
 
     glUseProgram(0); // Stop using program (prevent using on bullet particle drops)
 
@@ -320,4 +290,41 @@ void _bulletManager::buildEbo() {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboID);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(particleEboData), particleEboData, GL_STATIC_DRAW);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0);
+}
+
+void _bulletManager::buildVao() {
+    // Bind the vertex array
+    glBindVertexArray(vaoID);
+    
+    // Bind the buffers (setup before attributes since they read from the VBO)
+    glBindBuffer(GL_ARRAY_BUFFER,vboID);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,eboID);
+
+    // Enable the attribute arrays (not setup with data yet, just enabled)
+    glEnableVertexAttribArray(a_localPos);
+    glEnableVertexAttribArray(a_texCoord);
+    glEnableVertexAttribArray(a_center);
+    glEnableVertexAttribArray(a_angle);
+
+    GLsizei stride = 7 * sizeof(float);
+
+    /**
+     * void glVertexAttribPointer 	
+     * ---------------------------
+     * GLuint index          - Attribute to be modified (like a cache)
+     * GLint size            - Number of components in the attribute (ex/ vec2 is 2)
+  	 * GLenum type           - Type of data (ex/ float is GL_FLOAT)
+  	 * GLboolean normalized  - ??? just set to GL_FALSE
+  	 * GLsizei stride        - How much data per vertex (here its 7 floats so 7 * sizeof(float))
+  	 * const void * pointer  - Offset of data for first component to start at (ex/ localPos is 0 since its first in the VBO structure setup)
+     * 
+     */
+
+    // Setup a data array for the attributes (data is per vertex!)
+    glVertexAttribPointer(a_localPos,2,GL_FLOAT,GL_FALSE,stride,(void*)(0 * sizeof(float)));
+    glVertexAttribPointer(a_texCoord,2,GL_FLOAT,GL_FALSE,stride,(void*)(2 * sizeof(float)));
+    glVertexAttribPointer(a_center,2,GL_FLOAT,GL_FALSE,stride,(void*)(4 * sizeof(float)));
+    glVertexAttribPointer(a_angle,1,GL_FLOAT,GL_FALSE,stride,(void*)(6 * sizeof(float)));
+
+    glBindVertexArray(0);
 }
