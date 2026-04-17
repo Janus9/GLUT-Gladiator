@@ -17,8 +17,8 @@ _scene::~_scene()
     delete myWorld;
     myWorld = nullptr;
 
-    delete testPlayer;
-    testPlayer = nullptr;
+    delete player;
+    player = nullptr;
 
     delete fpsTimer;
     fpsTimer = nullptr;
@@ -67,42 +67,7 @@ GLint _scene::initGL()
     fpsTimer->reset();
     interactionTimer->reset();  
 
-    // -- TESTER PLAYER -- //
-
-    testPlayer->scale = {0.8f, 0.8f};
-    testPlayer->pos = {0.0f, 0.0f}; // Start player in the center of the screen
-    
-    // Walk Animation //
-    testPlayer->setupSprite("WALK");
-    testPlayer->getSprite("WALK")->initSprite("images/player/Walk/Normal/walk.png", 8, 6, sprite_direction::LEFT,12); // No natural direction due to top down
-
-    testPlayer->getSprite("WALK")->createSpriteAction(sprite_action("WALK_DOWN",0,0,7));
-    testPlayer->getSprite("WALK")->createSpriteAction(sprite_action("WALK_DOWN_LEFT",1,0,7));
-    testPlayer->getSprite("WALK")->createSpriteAction(sprite_action("WALK_UP_LEFT",2,0,7));
-    testPlayer->getSprite("WALK")->createSpriteAction(sprite_action("WALK_UP",3,0,7));
-    testPlayer->getSprite("WALK")->createSpriteAction(sprite_action("WALK_UP_RIGHT",4,0,7));
-    testPlayer->getSprite("WALK")->createSpriteAction(sprite_action("WALK_DOWN_RIGHT",5,0,7));
-    testPlayer->getSprite("WALK")->offsetPoint = {0.0f, 8.0f};
-
-    // Walk Gun Animation //
-    testPlayer->setupSprite("WALK_GUN");
-    testPlayer->getSprite("WALK_GUN")->initSprite("images/player/Gun/Normal/Walk_Gun.png", 8, 6, sprite_direction::LEFT,12); // No natural direction due to top down
-
-    testPlayer->getSprite("WALK_GUN")->createSpriteAction(sprite_action("WALK_GUN_DOWN",0,0,7));
-    testPlayer->getSprite("WALK_GUN")->createSpriteAction(sprite_action("WALK_GUN_DOWN_LEFT",1,0,7));
-    testPlayer->getSprite("WALK_GUN")->createSpriteAction(sprite_action("WALK_GUN_UP_LEFT",2,0,7));
-    testPlayer->getSprite("WALK_GUN")->createSpriteAction(sprite_action("WALK_GUN_UP",3,0,7));
-    testPlayer->getSprite("WALK_GUN")->createSpriteAction(sprite_action("WALK_GUN_UP_RIGHT",4,0,7));
-    testPlayer->getSprite("WALK_GUN")->createSpriteAction(sprite_action("WALK_GUN_DOWN_RIGHT",5,0,7));
-    testPlayer->getSprite("WALK_GUN")->offsetPoint = {0.0f, 8.0f};
-
-    testPlayer->setSingleSprite(testPlayer->getSprite("WALK"));
-
-    // Tester Unit
-    // testUnit->initUnit();
-    // testUnit->spriteInit("images/m2_50.png",4,1);
-    
-    // testUnit->pos = {0.0f, 0.0f};
+    player->initPlayer();
 
     // -- HUD -- //
 
@@ -218,8 +183,7 @@ void _scene::drawScene()
         myWorld->drawWorld(left,right,top,bottom); // Draw the world
     drawWorldBenchmark->clickBenchmark();
 
-    testPlayer->drawUnitSingular();
-    //testUnit->drawSprite();
+    player->drawPlayer();
 
     bulletManager->drawBulletManager();
 
@@ -243,7 +207,7 @@ void _scene::updateScene(double dt)
     myWorld->updateWorld(dt);
 
     if (SPACE) {
-        bulletManager->spawnBulletEffect(testPlayer->pos, mouseWorldPos,test_bullet);
+        bulletManager->spawnBulletEffect(player->pos, mouseWorldPos,test_bullet);
     }
 
     // Check for mouse events
@@ -276,8 +240,8 @@ void _scene::updateScene(double dt)
     
     bool walking = false;
 
-    _cell* _playerCell = myWorld->getCellAtWorld(testPlayer->pos);
-    _chunk* _playerChunk = myWorld->getChunkAtWorld(testPlayer->pos);
+    _cell* _playerCell = myWorld->getCellAtWorld(player->pos);
+    _chunk* _playerChunk = myWorld->getChunkAtWorld(player->pos);
 
     // if (_playerCell != playerCell) {
     //     if (playerCell && playerChunk) {
@@ -319,22 +283,22 @@ void _scene::updateScene(double dt)
         int x = i % 3 - 1; 
         int y = i / 3 - 1;
         Vec2f offset(16 * x, -16 * y);
-        occupationTable[i] = myWorld->getTileAtWorld(testPlayer->pos + offset)->hasCollision;
+        occupationTable[i] = myWorld->getTileAtWorld(player->pos + offset)->hasCollision;
     }
 
-    if (myWorld->getTileAtWorld(testPlayer->pos + Vec2f(0.0f, playerSpeed*dt))->hasCollision) {
+    if (myWorld->getTileAtWorld(player->pos + Vec2f(0.0f, playerSpeed*dt))->hasCollision) {
         // Next potential movement yields use moving into upper tile
         collisionTable[0] = true;
     }
-    if (myWorld->getTileAtWorld(testPlayer->pos - Vec2f(0.0f, playerSpeed*dt))->hasCollision) {
+    if (myWorld->getTileAtWorld(player->pos - Vec2f(0.0f, playerSpeed*dt))->hasCollision) {
         // Next potential movement yields use moving into lower tile
         collisionTable[3] = true;
     }
-    if (myWorld->getTileAtWorld(testPlayer->pos - Vec2f(playerSpeed*dt, 0.0f))->hasCollision) {
+    if (myWorld->getTileAtWorld(player->pos - Vec2f(playerSpeed*dt, 0.0f))->hasCollision) {
         // Next potential movement yields use moving into left tile
         collisionTable[1] = true;
     }
-    if (myWorld->getTileAtWorld(testPlayer->pos + Vec2f(playerSpeed*dt, 0.0f))->hasCollision) {
+    if (myWorld->getTileAtWorld(player->pos + Vec2f(playerSpeed*dt, 0.0f))->hasCollision) {
         // Next potential movement yields use moving into right tile
         collisionTable[2] = true;
     }
@@ -344,26 +308,22 @@ void _scene::updateScene(double dt)
     if (!cameraFree) {
         // Double input -- diagonol checks //
         if (W && A) {
-            testPlayer->getSprite("WALK")->loadSpriteAction("WALK_UP_LEFT");
-            testPlayer->getSprite("WALK")->setIdleFrame(0,2);
+            player->setAction(PLAYER_ACTION_WALK,PLAYER_FACE_NW);
             walking = true;
         }
         
         if (W && D) {
-            testPlayer->getSprite("WALK")->loadSpriteAction("WALK_UP_RIGHT");
-            testPlayer->getSprite("WALK")->setIdleFrame(0,4);
+            player->setAction(PLAYER_ACTION_WALK,PLAYER_FACE_NE);
             walking = true;
         }
         
         if (S && A) {
-            testPlayer->getSprite("WALK")->loadSpriteAction("WALK_DOWN_LEFT");
-            testPlayer->getSprite("WALK")->setIdleFrame(0,1);
+            player->setAction(PLAYER_ACTION_WALK,PLAYER_FACE_SW);
             walking = true;
         }
     
         if (S && D) {
-            testPlayer->getSprite("WALK")->loadSpriteAction("WALK_DOWN_RIGHT");
-            testPlayer->getSprite("WALK")->setIdleFrame(0,5);
+            player->setAction(PLAYER_ACTION_WALK,PLAYER_FACE_SE);
             walking = true;
         }
 
@@ -371,36 +331,30 @@ void _scene::updateScene(double dt)
         if (!walking) {
             // Sigle input checks //
             if (W && !collisionTable[0]) {
-                testPlayer->getSprite("WALK")->loadSpriteAction("WALK_UP");
-                testPlayer->getSprite("WALK")->setIdleFrame(0,3);
+                player->setAction(PLAYER_ACTION_WALK,PLAYER_FACE_N);
                 walking = true;
             }
             
             if (A && !collisionTable[1]) {
-                testPlayer->getSprite("WALK")->loadSpriteAction("WALK_DOWN_LEFT");
-                testPlayer->getSprite("WALK")->setIdleFrame(0,1);
+                player->setAction(PLAYER_ACTION_WALK,PLAYER_FACE_SW);
                 walking = true;
             }
             
             if (S && !collisionTable[3]) {
-                testPlayer->getSprite("WALK")->loadSpriteAction("WALK_DOWN");
-                testPlayer->getSprite("WALK")->setIdleFrame(0,0);
+                player->setAction(PLAYER_ACTION_WALK,PLAYER_FACE_S);
                 walking = true;
             }
         
             if (D && !collisionTable[2]) {
-                testPlayer->getSprite("WALK")->loadSpriteAction("WALK_DOWN_RIGHT");
-                testPlayer->getSprite("WALK")->setIdleFrame(0,5);
+                player->setAction(PLAYER_ACTION_WALK,PLAYER_FACE_SE);
                 walking = true;
             }
         }
     }
 
-    if (walking) {
-        testPlayer->getSprite("WALK")->startAnimation();
-    } else {
-        testPlayer->getSprite("WALK")->stopAnimation();
-    }
+    if (!walking) {
+        player->stopAction(PLAYER_ACTION_WALK);
+    } 
 
     if (cameraFree) {
         if(W) cameraY += cameraSpeed*dt;
@@ -408,10 +362,10 @@ void _scene::updateScene(double dt)
         if(S) cameraY -= cameraSpeed*dt;
         if(D) cameraX += cameraSpeed*dt; 
     } else {
-        if(W && !collisionTable[0]) testPlayer->pos.y += playerSpeed*dt;
-        if(A && !collisionTable[1]) testPlayer->pos.x -= playerSpeed*dt; 
-        if(S && !collisionTable[3]) testPlayer->pos.y -= playerSpeed*dt;
-        if(D && !collisionTable[2]) testPlayer->pos.x += playerSpeed*dt;
+        if(W && !collisionTable[0]) player->pos.y += playerSpeed*dt;
+        if(A && !collisionTable[1]) player->pos.x -= playerSpeed*dt; 
+        if(S && !collisionTable[3]) player->pos.y -= playerSpeed*dt;
+        if(D && !collisionTable[2]) player->pos.x += playerSpeed*dt;
     }
 
     // // Chunk generation only works during world setup (for now TODO)
@@ -426,14 +380,14 @@ void _scene::updateScene(double dt)
         debugTimer.reset(); 
     }
 
-    playerChunkPos = myWorld->worldToChunkPos(testPlayer->pos);
+    playerChunkPos = myWorld->worldToChunkPos(player->pos);
 
     hud->getHudText("FPS")->setText("FPS: " + to_string(sceneFPS));
-    hud->getHudText("PLAYER_POS")->setText("Position: " + testPlayer->pos.toString());
+    hud->getHudText("PLAYER_POS")->setText("Position: " + player->pos.toString());
     hud->getHudText("CHUNK_POS")->setText("Chunk Position: " + playerChunkPos.toString());
     hud->getHudText("MOUSE_SCREEN")->setText("Mouse Screen Coords: " + mouseScreenPos.toString());
     hud->getHudText("MOUSE_WORLD")->setText("Mouse World Coords: " + mouseWorldPos.toString());
-    //const _tile* tile = myWorld->getTileAtWorld(testPlayer->pos);
+    //const _tile* tile = myWorld->getTileAtWorld(player->pos);
 
     const _tile* tile = myWorld->getTileAtWorld(Vec2f(mouseWorldPos.x,mouseWorldPos.y));
     _cell* cell = myWorld->getCellAtWorld(Vec2f(mouseWorldPos.x,mouseWorldPos.y));
@@ -605,8 +559,8 @@ int _scene::winMsg(HWND	hWnd, UINT uMsg, WPARAM	wParam, LPARAM lParam)
 void _scene::applyCamera() {
     if (!cameraFree) {
         // If camera is not free, it will track the player (centered on player)
-        cameraX = testPlayer->pos.x;
-        cameraY = testPlayer->pos.y;
+        cameraX = player->pos.x;
+        cameraY = player->pos.y;
     }
     
     float renderCameraX = floor(cameraX);

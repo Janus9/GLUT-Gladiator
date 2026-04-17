@@ -21,6 +21,7 @@
 #include<_particleManager.h>
 #include<_bulletManager.h>
 #include<_shader.h>
+#include<_player.h>
 
 class _scene
 {
@@ -69,7 +70,7 @@ class _scene
         _model* myModel = new _model();
         _world* myWorld = new _world();
         
-        _unit* testPlayer = new _unit();
+        _player* player = new _player();
 
         _unit* testUnit = new _unit();
 
