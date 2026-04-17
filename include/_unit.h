@@ -117,7 +117,7 @@ class _unit {
 
         float health = 100.0f;
 
-        // Returns true if sprite health is less than or equal to 0.0
+        // Returns true if unit health is less than or equal to 0.0
         bool isDead() const;
 
         // DEBUGGING FLAGS //
