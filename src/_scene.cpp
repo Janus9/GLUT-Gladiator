@@ -189,9 +189,9 @@ void _scene::drawScene()
         myWorld->drawWorld(left,right,top,bottom); // Draw the world
     drawWorldBenchmark->clickBenchmark();
 
-    player->drawPlayer();
-
     bulletManager->drawBulletManager();
+    
+    player->drawPlayer();
 
     hud->drawHud();
 
