@@ -69,11 +69,12 @@ GLint _scene::initGL()
 
     // -- TESTER PLAYER -- //
 
-    testPlayer->setupSprite("WALK");
-    testPlayer->getSprite("WALK")->initSprite("images/walk.png", 8, 6, sprite_direction::LEFT,12); // No natural direction due to top down
-
     testPlayer->scale = {0.8f, 0.8f};
     testPlayer->pos = {0.0f, 0.0f}; // Start player in the center of the screen
+    
+    // Walk Animation //
+    testPlayer->setupSprite("WALK");
+    testPlayer->getSprite("WALK")->initSprite("images/player/Walk/Normal/walk.png", 8, 6, sprite_direction::LEFT,12); // No natural direction due to top down
 
     testPlayer->getSprite("WALK")->createSpriteAction(sprite_action("WALK_DOWN",0,0,7));
     testPlayer->getSprite("WALK")->createSpriteAction(sprite_action("WALK_DOWN_LEFT",1,0,7));
@@ -81,8 +82,21 @@ GLint _scene::initGL()
     testPlayer->getSprite("WALK")->createSpriteAction(sprite_action("WALK_UP",3,0,7));
     testPlayer->getSprite("WALK")->createSpriteAction(sprite_action("WALK_UP_RIGHT",4,0,7));
     testPlayer->getSprite("WALK")->createSpriteAction(sprite_action("WALK_DOWN_RIGHT",5,0,7));
-    
     testPlayer->getSprite("WALK")->offsetPoint = {0.0f, 8.0f};
+
+    // Walk Gun Animation //
+    testPlayer->setupSprite("WALK_GUN");
+    testPlayer->getSprite("WALK_GUN")->initSprite("images/player/Gun/Normal/Walk_Gun.png", 8, 6, sprite_direction::LEFT,12); // No natural direction due to top down
+
+    testPlayer->getSprite("WALK_GUN")->createSpriteAction(sprite_action("WALK_GUN_DOWN",0,0,7));
+    testPlayer->getSprite("WALK_GUN")->createSpriteAction(sprite_action("WALK_GUN_DOWN_LEFT",1,0,7));
+    testPlayer->getSprite("WALK_GUN")->createSpriteAction(sprite_action("WALK_GUN_UP_LEFT",2,0,7));
+    testPlayer->getSprite("WALK_GUN")->createSpriteAction(sprite_action("WALK_GUN_UP",3,0,7));
+    testPlayer->getSprite("WALK_GUN")->createSpriteAction(sprite_action("WALK_GUN_UP_RIGHT",4,0,7));
+    testPlayer->getSprite("WALK_GUN")->createSpriteAction(sprite_action("WALK_GUN_DOWN_RIGHT",5,0,7));
+    testPlayer->getSprite("WALK_GUN")->offsetPoint = {0.0f, 8.0f};
+
+    testPlayer->setSingleSprite(testPlayer->getSprite("WALK"));
 
     // Tester Unit
     // testUnit->initUnit();
@@ -204,7 +218,7 @@ void _scene::drawScene()
         myWorld->drawWorld(left,right,top,bottom); // Draw the world
     drawWorldBenchmark->clickBenchmark();
 
-    testPlayer->drawUnit();
+    testPlayer->drawUnitSingular();
     //testUnit->drawSprite();
 
     bulletManager->drawBulletManager();

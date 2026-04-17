@@ -31,9 +31,18 @@ class _unit {
          * 
          * If setup with a sprite then overwrites pos/scale/color before drawing sprite. Rotation exists only on sprite level.
          * 
-         * Draws all sprites in the unit.
+         * Draws all sprites in the unit. Use "drawUnitSingular" to draw a single sprite at a time.
          */
         void drawUnit();
+
+        /**
+         * Draws a unit
+         * 
+         * If setup with a sprite then overwrites pos/scale/color before drawing sprite. Rotation exists only on sprite level.
+         * 
+         * Draws the set singular sprite. Does NOT draw all sprites when used.
+         */
+        void drawUnitSingular();
 
         /**
          * Applies physics calculations (acceleration/velocity/position) to unit
@@ -86,6 +95,18 @@ class _unit {
         // TODO - BROKEN
         void focusOn(const Vec2f &_pos, float speed);
 
+        /**
+         * Sets the singular sprite.
+         * 
+         * Usage ex/ unit.setSingleSprite(unit.getSprite("TEST"));
+         *
+         * Can clear by entering nullptr, not recommended.
+         */
+        void setSingleSprite(_sprite* sprite);
+
+        // Clears the single sprite to nullptr
+        void clearSingleSprite();
+
         Vec2f scale = {1.0f, 1.0f};  // Scale of a unit in multiplier (so 2,2 is a unit 2x width by 2x height). Default unit width/height is # of pixels
         Vec2f pos = {0.0f, 0.0f};    // Position of a unit in world space 
         Vec2f offsetPos = {0.0f, 0.0f};    // Offset Position of a unit in world space for side scrollers
@@ -106,6 +127,7 @@ class _unit {
         int getID() const;
     protected:
     private:
+        _sprite* singleSprite = nullptr; // Pointer to single sprite if unit only draws on at a time (common)
         vector<_sprite*> spriteList; // Vector for draw iteration
         unordered_map<string,_sprite*> spriteMap;    // Hashmap for lookups
         _collisionBound* collisionBox = nullptr;

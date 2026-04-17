@@ -58,11 +58,25 @@ void _unit::setupSprite(const string &spriteName) {
 void _unit::drawUnit() {
     // Draws all the sprites
     for (auto &sprite : spriteList) {
+        if (sprite->hidden) continue; // Skip hidden sprites
         sprite->scale = scale;
         sprite->pos = pos;
         sprite->color = color;
     
         sprite->drawSprite();
+    }
+    if (DEBUG_display_collision_bounds && collisionBox) {
+        collisionBox->drawBound();
+    }
+}
+
+void _unit::drawUnitSingular() {
+    if (singleSprite) {
+        singleSprite->scale = scale;
+        singleSprite->pos = pos;
+        singleSprite->color = color;
+    
+        singleSprite->drawSprite();
     }
     if (DEBUG_display_collision_bounds && collisionBox) {
         collisionBox->drawBound();
@@ -137,4 +151,12 @@ void _unit::focusOn(const Vec2f &_pos, float speed) {
     // } else {
     //     rot -= speed;
     // }
+}
+
+void _unit::setSingleSprite(_sprite* sprite) {
+    singleSprite = sprite;
+}
+
+void _unit::clearSingleSprite() {
+    singleSprite = nullptr;
 }
