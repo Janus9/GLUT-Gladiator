@@ -10,3 +10,7 @@ Use "make debug" from the project directory to build.
 Ensure that your common folder (TO ADD TO REPO) is setup properly. 
 
 Use code::blocks and add the files recursivley to build it there as well.
+
+https://www.notion.so/32eb53cd383e800685e6f123c84c9a4a?v=32eb53cd383e8066a1bd000ccf9c0254&source=copy_link
+
+List of tasks TODO above
