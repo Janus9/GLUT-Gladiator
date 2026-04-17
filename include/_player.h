@@ -14,7 +14,8 @@ enum player_face {
     PLAYER_FACE_SW,
     PLAYER_FACE_W,
     PLAYER_FACE_NW,
-    PLAYER_FACE_COUNT // KEEP AT BACK
+    // KEEP AT BACK //
+    PLAYER_FACE_COUNT 
 };
 
 enum player_action {
@@ -22,7 +23,11 @@ enum player_action {
     PLAYER_ACTION_WALK,
     PLAYER_ACTION_WALK_GUN,
     PLAYER_ACTION_WALK_SHOOT,
-    PLAYER_ACTION_COUNT // KEY AT BACK
+    PLAYER_ACTION_IDLE,
+    PLAYER_ACTION_IDLE_GUN,
+    PLAYER_ACTION_IDLE_SHOOT,
+    // KEEP AT BACK //
+    PLAYER_ACTION_COUNT 
 };
 
 class _player : public _unit {
@@ -41,7 +46,8 @@ class _player : public _unit {
 
         // Stops current action
         void stopAction(player_action action);
-
+        
+        bool hasGun = false;
         bool isShooting = false;
     protected:
     private:
@@ -49,15 +55,19 @@ class _player : public _unit {
         string sprite = ""; // Which sprite
         string action = ""; // Which action (direction facing)
         Vec2i idleFrame = {0,0};
+        bool valid = true;  // Wether action is valid (not null)
         
         bool operator==(const PlayerAnimationResult &other) const {
             return sprite == other.sprite && action == other.action;
         }
     };
     
+    PlayerAnimationResult animationTable[PLAYER_ACTION_COUNT][PLAYER_FACE_COUNT];
+    
     PlayerAnimationResult currentResult;
 
-    PlayerAnimationResult animationTable[PLAYER_ACTION_COUNT][PLAYER_FACE_COUNT];
+    // Gets animation with error checking + NULL handling
+    PlayerAnimationResult getAnimationResult(player_action action, player_face face);
 };
 
 #endif // _PLAYER_H

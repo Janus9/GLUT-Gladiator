@@ -68,6 +68,7 @@ GLint _scene::initGL()
     interactionTimer->reset();  
 
     player->initPlayer();
+    player->hasGun = true;
 
     // -- HUD -- //
 
@@ -85,6 +86,9 @@ GLint _scene::initGL()
 
     hud->addHudText("MOUSE_WORLD");
     hud->getHudText("MOUSE_WORLD")->setFont(GLUT_BITMAP_9_BY_15);
+
+    hud->addHudText("MOUSE_NORMAL");
+    hud->getHudText("MOUSE_NORMAL")->setFont(GLUT_BITMAP_9_BY_15);
 
     hud->addHudText("TILE_NAME");
     hud->getHudText("TILE_NAME")->setFont(GLUT_BITMAP_9_BY_15);
@@ -147,6 +151,8 @@ void _scene::reSize(GLint width, GLint height)
     if (hud->getHudText("MOUSE_SCREEN")) offset += spacing;
     if (hud->getHudText("MOUSE_WORLD")) hud->getHudText("MOUSE_WORLD")->position = {20.0f, height-offset};
     if (hud->getHudText("MOUSE_WORLD")) offset += spacing;
+    if (hud->getHudText("MOUSE_NORMAL")) hud->getHudText("MOUSE_NORMAL")->position = {20.0f, height-offset};
+    if (hud->getHudText("MOUSE_NORMAL")) offset += spacing;
     if (hud->getHudText("TILE_NAME")) hud->getHudText("TILE_NAME")->position = {20.0f, height-offset};
     if (hud->getHudText("TILE_NAME")) offset += spacing;
     if (hud->getHudText("CELL_HEALTH")) hud->getHudText("CELL_HEALTH")->position = {20.0f, height-offset};
@@ -308,32 +314,25 @@ void _scene::updateScene(double dt)
         player->isShooting = false;
     }
 
-    player_action action;
-    player_face face;
-    if (player->isShooting) {
-        action = PLAYER_ACTION_WALK_SHOOT;
-    } else {
-        action = PLAYER_ACTION_WALK_GUN;
-    }
     if (!cameraFree) {
         // Double input -- diagonol checks //
         if (W && A) {
-            player->setAction(action,PLAYER_FACE_NW);
+            face = PLAYER_FACE_NW;
             walking = true;
         }
         
         if (W && D) {
-            player->setAction(action,PLAYER_FACE_NE);
+            face = PLAYER_FACE_NE;
             walking = true;
         }
         
         if (S && A) {
-            player->setAction(action,PLAYER_FACE_SW);
+            face = PLAYER_FACE_SW;
             walking = true;
         }
     
         if (S && D) {
-            player->setAction(action,PLAYER_FACE_SE);
+            face = PLAYER_FACE_SE;
             walking = true;
         }
 
@@ -341,31 +340,104 @@ void _scene::updateScene(double dt)
         if (!walking) {
             // Sigle input checks //
             if (W && !collisionTable[0]) {
-                player->setAction(action,PLAYER_FACE_N);
+                face = PLAYER_FACE_N;
                 walking = true;
             }
             
             if (A && !collisionTable[1]) {
-                player->setAction(action,PLAYER_FACE_W);
+                face = PLAYER_FACE_W;
                 walking = true;
             }
             
             if (S && !collisionTable[3]) {
-                player->setAction(action,PLAYER_FACE_S);
+                face = PLAYER_FACE_S;
                 walking = true;
             }
         
             if (D && !collisionTable[2]) {
-                player->setAction(action,PLAYER_FACE_E);
+                face = PLAYER_FACE_E;
                 walking = true;
             }
         }
     }
 
-    if (!walking) {
-        player->stopAction(action);
-    } 
-    
+    if (walking) {
+        // Walking
+        if (player->hasGun) {
+            if (player->isShooting) {
+                action = PLAYER_ACTION_WALK_SHOOT;
+            } else {
+                action = PLAYER_ACTION_WALK_GUN;
+            }
+        } else {
+            action = PLAYER_ACTION_WALK;
+        }
+    } else {
+        // Idle
+        if (player->hasGun) {
+            if (player->isShooting) {
+                // Do face check //
+
+                // This is bad -- should be changed later
+                bool faceUp = false;
+                bool faceRight = false;
+                bool faceDown = false;
+                bool faceLeft = false;
+
+                if (mouseNormalPos.x > 0.5f) {
+                    faceRight = true;
+                } else {
+                    faceLeft = true;
+                }
+
+                if (mouseNormalPos.y > 0.5f) {
+                    faceUp = true;
+                } else {
+                    faceDown = true;
+                }
+
+                if (faceUp) {
+                    face = PLAYER_FACE_N;
+                }
+
+                if (faceRight) {
+                    face = PLAYER_FACE_E;
+                }
+
+                if (faceDown) {
+                    face = PLAYER_FACE_S;
+                }
+
+                if (faceLeft) {
+                    face = PLAYER_FACE_W;
+                }
+
+                if (faceUp && faceRight) {
+                    face = PLAYER_FACE_NE;
+                }
+
+                if (faceUp && faceLeft) {
+                    face = PLAYER_FACE_NW;
+                }
+
+                if (faceDown && faceRight) {
+                    face = PLAYER_FACE_SE;
+                }
+
+                if (faceDown && faceLeft) {
+                    face = PLAYER_FACE_SW;
+                }
+
+                action = PLAYER_ACTION_IDLE_SHOOT;
+            } else {
+                action = PLAYER_ACTION_IDLE_GUN;
+            }
+        } else {
+            action = PLAYER_ACTION_IDLE;
+        }
+    }
+
+    player->setAction(action,face);
 
     if (cameraFree) {
         if(W) cameraY += cameraSpeed*dt;
@@ -398,6 +470,7 @@ void _scene::updateScene(double dt)
     hud->getHudText("CHUNK_POS")->setText("Chunk Position: " + playerChunkPos.toString());
     hud->getHudText("MOUSE_SCREEN")->setText("Mouse Screen Coords: " + mouseScreenPos.toString());
     hud->getHudText("MOUSE_WORLD")->setText("Mouse World Coords: " + mouseWorldPos.toString());
+    hud->getHudText("MOUSE_NORMAL")->setText("Mouse Normal Coords: " + mouseNormalPos.toString());
     //const _tile* tile = myWorld->getTileAtWorld(player->pos);
 
     const _tile* tile = myWorld->getTileAtWorld(Vec2f(mouseWorldPos.x,mouseWorldPos.y));

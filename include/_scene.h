@@ -71,6 +71,8 @@ class _scene
         _world* myWorld = new _world();
         
         _player* player = new _player();
+        player_action action = PLAYER_ACTION_NULL;
+        player_face face = PLAYER_FACE_NULL;
 
         _unit* testUnit = new _unit();
 
