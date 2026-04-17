@@ -206,10 +206,6 @@ void _scene::updateScene(double dt)
     bulletManager->updateBulletManager(dt);
     myWorld->updateWorld(dt);
 
-    if (SPACE) {
-        bulletManager->spawnBulletEffect(player->pos, mouseWorldPos,test_bullet);
-    }
-
     // Check for mouse events
     if (LMB && hoveredCell && hoveredChunk && myWorld->isCellWall(hoveredCell)) {
         if (interactionTimer->getSeconds() > miningSpeed/5.0f) {
@@ -305,25 +301,39 @@ void _scene::updateScene(double dt)
 
     //cout << "Collision Table: " << collisionTable[0] << ", " << collisionTable[1] << ", " << collisionTable[2] << ", " << collisionTable[3] << "\n";
 
+    if (SPACE) {
+        bulletManager->spawnBulletEffect(player->pos, mouseWorldPos,test_bullet);
+        player->isShooting = true;
+    }  else {
+        player->isShooting = false;
+    }
+
+    player_action action;
+    player_face face;
+    if (player->isShooting) {
+        action = PLAYER_ACTION_WALK_SHOOT;
+    } else {
+        action = PLAYER_ACTION_WALK_GUN;
+    }
     if (!cameraFree) {
         // Double input -- diagonol checks //
         if (W && A) {
-            player->setAction(PLAYER_ACTION_WALK,PLAYER_FACE_NW);
+            player->setAction(action,PLAYER_FACE_NW);
             walking = true;
         }
         
         if (W && D) {
-            player->setAction(PLAYER_ACTION_WALK,PLAYER_FACE_NE);
+            player->setAction(action,PLAYER_FACE_NE);
             walking = true;
         }
         
         if (S && A) {
-            player->setAction(PLAYER_ACTION_WALK,PLAYER_FACE_SW);
+            player->setAction(action,PLAYER_FACE_SW);
             walking = true;
         }
     
         if (S && D) {
-            player->setAction(PLAYER_ACTION_WALK,PLAYER_FACE_SE);
+            player->setAction(action,PLAYER_FACE_SE);
             walking = true;
         }
 
@@ -331,30 +341,31 @@ void _scene::updateScene(double dt)
         if (!walking) {
             // Sigle input checks //
             if (W && !collisionTable[0]) {
-                player->setAction(PLAYER_ACTION_WALK,PLAYER_FACE_N);
+                player->setAction(action,PLAYER_FACE_N);
                 walking = true;
             }
             
             if (A && !collisionTable[1]) {
-                player->setAction(PLAYER_ACTION_WALK,PLAYER_FACE_SW);
+                player->setAction(action,PLAYER_FACE_W);
                 walking = true;
             }
             
             if (S && !collisionTable[3]) {
-                player->setAction(PLAYER_ACTION_WALK,PLAYER_FACE_S);
+                player->setAction(action,PLAYER_FACE_S);
                 walking = true;
             }
         
             if (D && !collisionTable[2]) {
-                player->setAction(PLAYER_ACTION_WALK,PLAYER_FACE_SE);
+                player->setAction(action,PLAYER_FACE_E);
                 walking = true;
             }
         }
     }
 
     if (!walking) {
-        player->stopAction(PLAYER_ACTION_WALK);
+        player->stopAction(action);
     } 
+    
 
     if (cameraFree) {
         if(W) cameraY += cameraSpeed*dt;

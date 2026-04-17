@@ -21,6 +21,7 @@ enum player_action {
     PLAYER_ACTION_NULL,
     PLAYER_ACTION_WALK,
     PLAYER_ACTION_WALK_GUN,
+    PLAYER_ACTION_WALK_SHOOT,
     PLAYER_ACTION_COUNT // KEY AT BACK
 };
 
@@ -41,6 +42,7 @@ class _player : public _unit {
         // Stops current action
         void stopAction(player_action action);
 
+        bool isShooting = false;
     protected:
     private:
     struct PlayerAnimationResult {

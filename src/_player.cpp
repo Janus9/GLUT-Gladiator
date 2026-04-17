@@ -16,17 +16,20 @@ void _player::initPlayer() {
 
     // Walk Animation //
     setupSprite("WALK");
-    getSprite("WALK")->initSprite("images/player/Walk/Normal/walk.png", 8, 6, sprite_direction::LEFT,12); // No natural direction due to top down
+    _sprite* walk_sprite = getSprite("WALK");
+    if (walk_sprite) {
+        walk_sprite->initSprite("images/player/Walk/Normal/walk.png", 8, 6, sprite_direction::LEFT,12); // No natural direction due to top down
     
-    getSprite("WALK")->createSpriteAction(sprite_action("WALK_N",3,0,7));
-    getSprite("WALK")->createSpriteAction(sprite_action("WALK_NE",4,0,7));
-    getSprite("WALK")->createSpriteAction(sprite_action("WALK_E",5,0,7));
-    getSprite("WALK")->createSpriteAction(sprite_action("WALK_SE",5,0,7));
-    getSprite("WALK")->createSpriteAction(sprite_action("WALK_S",0,0,7));
-    getSprite("WALK")->createSpriteAction(sprite_action("WALK_SW",1,0,7));
-    getSprite("WALK")->createSpriteAction(sprite_action("WALK_W",1,0,7));
-    getSprite("WALK")->createSpriteAction(sprite_action("WALK_NW",2,0,7));
-    getSprite("WALK")->offsetPoint = {0.0f, 8.0f};
+        walk_sprite->createSpriteAction(sprite_action("WALK_N",3,0,7));
+        walk_sprite->createSpriteAction(sprite_action("WALK_NE",4,0,7));
+        walk_sprite->createSpriteAction(sprite_action("WALK_E",5,0,7));
+        walk_sprite->createSpriteAction(sprite_action("WALK_SE",5,0,7));
+        walk_sprite->createSpriteAction(sprite_action("WALK_S",0,0,7));
+        walk_sprite->createSpriteAction(sprite_action("WALK_SW",1,0,7));
+        walk_sprite->createSpriteAction(sprite_action("WALK_W",1,0,7));
+        walk_sprite->createSpriteAction(sprite_action("WALK_NW",2,0,7));
+        walk_sprite->offsetPoint = {0.0f, 8.0f};
+    }
 
     animationTable[PLAYER_ACTION_WALK][PLAYER_FACE_N] = {"WALK","WALK_N",{0,3}};
     animationTable[PLAYER_ACTION_WALK][PLAYER_FACE_NE] = {"WALK","WALK_NE",{0,4}};
@@ -36,6 +39,58 @@ void _player::initPlayer() {
     animationTable[PLAYER_ACTION_WALK][PLAYER_FACE_SW] = {"WALK","WALK_SW",{0,1}};
     animationTable[PLAYER_ACTION_WALK][PLAYER_FACE_W] = {"WALK","WALK_W",{0,2}};
     animationTable[PLAYER_ACTION_WALK][PLAYER_FACE_NW] = {"WALK","WALK_NW",{0,2}};
+
+    // Walk Gun Animation //
+    setupSprite("WALK_GUN");
+    _sprite* walk_gun_sprite = getSprite("WALK_GUN");
+    if (walk_gun_sprite) {
+        walk_gun_sprite->initSprite("images/player/Walk/Gun/Walk_Gun.png", 8, 6, sprite_direction::LEFT,12); // No natural direction due to top down
+        
+        walk_gun_sprite->createSpriteAction(sprite_action("WALK_GUN_N",3,0,7));
+        walk_gun_sprite->createSpriteAction(sprite_action("WALK_GUN_NE",4,0,7));
+        walk_gun_sprite->createSpriteAction(sprite_action("WALK_GUN_E",5,0,7));
+        walk_gun_sprite->createSpriteAction(sprite_action("WALK_GUN_SE",5,0,7));
+        walk_gun_sprite->createSpriteAction(sprite_action("WALK_GUN_S",0,0,7));
+        walk_gun_sprite->createSpriteAction(sprite_action("WALK_GUN_SW",1,0,7));
+        walk_gun_sprite->createSpriteAction(sprite_action("WALK_GUN_W",1,0,7));
+        walk_gun_sprite->createSpriteAction(sprite_action("WALK_GUN_NW",2,0,7));
+        walk_gun_sprite->offsetPoint = {0.0f, 8.0f};
+    }
+
+    animationTable[PLAYER_ACTION_WALK_GUN][PLAYER_FACE_N] = {"WALK_GUN","WALK_GUN_N",{0,3}};
+    animationTable[PLAYER_ACTION_WALK_GUN][PLAYER_FACE_NE] = {"WALK_GUN","WALK_GUN_NE",{0,4}};
+    animationTable[PLAYER_ACTION_WALK_GUN][PLAYER_FACE_E] = {"WALK_GUN","WALK_GUN_E",{0,5}};
+    animationTable[PLAYER_ACTION_WALK_GUN][PLAYER_FACE_SE] = {"WALK_GUN","WALK_GUN_SE",{0,5}};
+    animationTable[PLAYER_ACTION_WALK_GUN][PLAYER_FACE_S] = {"WALK_GUN","WALK_GUN_S",{0,0}};
+    animationTable[PLAYER_ACTION_WALK_GUN][PLAYER_FACE_SW] = {"WALK_GUN","WALK_GUN_SW",{0,1}};
+    animationTable[PLAYER_ACTION_WALK_GUN][PLAYER_FACE_W] = {"WALK_GUN","WALK_GUN_W",{0,2}};
+    animationTable[PLAYER_ACTION_WALK_GUN][PLAYER_FACE_NW] = {"WALK_GUN","WALK_GUN_NW",{0,2}};
+
+    // Walk Shoot Animation //
+    setupSprite("WALK_SHOOT");
+    _sprite* walk_shoot_sprite = getSprite("WALK_SHOOT");
+    if (walk_shoot_sprite) {
+        walk_shoot_sprite->initSprite("images/player/Walk_while_Shooting - NEW/Walk_while_Shooting.png", 8, 8, sprite_direction::LEFT,12); // No natural direction due to top down
+    
+        walk_shoot_sprite->createSpriteAction(sprite_action("WALK_SHOOT_N",3,0,7));
+        walk_shoot_sprite->createSpriteAction(sprite_action("WALK_SHOOT_NE",4,0,7));
+        walk_shoot_sprite->createSpriteAction(sprite_action("WALK_SHOOT_E",6,0,7));
+        walk_shoot_sprite->createSpriteAction(sprite_action("WALK_SHOOT_SE",5,0,7));
+        walk_shoot_sprite->createSpriteAction(sprite_action("WALK_SHOOT_S",0,0,7));
+        walk_shoot_sprite->createSpriteAction(sprite_action("WALK_SHOOT_SW",1,0,7));
+        walk_shoot_sprite->createSpriteAction(sprite_action("WALK_SHOOT_W",7,0,7));
+        walk_shoot_sprite->createSpriteAction(sprite_action("WALK_SHOOT_NW",2,0,7));
+        walk_shoot_sprite->offsetPoint = {0.0f, 8.0f};
+    }
+
+    animationTable[PLAYER_ACTION_WALK_SHOOT][PLAYER_FACE_N] = {"WALK_SHOOT","WALK_SHOOT_N",{0,3}};
+    animationTable[PLAYER_ACTION_WALK_SHOOT][PLAYER_FACE_NE] = {"WALK_SHOOT","WALK_SHOOT_NE",{0,4}};
+    animationTable[PLAYER_ACTION_WALK_SHOOT][PLAYER_FACE_E] = {"WALK_SHOOT","WALK_SHOOT_E",{0,6}};
+    animationTable[PLAYER_ACTION_WALK_SHOOT][PLAYER_FACE_SE] = {"WALK_SHOOT","WALK_SHOOT_SE",{0,5}};
+    animationTable[PLAYER_ACTION_WALK_SHOOT][PLAYER_FACE_S] = {"WALK_SHOOT","WALK_SHOOT_S",{0,0}};
+    animationTable[PLAYER_ACTION_WALK_SHOOT][PLAYER_FACE_SW] = {"WALK_SHOOT","WALK_SHOOT_SW",{0,1}};
+    animationTable[PLAYER_ACTION_WALK_SHOOT][PLAYER_FACE_W] = {"WALK_SHOOT","WALK_SHOOT_W",{0,7}};
+    animationTable[PLAYER_ACTION_WALK_SHOOT][PLAYER_FACE_NW] = {"WALK_SHOOT","WALK_SHOOT_NW",{0,2}};
 }
 
 void _player::drawPlayer() {
