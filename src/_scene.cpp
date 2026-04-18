@@ -211,6 +211,7 @@ void _scene::updateScene(double dt)
 
     bulletManager->updateBulletManager(dt);
     myWorld->updateWorld(dt);
+    player->updatePlayer(dt);
 
     // Check for mouse events
     if (LMB && hoveredCell && hoveredChunk && myWorld->isCellWall(hoveredCell)) {
@@ -306,6 +307,12 @@ void _scene::updateScene(double dt)
     }
 
     //cout << "Collision Table: " << collisionTable[0] << ", " << collisionTable[1] << ", " << collisionTable[2] << ", " << collisionTable[3] << "\n";
+
+    bool W = keys['W'];
+    bool A = keys['A'];
+    bool S = keys['S'];
+    bool D = keys['D'];
+    bool SPACE = keys[VK_SPACE];
 
     if (SPACE) {
         bulletManager->spawnBulletEffect(player->pos, mouseWorldPos,test_bullet);
@@ -555,51 +562,13 @@ int _scene::winMsg(HWND	hWnd, UINT uMsg, WPARAM	wParam, LPARAM lParam)
         // Keypress
         case WM_KEYDOWN:
             if (inputDebugEnabled) Logger.LogDebug("Key Pressed: " + std::to_string(wParam), LOG_CONSOLE); //Log the key that was pressed
+            keys[wParam] = true;
             keyboardHandler(wParam);
-            switch (wParam)
-            {
-                // WASD //
-                case 'W':
-                    W = true;
-                    break;
-                case 'A':
-                    A = true;
-                    break;
-                case 'S':
-                    S = true;
-                    break;
-                case 'D':
-                    D = true;
-                    break;
-                // OTHER //
-                case 32: // spacebar
-                    SPACE = true;
-                    break;
-            }
             break;
         // Key release
         case WM_KEYUP:
             if (inputDebugEnabled) Logger.LogDebug("Key Released: " + std::to_string(wParam), LOG_CONSOLE); //Log the key that was released
-            switch (wParam)
-            {
-                // WASD //
-                case 'W':
-                    W = false;
-                    break;
-                case 'A':
-                    A = false;
-                    break;
-                case 'S':
-                    S = false;
-                    break;
-                case 'D':
-                    D = false;
-                    break;
-                // OTHER //
-                case 32: // spacebar
-                    SPACE = false;
-                    break;
-            }
+            keys[wParam] = false;
             break;
         // Left Mouse button down
         case WM_LBUTTONDOWN: {
@@ -662,6 +631,8 @@ void _scene::applyCamera() {
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
+
+    // This setup does not use a View matrix and it should -- this should be changed later
 
     // We use Orthographic projection because its a 2D game and it makes it easy to maintain scale via pixels
     /**

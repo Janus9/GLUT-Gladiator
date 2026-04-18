@@ -183,6 +183,10 @@ void _player::initPlayer() {
     animationTable[PLAYER_ACTION_IDLE_SHOOT][PLAYER_FACE_NW] = {"IDLE_SHOOT","IDLE_SHOOT_NW",{0,2}};
 }
 
+void _player::updatePlayer(double dt) {
+  
+}
+
 void _player::drawPlayer() {
     drawUnitSingular();
 }

@@ -107,12 +107,7 @@ class _scene
 
         float miningSpeed = 2.5f; // In seconds
 
-        bool W = false; 
-        bool A = false; 
-        bool S = false; 
-        bool D = false;
-
-        bool SPACE = false;
+        bool keys[256] = { false };
 
         bool LMB = false;
 
