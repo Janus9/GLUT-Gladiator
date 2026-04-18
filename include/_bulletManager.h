@@ -115,12 +115,7 @@ class _bulletManager {
         GLuint vboID = 0;
         GLuint eboID = 0;
         GLuint vaoID = 0;
-
-        GLint a_localPos = -1;
-        GLint a_texCoord = -1;
-        GLint a_center = -1;
-        GLint a_angle = -1;
-
+        
         GLint u_dimensions = -1;
         GLint u_texture = -1;
 

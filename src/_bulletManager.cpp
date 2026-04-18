@@ -60,12 +60,6 @@ void _bulletManager::initBulletManager(const string &fileName, _world* currentWo
 
     uint32_t program = bulletShader.getProgram();
     
-    // Attributes
-    a_localPos = glGetAttribLocation(program,"a_localPos");
-    a_texCoord = glGetAttribLocation(program,"a_texCoord");
-    a_center = glGetAttribLocation(program,"a_center");
-    a_angle = glGetAttribLocation(program,"a_angle");
-
     // Uniforms
     u_dimensions = glGetUniformLocation(program,"u_dimensions");
     u_texture = glGetUniformLocation(program,"u_texture");
@@ -83,6 +77,14 @@ void _bulletManager::initBulletManager(const string &fileName, _world* currentWo
 
     bullet_shell_effect.minLifeTime = 2.5f;
     bullet_shell_effect.maxLifeTime = 3.0f;
+
+    // 7 entries per vertex, 4 vertex per primitive (quad), MAX_BULLETS amount, ~4 bytes per float (may change)
+    int maxSizeBytes = 7 * 4 * MAX_BULLETS * sizeof(float);
+
+    glBindBuffer(GL_ARRAY_BUFFER,vboID);
+    // This allocates memoery for the buffer but does NOT assign any data
+    glBufferData(GL_ARRAY_BUFFER,maxSizeBytes,nullptr,GL_DYNAMIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER,0);
 
     buildEbo();
     buildVao();
@@ -260,7 +262,7 @@ void _bulletManager::buildVbo() {
     }
 
     glBindBuffer(GL_ARRAY_BUFFER, vboID);
-    glBufferData(GL_ARRAY_BUFFER, vIndex * sizeof(float), bulletVboData, GL_DYNAMIC_DRAW); // We only send the particles that are alive
+    glBufferSubData(GL_ARRAY_BUFFER,0,vIndex * sizeof(float),bulletVboData); // We only send the particles that are alive
     glBindBuffer(GL_ARRAY_BUFFER,0);
 }
 
@@ -301,10 +303,10 @@ void _bulletManager::buildVao() {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,eboID);
 
     // Enable the attribute arrays (not setup with data yet, just enabled)
-    glEnableVertexAttribArray(a_localPos);
-    glEnableVertexAttribArray(a_texCoord);
-    glEnableVertexAttribArray(a_center);
-    glEnableVertexAttribArray(a_angle);
+    glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
+    glEnableVertexAttribArray(2);
+    glEnableVertexAttribArray(3);
 
     GLsizei stride = 7 * sizeof(float);
 
@@ -321,10 +323,10 @@ void _bulletManager::buildVao() {
      */
 
     // Setup a data array for the attributes (data is per vertex!)
-    glVertexAttribPointer(a_localPos,2,GL_FLOAT,GL_FALSE,stride,(void*)(0 * sizeof(float)));
-    glVertexAttribPointer(a_texCoord,2,GL_FLOAT,GL_FALSE,stride,(void*)(2 * sizeof(float)));
-    glVertexAttribPointer(a_center,2,GL_FLOAT,GL_FALSE,stride,(void*)(4 * sizeof(float)));
-    glVertexAttribPointer(a_angle,1,GL_FLOAT,GL_FALSE,stride,(void*)(6 * sizeof(float)));
+    glVertexAttribPointer(0,2,GL_FLOAT,GL_FALSE,stride,(void*)(0 * sizeof(float)));
+    glVertexAttribPointer(1,2,GL_FLOAT,GL_FALSE,stride,(void*)(2 * sizeof(float)));
+    glVertexAttribPointer(2,2,GL_FLOAT,GL_FALSE,stride,(void*)(4 * sizeof(float)));
+    glVertexAttribPointer(3,1,GL_FLOAT,GL_FALSE,stride,(void*)(6 * sizeof(float)));
 
     glBindVertexArray(0);
 }

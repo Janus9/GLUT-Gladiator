@@ -1,22 +1,22 @@
-#version 120
+#version 330 core
 
 /*
-Attribute - Per vertex data comming from the VBO
+in - Per vertex data comming from the VBO
 Unform - Data for the whole draw
-Varying - Output from vertex shader for fragment shader (usually texture coords)
+out - Output from vertex shader for fragment shader (usually texture coords)
 */
 
 // Data from the VBO //
-attribute vec2 a_localPos;
-attribute vec2 a_texCoord;
-attribute vec2 a_center;
-attribute float a_angle; 
+layout(location = 0) in vec2 a_localPos;
+layout(location = 1) in vec2 a_texCoord;
+layout(location = 2) in vec2 a_center;
+layout(location = 3) in float a_angle; 
 
 // Data for entire draw
 uniform vec4 u_dimensions; // Left, right, top, bottom
 
 // Output to fragment shader (textures not modified here)
-varying vec2 v_texCoord;
+out vec2 v_texCoord;
 
 void main() {
     float c = cos(a_angle);

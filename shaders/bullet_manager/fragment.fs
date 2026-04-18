@@ -1,10 +1,14 @@
-#version 120
+#version 330 core
+
+// From the vertex shader
+in vec2 v_texCoord;
 
 // sampler2D is a reference to a 2D image in GPU memory (SOIL stores images in GPU!)
 uniform sampler2D u_texture;
 
-varying vec2 v_texCoord;
+// This can be any name
+out vec4 FragColor;
 
 void main() {
-    gl_FragColor = texture2D(u_texture,v_texCoord);
+    FragColor = texture2D(u_texture,v_texCoord);
 }
