@@ -59,10 +59,31 @@ void _enemyManager::initEnemyManager(_player* currentPlayer, _world* currentWorl
     world = currentWorld;
     bulletManager = currentBulletManager;
     bullet_1 = _bullet_1;
+
+    particleManager->initParticleManager("images/particle.png");
+    // wall_break_effect
+    turret_hit_effect.amount = 15;
+
+    turret_hit_effect.minVelX = -8.0f;
+    turret_hit_effect.maxVelX = 8.0f;
+    turret_hit_effect.minVelY = 10.0f;
+    turret_hit_effect.maxVelY = 25.0f;
+
+    turret_hit_effect.minRadius = 1.0f;
+    turret_hit_effect.maxRadius = 2.0f;
+
+    turret_hit_effect.minLifeTime = 0.5f;
+    turret_hit_effect.maxLifeTime = 1.1f;
+
+    turret_hit_effect.minSpawnOffsetX = -3.0f;
+    turret_hit_effect.maxSpawnOffsetX = 3.0f;
+    turret_hit_effect.minSpawnOffsetY = -3.0f;
+    turret_hit_effect.maxSpawnOffsetY = 3.0f;
 }
 
 void _enemyManager::updateEnemies(double dt) {
     // Iterate backwards to removal safety
+    particleManager->updateParticleManger(dt);
     if (enemyList.size() <= 0) return; // Empty list - no need to run loop
     if (!player || player->isDead()) return; // No player, or player is dead
     for (int i = enemyList.size()-1; i >= 0; i--) {
@@ -109,6 +130,7 @@ void _enemyManager::drawEnemies() {
     for (int i = 0; i < enemyList.size(); i++) {
         enemyList[i]->drawUnitSingular();
     }
+    particleManager->drawParticleManager();
 }
 
 void _enemyManager::addEnemy(const Vec2f &_pos) {
@@ -123,6 +145,7 @@ _enemy* _enemyManager::isColliding(const Vec2f &pos, float registerDistance) con
         _enemy* enemy = enemyList[i].get();
         float distance = enemy->pos.distance(pos);
         if (distance <= registerDistance) {
+            particleManager->spawnEffect(enemy->pos,turret_hit_effect);
             return enemy;
         }
     }

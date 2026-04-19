@@ -5,6 +5,7 @@
 #include <_player.h>
 #include <_world.h>
 #include <_bulletManager.h>
+#include <_particleManager.h>
 
 class _enemy : public _unit {
     public:
@@ -77,6 +78,9 @@ class _enemyManager {
         _bullet_config* bullet_1 = nullptr;
 
         vector<unique_ptr<_enemy>> enemyList;   // List of enemy instances
+
+        unique_ptr<_particleManager> particleManager = make_unique<_particleManager>();
+        particle_effect turret_hit_effect;
 };
 
 #endif // _ENEMY_MANAGER_H
