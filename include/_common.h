@@ -415,4 +415,10 @@ inline int modFloor(int a, int b)
     return r;
 }
 
+enum class _team {
+    FRIENDLY,
+    ENEMY,
+    NEUTRAL
+};
+
 #endif // _COMMON_H

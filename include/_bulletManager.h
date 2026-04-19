@@ -7,6 +7,9 @@
 #include <_world.h>
 #include <_particleManager.h>
 #include <_shader.h>
+#include <_player.h>
+
+class _enemyManager;
 
 /**
  * Bullet Config
@@ -46,7 +49,7 @@ class _bulletManager {
          * @param fileName Name of file for bullet image
          * @param world Pointer to world where manager operates
          */
-        void initBulletManager(const string &fileName, _world* currentWorld);
+        void initBulletManager(const string &fileName, _world* currentWorld, _player* currentPlayer, _enemyManager* currentEnemyManager);
 
         /**
          * Draw function
@@ -66,7 +69,7 @@ class _bulletManager {
          * @param dest Position where bullet is aimed at
          * @param config _bullet_config of settings for the effect (see struct for implementation info)
          */
-        void spawnBulletEffect(const Vec2f &pos, const Vec2f &dest, const _bullet_config &config);
+        void spawnBulletEffect(const Vec2f &pos, const Vec2f &dest, _team bulletTeam, const _bullet_config &config);
 
         /**
          * Statically sets the window viewport.
@@ -81,7 +84,9 @@ class _bulletManager {
         static void setViewportDimensions(float _left, float _right, float _top, float _bottom);    
     protected:
     private:
-        _world* world = nullptr; // What world this bullet exists in, set in init
+        _player* player = nullptr;                  // Pointer to player instance instantiated in scene (non-owning)
+        _world* world = nullptr;                    // Pointer to world instance instantiated in scene (non-owning)
+        _enemyManager* enemyManager = nullptr;      // Pointer to enemyManager instance instantiated in scene (non-owning)
 
         _texture* texture = new _texture();
         _particleManager* bulletDrops = new _particleManager();
@@ -106,6 +111,8 @@ class _bulletManager {
 
             float lifespan = 0.0f; // How long (in seconds) bullet lives 
             float age = 0.0f; // Bullets current age
+
+            _team team;
         };
         
         _bullet bulletPool[MAX_BULLETS]; // Bullet pool

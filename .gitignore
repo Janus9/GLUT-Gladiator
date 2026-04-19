@@ -21,3 +21,6 @@ obj/
 
 # LIBRARY FOLDERS #
 common/
+
+# DOXYGEN #
+html/

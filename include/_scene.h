@@ -62,10 +62,18 @@ class _scene
         float bottom = 0.0f;
         float top = 0.0f;
 
-        unique_ptr<_enemyManager> enemyManager = make_unique<_enemyManager>();
+        // Player
+        unique_ptr<_player> player = make_unique<_player>();                        
+        player_action action = PLAYER_ACTION_NULL;
+        player_face face = PLAYER_FACE_NULL;
 
-        _bulletManager* bulletManager = new _bulletManager();
-        _bullet_config test_bullet;
+        // Enemies
+        unique_ptr<_enemyManager> enemyManager = make_unique<_enemyManager>();
+        
+        // Bullets (Projectiles)
+        unique_ptr<_bulletManager> bulletManager = make_unique<_bulletManager>();
+        _bullet_config player_bullet;
+        _bullet_config turret_bullet;
 
         _sounds* testSounds = new _sounds();
 
@@ -73,9 +81,6 @@ class _scene
         _model* myModel = new _model();
         _world* myWorld = new _world();
         
-        _player* player = new _player();
-        player_action action = PLAYER_ACTION_NULL;
-        player_face face = PLAYER_FACE_NULL;
 
         _unit* testUnit = new _unit();
 

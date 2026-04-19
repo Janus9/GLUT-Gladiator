@@ -792,7 +792,6 @@ bool _world::damageCell(_cell* cell, float amount) {
     }
 }
 
-
 void _world::runWorldGeneration(int iterations) {
     Logger.LogInfo("Running world generation for parameters: ");
     Logger.LogInfo(" - Noise Density: " + to_string(noise_distribution*100.0f) + "%");

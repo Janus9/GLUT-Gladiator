@@ -1,4 +1,5 @@
 #include <_bulletManager.h>
+#include <_enemyManager.h>
 
 // -- STATIC MEMBERS -- //
 
@@ -16,7 +17,7 @@ void _bulletManager::setViewportDimensions(float _left, float _right, float _top
 
 // -- PUBLIC -- //
 
-_bulletManager::_bulletManager() {
+_bulletManager::_bulletManager() : rng(random_device{}()) {
     // ctor
 }
 
@@ -45,7 +46,7 @@ _bulletManager::~_bulletManager() {
     // no timers
 }
 
-void _bulletManager::initBulletManager(const string &fileName, _world* currentWorld) {
+void _bulletManager::initBulletManager(const string &fileName, _world* currentWorld, _player* currentPlayer, _enemyManager* currentEnemyManager) {
     // Generate new buffers
     glGenBuffers(1,&vboID);
     glGenBuffers(1,&eboID);
@@ -54,6 +55,8 @@ void _bulletManager::initBulletManager(const string &fileName, _world* currentWo
     texture->loadTexture(fileName);
 
     world = currentWorld;
+    player = currentPlayer;
+    enemyManager = currentEnemyManager;
     
     // -- SHADER SETUP -- //
     bulletShader.initShader("shaders/bullet_manager/vertex.vs","shaders/bullet_manager/fragment.fs");
@@ -64,7 +67,7 @@ void _bulletManager::initBulletManager(const string &fileName, _world* currentWo
     u_dimensions = glGetUniformLocation(program,"u_dimensions");
     u_texture = glGetUniformLocation(program,"u_texture");
 
-    bulletDrops->initParticleManager("images/test_bullet.png",1000);
+    bulletDrops->initParticleManager("images/bullet_casing.png",1000);
     bullet_shell_effect.amount = 1;
 
     bullet_shell_effect.minVelX = 5.5f;
@@ -123,8 +126,6 @@ void _bulletManager::drawBulletManager() {
 }
 
 void _bulletManager::updateBulletManager(double dt) {
-    // Has really odd collision with tiles
-
     bulletDrops->updateParticleManger(dt);
 
     if (aliveBullets <= 0) return; // Skip update loops when no bullets are alive
@@ -138,11 +139,10 @@ void _bulletManager::updateBulletManager(double dt) {
             b->alive = false;
             continue;
         }
-
-        
         // Physics
         b->pos += b->vel * dt;
-
+        
+        // World Collision Checks
         _cell* occupyingCell = world->getCellAtWorld(b->pos);
         if (occupyingCell) {
             if (world->isTileWall(occupyingCell->tileId)) {
@@ -152,17 +152,47 @@ void _bulletManager::updateBulletManager(double dt) {
                 continue;
             }
         }
+
+        if (b->team == _team::FRIENDLY || b->team == _team::NEUTRAL) {
+            // Enemy Collision Check
+            _enemy* enemy = enemyManager->isColliding(b->pos,5.0f); 
+            if (enemy) {
+                enemy->health -= 10.0f;
+                b->alive = false;
+                continue;
+            }
+        } else {
+            // Friendly Collision Check
+            if (b->pos.distance(player->pos) < 5.0f) {
+                player->health -= 10.0f;
+                b->alive = false;
+                continue;
+            }
+        }
     }
 }
 
-void _bulletManager::spawnBulletEffect(const Vec2f &pos, const Vec2f &dest, const _bullet_config &config) {
+void _bulletManager::spawnBulletEffect(const Vec2f &pos, const Vec2f &dest, _team bulletTeam, const _bullet_config &config) {
     int currentBullets = 0;
 
-    float distance = pos.distance(dest); // Distance between source and destination
-    float xComponent = (dest.x - pos.x) / distance; // Component [0-1] 
-    float yComponent = (dest.y - pos.y) / distance; // Component [0-1]
+    uniform_real_distribution<float> angle_dist(-config.angleOffset, config.angleOffset);
 
-    Vec2f vel = {xComponent * config.speed, yComponent * config.speed};
+    float angleOffset = degreeToRad(angle_dist(rng)); // Radians
+
+    Vec2f dir = (dest-pos).normalized(); // Direction vector
+
+    float sinA = sin(angleOffset);
+    float cosA = cos(angleOffset);
+
+    /**
+     * [cos -sin][x]
+     * [sin  cos][y]
+     * 
+     * Formula for 2D rotations
+     */
+    Vec2f newDir = {dir.x * cosA - dir.y * sinA, dir.x * sinA + dir.y * cosA};
+
+    Vec2f vel = {newDir.x * config.speed, newDir.y * config.speed};
 
     for (int i = 0; i < MAX_BULLETS; i++) {
         if (currentBullets >= config.amount) break; // Found enough bullets
@@ -179,6 +209,7 @@ void _bulletManager::spawnBulletEffect(const Vec2f &pos, const Vec2f &dest, cons
         b->angle = atan2(b->vel.y, b->vel.x); // Gets angle bullet must rotate for its velocity 
         b->lifespan = config.lifespan;
         b->age = 0.0f;
+        b->team = bulletTeam;
 
         currentBullets++;
     }

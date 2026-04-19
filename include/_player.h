@@ -63,7 +63,7 @@ class _player : public _unit {
         bool hasGun = false;        // Does player have gun equipped
         bool isShooting = false;    // Is the player actively shooting
 
-        float fireRate = 600; // RPM
+        float fireRate = 400; // RPM
     protected:
     private:
         int FPS = 12;

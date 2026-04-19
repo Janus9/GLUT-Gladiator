@@ -17,9 +17,6 @@ _scene::~_scene()
     delete myWorld;
     myWorld = nullptr;
 
-    delete player;
-    player = nullptr;
-
     delete fpsTimer;
     fpsTimer = nullptr;
 
@@ -37,9 +34,6 @@ _scene::~_scene()
 
     delete hud;
     hud = nullptr;
-
-    delete bulletManager;
-    bulletManager = nullptr;
 
     delete sh;
     sh = nullptr;
@@ -100,6 +94,9 @@ GLint _scene::initGL()
     hud->addHudText("CHUNK_REDRAW");
     hud->getHudText("CHUNK_REDRAW")->setFont(GLUT_BITMAP_9_BY_15);
 
+    hud->addHudText("PLAYER_HEALTH");
+    hud->getHudText("PLAYER_HEALTH")->setFont(GLUT_BITMAP_HELVETICA_18);
+
     hud->addHudSprite("PROGRESS_BAR");
     hud->getHudSprite("PROGRESS_BAR")->getSprite()->initSprite("images/progress_bar.png",5,1,sprite_direction::RIGHT);
     hud->getHudSprite("PROGRESS_BAR")->getSprite()->scale = {1.5f, 1.5f};
@@ -108,14 +105,13 @@ GLint _scene::initGL()
     hud->getHudSprite("PROGRESS_BAR")->getSprite()->setIdleFrame(0,0);
     
     myLight->setLight(GL_LIGHT0); // The light onto the object from the pointer is set to be the instantiated light from before
-    myModel->initModel(); // The model is initialized from the pointer to the model class
     myWorld->initWorld(); // Initialize the world
     
     debugTimer.reset();     
    
     drawWorldBenchmark->startBenchmark();
 
-    enemyManager->initEnemyManager(player);
+    enemyManager->initEnemyManager(player.get(),myWorld,bulletManager.get(),&turret_bullet);
 
     //testSounds->playSounds("sounds/level_transition.mp3");
 
@@ -123,12 +119,20 @@ GLint _scene::initGL()
     // sh->initShader("shaders/V.vs","shaders/F.fs");
     // glUseProgram(sh->program);
 
-    bulletManager->initBulletManager("images/test_bullet.png", myWorld);
-    test_bullet.amount = 1;
-    test_bullet.speed = 512.0f;
-    test_bullet.width = 20.0f;
-    test_bullet.height = 3.0f;
-    test_bullet.lifespan = 3.0f;
+    bulletManager->initBulletManager("images/test_bullet.png", myWorld,player.get(),enemyManager.get());
+    player_bullet.amount = 1;
+    player_bullet.speed = 512.0f;
+    player_bullet.width = 15.0f;
+    player_bullet.height = 3.0f;
+    player_bullet.lifespan = 3.0f;
+    player_bullet.angleOffset = 2.0f;
+
+    turret_bullet.amount = 1;
+    turret_bullet.speed = 400.0f;
+    turret_bullet.width = 20.0f;
+    turret_bullet.height = 4.0f;
+    turret_bullet.lifespan = 3.0f;
+    turret_bullet.angleOffset = 7.0f;
 
     return true;
 }
@@ -162,6 +166,8 @@ void _scene::reSize(GLint width, GLint height)
     if (hud->getHudText("CELL_HEALTH")) offset += spacing;
     if (hud->getHudText("CHUNK_REDRAW")) hud->getHudText("CHUNK_REDRAW")->position = {20.0f, height-offset};
     if (hud->getHudText("CHUNK_REDRAW")) offset += spacing;
+    if (hud->getHudText("PLAYER_HEALTH")) hud->getHudText("PLAYER_HEALTH")->position = {20.0f, 0 + 40.0f};
+    if (hud->getHudText("PLAYER_HEALTH")) offset += spacing;
     if (hud->getHudSprite("PROGRESS_BAR")) hud->getHudSprite("PROGRESS_BAR")->position = {width/2.0, 100.0f};
 
     Logger.LogInfo("Resizing window to width: " + std::to_string(width) + " and height: " + std::to_string(height), LOG_BOTH);
@@ -440,7 +446,7 @@ void _scene::updateScene(double dt)
             } else {
                 offsetPos = {-4.0f,8.0f};
             }
-            bulletManager->spawnBulletEffect(player->pos + offsetPos, mouseWorldPos,test_bullet);
+            bulletManager->spawnBulletEffect(player->pos + offsetPos, mouseWorldPos, _team::FRIENDLY, player_bullet);
             fireRateTimer.reset();
         } else {
             player->setAnimationFPS(12);
@@ -481,6 +487,7 @@ void _scene::updateScene(double dt)
     hud->getHudText("MOUSE_SCREEN")->setText("Mouse Screen Coords: " + mouseScreenPos.toString());
     hud->getHudText("MOUSE_WORLD")->setText("Mouse World Coords: " + mouseWorldPos.toString());
     hud->getHudText("MOUSE_NORMAL")->setText("Mouse Normal Coords: " + mouseNormalPos.toString());
+    hud->getHudText("PLAYER_HEALTH")->setText("HP: " + to_string(player->health));
     //const _tile* tile = myWorld->getTileAtWorld(player->pos);
 
     const _tile* tile = myWorld->getTileAtWorld(Vec2f(mouseWorldPos.x,mouseWorldPos.y));

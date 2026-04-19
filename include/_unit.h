@@ -129,6 +129,8 @@ class _unit {
 
         float health = 100.0f;
 
+        _team team = _team::NEUTRAL;
+
         // Returns true if unit health is less than or equal to 0.0
         bool isDead() const;
 

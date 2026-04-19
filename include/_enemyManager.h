@@ -2,16 +2,47 @@
 #define _ENEMY_MANAGER_H
 
 #include <_common.h>
-#include <_enemy.h>
 #include <_player.h>
+#include <_world.h>
 #include <_bulletManager.h>
+
+class _enemy : public _unit {
+    public:
+        _enemy();
+        virtual ~_enemy();
+
+        /**
+         * Update function for an enemy
+         * 
+         * @param dt Delta Time (in seconds)
+         */
+        void updateEnemy(double dt);
+
+        // Initialization function for animations/sprites/textures etc
+        void initEnemy();
+  
+        bool operator==(const _enemy &other) const;
+        
+        float fireRate = 600; // In rounds per minute
+
+        double firingTime = 0.0;    // Elapsed time for shooting
+        double deathTime = 0.0;     // Elapsed time for death
+
+        bool inDeathAnimation = false; // Whether enemy is in its death animation
+    protected:
+    private:
+        int enemyID;
+        static int nextId;
+
+
+};
 
 class _enemyManager {
     public:
         _enemyManager();
         virtual ~_enemyManager();
 
-        void initEnemyManager(_player* currentPlayer);
+        void initEnemyManager(_player* currentPlayer, _world* currentWorld, _bulletManager* currentBulletManager,_bullet_config* _bullet_1);
 
         /**
          * Update function for enemies
@@ -26,14 +57,26 @@ class _enemyManager {
         // Adds a single enemy (only 1 type for now)
         void addEnemy(const Vec2f &_pos);
 
+        /**
+         * Checks if any enemy instance is colliding with the provided position
+         * 
+         * @param pos Position of object
+         * @param registerDistance Distance for collision to register 
+         * 
+         * @return Pointer to enemy collision occured with, or nullptr if none
+         */
+        _enemy* isColliding(const Vec2f &pos, float registerDistance) const;
+
         // Returns number of enemies alive in the list
         int getNumEnemies();
     protected:
     private:
-        _player* player = nullptr;              // Pointer to currently active player instance (non-owning)
-        vector<unique_ptr<_enemy>> enemyList;   // List of enemy instances
+        _player* player = nullptr;                  // Pointer to player instance instantiated in scene (non-owning)
+        _world* world = nullptr;                    // Pointer to world instance instantiated in scene (non-owning)
+        _bulletManager* bulletManager = nullptr;    // Pointer to bulletManager instance instantiated in scene (non-owning)
+        _bullet_config* bullet_1 = nullptr;
 
-        unique_ptr<_bulletManager> bulletManager = make_unique<_bulletManager>();
+        vector<unique_ptr<_enemy>> enemyList;   // List of enemy instances
 };
 
 #endif // _ENEMY_MANAGER_H
