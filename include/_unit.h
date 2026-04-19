@@ -125,12 +125,25 @@ class _unit {
 
         // Returns te unit's unique ID 
         int getID() const;
+
+        // OPEARTOR OVERLOADS  //
+        bool operator==(const _unit &other) const;
+
+        // Disable copying
+        _unit(const _unit &other) = delete;
+        _unit& operator=(const _unit &other) = delete;
+
+        // Move Operations
+        // noexcept tells the compiler that this function will never fail. It prevents vectors from defaulting to copy when moving instances
+        _unit(_unit&& other) noexcept;
+        _unit& operator=(_unit&& other) noexcept;
     protected:
     private:
-        _sprite* singleSprite = nullptr; // Pointer to single sprite if unit only draws on at a time (common)
-        vector<_sprite*> spriteList; // Vector for draw iteration
+        _sprite* singleSprite = nullptr;             // Pointer to single sprite if unit only draws on at a time (common)
+        vector<_sprite*> spriteList;                 // Vector for draw iteration
         unordered_map<string,_sprite*> spriteMap;    // Hashmap for lookups
-        _collisionBound* collisionBox = nullptr;
+
+        unique_ptr<_collisionBound> collisionBox = nullptr;
 
         int unitID;
         static int nextID;

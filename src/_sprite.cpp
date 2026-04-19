@@ -13,11 +13,6 @@ _sprite::_sprite() {
 
 _sprite::~_sprite() {
     // dtor
-    delete texture;
-    texture = nullptr;
-
-    delete animationTimer;
-    animationTimer = nullptr;
 }
 
 void _sprite::initSprite(const string &fileName, int _framesX, int _framesY, const sprite_direction &direction, int _FPS) {

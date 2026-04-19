@@ -172,6 +172,11 @@ class _sprite {
         bool reverseAnimation = false;      // If true the animation reel goes backwards (decreases rather than increases)
         bool hidden = false;                // If false sprite draw is ignored (overrides sprite ocapacity)
         
+        // -- Debugging Flags -- //
+        bool debugging = false;             // If true performs certain debug logging
+        bool DEBUG_showPivotPoint = false;  // If true displays pivot location
+        bool DEBUG_showOrigin = false;      // If true displays sprite origin
+
         // -- Operators -- //
         /**
          * Checks the current sprite's ID to another sprite's ID to see if they match
@@ -180,19 +185,15 @@ class _sprite {
          * @return true if sprite ID matches the other sprite ID
          */
         bool operator==(const _sprite &other) const;
-
-        // -- Debugging Flags -- //
-        bool debugging = false;             // If true performs certain debug logging
-        bool DEBUG_showPivotPoint = false;  // If true displays pivot location
-        bool DEBUG_showOrigin = false;      // If true displays sprite origin
+        
     protected:
     private:
         // These are indexes so they start at 0
         int pixelDrawStart = 0; // Which Y pixel we start drawing at (0 is top of image)
         int pixelDrawStop = 0; // Which Y pixel we stop drawing at (pixelsY is bottom of image)
 
-        _timerPlusPlus* animationTimer = new _timerPlusPlus();
-        _texture* texture = new _texture();
+        unique_ptr<_timerPlusPlus> animationTimer = make_unique<_timerPlusPlus>();
+        unique_ptr<_texture> texture = make_unique<_texture>();
 
         unordered_map<string, sprite_action> spriteActions; // List of actions that can be toggled for animation
 

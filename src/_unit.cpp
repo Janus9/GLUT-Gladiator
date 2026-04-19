@@ -23,9 +23,6 @@ _unit::~_unit() {
 
     spriteMap.clear();
     spriteList.clear();
-
-    delete collisionBox;
-    collisionBox = nullptr;
 }
 
 void _unit::setupSprite(const string &spriteName) {
@@ -105,10 +102,7 @@ _sprite* _unit::getSprite(const string &spriteName) {
 }
 
 void _unit::setCollisionBox(const Vec2f &size, const Vec2f &offset) {
-    if (collisionBox) {
-        delete collisionBox;
-    }
-    collisionBox = new _collisionBound();
+    collisionBox = make_unique<_collisionBound>();
     collisionBox->setSize(size);
     collisionBox->setLockedPosition(&pos);
     collisionBox->setPositionOffset(offset);
@@ -128,7 +122,7 @@ Vec2f _unit::getPenetration(const _unit &other) {
 }
 
 _collisionBound* _unit::getCollisionBound() const {
-    return collisionBox;
+    return collisionBox.get();
 }
 
 bool _unit::isDead() const {
@@ -160,3 +154,8 @@ void _unit::setSingleSprite(_sprite* sprite) {
 void _unit::clearSingleSprite() {
     singleSprite = nullptr;
 }
+
+bool _unit::operator==(const _unit &other) const {
+    return unitID == other.unitID;
+}
+
