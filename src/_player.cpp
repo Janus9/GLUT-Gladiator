@@ -192,8 +192,8 @@ void _player::drawPlayer() {
 }
 
 void _player::setAction(player_action action, player_face face) {
+    // cout << "Action: " << action << " and Face: " << face << "\n";
     if (currentResult == animationTable[action][face]) return; // Skip result the same
-
     PlayerAnimationResult result = getAnimationResult(action,face);
     if (result.valid) {
         string s_sprite = result.sprite;
@@ -202,6 +202,7 @@ void _player::setAction(player_action action, player_face face) {
         
         _sprite* sprite = getSprite(s_sprite);
         if (sprite) {
+            sprite->setFPS(FPS);
             sprite->loadSpriteAction(s_action);
             sprite->setIdleFrame(idleFrame.x,idleFrame.y);
             sprite->startAnimation();
@@ -219,6 +220,10 @@ void _player::stopAction(player_action action) {
     if (sprite) {
         sprite->stopAnimation();
     }
+}
+
+void _player::setAnimationFPS(int _FPS) {
+    FPS = _FPS;
 }
 
 // -- PRIVATE -- //

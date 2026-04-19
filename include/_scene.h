@@ -86,6 +86,7 @@ class _scene
 
         _timerPlusPlus inputTimer; // Timer to regulate toggle keys (ensures a key only pressed once)
         _timerPlusPlus* interactionTimer = new _timerPlusPlus(); // Timer for interactive events
+        _timerPlusPlus fireRateTimer;
 
         _shader* sh = new _shader();
 

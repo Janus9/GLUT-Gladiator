@@ -66,6 +66,7 @@ GLint _scene::initGL()
     inputTimer.reset(); 
     fpsTimer->reset();
     interactionTimer->reset();  
+    fireRateTimer.reset();
 
     player->initPlayer();
     player->hasGun = true;
@@ -124,7 +125,7 @@ GLint _scene::initGL()
     test_bullet.amount = 1;
     test_bullet.speed = 512.0f;
     test_bullet.width = 20.0f;
-    test_bullet.height = 6.0f;
+    test_bullet.height = 3.0f;
     test_bullet.lifespan = 3.0f;
 
     return true;
@@ -230,8 +231,8 @@ void _scene::updateScene(double dt)
 
     // Update mouse 
     float mouseScreenYInverted = height - mouseScreenPos.y;
-    // Bottom-left is (0,0) and top right is (1,1)
-    mouseNormalPos = {mouseScreenPos.x/width,mouseScreenYInverted/height};
+    // Bottom-left is (-1,-1) and top right is (1,1)
+    mouseNormalPos = {mouseScreenPos.x/(width * 0.5f) - 1,mouseScreenYInverted/(height * 0.5f) - 1};
 
     //cout << "Mouse Normal Pos: " << mouseNormalPos.toString() << "\n";
 
@@ -239,10 +240,8 @@ void _scene::updateScene(double dt)
     float worldHeight = top-bottom;
 
     // Where the mouse is in world position (for selecting tiles etc)
-    mouseWorldPos = {mouseNormalPos.x * worldWidth + left, mouseNormalPos.y * worldHeight + bottom};
+    mouseWorldPos = {mouseScreenPos.x/width * worldWidth + left, mouseScreenYInverted/height * worldHeight + bottom};
     
-    bool walking = false;
-
     _cell* _playerCell = myWorld->getCellAtWorld(player->pos);
     _chunk* _playerChunk = myWorld->getChunkAtWorld(player->pos);
 
@@ -315,7 +314,6 @@ void _scene::updateScene(double dt)
     bool SPACE = keys[VK_SPACE];
 
     if (SPACE) {
-        bulletManager->spawnBulletEffect(player->pos, mouseWorldPos,test_bullet);
         player->isShooting = true;
     }  else {
         player->isShooting = false;
@@ -323,52 +321,53 @@ void _scene::updateScene(double dt)
 
     if (!cameraFree) {
         // Double input -- diagonol checks //
+        player->isMoving = false; 
         if (W && A) {
             face = PLAYER_FACE_NW;
-            walking = true;
+            player->isMoving = true;
         }
         
         if (W && D) {
             face = PLAYER_FACE_NE;
-            walking = true;
+            player->isMoving = true;
         }
         
         if (S && A) {
             face = PLAYER_FACE_SW;
-            walking = true;
+            player->isMoving = true;
         }
     
         if (S && D) {
             face = PLAYER_FACE_SE;
-            walking = true;
+            player->isMoving = true;
         }
 
         // Prevents single inputs when were already doing a double input
-        if (!walking) {
+        if (!player->isMoving) {
             // Sigle input checks //
             if (W && !collisionTable[0]) {
                 face = PLAYER_FACE_N;
-                walking = true;
+                player->isMoving = true;
             }
             
             if (A && !collisionTable[1]) {
                 face = PLAYER_FACE_W;
-                walking = true;
+                player->isMoving = true;
             }
             
             if (S && !collisionTable[3]) {
                 face = PLAYER_FACE_S;
-                walking = true;
+                player->isMoving = true;
             }
         
             if (D && !collisionTable[2]) {
                 face = PLAYER_FACE_E;
-                walking = true;
+                player->isMoving = true;
             }
         }
     }
 
-    if (walking) {
+    if (player->isMoving) {
         // Walking
         if (player->hasGun) {
             if (player->isShooting) {
@@ -384,63 +383,62 @@ void _scene::updateScene(double dt)
         if (player->hasGun) {
             if (player->isShooting) {
                 // Do face check //
-
-                // This is bad -- should be changed later
-                bool faceUp = false;
-                bool faceRight = false;
-                bool faceDown = false;
-                bool faceLeft = false;
-
-                if (mouseNormalPos.x > 0.5f) {
-                    faceRight = true;
+                if (mouseNormalPos.y > 0.33f) {
+                    // Face Up
+                    if (mouseNormalPos.x > -1.0f && mouseNormalPos.x < -0.33f) {
+                        // Top Left
+                        face = PLAYER_FACE_NW;
+                    } else if (mouseNormalPos.x > -0.33f && mouseNormalPos.x < 0.33f) {
+                        // Up
+                        face = PLAYER_FACE_N;
+                    } else {
+                        // Top Right
+                        face = PLAYER_FACE_NE;
+                    }
+                } else if (mouseNormalPos.y > -0.33f) {
+                    // Middle
+                    if (mouseNormalPos.x > 0.0f) {
+                        // Right
+                        face = PLAYER_FACE_E;
+                    } else {
+                        // Left
+                        face = PLAYER_FACE_W;
+                    }
                 } else {
-                    faceLeft = true;
+                    // Face Down
+                    if (mouseNormalPos.x > -1.0f && mouseNormalPos.x < -0.33f) {
+                        // Bottom Left
+                        face = PLAYER_FACE_SW;
+                    } else if (mouseNormalPos.x > -0.33f && mouseNormalPos.x < 0.33f) {
+                        // Up
+                        face = PLAYER_FACE_S;
+                    } else {
+                        // Bottom Right
+                        face = PLAYER_FACE_SE;
+                    }
                 }
-
-                if (mouseNormalPos.y > 0.5f) {
-                    faceUp = true;
-                } else {
-                    faceDown = true;
-                }
-
-                if (faceUp) {
-                    face = PLAYER_FACE_N;
-                }
-
-                if (faceRight) {
-                    face = PLAYER_FACE_E;
-                }
-
-                if (faceDown) {
-                    face = PLAYER_FACE_S;
-                }
-
-                if (faceLeft) {
-                    face = PLAYER_FACE_W;
-                }
-
-                if (faceUp && faceRight) {
-                    face = PLAYER_FACE_NE;
-                }
-
-                if (faceUp && faceLeft) {
-                    face = PLAYER_FACE_NW;
-                }
-
-                if (faceDown && faceRight) {
-                    face = PLAYER_FACE_SE;
-                }
-
-                if (faceDown && faceLeft) {
-                    face = PLAYER_FACE_SW;
-                }
-
                 action = PLAYER_ACTION_IDLE_SHOOT;
             } else {
                 action = PLAYER_ACTION_IDLE_GUN;
             }
         } else {
             action = PLAYER_ACTION_IDLE;
+        }
+    }
+
+    if (SPACE) {
+        if (fireRateTimer.getSeconds() > 1.0f/(player->fireRate/60.0f)) {
+            player->setAnimationFPS(player->fireRate / 60);
+            Vec2f offsetPos;
+            if (face == PLAYER_FACE_E) {
+                offsetPos = {4.0f,8.0f};
+            } else {
+                offsetPos = {-4.0f,8.0f};
+            }
+            bulletManager->spawnBulletEffect(player->pos + offsetPos, mouseWorldPos,test_bullet);
+            fireRateTimer.reset();
+        } else {
+            player->setAnimationFPS(12);
         }
     }
 

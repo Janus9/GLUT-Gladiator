@@ -55,12 +55,18 @@ class _player : public _unit {
 
         // Stops current action
         void stopAction(player_action action);
+
+        // Sets the animation FPS for the player's animations
+        void setAnimationFPS(int _FPS);
         
         bool isMoving = false;      // Is player actively moving
         bool hasGun = false;        // Does player have gun equipped
         bool isShooting = false;    // Is the player actively shooting
+
+        float fireRate = 600; // RPM
     protected:
     private:
+        int FPS = 12;
         struct PlayerAnimationResult {
             string sprite = ""; // Which sprite
             string action = ""; // Which action (direction facing)
