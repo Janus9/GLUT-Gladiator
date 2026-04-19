@@ -97,9 +97,12 @@ class _unit {
          * Does not apply to the whole unit.
          * 
          * @param _pos Position to focus on
-         * @param speed Speed unit rotates. Negative or 0.0 means instant rotation.
+         * @param speed Speed unit rotates (in degrees/s). Negative or 0.0 means instant rotation.
+         * @param degreeTolerance Amount of tolerance in focusing for degrees +/- (defaults to +/- 5.0 degrees)
+         * 
+         * @return True when focused on target 
          */
-        void focusOn(const Vec2f &_pos, float speed);
+        bool focusOn(const Vec2f &_pos, float speed, float degreeTolerance = 5.0f);
 
         /**
          * Sets the singular sprite.
@@ -109,6 +112,9 @@ class _unit {
          * Can clear by entering nullptr, not recommended.
          */
         void setSingleSprite(_sprite* sprite);
+
+        // Returns the single sprite pointer. Or nullptr if not found.
+        _sprite* getSingleSprite() const;
 
         // Clears the single sprite to nullptr
         void clearSingleSprite();

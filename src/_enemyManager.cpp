@@ -28,7 +28,12 @@ void _enemyManager::updateEnemies(double dt) {
         float distance = enemy->pos.distance(player->pos);
         if (distance < 256.0f) {
             // Enemy in range
-            enemy->focusOn(player->pos,45.0f);
+            bool focused = enemy->focusOn(player->pos,45.0f);
+            if (focused) {
+                enemy->getSingleSprite()->startAnimation();
+            } else {
+                enemy->getSingleSprite()->stopAnimation();
+            }
         }  
     }
 }

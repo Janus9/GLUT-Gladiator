@@ -4,6 +4,7 @@
 #include <_common.h>
 #include <_enemy.h>
 #include <_player.h>
+#include <_bulletManager.h>
 
 class _enemyManager {
     public:
@@ -31,6 +32,8 @@ class _enemyManager {
     private:
         _player* player = nullptr;              // Pointer to currently active player instance (non-owning)
         vector<unique_ptr<_enemy>> enemyList;   // List of enemy instances
+
+        unique_ptr<_bulletManager> bulletManager = make_unique<_bulletManager>();
 };
 
 #endif // _ENEMY_MANAGER_H

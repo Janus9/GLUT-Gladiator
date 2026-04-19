@@ -133,13 +133,14 @@ int _unit::getID() const {
     return unitID;
 }
 
-void _unit::focusOn(const Vec2f &_pos, float speed) {
-    if (!singleSprite) return; 
-    float rotNeeded = GetRotationAngle(pos,_pos); 
+bool _unit::focusOn(const Vec2f &_pos, float speed, float degreeTolerance) {
+    if (!singleSprite) return false; 
+    float rotNeeded = GetRotationAngle(pos,_pos);
+    if (singleSprite->rot < rotNeeded+5 && singleSprite->rot > rotNeeded-5) return true; 
     // Negative speed defaults to instance look
     if (speed <= 0.0f) {
         singleSprite->rot = rotNeeded;
-        return;
+        return true;
     }
     speed /= 60.0f; // Adjust to degrees/second (breaks if update FPS ever changes)
     if (singleSprite->rot < rotNeeded) {
@@ -147,10 +148,15 @@ void _unit::focusOn(const Vec2f &_pos, float speed) {
     } else {
         singleSprite->rot -= speed;
     }
+    return false;
 }
 
 void _unit::setSingleSprite(_sprite* sprite) {
     singleSprite = sprite;
+}
+
+_sprite* _unit::getSingleSprite() const {
+    return singleSprite;
 }
 
 void _unit::clearSingleSprite() {
