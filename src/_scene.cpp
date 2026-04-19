@@ -115,6 +115,8 @@ GLint _scene::initGL()
    
     drawWorldBenchmark->startBenchmark();
 
+    enemyManager->initEnemyManager(player);
+
     //testSounds->playSounds("sounds/level_transition.mp3");
 
     // -- SHADERS -- //
@@ -191,6 +193,8 @@ void _scene::drawScene()
     drawWorldBenchmark->clickBenchmark();
 
     bulletManager->drawBulletManager();
+
+    enemyManager->drawEnemies();
     
     player->drawPlayer();
 
@@ -210,6 +214,7 @@ void _scene::updateScene(double dt)
 {
     dt = dt / 1000.0; // Convert dt to seconds for easier calculations
 
+    enemyManager->updateEnemies(dt);
     bulletManager->updateBulletManager(dt);
     myWorld->updateWorld(dt);
     player->updatePlayer(dt);
@@ -523,6 +528,7 @@ void _scene::keyboardHandler(WPARAM wParam)
         switch (wParam)
         {
             case 192: // "~"
+                enemyManager->addEnemy(mouseWorldPos);
                 break;
             case ' ': // SPACE
                 break;

@@ -316,6 +316,10 @@ bool _sprite::iterateFrame() {
     return currentFrameX == currentAction->frame_column_start_index;
 }
 
+Vec2f _sprite::getSize() const {
+    return {pixelsX * scale.x, pixelsY * scale.y};
+}
+
 bool _sprite::operator==(const _sprite &other) const {
     return spriteID == other.getID();
 }

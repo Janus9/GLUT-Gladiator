@@ -92,7 +92,13 @@ class _unit {
         // Returns the collision box of the current element
         _collisionBound* getCollisionBound() const;
 
-        // TODO - BROKEN
+        /**
+         * Rotates only the single sprite to focus on the position selected. 
+         * Does not apply to the whole unit.
+         * 
+         * @param _pos Position to focus on
+         * @param speed Speed unit rotates. Negative or 0.0 means instant rotation.
+         */
         void focusOn(const Vec2f &_pos, float speed);
 
         /**

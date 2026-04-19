@@ -22,6 +22,7 @@
 #include<_bulletManager.h>
 #include<_shader.h>
 #include<_player.h>
+#include<_enemyManager.h>
 
 class _scene
 {
@@ -60,6 +61,8 @@ class _scene
         float right = 0.0f;
         float bottom = 0.0f;
         float top = 0.0f;
+
+        unique_ptr<_enemyManager> enemyManager = make_unique<_enemyManager>();
 
         _bulletManager* bulletManager = new _bulletManager();
         _bullet_config test_bullet;

@@ -158,6 +158,9 @@ class _sprite {
          */
         bool iterateFrame();
 
+        // Returns the size of the sprite (in world units) and adjusted to it's scale factor. 
+        Vec2f getSize() const;
+
         // -- Sprite Attributes -- //
         Vec2f scale = {1.0f, 1.0f};         // Scale of a sprite in multiplier (so 2,2 is a sprite 2x width by 2x height). Default sprite width/height is # of pixels
         Vec2f pos = {0.0f, 0.0f};           // Position of a sprite in world space 
