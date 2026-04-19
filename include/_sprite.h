@@ -185,7 +185,6 @@ class _sprite {
          * @return true if sprite ID matches the other sprite ID
          */
         bool operator==(const _sprite &other) const;
-        
     protected:
     private:
         // These are indexes so they start at 0

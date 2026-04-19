@@ -307,10 +307,6 @@ int _sprite::getID() const {
     return spriteID;
 }
 
-bool _sprite::operator==(const _sprite &other) const {
-    return spriteID == other.getID();
-}
-
 bool _sprite::iterateFrame() {
     currentFrameX++;
     if (currentFrameX > currentAction->frame_column_stop_index) {
@@ -318,4 +314,8 @@ bool _sprite::iterateFrame() {
     }
     // True if at it
     return currentFrameX == currentAction->frame_column_start_index;
+}
+
+bool _sprite::operator==(const _sprite &other) const {
+    return spriteID == other.getID();
 }
