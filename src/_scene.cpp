@@ -134,6 +134,8 @@ GLint _scene::initGL()
     turret_bullet.lifespan = 3.0f;
     turret_bullet.angleOffset = 7.0f;
 
+    player->setHealth(1000.0f);
+
     return true;
 }
 
@@ -330,9 +332,10 @@ void _scene::updateScene(double dt)
         player->isShooting = false;
     }
 
-    if (!cameraFree) {
+    player->isMoving = false; 
+    
+    if (!cameraFree && !player->isDead()) {
         // Double input -- diagonol checks //
-        player->isMoving = false; 
         if (W && A) {
             face = PLAYER_FACE_NW;
             player->isMoving = true;
@@ -378,7 +381,7 @@ void _scene::updateScene(double dt)
         }
     }
 
-    if (player->isMoving) {
+    if (player->isMoving && !player->isDead()) {
         // Walking
         if (player->hasGun) {
             if (player->isShooting) {
@@ -389,7 +392,7 @@ void _scene::updateScene(double dt)
         } else {
             action = PLAYER_ACTION_WALK;
         }
-    } else {
+    } else if (!player->isDead()) {
         // Idle
         if (player->hasGun) {
             if (player->isShooting) {
@@ -437,7 +440,7 @@ void _scene::updateScene(double dt)
         }
     }
 
-    if (SPACE) {
+    if (SPACE && !player->isDead()) {
         if (fireRateTimer.getSeconds() > 1.0f/(player->fireRate/60.0f)) {
             player->setAnimationFPS(player->fireRate / 60);
             Vec2f offsetPos;
@@ -453,6 +456,10 @@ void _scene::updateScene(double dt)
         }
     }
 
+    if (player->isDead()) {
+        player->handlePlayerDeath(face);
+    }
+
     player->setAction(action,face);
 
     if (cameraFree) {
@@ -460,7 +467,7 @@ void _scene::updateScene(double dt)
         if(A) cameraX -= cameraSpeed*dt; 
         if(S) cameraY -= cameraSpeed*dt;
         if(D) cameraX += cameraSpeed*dt; 
-    } else {
+    } else if (!player->isDead()) {
         if(W && !collisionTable[0]) player->pos.y += playerSpeed*dt;
         if(A && !collisionTable[1]) player->pos.x -= playerSpeed*dt; 
         if(S && !collisionTable[3]) player->pos.y -= playerSpeed*dt;

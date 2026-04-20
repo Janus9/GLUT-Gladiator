@@ -60,8 +60,8 @@ void _enemyManager::initEnemyManager(_player* currentPlayer, _world* currentWorl
     bulletManager = currentBulletManager;
     bullet_1 = _bullet_1;
 
-    particleManager->initParticleManager("images/particle.png");
-    // wall_break_effect
+    particleManager->initParticleManager("images/enemy/hit_particle.png");
+    // turret hit effect
     turret_hit_effect.amount = 15;
 
     turret_hit_effect.minVelX = -8.0f;

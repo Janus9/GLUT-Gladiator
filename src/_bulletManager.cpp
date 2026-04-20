@@ -164,7 +164,7 @@ void _bulletManager::updateBulletManager(double dt) {
         } else {
             // Friendly Collision Check
             if (b->pos.distance(player->pos) < 5.0f) {
-                player->health -= 10.0f;
+                player->impulseDamage(10,b->pos);
                 b->alive = false;
                 continue;
             }

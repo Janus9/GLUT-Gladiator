@@ -1,5 +1,5 @@
 # Make Settings
-# MAKEFLAGS += -j16						# Parallel build with 8 jobs -- change as needed
+MAKEFLAGS += -j16						# Parallel build with 8 jobs -- change as needed
 SHELL := powershell.exe
 .SHELLFLAGS := -NoProfile -Command
 .ONESHELL:

@@ -12,6 +12,25 @@ void _player::initPlayer() {
     scale = {0.8f, 0.8f};
     pos = {0.0f, 0.0f}; // Start player in the center of the screen
 
+    bloodParticles->initParticleManager("images/player/blood_particle.png");
+    player_hit_effect.amount = 15;
+
+    player_hit_effect.minVelX = -8.0f;
+    player_hit_effect.maxVelX = 8.0f;
+    player_hit_effect.minVelY = 10.0f;
+    player_hit_effect.maxVelY = 25.0f;
+
+    player_hit_effect.minRadius = 2.0f;
+    player_hit_effect.maxRadius = 3.5f;
+
+    player_hit_effect.minLifeTime = 0.5f;
+    player_hit_effect.maxLifeTime = 1.1f;
+
+    player_hit_effect.minSpawnOffsetX = -3.0f;
+    player_hit_effect.maxSpawnOffsetX = 3.0f;
+    player_hit_effect.minSpawnOffsetY = -3.0f;
+    player_hit_effect.maxSpawnOffsetY = 3.0f;
+
     // -- ANIMATIONS -- //
 
     setupSprite("NULL");
@@ -181,18 +200,49 @@ void _player::initPlayer() {
     animationTable[PLAYER_ACTION_IDLE_SHOOT][PLAYER_FACE_SW] = {"IDLE_SHOOT","IDLE_SHOOT_SW",{0,1}};
     animationTable[PLAYER_ACTION_IDLE_SHOOT][PLAYER_FACE_W] = {"IDLE_SHOOT","IDLE_SHOOT_W",{0,7}};
     animationTable[PLAYER_ACTION_IDLE_SHOOT][PLAYER_FACE_NW] = {"IDLE_SHOOT","IDLE_SHOOT_NW",{0,2}};
+
+    // Death Gun Animation //
+    setupSprite("DEATH_GUN");
+    _sprite* death_gun_sprite = getSprite("DEATH_GUN");
+    if (death_gun_sprite) {
+        death_gun_sprite->initSprite("images/player/Death/Gun/death_Gun.png", 8, 6, sprite_direction::LEFT,12); // No natural direction due to top down
+    
+        death_gun_sprite->createSpriteAction(sprite_action("DEATH_GUN_N",3,0,7));
+        death_gun_sprite->createSpriteAction(sprite_action("DEATH_GUN_NE",4,0,7));
+        death_gun_sprite->createSpriteAction(sprite_action("DEATH_GUN_E",5,0,7));
+        death_gun_sprite->createSpriteAction(sprite_action("DEATH_GUN_SE",5,0,7));
+        death_gun_sprite->createSpriteAction(sprite_action("DEATH_GUN_S",0,0,7));
+        death_gun_sprite->createSpriteAction(sprite_action("DEATH_GUN_SW",1,0,7));
+        death_gun_sprite->createSpriteAction(sprite_action("DEATH_GUN_W",1,0,7));
+        death_gun_sprite->createSpriteAction(sprite_action("DEATH_GUN_NW",2,0,7));
+        death_gun_sprite->offsetPoint = {0.0f, 8.0f};
+    }
+
+    animationTable[PLAYER_ACTION_DEATH_GUN][PLAYER_FACE_N] = {"DEATH_GUN","DEATH_GUN_N",{7,3}};
+    animationTable[PLAYER_ACTION_DEATH_GUN][PLAYER_FACE_NE] = {"DEATH_GUN","DEATH_GUN_NE",{7,4}};
+    animationTable[PLAYER_ACTION_DEATH_GUN][PLAYER_FACE_E] = {"DEATH_GUN","DEATH_GUN_E",{7,5}};
+    animationTable[PLAYER_ACTION_DEATH_GUN][PLAYER_FACE_SE] = {"DEATH_GUN","DEATH_GUN_SE",{7,5}};
+    animationTable[PLAYER_ACTION_DEATH_GUN][PLAYER_FACE_S] = {"DEATH_GUN","DEATH_GUN_S",{7,0}};
+    animationTable[PLAYER_ACTION_DEATH_GUN][PLAYER_FACE_SW] = {"DEATH_GUN","DEATH_GUN_SW",{7,1}};
+    animationTable[PLAYER_ACTION_DEATH_GUN][PLAYER_FACE_W] = {"DEATH_GUN","DEATH_GUN_W",{7,1}};
+    animationTable[PLAYER_ACTION_DEATH_GUN][PLAYER_FACE_NW] = {"DEATH_GUN","DEATH_GUN_NW",{7,2}};
 }
 
 void _player::updatePlayer(double dt) {
-  
+    bloodParticles->updateParticleManger(dt);
+    if (inDeathAnimation) {
+        deathTimeElapsed += dt;
+    }
 }
 
 void _player::drawPlayer() {
     drawUnitSingular();
+    bloodParticles->drawParticleManager();
 }
 
 void _player::setAction(player_action action, player_face face) {
     // cout << "Action: " << action << " and Face: " << face << "\n";
+    if (inDeathAnimation) return; // Player is dead, skip animation procs
     if (currentResult == animationTable[action][face]) return; // Skip result the same
     PlayerAnimationResult result = getAnimationResult(action,face);
     if (result.valid) {
@@ -224,6 +274,35 @@ void _player::stopAction(player_action action) {
 
 void _player::setAnimationFPS(int _FPS) {
     FPS = _FPS;
+}
+
+void _player::handlePlayerDeath(player_face face) {
+    if (inDeathAnimation) return; // Already in player death action -- skip
+    PlayerAnimationResult result = getAnimationResult(PLAYER_ACTION_DEATH_GUN,face);
+    if (result.valid) {
+        inDeathAnimation = true;
+        string s_sprite = result.sprite;
+        string s_action = result.action;
+        Vec2i idleFrame = result.idleFrame;
+        
+        _sprite* sprite = getSprite(s_sprite);
+        if (sprite) {
+            setSingleSprite(sprite);
+            sprite->setFPS(8);
+            sprite->setIdleFrame(idleFrame.x,idleFrame.y);
+            sprite->playAction(s_action);
+        }
+    }
+}
+
+void _player::impulseDamage(float amount, const Vec2f &damagePos) {
+    if (isDead()) return; // Player dead skip
+    health -= amount;
+    bloodParticles->spawnEffect(damagePos,player_hit_effect);
+}
+
+void _player::setHealth(float amount) {
+    health = amount;
 }
 
 // -- PRIVATE -- //
