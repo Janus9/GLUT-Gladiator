@@ -34,8 +34,6 @@ class _enemy : public _unit {
     private:
         int enemyID;
         static int nextId;
-
-
 };
 
 class _enemyManager {

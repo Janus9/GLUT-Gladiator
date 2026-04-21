@@ -11,11 +11,33 @@
 #include <glm/gtc/type_ptr.hpp>
 
 enum menu_type {
+    MENU_NULL,
+    MENU_GAME, // Load game instead of menu
     MENU_LANDING,
     MENU_HOME,
     MENU_HELP,
     MENU_PAUSE,
     MENU_COUNT // DO NOT MOVE -- KEEP AT BACK
+};
+
+/**
+ * @param fileName Filename for image
+ * @param size Size in % from 0-1 (Ex/ 0.5 is 50%)
+ * @param pos Position of center (bottom-left is (0,0) and top right is (1,1))
+ * @param hasMouseState Condition if object reacts to mouse or not (disable for backgrounds)
+ * @param ID Unique string ID to lookup object by
+ * @param parent Which menu owns this object
+ * @param destination Which menu should we redirect to on mouse event? (Leave as MENU_NULL if no redirection)
+ */
+struct menu_object_config {
+    string fileName;
+    Vec2f size;
+    Vec2f pos;
+    bool hasMouseState;
+
+    string ID;
+    menu_type parent;
+    menu_type destination = MENU_NULL;
 };
 
 class _menuManager {
@@ -35,16 +57,22 @@ class _menuManager {
         // Draw function -- Loads selected menu (or none if inMenu false)
         void drawMenuManager();
 
-        // Update selected function
-        void updateMenuManager(double dt);
+        /**
+         * @param dt Deleta Time (in seconds)
+         * @param mousePos Position of the mouse in the window
+         * @param mouseClicked LMB click condition
+         */
+        void updateMenuManager(double dt, const Vec2f &mousePos, bool mouseClicked);
 
         // Loads a given menu
         void loadMenu(menu_type type);
 
+        menu_type getLoadedMenu() const;
+
+        bool loadGame = false;  // If true main runs the scene initGL once, then resets the state
+
         // Sets window dimensions for menu drawing
         static void setWindowDimensions(const Vec2i &dim);
-
-        bool inMenu = true; // Wether menu is loaded or not
     protected:
     private:
         /**
@@ -62,22 +90,35 @@ class _menuManager {
                 _menuObject();
                 virtual ~_menuObject();
 
-                /**
-                 * @param fileName File image to load
-                 * @param size Size of the menu object (in % of window. Ex/ 0.5 is 50% width of the window)
-                 * @param pos Position of the menu object's center (bottom-left: (0,0) and top-right: (1,1))
-                 */
-                void initMenuObject(const string &fileName, const Vec2f &_size, const Vec2f &_pos);
+                // Initializes a menu object from the given config
+                void initMenuObject(const menu_object_config &config);
 
                 // Draw function for a given menu
                 void drawMenuObject(const Vec2i &wDim);
 
                 // Update Menu Object
-                void updateMenuObject(double dt);
+                void updateMenuObject(double dt, const Vec2f &mousePos);
+                
+                // Returns true if mouse is hovering the object
+                bool getMouseState() const;
+
+                // Returns the ID of the object
+                string getID() const;
+
+                // Get parent of the menu object
+                menu_type getParent() const;
+
+                // Get redirection destination of the menu
+                menu_type getDestination() const;
+
+                bool operator==(const _menuObject &other) const; 
             protected:
             private:
                 Vec2f size;
                 Vec2f pos;
+
+                bool mouseHovering = false; // Whether mouse is hovering the object
+                bool hasMouseState = false; // Whether object reacts to mouse (disabled on backgrounds)
 
                 void buildVBO();
                 void buildEBO();
@@ -93,6 +134,12 @@ class _menuManager {
                 GLint u_texture = -1;
                 GLint u_projection = -1;
                 GLint u_model = -1;
+                GLint u_isHovering = -1;
+
+                string menuObjectID;
+                
+                menu_type parent;
+                menu_type destination;
         };
 
         /**
@@ -115,11 +162,9 @@ class _menuManager {
                 /**
                  * Adds a new menu object to the menu
                  * 
-                 * @param fileName File image to load
-                 * @param size Size of the menu object (in % of window. Ex/ 0.5 is 50% width of the window)
-                 * @param pos Position of the menu object's center (bottom-left: (0,0) and top-right: (1,1))
+                 * @param config Configuration for new menu (see struct for implementation details)
                  */
-                void addMenuObject(const string &fileName, const Vec2f &_size, const Vec2f &_pos);
+                void addMenuObject(const menu_object_config &config);
 
                 /**
                  * Draws all menuObjects in the menu
@@ -129,12 +174,16 @@ class _menuManager {
                 void drawMenu(const Vec2i &wDim);
 
                 // Update menu
-                void updateMenu(double dt);
+                void updateMenu(double dt, const Vec2f &mousePos, bool mouseClicked);
+
+                menu_type redirectTo = MENU_NULL;   // If not null will redirect on next update by menuManager
             protected:
             private:
                 vector<unique_ptr<_menuObject>> menuObjects;
 
                 menu_type type;
+
+                double timeSinceRedirect = 0.0; // Timer to prevent redirect spamming
         };
 
         _menu menuList[MENU_COUNT]; // List of menus up to COUNT amount

@@ -31,15 +31,18 @@ class _scene
         _scene();
         virtual ~_scene();
 
-        // Initialization of the scene
+        // Initialization of the scene openGL content (runs every time scene is reopened from menu)
         GLint initGL(); 
+
+        // Initialization of scene objects
+        void initScene();
 
         // Runs and handles a window resize event
         void reSize(GLint width, GLint height);
         // Draws the scene using a double-buffer. Runs as fast as the loop will let it. No time-based events should ever be added in here. Those are for the updateScene()
         void drawScene(); 
         // Updates the scene based on time of (60fps ~16.67ms per update). Time-based events should be added in here, such as movement and other time-based changes to the scene
-        void updateScene(double dt);
+        void updateScene(double dt, bool* keysArray);
         // Handles input messsages send from windows -- used for controls etc
         int winMsg(HWND	hWnd, UINT uMsg, WPARAM	wParam, LPARAM lParam);
 
@@ -116,7 +119,7 @@ class _scene
 
         float miningSpeed = 2.5f; // In seconds
 
-        bool keys[256] = { false };
+        bool *keysPtr = nullptr;    // Points to bool array of keys passed from main
 
         bool LMB = false;
 

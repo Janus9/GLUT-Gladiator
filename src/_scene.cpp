@@ -42,7 +42,8 @@ _scene::~_scene()
 
 GLint _scene::initGL()
 {
-    glewInit();
+    cout << "Running Scene initGL Initialization ... \n";
+
     glClearColor(0.0,0.0,0.0,1.0); //Intended to change the background color. 0001 is black
     glClearDepth(1.0); //Gives depth to the environment by having color both in the front and back. Depth-test value
     glEnable(GL_DEPTH_TEST); //Will ensure the depth of the z-coordinate is accurate through enabling depth-test
@@ -55,7 +56,13 @@ GLint _scene::initGL()
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    // -- CLASS INIT -- //
+    return true;
+}
+
+void _scene::initScene() {
+     // -- CLASS INIT -- //
+
+    cout << "Running Scene Class Initialization ... \n";
 
     inputTimer.reset(); 
     fpsTimer->reset();
@@ -135,8 +142,6 @@ GLint _scene::initGL()
     turret_bullet.angleOffset = 7.0f;
 
     player->setHealth(1000.0f);
-
-    return true;
 }
 
 void _scene::reSize(GLint width, GLint height)
@@ -188,10 +193,7 @@ void _scene::reSize(GLint width, GLint height)
 //Scene is running in a loop
 void _scene::drawScene()
 {
-    glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
-    //clear buffers
     glLoadIdentity(); //Whichever state the scene is in it will stay there
-
     applyCamera(); // Apply camera transformations
 
     //myQuad->drawQuad();
@@ -218,9 +220,10 @@ void _scene::drawScene()
 }
 
 // Runs in loop 60 times per second. dt is in ms.
-void _scene::updateScene(double dt)
+void _scene::updateScene(double dt, bool *keysArray)
 {
-    dt = dt / 1000.0; // Convert dt to seconds for easier calculations
+    // Copy data of keys array into keys
+    keysPtr = keysArray;
 
     enemyManager->updateEnemies(dt);
     bulletManager->updateBulletManager(dt);
@@ -320,11 +323,11 @@ void _scene::updateScene(double dt)
 
     //cout << "Collision Table: " << collisionTable[0] << ", " << collisionTable[1] << ", " << collisionTable[2] << ", " << collisionTable[3] << "\n";
 
-    bool W = keys['W'];
-    bool A = keys['A'];
-    bool S = keys['S'];
-    bool D = keys['D'];
-    bool SPACE = keys[VK_SPACE];
+    bool W = keysPtr['W'];
+    bool A = keysPtr['A'];
+    bool S = keysPtr['S'];
+    bool D = keysPtr['D'];
+    bool SPACE = keysPtr[VK_SPACE];
 
     if (SPACE) {
         player->isShooting = true;
@@ -580,13 +583,11 @@ int _scene::winMsg(HWND	hWnd, UINT uMsg, WPARAM	wParam, LPARAM lParam)
         // Keypress
         case WM_KEYDOWN:
             if (inputDebugEnabled) Logger.LogDebug("Key Pressed: " + std::to_string(wParam), LOG_CONSOLE); //Log the key that was pressed
-            keys[wParam] = true;
             keyboardHandler(wParam);
             break;
         // Key release
         case WM_KEYUP:
             if (inputDebugEnabled) Logger.LogDebug("Key Released: " + std::to_string(wParam), LOG_CONSOLE); //Log the key that was released
-            keys[wParam] = false;
             break;
         // Left Mouse button down
         case WM_LBUTTONDOWN: {

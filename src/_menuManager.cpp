@@ -22,26 +22,134 @@ _menuManager::~_menuManager() {
 void _menuManager::initMenuManager() {
     cout << "Initializing the menu manager ...\n";
 
+    //  -- Landing --  //
     menuList[MENU_LANDING].initMenu(MENU_LANDING);
-    menuList[MENU_HOME].initMenu(MENU_HOME);
-    menuList[MENU_HELP].initMenu(MENU_HELP);
-    menuList[MENU_PAUSE].initMenu(MENU_HELP); 
+    menuList[MENU_LANDING].addMenuObject({
+        "images/menu/landing_page.png",
+        {1.0f, 1.0f},
+        {0.5f, 0.5f},
+        false,
+        "landing_bg",
+        MENU_LANDING,
+        MENU_NULL
+    });
+    menuList[MENU_LANDING].addMenuObject({
+        "images/menu/continue_button.png",
+        {0.2f, 0.2f},
+        {0.5f, 0.2f},
+        true,
+        "landing_continue_button",
+        MENU_LANDING,
+        MENU_HOME
+    });
 
-    menuList[MENU_HOME].addMenuObject("images/menu/home_page.png",{1.0f,1.0f},{0.5f,0.5f});
-    menuList[MENU_HOME].addMenuObject("images/menu/start_button.png",{0.2f,0.2f},{0.5f,0.2f});
+    // -- Home -- //
+    menuList[MENU_HOME].initMenu(MENU_HOME);
+    menuList[MENU_HOME].addMenuObject({
+        "images/menu/home_page.png",
+        {1.0f, 1.0f},
+        {0.5f, 0.5f},
+        false,
+        "home_bg",
+        MENU_HOME,
+        MENU_NULL
+    });
+    menuList[MENU_HOME].addMenuObject({
+        "images/menu/start_button.png",
+        {0.2f, 0.2f},
+        {0.5f, 0.2f},
+        true,
+        "home_start_button",
+        MENU_HOME,
+        MENU_GAME
+    });
+    menuList[MENU_HOME].addMenuObject({
+        "images/menu/help_button.png",
+        {0.2f, 0.2f},
+        {0.15f, 0.2f},
+        true,
+        "home_help_button",
+        MENU_HOME,
+        MENU_HELP
+    });
+    menuList[MENU_HOME].addMenuObject({
+        "images/menu/landing_button.png",
+        {0.2f, 0.2f},
+        {0.85f, 0.2f},
+        true,
+        "home_landing_button",
+        MENU_HOME,
+        MENU_LANDING
+    });
+
+    // -- Help -- //
+    menuList[MENU_HELP].initMenu(MENU_HELP);
+    menuList[MENU_HELP].addMenuObject({
+        "images/menu/help_page.png",
+        {1.0f, 1.0f},
+        {0.5f, 0.5f},
+        false,
+        "help_bg",
+        MENU_HELP,
+        MENU_NULL
+    });
+    menuList[MENU_HELP].addMenuObject({
+        "images/menu/back_button.png",
+        {0.2f, 0.2f},
+        {0.5f, 0.2f},
+        true,
+        "help_back_button",
+        MENU_HELP,
+        MENU_HOME
+    });
+
+    // -- Pause -- //
+    menuList[MENU_PAUSE].initMenu(MENU_PAUSE);
+    menuList[MENU_PAUSE].addMenuObject({
+        "images/menu/pause_page.png",
+        {1.0f, 1.0f},
+        {0.5f, 0.5f},
+        false,
+        "pause_bg",
+        MENU_PAUSE,
+        MENU_NULL
+    });
+    menuList[MENU_PAUSE].addMenuObject({
+        "images/menu/continue_button.png",
+        {0.2f, 0.2f},
+        {0.5f, 0.2f},
+        true,
+        "pause_continue_button",
+        MENU_PAUSE,
+        MENU_GAME
+    });
 }
 
 void _menuManager::drawMenuManager() {
     menuList[selectedMenu].drawMenu(windowDimensions);
 }
 
-void _menuManager::updateMenuManager(double dt) {
-    menuList[selectedMenu].updateMenu(dt);
+void _menuManager::updateMenuManager(double dt, const Vec2f &mousePos, bool mouseClicked) {
+    _menu* menu = &menuList[selectedMenu];
+
+    menu->updateMenu(dt,mousePos,mouseClicked);
+    if (menu->redirectTo != MENU_NULL) {
+        if (menu->redirectTo == MENU_GAME) {
+            loadGame = true;
+        }
+        loadMenu(menu->redirectTo);     // Load menu
+        menu->redirectTo = MENU_NULL;   // Reset menu redirection state
+    }
 }
 
 void _menuManager::loadMenu(menu_type type) {
     selectedMenu = type;
 }
+
+menu_type _menuManager::getLoadedMenu() const {
+    return selectedMenu;
+}
+
 
 // ============ Menu Object ============ //
 
@@ -65,11 +173,17 @@ _menuManager::_menuObject::~_menuObject() {
     }
 }
 
-void _menuManager::_menuObject::initMenuObject(const string &fileName, const Vec2f &_size, const Vec2f &_pos) {
-    texture->loadTexture(fileName);
+void _menuManager::_menuObject::initMenuObject(const menu_object_config &config) {
+    hasMouseState = config.hasMouseState;
 
-    size = _size;
-    pos = _pos;
+    parent = config.parent;
+    destination = config.destination;
+    
+    menuObjectID = config.ID;
+    texture->loadTexture(config.fileName);
+
+    size = config.size;
+    pos = config.pos;
 
     glGenBuffers(1,&vboID);
     glGenBuffers(1,&eboID);
@@ -82,6 +196,7 @@ void _menuManager::_menuObject::initMenuObject(const string &fileName, const Vec
     u_texture = glGetUniformLocation(program,"u_texture");
     u_projection = glGetUniformLocation(program,"u_projection");
     u_model = glGetUniformLocation(program,"u_model");
+    u_isHovering = glGetUniformLocation(program,"u_isHovering");
 
     buildVBO();
     buildEBO();
@@ -108,14 +223,45 @@ void _menuManager::_menuObject::drawMenuObject(const Vec2i &wDim) {
 
     glUniformMatrix4fv(u_projection, 1, GL_FALSE, glm::value_ptr(projection));
     glUniformMatrix4fv(u_model, 1, GL_FALSE, glm::value_ptr(model));
+    GLint hoveringState;
+    if (hasMouseState) {
+        if (mouseHovering) {
+            hoveringState = 1;
+        } else {
+            hoveringState = 0;
+        }
+    } else {
+        hoveringState = 0;
+    }   
+    glUniform1i(u_isHovering,hoveringState);
 
     glBindVertexArray(vaoID);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
+
+    glUseProgram(0);
 }
 
-void _menuManager::_menuObject::updateMenuObject(double dt) {
+void _menuManager::_menuObject::updateMenuObject(double dt, const Vec2f &mousePos) {
+    float halfWidth = size.x * 0.5f;
+    float halfHeight = size.y * 0.5f;
 
+    if (hasMouseState) {
+        // AABB collision check
+        if (mousePos.x > pos.x - halfWidth && 
+            mousePos.x < pos.x + halfWidth && 
+            mousePos.y > pos.y - halfHeight && 
+            mousePos.y < pos.y + halfHeight) 
+        {
+            mouseHovering = true;    
+        } else {
+            mouseHovering = false;
+        }
+    }
+}
+
+bool _menuManager::_menuObject::getMouseState() const {
+    return mouseHovering;
 }
 
 // -- PRIVATE -- //
@@ -194,7 +340,27 @@ void _menuManager::_menuObject::buildVAO() {
     glBindVertexArray(0);
 }
 
+string _menuManager::_menuObject::getID() const {
+    return menuObjectID;
+}
+
+menu_type _menuManager::_menuObject::getParent() const {
+    return parent;
+}
+    
+menu_type _menuManager::_menuObject::getDestination() const {
+    return destination;
+}
+
+
+bool _menuManager::_menuObject::operator==(const _menuObject &other) const {
+    return menuObjectID == other.menuObjectID;
+}
+
 // ============ MENU ============ //
+
+
+// -- PUBLIC -- //
 
 _menuManager::_menu::_menu() {
     // ctor
@@ -208,12 +374,11 @@ void _menuManager::_menu::initMenu(menu_type _type) {
     type = _type;
 }
 
-void _menuManager::_menu::addMenuObject(const string &fileName, const Vec2f &_size, const Vec2f &_pos) {
+void _menuManager::_menu::addMenuObject(const menu_object_config &config) {
     unique_ptr<_menuObject> newObject = make_unique<_menuObject>();
-    newObject->initMenuObject(fileName, _size, _pos);
+    newObject->initMenuObject(config);
     menuObjects.push_back(move(newObject));
 }
-
 
 void _menuManager::_menu::drawMenu(const Vec2i &wDim) {
     for (int i = 0; i < menuObjects.size(); i++) {
@@ -221,10 +386,16 @@ void _menuManager::_menu::drawMenu(const Vec2i &wDim) {
     }
 }
 
-
-void _menuManager::_menu::updateMenu(double dt) {
+void _menuManager::_menu::updateMenu(double dt, const Vec2f &mousePos, bool mouseClicked) {
+    timeSinceRedirect += dt;
     for (int i = 0; i < menuObjects.size(); i++) {
-        menuObjects[i]->updateMenuObject(dt);
+        _menuObject* menuObject = menuObjects[i].get();
+        menuObject->updateMenuObject(dt, mousePos);
+        if (menuObject->getMouseState() && mouseClicked && timeSinceRedirect > 0.5) {
+            cout << "Mouse clicked on ID: " << menuObject->getID() << "\n";
+            redirectTo = menuObject->getDestination();
+            timeSinceRedirect = 0.0;
+        }
     }
 }
 
