@@ -29,6 +29,7 @@ bool	active=TRUE;		// Window Active Flag Set To TRUE By Default. Active environm
 bool	fullscreen=TRUE;	// Fullscreen Flag Set To Fullscreen Mode By Default (is the screen full-screen or not)
 
 LRESULT	CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);	// Declaration For WndProc. Passing parameters into system
+HCURSOR hCursor = NULL;
 
 int wWidth;					// Window width
 int wHeight;				// Window height
@@ -160,7 +161,13 @@ BOOL CreateGLWindow(char* title, int width, int height, int bits, bool fullscree
 
 		dwExStyle=WS_EX_APPWINDOW;								// Window Extended Style
 		dwStyle= WS_POPUP;			// must handle Gsync situations: Windows Style
-		ShowCursor(FALSE);									// Hide Mouse Pointer
+		
+		hCursor = LoadCursorFromFile("cursor/normal.cur");
+		if (hCursor == NULL) {
+			cout << "ERROR: cannot load cursor!\n";
+		}
+		SetCursor(hCursor);
+		ShowCursor(TRUE);									
 	}
 	else
 	{
@@ -290,6 +297,12 @@ LRESULT CALLBACK WndProc(	HWND	hWnd,			// Handle For This Window
 	}
 	switch (uMsg)									// Check For Windows Messages
 	{
+		case WM_SETCURSOR:
+			if (hCursor != NULL) {
+				SetCursor(hCursor);
+				return TRUE;  // Tell Windows we handled it
+			}
+			break;
 		case WM_MOUSEMOVE:
 			mouseScreenPos = {LOWORD(lParam), HIWORD(lParam)};
 			if (wWidth > 0.0f && wHeight > 0.0) { // Divide by 0 check
