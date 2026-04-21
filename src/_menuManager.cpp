@@ -106,18 +106,18 @@ void _menuManager::initMenuManager() {
     // -- Pause -- //
     menuList[MENU_PAUSE].initMenu(MENU_PAUSE);
     menuList[MENU_PAUSE].addMenuObject({
-        "images/menu/pause_page.png",
+        "images/menu/help_page.png",
         {1.0f, 1.0f},
         {0.5f, 0.5f},
         false,
-        "pause_bg",
+        "help_bg",
         MENU_PAUSE,
         MENU_NULL
     });
     menuList[MENU_PAUSE].addMenuObject({
         "images/menu/continue_button.png",
         {0.2f, 0.2f},
-        {0.5f, 0.2f},
+        {0.65f, 0.2f},
         true,
         "pause_continue_button",
         MENU_PAUSE,
