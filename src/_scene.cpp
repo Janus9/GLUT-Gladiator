@@ -120,7 +120,7 @@ void _scene::initScene() {
 
     enemyManager->initEnemyManager(player.get(),myWorld,bulletManager.get(),&turret_bullet);
 
-    //testSounds->playSounds("sounds/level_transition.mp3");
+    testSounds->playSounds("sounds/test_music.mp3");
 
     // -- SHADERS -- //
     // sh->initShader("shaders/V.vs","shaders/F.fs");
