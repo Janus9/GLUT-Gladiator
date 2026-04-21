@@ -1,0 +1,90 @@
+#ifndef _MENU_MANAGER_H
+#define _MENU_MANAGER_H
+
+#include <_common.h>
+#include <_texture.h>
+#include <_shader.h>
+
+
+// Math library for matrices and vectors etc -- https://github.com/g-truc/glm
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
+enum menu_type {
+    MENU_LANDING,
+    MENU_HOME,
+    MENU_HELP,
+    MENU_PAUSE,
+    MENU_COUNT // DO NOT MOVE -- KEEP AT BACK
+};
+
+class _menuManager {
+    public:
+        _menuManager();
+        virtual ~_menuManager();
+
+        /**
+         * Sets up:
+         *  - Landing menu
+         *  - Home menu
+         *  - Help menu
+         *  - Pause menu
+         */
+        void initMenuManager();
+
+        // Draw function -- Loads selected menu (or none if inMenu false)
+        void drawMenuManager();
+
+        // Update selected function
+        void updateMenuManager(double dt);
+
+        // Loads a given menu
+        void loadMenu(menu_type type);
+
+        // Sets window dimensions for menu drawing
+        static void setWindowDimensions(const Vec2i &dim);
+
+        bool inMenu = true; // Wether menu is loaded or not
+    protected:
+    private:
+        // Menu Class //
+        class _menu {
+            public:
+                _menu();
+                virtual ~_menu();
+
+                // Initializes a menu
+                void initMenu(const string &fileName);
+
+                // Draw function for a given menu. Requires the window dimensions passed in
+                void drawMenu(const Vec2i &wDim);
+
+                // Update menu
+                void updateMenu(double dt);
+
+            protected:
+            private:
+                void buildVBO();
+                void buildEBO();
+                void buildVAO();
+
+                unique_ptr<_texture> texture = make_unique<_texture>();
+                GLuint vboID = 0;
+                GLuint eboID = 0;
+                GLuint vaoID = 0;
+
+                unique_ptr<_shader> shader = make_unique<_shader>();
+
+                GLint u_texture = -1;
+                GLint u_projection = -1;
+                GLint u_model = -1;
+        };
+
+        _menu menuList[MENU_COUNT]; // List of menus up to COUNT amount
+        menu_type selectedMenu = MENU_LANDING;
+        
+        static Vec2i windowDimensions;
+};
+
+#endif // _MENU_MANAGER_H

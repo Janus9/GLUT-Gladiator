@@ -14,9 +14,10 @@
 #pragma comment(lib, "opengl32.lib")
 #pragma comment(lib, "glu32.lib")
 
-#include<_common.h>         // For common headers
-#include<_scene.h>          // My scene context
-#include<_timerPlusPlus.h>   // For the timer class
+#include <_common.h>         // For common headers
+#include <_scene.h>          // My scene context
+#include <_timerPlusPlus.h>   // For the timer class
+#include <_menuManager.h>
 
 HDC			hDC=NULL;		// Private GDI Device Context
 HGLRC		hRC=NULL;		// Permanent Rendering Context
@@ -29,11 +30,14 @@ bool	fullscreen=TRUE;	// Fullscreen Flag Set To Fullscreen Mode By Default (is t
 
 LRESULT	CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);	// Declaration For WndProc. Passing parameters into system
 
+int wWidth;
+int wHeight;
 
 // CLASS INSTANCE DECLARATIONS //
 _logger Logger; //New instance of logger to be used in the program. Logger will be used to track specific values and print them to the console for debugging purposes
 _scene *myScene = new _scene();//handling memory to point to specific scene values. makes an instance of scene
 _timerPlusPlus Timer; // Timer for handling update loop for scenese
+unique_ptr<_menuManager> menuManager = make_unique<_menuManager>();
 
 //An option to parallel-check each individual function would be loops to handle interrupts
 //Parallel while loops to be able to handle in program is handled by the callback function
@@ -251,11 +255,18 @@ BOOL CreateGLWindow(char* title, int width, int height, int bits, bool fullscree
     {
 		KillGLWindow();    //Kills window if game does not initialize
         MessageBox(NULL,"Can't Initialize GL.", "ERROR", MB_OK|MB_ICONEXCLAMATION); //Message Box declares that OpenGL crashed
+		return FALSE;
 	}
 	myScene->reSize(width,height);  //Intended to resize the scene to match the width and height
-	
+	wWidth = width;
+	wHeight = height;
+	_menuManager::setWindowDimensions({wWidth,wHeight});
+
 	Logger.InitLogger("logs/main.log");
 	Timer.reset();
+
+	menuManager->initMenuManager();
+	menuManager->loadMenu(MENU_LANDING);
 	return TRUE;									// Success
 }
 
@@ -326,7 +337,12 @@ LRESULT CALLBACK WndProc(	HWND	hWnd,			// Handle For This Window
 		//All includes and prototype allocation starts a program and then goes to main
 		case WM_SIZE:								// Resize The OpenGL Window
 		{
-            myScene->reSize(LOWORD(lParam), HIWORD(lParam));    // LoWord=Width, HiWord=Height. Resize happens when the size of the window is forced to change
+			wWidth = LOWORD(lParam);
+			wHeight = HIWORD(lParam);
+
+            myScene->reSize(wWidth, wHeight);   
+			_menuManager::setWindowDimensions({wWidth,wHeight});
+			
 			return 0;								// Jump Back
 		}
 	}
@@ -392,11 +408,19 @@ int WINAPI WinMain(	HINSTANCE	hInstance,			// Instance
 			}
 			else									// Not Time To Quit, Update Screen
 			{
-				myScene->drawScene(); //So long as the key is not escaping (quitting), keep drawing the scene
-				if (Timer.getMilliseconds() > UPDATE_DELAY) // If the time since the last update is greater than 16.67ms (60fps), update the scene
-				{
-					myScene->updateScene(Timer.getMilliseconds()); //Update the scene with the time since the last update
-					Timer.reset(); // Reset the timer for the next update
+				if (menuManager->inMenu) {
+					// Show Menu //
+					glViewport(0,0,wWidth,wHeight);
+					glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+					menuManager->drawMenuManager();
+				} else {
+					// Show Scene //
+					myScene->drawScene(); //So long as the key is not escaping (quitting), keep drawing the scene
+					if (Timer.getMilliseconds() > UPDATE_DELAY) // If the time since the last update is greater than 16.67ms (60fps), update the scene
+					{
+						myScene->updateScene(Timer.getMilliseconds()); //Update the scene with the time since the last update
+						Timer.reset(); // Reset the timer for the next update
+					}
 				}
 				SwapBuffers(hDC);				// Swap Buffers (Double Buffering)
 			}
