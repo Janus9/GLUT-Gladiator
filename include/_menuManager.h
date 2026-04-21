@@ -5,7 +5,6 @@
 #include <_texture.h>
 #include <_shader.h>
 
-
 // Math library for matrices and vectors etc -- https://github.com/g-truc/glm
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -48,23 +47,38 @@ class _menuManager {
         bool inMenu = true; // Wether menu is loaded or not
     protected:
     private:
-        // Menu Class //
-        class _menu {
+        /**
+         * Menu Object
+         * 
+         * Holds data for rendering an object inside a menu
+         *  - Position
+         *  - Size
+         *  - Texture
+         *  
+         * Handles events for mouse hover/click etc TODO
+         */
+        class _menuObject {
             public:
-                _menu();
-                virtual ~_menu();
+                _menuObject();
+                virtual ~_menuObject();
 
-                // Initializes a menu
-                void initMenu(const string &fileName);
+                /**
+                 * @param fileName File image to load
+                 * @param size Size of the menu object (in % of window. Ex/ 0.5 is 50% width of the window)
+                 * @param pos Position of the menu object's center (bottom-left: (0,0) and top-right: (1,1))
+                 */
+                void initMenuObject(const string &fileName, const Vec2f &_size, const Vec2f &_pos);
 
-                // Draw function for a given menu. Requires the window dimensions passed in
-                void drawMenu(const Vec2i &wDim);
+                // Draw function for a given menu
+                void drawMenuObject(const Vec2i &wDim);
 
-                // Update menu
-                void updateMenu(double dt);
-
+                // Update Menu Object
+                void updateMenuObject(double dt);
             protected:
             private:
+                Vec2f size;
+                Vec2f pos;
+
                 void buildVBO();
                 void buildEBO();
                 void buildVAO();
@@ -79,6 +93,48 @@ class _menuManager {
                 GLint u_texture = -1;
                 GLint u_projection = -1;
                 GLint u_model = -1;
+        };
+
+        /**
+         * Menu Class
+         * 
+         * Handles a menu containing
+         *  - Background
+         *  - Buttons (with effects + input handling)
+         * 
+         *  Composed of menu objects.
+         */
+        class _menu {
+            public:
+                _menu();
+                virtual ~_menu();
+
+                // Initializes a menu
+                void initMenu(menu_type _type);
+
+                /**
+                 * Adds a new menu object to the menu
+                 * 
+                 * @param fileName File image to load
+                 * @param size Size of the menu object (in % of window. Ex/ 0.5 is 50% width of the window)
+                 * @param pos Position of the menu object's center (bottom-left: (0,0) and top-right: (1,1))
+                 */
+                void addMenuObject(const string &fileName, const Vec2f &_size, const Vec2f &_pos);
+
+                /**
+                 * Draws all menuObjects in the menu
+                 * 
+                 * @param wDim Windowm Dimensions (width/height in pixels).
+                 */
+                void drawMenu(const Vec2i &wDim);
+
+                // Update menu
+                void updateMenu(double dt);
+            protected:
+            private:
+                vector<unique_ptr<_menuObject>> menuObjects;
+
+                menu_type type;
         };
 
         _menu menuList[MENU_COUNT]; // List of menus up to COUNT amount

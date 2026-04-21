@@ -266,7 +266,7 @@ BOOL CreateGLWindow(char* title, int width, int height, int bits, bool fullscree
 	Timer.reset();
 
 	menuManager->initMenuManager();
-	menuManager->loadMenu(MENU_LANDING);
+	menuManager->loadMenu(MENU_HOME); // CHANGE LATER
 	return TRUE;									// Success
 }
 

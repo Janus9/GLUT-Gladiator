@@ -22,10 +22,13 @@ _menuManager::~_menuManager() {
 void _menuManager::initMenuManager() {
     cout << "Initializing the menu manager ...\n";
 
-    menuList[MENU_LANDING].initMenu("images/menu/landing_page.png");
-    menuList[MENU_HOME].initMenu("images/menu/home_page.png");
-    menuList[MENU_HELP].initMenu("images/menu/help_page.png");
-    menuList[MENU_PAUSE].initMenu("images/menu/pause_page.png"); 
+    menuList[MENU_LANDING].initMenu(MENU_LANDING);
+    menuList[MENU_HOME].initMenu(MENU_HOME);
+    menuList[MENU_HELP].initMenu(MENU_HELP);
+    menuList[MENU_PAUSE].initMenu(MENU_HELP); 
+
+    menuList[MENU_HOME].addMenuObject("images/menu/home_page.png",{1.0f,1.0f},{0.5f,0.5f});
+    menuList[MENU_HOME].addMenuObject("images/menu/start_button.png",{0.2f,0.2f},{0.5f,0.2f});
 }
 
 void _menuManager::drawMenuManager() {
@@ -40,12 +43,14 @@ void _menuManager::loadMenu(menu_type type) {
     selectedMenu = type;
 }
 
-// ============ Menu ============ //
+// ============ Menu Object ============ //
 
-_menuManager::_menu::_menu() {
+// -- PUBLIC -- //
+
+_menuManager::_menuObject::_menuObject() {
 }
 
-_menuManager::_menu::~_menu() {
+_menuManager::_menuObject::~_menuObject() {
     if (vboID != 0) {
         glDeleteBuffers(1,&vboID); // tell the GPU to delete the vertex buffer
         vboID = 0;
@@ -60,8 +65,11 @@ _menuManager::_menu::~_menu() {
     }
 }
 
-void _menuManager::_menu::initMenu(const string &fileName) {
+void _menuManager::_menuObject::initMenuObject(const string &fileName, const Vec2f &_size, const Vec2f &_pos) {
     texture->loadTexture(fileName);
+
+    size = _size;
+    pos = _pos;
 
     glGenBuffers(1,&vboID);
     glGenBuffers(1,&eboID);
@@ -80,7 +88,7 @@ void _menuManager::_menu::initMenu(const string &fileName) {
     buildVAO();
 }
 
-void _menuManager::_menu::drawMenu(const Vec2i &wDim) {
+void _menuManager::_menuObject::drawMenuObject(const Vec2i &wDim) {
     shader->useProgram();
 
     texture->bindTexture();
@@ -106,35 +114,40 @@ void _menuManager::_menu::drawMenu(const Vec2i &wDim) {
     glBindVertexArray(0);
 }
 
-void _menuManager::_menu::updateMenu(double dt) {
+void _menuManager::_menuObject::updateMenuObject(double dt) {
 
 }
 
-void _menuManager::_menu::buildVBO() {
+// -- PRIVATE -- //
+
+void _menuManager::_menuObject::buildVBO() {
     /**
      * primitives * vertices * 
      */
     float vboData[16];
     int vIndex = 0;
 
+    float halfWidth = size.x * 0.5f;
+    float halfHeight = size.y * 0.5f;
+
     // Bottom-Left //
-    vboData[vIndex++] = 0.0f;
-    vboData[vIndex++] = 0.0f;
+    vboData[vIndex++] = pos.x - halfWidth;
+    vboData[vIndex++] = pos.y - halfHeight;
     vboData[vIndex++] = 0.0f;
     vboData[vIndex++] = 1.0f;
     // Bottom-Right //
-    vboData[vIndex++] = 1.0f;
-    vboData[vIndex++] = 0.0f;
+    vboData[vIndex++] = pos.x + halfWidth;
+    vboData[vIndex++] = pos.y - halfHeight;
     vboData[vIndex++] = 1.0f;
     vboData[vIndex++] = 1.0f;
     // Top-Right //
-    vboData[vIndex++] = 1.0f;
-    vboData[vIndex++] = 1.0f;
+    vboData[vIndex++] = pos.x + halfWidth;
+    vboData[vIndex++] = pos.y + halfHeight;
     vboData[vIndex++] = 1.0f;
     vboData[vIndex++] = 0.0f;
     // Top-Left //
-    vboData[vIndex++] = 0.0f;
-    vboData[vIndex++] = 1.0f;
+    vboData[vIndex++] = pos.x - halfWidth;
+    vboData[vIndex++] = pos.y + halfHeight;
     vboData[vIndex++] = 0.0f;
     vboData[vIndex++] = 0.0f;
 
@@ -143,7 +156,7 @@ void _menuManager::_menu::buildVBO() {
     glBindBuffer(GL_ARRAY_BUFFER,0);
 }
 
-void _menuManager::_menu::buildEBO() {
+void _menuManager::_menuObject::buildEBO() {
     uint32_t eboData[6];
     int eIndex = 0;
 
@@ -162,7 +175,7 @@ void _menuManager::_menu::buildEBO() {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0);
 }
 
-void _menuManager::_menu::buildVAO() {
+void _menuManager::_menuObject::buildVAO() {
     glBindVertexArray(vaoID);
 
     glBindBuffer(GL_ARRAY_BUFFER,vboID);
@@ -179,5 +192,39 @@ void _menuManager::_menu::buildVAO() {
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, stride, (void*)(2 * sizeof(float)));
 
     glBindVertexArray(0);
+}
+
+// ============ MENU ============ //
+
+_menuManager::_menu::_menu() {
+    // ctor
+}
+
+_menuManager::_menu::~_menu() {
+    // dtor
+}
+
+void _menuManager::_menu::initMenu(menu_type _type) {
+    type = _type;
+}
+
+void _menuManager::_menu::addMenuObject(const string &fileName, const Vec2f &_size, const Vec2f &_pos) {
+    unique_ptr<_menuObject> newObject = make_unique<_menuObject>();
+    newObject->initMenuObject(fileName, _size, _pos);
+    menuObjects.push_back(move(newObject));
+}
+
+
+void _menuManager::_menu::drawMenu(const Vec2i &wDim) {
+    for (int i = 0; i < menuObjects.size(); i++) {
+        menuObjects[i]->drawMenuObject(wDim);
+    }
+}
+
+
+void _menuManager::_menu::updateMenu(double dt) {
+    for (int i = 0; i < menuObjects.size(); i++) {
+        menuObjects[i]->updateMenuObject(dt);
+    }
 }
 
