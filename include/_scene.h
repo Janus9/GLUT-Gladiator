@@ -148,6 +148,9 @@ class _scene
         double fpsPrintInterval = 1000;     // ms between FPS prints
         double sceneFPS = 0.0;              // Current FPS of the scene (updated every [fpsPrintInterval] ms)
         int frameCount = 0;                 // Number of frames between FPS prints
+
+        // Rng machine
+        mt19937 rng;
 };
 
 #endif // _SCENE_H

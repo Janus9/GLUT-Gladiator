@@ -105,9 +105,9 @@ void _enemyManager::updateEnemies(double dt) {
             continue;
         }
         float distance = enemy->pos.distance(player->pos);
-        if (distance < 256.0f) {
+        if (distance < 384.0f) {
             // Enemy in range
-            bool focused = enemy->focusOn(player->pos,45.0f);
+            bool focused = enemy->focusOn(player->pos,90.0f);
             if (focused) {
                 if (enemy->firingTime > 1.0f/(enemy->fireRate/60.0f)) {
                     bulletManager->spawnBulletEffect(enemy->pos,player->pos,_team::ENEMY,*bullet_1);

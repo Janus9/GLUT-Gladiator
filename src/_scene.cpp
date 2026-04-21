@@ -1,6 +1,6 @@
 #include "_scene.h"
 
-_scene::_scene()
+_scene::_scene() : rng(random_device{}())
 {
     //ctor
 }
@@ -141,7 +141,37 @@ void _scene::initScene() {
     turret_bullet.lifespan = 3.0f;
     turret_bullet.angleOffset = 7.0f;
 
-    player->setHealth(1000.0f);
+    player->setHealth(200.0f);
+
+    // Find spawn area
+    uniform_real_distribution<float> player_pos_dist(-1000,1000);
+    bool lookingForSpawn = true;
+    while (lookingForSpawn) {
+        Vec2f spawnPos = {player_pos_dist(rng),player_pos_dist(rng)};
+        _cell* spawnCell = myWorld->getCellAtWorld(spawnPos);
+        if (spawnCell && myWorld->isCellWall(spawnCell)) {
+            // Is a wall, retry
+            continue;
+        }
+        player->pos = spawnPos;
+        lookingForSpawn = false;
+    }
+
+    // Spawn turrets
+    uniform_real_distribution<float> turret_pos_dist(-3500,3500);
+    for (int i = 0; i < 300; i++) {
+        bool lookingForTurretSpawn = true;
+        while (lookingForTurretSpawn) {
+            Vec2f spawnTurretPos = {turret_pos_dist(rng),turret_pos_dist(rng)};
+            _cell* spawnTurretCell = myWorld->getCellAtWorld(spawnTurretPos);
+            if (spawnTurretCell && myWorld->isCellWall(spawnTurretCell)) {
+                // Is a wall, retry
+                continue;
+            }
+            enemyManager->addEnemy(spawnTurretPos);
+            lookingForTurretSpawn = false;
+        }
+    }
 }
 
 void _scene::reSize(GLint width, GLint height)
@@ -195,8 +225,6 @@ void _scene::drawScene()
 {
     glLoadIdentity(); //Whichever state the scene is in it will stay there
     applyCamera(); // Apply camera transformations
-
-    //myQuad->drawQuad();
 
     drawWorldBenchmark->startBenchmark();
         myWorld->drawWorld(left,right,top,bottom); // Draw the world

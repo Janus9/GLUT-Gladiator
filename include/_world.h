@@ -305,7 +305,7 @@ class _world
          */
         bool damageCell(_cell* cell, float amount);
 
-        bool DEBUG_displayChunkBorders = true; // When enabled puts a red border around chunks
+        bool DEBUG_displayChunkBorders = false; // When enabled puts a red border around chunks
     protected:
     private:
         // -- PARTICLE MANAGER -- //
