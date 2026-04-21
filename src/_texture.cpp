@@ -18,7 +18,6 @@ _texture::~_texture()
         // Releases the texture from GPU memory
         glDeleteTextures(1, &textID);
     }
-
 }
 
 GLuint _texture::loadTexture(const std::string& fileName)

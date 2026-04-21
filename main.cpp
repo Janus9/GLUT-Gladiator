@@ -7,14 +7,17 @@
 #  include <windows.h>
 #endif
 
+#define UPDATE_DELAY (1000.0f / 60.0f)	// Delay in milliseconds for 60 updates per second
+
 //Find these libraries within the project folders
 //Exact paths may not be found but the libraries will be
 #pragma comment(lib, "opengl32.lib")
 #pragma comment(lib, "glu32.lib")
 
-#include<_common.h>         // For common headers
-#include<_scene.h>          // My scene context
-#include<_timerPlusPlus.h>   // For the timer class
+#include <_common.h>         // For common headers
+#include <_scene.h>          // My scene context
+#include <_timerPlusPlus.h>   // For the timer class
+#include <_menuManager.h>
 
 HDC			hDC=NULL;		// Private GDI Device Context
 HGLRC		hRC=NULL;		// Permanent Rendering Context
@@ -27,11 +30,17 @@ bool	fullscreen=TRUE;	// Fullscreen Flag Set To Fullscreen Mode By Default (is t
 
 LRESULT	CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);	// Declaration For WndProc. Passing parameters into system
 
+int wWidth;					// Window width
+int wHeight;				// Window height
+Vec2f mouseScreenClipPos;	// Mouse position (screen coordinates as 0-1 where 0,0 is bottom left)
+Vec2f mouseScreenPos;		// Mouse position (screen coordinates as pixels where 0,0 is top left)
+bool LMB = false;			// Left mouse button held
 
 // CLASS INSTANCE DECLARATIONS //
 _logger Logger; //New instance of logger to be used in the program. Logger will be used to track specific values and print them to the console for debugging purposes
 _scene *myScene = new _scene();//handling memory to point to specific scene values. makes an instance of scene
-_timerPlusPlus Timer; // Timer for handling update loop for scenese
+unique_ptr<_timerPlusPlus> timer = make_unique<_timerPlusPlus>();
+unique_ptr<_menuManager> menuManager = make_unique<_menuManager>();
 
 //An option to parallel-check each individual function would be loops to handle interrupts
 //Parallel while loops to be able to handle in program is handled by the callback function
@@ -245,14 +254,25 @@ BOOL CreateGLWindow(char* title, int width, int height, int bits, bool fullscree
 	SetForegroundWindow(hWnd);						// Slightly Higher Priority. Temporary screen until front window arrives
 	SetFocus(hWnd);									// Sets Keyboard Focus To The Window. Main Active Window
 
-	myScene->reSize(width,height);  //Intended to resize the scene to match the width and height
 	if(!myScene->initGL())                          //If scene does not initialize
     {
-        KillGLWindow();    //Kills window if game does not initialize
+		KillGLWindow();    //Kills window if game does not initialize
         MessageBox(NULL,"Can't Initialize GL.", "ERROR", MB_OK|MB_ICONEXCLAMATION); //Message Box declares that OpenGL crashed
+		return FALSE;
 	}
+    glewInit();
+
+	myScene->initScene(); 			// Initializes scene classes and data (ONLY RUN ONCE)
+	myScene->reSize(width,height);  // Intended to resize the scene to match the width and height
+	wWidth = width;
+	wHeight = height;
+	_menuManager::setWindowDimensions({wWidth,wHeight});
+
 	Logger.InitLogger("logs/main.log");
-	Timer.reset();
+	timer->reset();
+
+	menuManager->initMenuManager();
+	menuManager->loadMenu(MENU_LANDING); // CHANGE LATER
 	return TRUE;									// Success
 }
 
@@ -265,9 +285,26 @@ LRESULT CALLBACK WndProc(	HWND	hWnd,			// Handle For This Window
 							WPARAM	wParam,			// Additional Message Information
 							LPARAM	lParam)			// Additional Message Information
 {
-	myScene->winMsg(hWnd, uMsg, wParam, lParam); //Passes the message to the scene to be handled by the scene class. This allows for the scene to handle specific messages related to the scene itself (such as mouse movement and key presses)
+	if (menuManager->getLoadedMenu() == MENU_GAME) {
+		myScene->winMsg(hWnd, uMsg, wParam, lParam); //Passes the message to the scene to be handled by the scene class. This allows for the scene to handle specific messages related to the scene itself (such as mouse movement and key presses)
+	}
 	switch (uMsg)									// Check For Windows Messages
 	{
+		case WM_MOUSEMOVE:
+			mouseScreenPos = {LOWORD(lParam), HIWORD(lParam)};
+			if (wWidth > 0.0f && wHeight > 0.0) { // Divide by 0 check
+				mouseScreenClipPos = {mouseScreenPos.x / wWidth, 1.0f - (mouseScreenPos.y / wHeight)};
+			}
+			break;
+
+		case WM_LBUTTONDOWN:
+			LMB = true;
+			break;
+		
+		case WM_LBUTTONUP:
+			LMB = false;
+			break;
+
 	    //Is Window Currently Active?
 		case WM_ACTIVATE:							// Watch For Window Activate Message
 		{
@@ -306,6 +343,10 @@ LRESULT CALLBACK WndProc(	HWND	hWnd,			// Handle For This Window
 		case WM_KEYDOWN:							// Is A Key Being Held Down?
 		{
 			keys[wParam] = TRUE;					// If So, Mark It As TRUE
+			if (wParam == VK_ESCAPE) {
+				cout << "Escape key pressed -- pausing game!\n";
+				menuManager->loadMenu(MENU_PAUSE);
+			}
 			return 0;								// Jump Back
 		}
 
@@ -323,7 +364,12 @@ LRESULT CALLBACK WndProc(	HWND	hWnd,			// Handle For This Window
 		//All includes and prototype allocation starts a program and then goes to main
 		case WM_SIZE:								// Resize The OpenGL Window
 		{
-            myScene->reSize(LOWORD(lParam), HIWORD(lParam));    // LoWord=Width, HiWord=Height. Resize happens when the size of the window is forced to change
+			wWidth = LOWORD(lParam);
+			wHeight = HIWORD(lParam);
+
+            myScene->reSize(wWidth, wHeight);   
+			_menuManager::setWindowDimensions({wWidth,wHeight});
+			
 			return 0;								// Jump Back
 		}
 	}
@@ -359,7 +405,7 @@ int WINAPI WinMain(	HINSTANCE	hInstance,			// Instance
 		fullscreen=FALSE;							// Windowed Mode
 	}
 	// Create Our OpenGL Window
-	if (!CreateGLWindow("Game Engine Lesson 01",fullscreenWidth,fullscreenHeight,256,fullscreen))
+	if (!CreateGLWindow("GLUT Gladiator",fullscreenWidth,fullscreenHeight,256,fullscreen))
 	{
 		return 0;									// Quit If Window Was Not Created, Program is exited
 	}
@@ -383,31 +429,47 @@ int WINAPI WinMain(	HINSTANCE	hInstance,			// Instance
 		else										// If There Are No Messages
 		{
 			// Draw The Scene.  Watch For ESC Key And Quit Messages From DrawGLScene()
-		if (keys[VK_ESCAPE])
-			{
-				done=TRUE;							// ESC or DrawGLScene Signalled A Quit
-			}
-			else									// Not Time To Quit, Update Screen
-			{
-				myScene->drawScene(); //So long as the key is not escaping (quitting), keep drawing the scene
-				if (Timer.getTicks() > 16.67) // If the time since the last update is greater than 16.67ms (60fps), update the scene
-				{
-					myScene->updateScene(Timer.getTicks()); //Update the scene with the time since the last update
-					Timer.reset(); // Reset the timer for the next update
+			if (menuManager->getLoadedMenu() == MENU_GAME) {
+				if (menuManager->loadGame) {
+					// myScene->initGL();
+					cout << "ENTERING GAME MODE\n";
+					timer->reset();
+					myScene->reSize(wWidth,wHeight);
+					menuManager->loadGame = false;
 				}
-				SwapBuffers(hDC);				// Swap Buffers (Double Buffering)
-			}
 
-			if (keys[VK_F1])						// Is F1 Being Pressed?
-			{
-				keys[VK_F1]=FALSE;					// If So Make Key FALSE
-				KillGLWindow();						// Kill Our Current Window
-				fullscreen=!fullscreen;				// Toggle Fullscreen / Windowed Mode
-				// Recreate Our OpenGL Window
-				if (!CreateGLWindow("Game Engine Lesson 01",fullscreenWidth,fullscreenHeight,256,fullscreen))
+				// Show Scene //
+				glViewport(0,0,wWidth,wHeight);
+				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+				if (timer->getMilliseconds() > UPDATE_DELAY) // If the time since the last update is greater than 16.67ms (60fps), update the scene
 				{
-					return 0;						// Quit If Window Was Not Created
+					myScene->updateScene(timer->getSeconds(),keys); //Update the scene with the time since the last update
+					timer->reset(); // Reset the timer for the next update
 				}
+				myScene->drawScene(); //So long as the key is not escaping (quitting), keep drawing the scene
+			} else {
+				// Show Menu //
+				glViewport(0,0,wWidth,wHeight);
+				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+				if (timer->getMilliseconds() > UPDATE_DELAY) // If the time since the last update is greater than 16.67ms (60fps), update the scene
+				{
+					menuManager->updateMenuManager(timer->getSeconds(),mouseScreenClipPos,LMB); //Update the scene with the time since the last update
+					timer->reset(); // Reset the timer for the next update
+				}
+				menuManager->drawMenuManager();
+			}
+			SwapBuffers(hDC);				// Swap Buffers (Double Buffering)
+		}
+
+		if (keys[VK_F1])						// Is F1 Being Pressed?
+		{
+			keys[VK_F1]=FALSE;					// If So Make Key FALSE
+			KillGLWindow();						// Kill Our Current Window
+			fullscreen=!fullscreen;				// Toggle Fullscreen / Windowed Mode
+			// Recreate Our OpenGL Window
+			if (!CreateGLWindow("Game Engine Lesson 01",fullscreenWidth,fullscreenHeight,256,fullscreen))
+			{
+				return 0;						// Quit If Window Was Not Created
 			}
 		}
 	}

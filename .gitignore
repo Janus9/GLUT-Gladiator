@@ -14,7 +14,7 @@ build/
 logs/
 obj/
 
-# FILE TYPEs #
+# FILE TYPES #
 *.log
 *.o
 *.exe
@@ -22,3 +22,8 @@ obj/
 
 
 
+# LIBRARY FOLDERS #
+common/
+
+# DOXYGEN #
+html/

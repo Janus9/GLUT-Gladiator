@@ -1,4 +1,4 @@
-#include "_timerPlusPlus.h"
+#include <_timerPlusPlus.h>
 
 _timerPlusPlus::_timerPlusPlus()
 {
@@ -13,12 +13,18 @@ _timerPlusPlus::~_timerPlusPlus()
 
 void _timerPlusPlus::reset()
 {
-    startTime = chrono::high_resolution_clock::now();
+    startTime = chrono::steady_clock::now();
 }
 
-double _timerPlusPlus::getTicks()
+double _timerPlusPlus::getSeconds() const
 {
-    auto currentTime = chrono::high_resolution_clock::now();
-    auto duration = chrono::duration_cast<chrono::milliseconds>(currentTime - startTime);
+    auto currentTime = chrono::steady_clock::now();
+    chrono::duration<double> duration = currentTime - startTime;
     return duration.count();
 }
+
+double _timerPlusPlus::getMilliseconds() const
+{
+    return getSeconds() * 1000.0;
+}
+

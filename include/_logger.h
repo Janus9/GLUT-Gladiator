@@ -1,11 +1,10 @@
 #ifndef _LOGGER_H_
 #define _LOGGER_H_
 
-
 /* -- COLOR DEFINITIONS -- */
 #define ESC "\033["         
 //#define RESET "\033[m"
-#define RESET "\033[m>con"
+#define RESET "\033[m"
 // TEXT COLORS //
 #define BLACK_TXT "30;"
 #define RED_TXT "31;"
