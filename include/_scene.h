@@ -43,6 +43,8 @@ class _scene
         void drawScene(); 
         // Updates the scene based on time of (60fps ~16.67ms per update). Time-based events should be added in here, such as movement and other time-based changes to the scene
         void updateScene(double dt, bool* keysArray);
+        // Runs audio ramps every frame regardless of menu state, so music fade-in still progresses while on the main menu
+        void updateAudio(double dt);
         // Handles input messsages send from windows -- used for controls etc
         int winMsg(HWND	hWnd, UINT uMsg, WPARAM	wParam, LPARAM lParam);
 

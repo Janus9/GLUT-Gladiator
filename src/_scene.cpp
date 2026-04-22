@@ -247,6 +247,11 @@ void _scene::drawScene()
 
 }
 
+void _scene::updateAudio(double dt)
+{
+    testSounds->updateFadeIn(dt);
+}
+
 // Runs in loop 60 times per second. dt is in ms.
 void _scene::updateScene(double dt, bool *keysArray)
 {

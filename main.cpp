@@ -456,7 +456,9 @@ int WINAPI WinMain(	HINSTANCE	hInstance,			// Instance
 				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 				if (timer->getMilliseconds() > UPDATE_DELAY) // If the time since the last update is greater than 16.67ms (60fps), update the scene
 				{
-					myScene->updateScene(timer->getSeconds(),keys); //Update the scene with the time since the last update
+					double dt = timer->getSeconds();
+					myScene->updateScene(dt,keys); //Update the scene with the time since the last update
+					myScene->updateAudio(dt); // Tick audio fades
 					timer->reset(); // Reset the timer for the next update
 				}
 				myScene->drawScene(); //So long as the key is not escaping (quitting), keep drawing the scene
@@ -466,7 +468,9 @@ int WINAPI WinMain(	HINSTANCE	hInstance,			// Instance
 				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 				if (timer->getMilliseconds() > UPDATE_DELAY) // If the time since the last update is greater than 16.67ms (60fps), update the scene
 				{
-					menuManager->updateMenuManager(timer->getSeconds(),mouseScreenClipPos,LMB); //Update the scene with the time since the last update
+					double dt = timer->getSeconds();
+					menuManager->updateMenuManager(dt,mouseScreenClipPos,LMB); //Update the scene with the time since the last update
+					myScene->updateAudio(dt); // Tick audio fades while on the main menu so music ramps up before entering game
 					timer->reset(); // Reset the timer for the next update
 				}
 				menuManager->drawMenuManager();

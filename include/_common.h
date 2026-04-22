@@ -4,6 +4,7 @@
 // DEFINES //
 
 #define GLEW_STATIC
+#define GLUT_DISABLE_ATEXIT_HACK   // glut.h here is classic GLUT; skip the inline ATEXIT stubs that reference __glut*WithExit symbols not exported by freeglut
 #define GRAVITY 9.81
 
 // INCLUDES //
