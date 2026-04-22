@@ -54,11 +54,12 @@ _enemyManager::~_enemyManager() {
     // dtor
 }
 
-void _enemyManager::initEnemyManager(_player* currentPlayer, _world* currentWorld, _bulletManager* currentBulletManager,_bullet_config* _bullet_1) {
+void _enemyManager::initEnemyManager(_player* currentPlayer, _world* currentWorld, _bulletManager* currentBulletManager,_bullet_config* _bullet_1, _sounds* currentSounds) {
     player = currentPlayer;
     world = currentWorld;
     bulletManager = currentBulletManager;
     bullet_1 = _bullet_1;
+    sounds = currentSounds;
 
     particleManager->initParticleManager("images/enemy/hit_particle.png");
     // turret hit effect
@@ -96,6 +97,7 @@ void _enemyManager::updateEnemies(double dt) {
             enemy->getSingleSprite()->setIdleFrame(3,1);
             enemy->getSingleSprite()->playAction("DEATH");
             enemy->deathTime = 0.0;
+            if (sounds) sounds->playSfx("ENEMY_DEATH");
             continue;
         } else if (enemy->isDead() && enemy->deathTime > 5.0f) {
             enemyList.erase(enemyList.begin() + i);
@@ -111,6 +113,7 @@ void _enemyManager::updateEnemies(double dt) {
             if (focused) {
                 if (enemy->firingTime > 1.0f/(enemy->fireRate/60.0f)) {
                     bulletManager->spawnBulletEffect(enemy->pos,player->pos,_team::ENEMY,*bullet_1);
+                    if (sounds) sounds->playSfx("ENEMY_SHOOT");
                     enemy->getSingleSprite()->setFPS(enemy->fireRate / 60.0f);
                     enemy->firingTime = 0;
                 }

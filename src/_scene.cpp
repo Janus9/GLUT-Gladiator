@@ -118,15 +118,26 @@ void _scene::initScene() {
    
     drawWorldBenchmark->startBenchmark();
 
-    enemyManager->initEnemyManager(player.get(),myWorld,bulletManager.get(),&turret_bullet);
+    enemyManager->initEnemyManager(player.get(),myWorld,bulletManager.get(),&turret_bullet,testSounds);
 
-    testSounds->playSounds("sounds/test_music.mp3");
+    // -- SOUND EFFECTS -- //
+    // Register all SFX up front so first-play decoder stalls are avoided. Tune per-SFX volumes here.
+    testSounds->registerSfx("PLAYER_SHOOT",    "sounds/player_shoot.wav",   0.7f);
+    testSounds->registerSfx("ENEMY_SHOOT",     "sounds/enemy_shoot.wav",    0.6f);
+    testSounds->registerSfx("BULLET_HIT_WALL", "sounds/hit_wall.wav",       0.5f);
+    testSounds->registerSfx("BULLET_HIT_UNIT", "sounds/hit_unit.wav",       0.8f);
+    testSounds->registerSfx("ENEMY_DEATH",     "sounds/enemy_death.wav",    0.9f);
+    testSounds->registerSfx("PLAYER_HURT",     "sounds/player_hurt.wav",    1.0f);
+    testSounds->registerSfx("PLAYER_DEATH",    "sounds/player_death.wav",   1.0f);
+    testSounds->registerSfx("MINE_COMPLETE",   "sounds/mine_complete.wav",  0.8f);
+
+    testSounds->playBackgroundMusic("sounds/test_music.mp3");
 
     // -- SHADERS -- //
     // sh->initShader("shaders/V.vs","shaders/F.fs");
     // glUseProgram(sh->program);
 
-    bulletManager->initBulletManager("images/test_bullet.png", myWorld,player.get(),enemyManager.get());
+    bulletManager->initBulletManager("images/test_bullet.png", myWorld,player.get(),enemyManager.get(),testSounds);
     player_bullet.amount = 1;
     player_bullet.speed = 512.0f;
     player_bullet.width = 15.0f;
@@ -271,6 +282,7 @@ void _scene::updateScene(double dt, bool *keysArray)
             if (!hoveredCell->isAlive()) {
                 cout << "BLOCK HAS BEEN MINED \n";
                 hud->getHudSprite("PROGRESS_BAR")->getSprite()->stopAnimation(); // Mining finished, reset progress bar animation
+                testSounds->playSfx("MINE_COMPLETE");
             }
             interactionTimer->reset();
         }
@@ -486,6 +498,7 @@ void _scene::updateScene(double dt, bool *keysArray)
                 offsetPos = {-4.0f,8.0f};
             }
             bulletManager->spawnBulletEffect(player->pos + offsetPos, mouseWorldPos, _team::FRIENDLY, player_bullet);
+            testSounds->playSfx("PLAYER_SHOOT");
             fireRateTimer.reset();
         } else {
             player->setAnimationFPS(12);
@@ -493,7 +506,13 @@ void _scene::updateScene(double dt, bool *keysArray)
     }
 
     if (player->isDead()) {
+        if (!playerDeathSfxFired) {
+            testSounds->playSfx("PLAYER_DEATH");
+            playerDeathSfxFired = true;
+        }
         player->handlePlayerDeath(face);
+    } else {
+        playerDeathSfxFired = false;    // Reset so a future respawn retriggers the SFX on next death
     }
 
     player->setAction(action,face);

@@ -46,7 +46,7 @@ _bulletManager::~_bulletManager() {
     // no timers
 }
 
-void _bulletManager::initBulletManager(const string &fileName, _world* currentWorld, _player* currentPlayer, _enemyManager* currentEnemyManager) {
+void _bulletManager::initBulletManager(const string &fileName, _world* currentWorld, _player* currentPlayer, _enemyManager* currentEnemyManager, _sounds* currentSounds) {
     // Generate new buffers
     glGenBuffers(1,&vboID);
     glGenBuffers(1,&eboID);
@@ -57,6 +57,7 @@ void _bulletManager::initBulletManager(const string &fileName, _world* currentWo
     world = currentWorld;
     player = currentPlayer;
     enemyManager = currentEnemyManager;
+    sounds = currentSounds;
     
     // -- SHADER SETUP -- //
     bulletShader.initShader("shaders/bullet_manager/vertex.vs","shaders/bullet_manager/fragment.fs");
@@ -148,6 +149,7 @@ void _bulletManager::updateBulletManager(double dt) {
             if (world->isTileWall(occupyingCell->tileId)) {
                 // Collision event
                 world->damageCell(occupyingCell,10.0f);
+                if (sounds) sounds->playSfx("BULLET_HIT_WALL");
                 b->alive = false;
                 continue;
             }
@@ -155,9 +157,10 @@ void _bulletManager::updateBulletManager(double dt) {
 
         if (b->team == _team::FRIENDLY || b->team == _team::NEUTRAL) {
             // Enemy Collision Check
-            _enemy* enemy = enemyManager->isColliding(b->pos,5.0f); 
+            _enemy* enemy = enemyManager->isColliding(b->pos,5.0f);
             if (enemy) {
                 enemy->health -= 10.0f;
+                if (sounds) sounds->playSfx("BULLET_HIT_UNIT");
                 b->alive = false;
                 continue;
             }
@@ -165,6 +168,7 @@ void _bulletManager::updateBulletManager(double dt) {
             // Friendly Collision Check
             if (b->pos.distance(player->pos) < 5.0f) {
                 player->impulseDamage(10,b->pos);
+                if (sounds) sounds->playSfx("PLAYER_HURT");
                 b->alive = false;
                 continue;
             }

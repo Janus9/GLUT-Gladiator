@@ -6,6 +6,7 @@
 #include <_world.h>
 #include <_bulletManager.h>
 #include <_particleManager.h>
+#include <_sounds.h>
 
 class _enemy : public _unit {
     public:
@@ -41,7 +42,7 @@ class _enemyManager {
         _enemyManager();
         virtual ~_enemyManager();
 
-        void initEnemyManager(_player* currentPlayer, _world* currentWorld, _bulletManager* currentBulletManager,_bullet_config* _bullet_1);
+        void initEnemyManager(_player* currentPlayer, _world* currentWorld, _bulletManager* currentBulletManager,_bullet_config* _bullet_1, _sounds* currentSounds);
 
         /**
          * Update function for enemies
@@ -74,6 +75,7 @@ class _enemyManager {
         _world* world = nullptr;                    // Pointer to world instance instantiated in scene (non-owning)
         _bulletManager* bulletManager = nullptr;    // Pointer to bulletManager instance instantiated in scene (non-owning)
         _bullet_config* bullet_1 = nullptr;
+        _sounds* sounds = nullptr;                  // Pointer to sounds instance instantiated in scene (non-owning)
 
         vector<unique_ptr<_enemy>> enemyList;   // List of enemy instances
 

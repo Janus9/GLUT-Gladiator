@@ -2,7 +2,6 @@
 
 _sounds::_sounds()
 {
-    // ctor
     engine = createIrrKlangDevice();
     if (!engine) {
         std::cerr << "Error occured starting the engine\n";
@@ -11,19 +10,17 @@ _sounds::_sounds()
 
 _sounds::~_sounds()
 {
-    // dtor
     if (currentMusic) {
         currentMusic->drop();
         currentMusic = nullptr;
     }
-    engine->drop();
+    if (engine) engine->drop();
 }
 
-void _sounds::playSounds(const std::string& fileName) {
+void _sounds::playBackgroundMusic(const std::string& fileName) {
     // Preload so first-play decode doesn't stall the audio thread
     engine->addSoundSourceFromFile(fileName.c_str(), ESM_AUTO_DETECT, true);
 
-    // Release any prior music handle before replacing it
     if (currentMusic) {
         currentMusic->stop();
         currentMusic->drop();
@@ -46,6 +43,38 @@ void _sounds::playSounds(const std::string& fileName) {
     currentMusic = snd;
     fadeElapsed = 0.0f;
     fading = true;
+}
+
+void _sounds::registerSfx(const std::string& name, const std::string& fileName, float volume) {
+    ISoundSource* src = engine->addSoundSourceFromFile(fileName.c_str(), ESM_AUTO_DETECT, true);
+    if (!src) {
+        std::cerr << "registerSfx: failed to load " << fileName << " for '" << name << "'\n";
+        return;
+    }
+    src->setDefaultVolume(volume * sfxMasterVolume);
+    sfxRegistry[name] = SfxEntry{ fileName, volume };
+}
+
+void _sounds::playSfx(const std::string& name) {
+    auto it = sfxRegistry.find(name);
+    if (it == sfxRegistry.end()) {
+        std::cerr << "playSfx: unknown SFX '" << name << "'\n";
+        return;
+    }
+    // Fire-and-forget: not looped, not paused, not tracked. Uses the source's default volume.
+    engine->play2D(it->second.path.c_str(),
+                   false /*looped*/,
+                   false /*startPaused*/,
+                   false /*track*/);
+}
+
+void _sounds::setSfxMasterVolume(float v) {
+    sfxMasterVolume = v;
+    // Re-apply to all registered sources so the change takes effect on future plays.
+    for (auto& kv : sfxRegistry) {
+        ISoundSource* src = engine->getSoundSource(kv.second.path.c_str(), false);
+        if (src) src->setDefaultVolume(kv.second.volume * sfxMasterVolume);
+    }
 }
 
 void _sounds::updateFadeIn(double dt) {

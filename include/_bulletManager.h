@@ -8,6 +8,7 @@
 #include <_particleManager.h>
 #include <_shader.h>
 #include <_player.h>
+#include <_sounds.h>
 
 class _enemyManager;
 
@@ -49,7 +50,7 @@ class _bulletManager {
          * @param fileName Name of file for bullet image
          * @param world Pointer to world where manager operates
          */
-        void initBulletManager(const string &fileName, _world* currentWorld, _player* currentPlayer, _enemyManager* currentEnemyManager);
+        void initBulletManager(const string &fileName, _world* currentWorld, _player* currentPlayer, _enemyManager* currentEnemyManager, _sounds* currentSounds);
 
         /**
          * Draw function
@@ -87,6 +88,7 @@ class _bulletManager {
         _player* player = nullptr;                  // Pointer to player instance instantiated in scene (non-owning)
         _world* world = nullptr;                    // Pointer to world instance instantiated in scene (non-owning)
         _enemyManager* enemyManager = nullptr;      // Pointer to enemyManager instance instantiated in scene (non-owning)
+        _sounds* sounds = nullptr;                  // Pointer to sounds instance instantiated in scene (non-owning)
 
         _texture* texture = new _texture();
         _particleManager* bulletDrops = new _particleManager();
