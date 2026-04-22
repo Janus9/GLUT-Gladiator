@@ -123,7 +123,7 @@ void _scene::initScene()
     // -- SOUND EFFECTS -- //
     // Register all SFX up front so first-play decoder stalls are avoided. Tune per-SFX volumes here.
     testSounds->registerSfx("PLAYER_SHOOT", "sounds/player_shoot.wav", 0.7f);
-    testSounds->registerSfx("ENEMY_SHOOT", "sounds/enemy_shoot.wav", 0.6f);
+    testSounds->registerSfx("ENEMY_SHOOT", "sounds/enemy_shoot.mp3", 0.05f);
     testSounds->registerSfx("BULLET_HIT_WALL", "sounds/hit_wall.wav", 0.5f);
     testSounds->registerSfx("BULLET_HIT_UNIT", "sounds/hit_unit.wav", 0.8f);
     testSounds->registerSfx("ENEMY_DEATH", "sounds/enemy_death.wav", 0.9f);
