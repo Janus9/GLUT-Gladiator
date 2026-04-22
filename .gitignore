@@ -20,7 +20,8 @@ obj/
 *.exe
 *.dll
 
-
+# Ignore Mr. Claude
+CLAUDE.md
 
 # LIBRARY FOLDERS #
 common/
