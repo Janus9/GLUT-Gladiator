@@ -122,15 +122,15 @@ void _scene::initScene()
 
     // -- SOUND EFFECTS -- //
     // Register all SFX up front so first-play decoder stalls are avoided. Tune per-SFX volumes here.
-    testSounds->registerSfx("PLAYER_SHOOT", "sounds/player_shoot.wav", 0.7f);
-    testSounds->registerSfx("ENEMY_SHOOT", "sounds/enemy_shoot.mp3", 0.05f);
-    testSounds->registerSfx("BULLET_HIT_WALL", "sounds/hit_wall.wav", 0.5f);
-    testSounds->registerSfx("BULLET_HIT_UNIT", "sounds/hit_unit.wav", 0.8f);
-    testSounds->registerSfx("ENEMY_DEATH", "sounds/enemy_death.wav", 0.9f);
-    testSounds->registerSfx("PLAYER_HURT", "sounds/player_hurt.mp3", 0.3f);
-    testSounds->registerSfx("PLAYER_DEATH", "sounds/player_death.wav", 0.5f);
-    testSounds->registerSfx("MINE_COMPLETE", "sounds/mine_complete.wav", 0.2f);
-    testSounds->registerSfx("MINE_TICK", "sounds/mine_tick.wav", 0.2f);
+    testSounds->registerSfx("PLAYER_SHOOT", "sounds/player_shoot.mp3", 0.1f);  // Done
+    testSounds->registerSfx("ENEMY_SHOOT", "sounds/enemy_shoot.mp3", 0.05f);   // Done
+    testSounds->registerSfx("BULLET_HIT_WALL", "sounds/hit_wall.wav", 0.5f);   
+    testSounds->registerSfx("BULLET_HIT_UNIT", "sounds/test.m4a", 0.8f);       // This is a clown horn because I don't know when this triggers yet and want to be surprised
+    testSounds->registerSfx("ENEMY_DEATH", "sounds/enemy_death.wav", 0.1f);    // Done
+    testSounds->registerSfx("PLAYER_HURT", "sounds/player_hurt.mp3", 0.3f);    // Done
+    testSounds->registerSfx("PLAYER_DEATH", "sounds/player_death.wav", 0.5f);  // Done
+    testSounds->registerSfx("MINE_COMPLETE", "sounds/mine_complete.wav", 0.2f);// Done
+    testSounds->registerSfx("MINE_TICK", "sounds/mine_tick.wav", 0.2f);        // Done
 
     testSounds->playBackgroundMusic("sounds/test_music.mp3");
 
