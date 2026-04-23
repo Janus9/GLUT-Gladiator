@@ -202,8 +202,8 @@ void _scene::initScene()
     player->spawnPos = spawnPos;
 
     // Spawn turrets
-    uniform_real_distribution<float> turret_pos_dist(-3500, 3500);
-    for (int i = 0; i < 300; i++)
+    uniform_real_distribution<float> turret_pos_dist(-14000, 14000);
+    for (int i = 0; i < 400; i++)
     {
         bool lookingForTurretSpawn = true;
         while (lookingForTurretSpawn)
