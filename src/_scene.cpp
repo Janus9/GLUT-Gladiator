@@ -127,8 +127,8 @@ void _scene::initScene()
     testSounds->registerSfx("BULLET_HIT_WALL", "sounds/hit_wall.wav", 0.5f);
     testSounds->registerSfx("BULLET_HIT_UNIT", "sounds/hit_unit.wav", 0.8f);
     testSounds->registerSfx("ENEMY_DEATH", "sounds/enemy_death.wav", 0.9f);
-    testSounds->registerSfx("PLAYER_HURT", "sounds/player_hurt.wav", 1.0f);
-    testSounds->registerSfx("PLAYER_DEATH", "sounds/player_death.wav", 1.0f);
+    testSounds->registerSfx("PLAYER_HURT", "sounds/player_hurt.mp3", 0.3f);
+    testSounds->registerSfx("PLAYER_DEATH", "sounds/player_death.wav", 0.5f);
     testSounds->registerSfx("MINE_COMPLETE", "sounds/mine_complete.wav", 0.2f);
     testSounds->registerSfx("MINE_TICK", "sounds/mine_tick.wav", 0.2f);
 
