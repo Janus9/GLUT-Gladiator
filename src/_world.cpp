@@ -721,6 +721,11 @@ const _tile* _world::getTileAtWorld(const Vec2f &pos) const {
 }
 
 _cell* _world::getCellAtWorld(const Vec2f &pos) const {
+    if (pos.x > worldBounds || pos.y > worldBounds || pos.x < -worldBounds || pos.y < -worldBounds) {
+        // Cell out of bounds
+        return nullptr;
+    }
+
      // Convert floats to ints by truncation
     int posX = pos.x;
     int posY = pos.y;

@@ -17,6 +17,7 @@
 
 #define TILE_W 16.0f   // Tile width in world units is ALWAYS the same of 16
 #define TILE_H 16.0f   // Tile height in world units is ALWAYS the same of 16
+#define NUM_CHUNKS 16384;
 
 #include <_common.h>
 #include <_texture.h>
@@ -327,8 +328,8 @@ class _world
          * This is the default number of renered chunks for the world. Starts at center and expands evenly outward as a cube 
          * Would be better done as a sphere but cube is easier -- gives warning if # doesnt make an even cube
          */
-        const int numStartingChunks = 16384;
-
+        const int numStartingChunks = NUM_CHUNKS;
+        const float worldBounds = sqrt(numStartingChunks) * 16 * 16 * 0.5;
 
         // List of all possible tile types. This is a lookup table NOT the main storage array
         _tile world_tiles[256];  

@@ -160,12 +160,36 @@ void _scene::initScene()
     player->setHealth(200.0f);
     player->setMaxHealth(200.0f);
 
-    // Find spawn area
-    uniform_real_distribution<float> player_pos_dist(-1000, 1000);
+    /**
+     * World is 128 x 128 chunks (32,768 x 32,768 world units)
+     * Player spawns in bounds: -15,000 to -12,000 AND 12,000 to 15,000 
+     * 
+     */
+
+    // Find spawn 
+    const float numChunks = NUM_CHUNKS;
+    // Total chunk area to length/width * num tiles * 16 units per tile / 2 since 0,0 is center
+    float bounds = sqrt(numChunks) * 16 * 16 * 0.5;
+    uniform_real_distribution<float> player_pos_neg_dist(-1.0f,1.0f);           // Coin flip for positive vs negative side
+    uniform_real_distribution<float> player_pos_dist_neg(-15000.0f,-12000.0f);  // Distribution for negative side
+    uniform_real_distribution<float> player_pos_dist_pos(12000.0f,15000.0f);    // Distribution for positive side
     bool lookingForSpawn = true;
     while (lookingForSpawn)
     {
-        spawnPos = {player_pos_dist(rng), player_pos_dist(rng)};
+        // Assign X //
+        if (player_pos_neg_dist(rng) > 0.0f) {
+            spawnPos.x = player_pos_dist_pos(rng);
+        } else {
+            spawnPos.x = player_pos_dist_neg(rng);
+        }
+
+        // Assign Y //
+        if (player_pos_neg_dist(rng) > 0.0f) {
+            spawnPos.y = player_pos_dist_pos(rng);
+        } else {
+            spawnPos.y = player_pos_dist_neg(rng);
+        }
+
         _cell *spawnCell = myWorld->getCellAtWorld(spawnPos);
         if (spawnCell && myWorld->isCellWall(spawnCell))
         {
@@ -671,7 +695,7 @@ void _scene::updateScene(double dt, bool *keysArray)
     _cell *cell = myWorld->getCellAtWorld(Vec2f(mouseWorldPos.x, mouseWorldPos.y));
     _chunk *chunk = myWorld->getChunkAtWorld(Vec2f(mouseWorldPos.x, mouseWorldPos.y));
 
-    if (cell != hoveredCell)
+    if (cell && cell != hoveredCell)
     {
         hoveredCell->setOutline(false);
 
