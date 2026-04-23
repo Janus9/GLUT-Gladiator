@@ -145,15 +145,20 @@ void _scene::initScene()
     player_bullet.height = 3.0f;
     player_bullet.lifespan = 3.0f;
     player_bullet.angleOffset = 2.0f;
+    player_bullet.penetration = 0.0f;
+    player_bullet.damage = 15.0f;
 
     turret_bullet.amount = 1;
     turret_bullet.speed = 400.0f;
     turret_bullet.width = 20.0f;
     turret_bullet.height = 4.0f;
     turret_bullet.lifespan = 3.0f;
-    turret_bullet.angleOffset = 7.0f;
+    turret_bullet.angleOffset = 8.0f;
+    turret_bullet.penetration = 50;
+    turret_bullet.damage = 20.0f;
 
     player->setHealth(200.0f);
+    player->setMaxHealth(200.0f);
 
     // Find spawn area
     uniform_real_distribution<float> player_pos_dist(-1000, 1000);
@@ -658,7 +663,7 @@ void _scene::updateScene(double dt, bool *keysArray)
     hud->getHudText("MOUSE_SCREEN")->setText("Mouse Screen Coords: " + mouseScreenPos.toString());
     hud->getHudText("MOUSE_WORLD")->setText("Mouse World Coords: " + mouseWorldPos.toString());
     hud->getHudText("MOUSE_NORMAL")->setText("Mouse Normal Coords: " + mouseNormalPos.toString());
-    hud->getHudText("PLAYER_HEALTH")->setText("HP: " + to_string(player->health));
+    hud->getHudText("PLAYER_HEALTH")->setText("HP: " + to_string(player->getHealth()));
     // const _tile* tile = myWorld->getTileAtWorld(player->pos);
 
     const _tile *tile = myWorld->getTileAtWorld(Vec2f(mouseWorldPos.x, mouseWorldPos.y));

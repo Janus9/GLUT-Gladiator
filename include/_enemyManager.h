@@ -25,7 +25,7 @@ class _enemy : public _unit {
   
         bool operator==(const _enemy &other) const;
         
-        float fireRate = 600; // In rounds per minute
+        float fireRate = 200; // In rounds per minute
 
         double firingTime = 0.0;    // Elapsed time for shooting
         double deathTime = 0.0;     // Elapsed time for death

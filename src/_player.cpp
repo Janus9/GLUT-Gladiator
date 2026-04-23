@@ -295,16 +295,6 @@ void _player::handlePlayerDeath(player_face face) {
     }
 }
 
-void _player::impulseDamage(float amount, const Vec2f &damagePos) {
-    if (isDead()) return; // Player dead skip
-    health -= amount;
-    bloodParticles->spawnEffect(damagePos,player_hit_effect);
-}
-
-void _player::setHealth(float amount) {
-    health = amount;
-}
-
 // -- PRIVATE -- //
 
 _player::PlayerAnimationResult _player::getAnimationResult(player_action action, player_face face) {

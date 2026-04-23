@@ -135,8 +135,8 @@ void _bulletManager::updateBulletManager(double dt) {
         if (!b->alive) continue;
         
         b->age += dt;
-        if (b->age >= b->lifespan) {
-            // Bullet outlived lifespan - kill
+        if (b->age >= b->lifespan || b->health < 0.0f) {
+            // Bullet outlived lifespan or lost health -- die
             b->alive = false;
             continue;
         }
@@ -148,10 +148,9 @@ void _bulletManager::updateBulletManager(double dt) {
         if (occupyingCell) {
             if (world->isTileWall(occupyingCell->tileId)) {
                 // Collision event
-                world->damageCell(occupyingCell,10.0f);
+                world->damageCell(occupyingCell,b->damage);
                 if (sounds) sounds->playSfx("BULLET_HIT_WALL");
-                b->alive = false;
-                continue;
+                b->health -= 50;
             }
         }
 
@@ -159,18 +158,16 @@ void _bulletManager::updateBulletManager(double dt) {
             // Enemy Collision Check
             _enemy* enemy = enemyManager->isColliding(b->pos,5.0f);
             if (enemy) {
-                enemy->health -= 10.0f;
+                enemy->impulseDamage(b->damage);
                 if (sounds) sounds->playSfx("BULLET_HIT_UNIT");
-                b->alive = false;
-                continue;
+                b->health -= 25;
             }
         } else {
             // Friendly Collision Check
             if (b->pos.distance(player->pos) < 5.0f) {
-                player->impulseDamage(10,b->pos);
+                player->impulseDamage(10);
                 if (sounds) sounds->playSfx("PLAYER_HURT");
-                b->alive = false;
-                continue;
+                b->health -= 25;
             }
         }
     }
@@ -214,6 +211,8 @@ void _bulletManager::spawnBulletEffect(const Vec2f &pos, const Vec2f &dest, _tea
         b->lifespan = config.lifespan;
         b->age = 0.0f;
         b->team = bulletTeam;
+        b->damage = config.damage;
+        b->health = config.penetration;
 
         currentBullets++;
     }
