@@ -229,6 +229,10 @@ void _player::initPlayer() {
 }
 
 void _player::updatePlayer(double dt) {
+    if (playerTookDamage) {
+        bloodParticles->spawnEffect(pos,player_hit_effect);
+        playerTookDamage = false;
+    }
     bloodParticles->updateParticleManger(dt);
     if (inDeathAnimation) {
         deathTimeElapsed += dt;

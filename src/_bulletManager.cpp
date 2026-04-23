@@ -166,6 +166,7 @@ void _bulletManager::updateBulletManager(double dt) {
             // Friendly Collision Check
             if (b->pos.distance(player->pos) < 5.0f) {
                 player->impulseDamage(10);
+                player->playerTookDamage = true;
                 if (sounds) sounds->playSfx("PLAYER_HURT");
                 b->health -= 25;
             }

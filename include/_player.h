@@ -75,6 +75,9 @@ class _player : public _unit {
 
         double deathTimeElapsed = 0.0;  // Time elapsed since death occured
         bool inDeathAnimation = false;  // Is player in the animation 
+   
+        // Procedure Events (Fire when true) //
+        bool playerTookDamage = false;
     protected:
     private:
         int FPS = 12;
