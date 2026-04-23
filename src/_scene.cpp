@@ -296,6 +296,8 @@ void _scene::updateScene(double dt, bool *keysArray)
     // Copy data of keys array into keys
     keysPtr = keysArray;
 
+    testSounds->setListenerPos(player->pos);
+
     enemyManager->updateEnemies(dt);
     bulletManager->updateBulletManager(dt);
     myWorld->updateWorld(dt);

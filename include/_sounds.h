@@ -24,6 +24,14 @@ class _sounds
         // Safe to call rapidly; overlapping plays are mixed by irrKlang.
         void playSfx(const std::string& name);
 
+        // Fires a one-shot 3D SFX previously registered under `name`. Does not affect background music.
+        // 3D Audio allows for panning, attenuation, and directionality (z axis is ignored since game is 2D)
+        // Safe to call rapidly; overlapping plays are mixed by irrKlang.
+        void playSfx3D(const std::string& name, const Vec2f& pos);
+
+        // Sets the listener position for playSfx3D
+        void setListenerPos(const Vec2f& pos);
+
         // Master SFX volume multiplier (0.0 - 1.0). Applied to registered SFX at register-time.
         void setSfxMasterVolume(float v);
 
@@ -49,6 +57,9 @@ class _sounds
         // SFX registry
         std::unordered_map<std::string, SfxEntry> sfxRegistry;
         float sfxMasterVolume = 1.0f;
+
+        // 3D Audio Listener Position
+        Vec2f listenerPos = {0.0f, 0.0f};
 };
 
 #endif

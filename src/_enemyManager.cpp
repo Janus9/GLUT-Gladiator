@@ -113,7 +113,7 @@ void _enemyManager::updateEnemies(double dt) {
             if (focused) {
                 if (enemy->firingTime > 1.0f/(enemy->fireRate/60.0f)) {
                     bulletManager->spawnBulletEffect(enemy->pos,player->pos,_team::ENEMY,*bullet_1);
-                    if (sounds) sounds->playSfx("ENEMY_SHOOT");
+                    if (sounds) sounds->playSfx3D("ENEMY_SHOOT",enemy->pos);
                     enemy->getSingleSprite()->setFPS(enemy->fireRate / 60.0f);
                     enemy->firingTime = 0;
                 }
