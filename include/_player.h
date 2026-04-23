@@ -72,12 +72,13 @@ class _player : public _unit {
         bool hasGun = false;        // Does player have gun equipped
         bool isShooting = false;    // Is the player actively shooting
 
-
         double deathTimeElapsed = 0.0;  // Time elapsed since death occured
         bool inDeathAnimation = false;  // Is player in the animation 
    
         // Procedure Events (Fire when true) //
         bool playerTookDamage = false;
+
+        Vec2f spawnPos = {0.0f, 0.0f};
     protected:
     private:
         int FPS = 12;

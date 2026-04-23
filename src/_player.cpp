@@ -281,6 +281,15 @@ void _player::setAnimationFPS(int _FPS) {
 }
 
 void _player::handlePlayerDeath(player_face face) {
+    if (deathTimeElapsed > respawnTime) {
+        // Handles respawn
+        inDeathAnimation = false;
+        deathTimeElapsed = 0.0;
+        resetHealth();
+        pos = spawnPos;
+        setAction(PLAYER_ACTION_IDLE_GUN,PLAYER_FACE_N);
+        return;
+    }
     if (inDeathAnimation) return; // Already in player death action -- skip
     PlayerAnimationResult result = getAnimationResult(PLAYER_ACTION_DEATH_GUN,face);
     if (result.valid) {

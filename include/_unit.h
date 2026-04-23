@@ -140,6 +140,9 @@ class _unit {
         // Applies healing
         void impulseHealing(float amount);
 
+        // Sets current health to max health
+        void resetHealth();
+
         // Returns true if unit health is less than or equal to 0.0
         bool isDead() const;
 

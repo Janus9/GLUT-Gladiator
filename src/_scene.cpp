@@ -165,7 +165,7 @@ void _scene::initScene()
     bool lookingForSpawn = true;
     while (lookingForSpawn)
     {
-        Vec2f spawnPos = {player_pos_dist(rng), player_pos_dist(rng)};
+        spawnPos = {player_pos_dist(rng), player_pos_dist(rng)};
         _cell *spawnCell = myWorld->getCellAtWorld(spawnPos);
         if (spawnCell && myWorld->isCellWall(spawnCell))
         {
@@ -175,6 +175,7 @@ void _scene::initScene()
         player->pos = spawnPos;
         lookingForSpawn = false;
     }
+    player->spawnPos = spawnPos;
 
     // Spawn turrets
     uniform_real_distribution<float> turret_pos_dist(-3500, 3500);

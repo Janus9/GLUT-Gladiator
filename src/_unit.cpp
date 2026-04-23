@@ -207,6 +207,12 @@ void _unit::impulseHealing(float amount) {
     }
 }
 
+      
+void _unit::resetHealth() {
+    currentHealth = maxHealth;
+}
+
+
 bool _unit::operator==(const _unit &other) const {
     return unitID == other.unitID;
 }
