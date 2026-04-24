@@ -8,6 +8,11 @@
 #include <_particleManager.h>
 #include <_sounds.h>
 
+enum enemy_type {
+    ENEMY_TURRET,
+    ENEMY_GATLING
+};
+
 class _enemy : public _unit {
     public:
         _enemy();
@@ -21,16 +26,19 @@ class _enemy : public _unit {
         void updateEnemy(double dt);
 
         // Initialization function for animations/sprites/textures etc
-        void initEnemy();
+        void initEnemy(enemy_type type);
   
         bool operator==(const _enemy &other) const;
         
-        float fireRate = 200; // In rounds per minute
+        float fireRate = 0.0;               // In rounds per minute
+        float slewRate = 0.0f;              // In degrees/second
+        float detectionRadius = 0.0f;       // How far enemy spots player
 
         double firingTime = 0.0;    // Elapsed time for shooting
         double deathTime = 0.0;     // Elapsed time for death
 
         bool inDeathAnimation = false; // Whether enemy is in its death animation
+        enemy_type eType;
     protected:
     private:
         int enemyID;
@@ -42,7 +50,7 @@ class _enemyManager {
         _enemyManager();
         virtual ~_enemyManager();
 
-        void initEnemyManager(_player* currentPlayer, _world* currentWorld, _bulletManager* currentBulletManager,_bullet_config* _bullet_1, _sounds* currentSounds);
+        void initEnemyManager(_player* currentPlayer, _world* currentWorld, _bulletManager* currentBulletManager, _sounds* currentSounds);
 
         /**
          * Update function for enemies
@@ -55,7 +63,7 @@ class _enemyManager {
         void drawEnemies();
 
         // Adds a single enemy (only 1 type for now)
-        void addEnemy(const Vec2f &_pos);
+        void addEnemy(const Vec2f &_pos, enemy_type type);
 
         /**
          * Checks if any enemy instance is colliding with the provided position
@@ -69,12 +77,15 @@ class _enemyManager {
 
         // Returns number of enemies alive in the list
         int getNumEnemies();
+
+        _bullet_config* bullet_1 = nullptr;
+        _bullet_config* bullet_2 = nullptr;
     protected:
     private:
         _player* player = nullptr;                  // Pointer to player instance instantiated in scene (non-owning)
         _world* world = nullptr;                    // Pointer to world instance instantiated in scene (non-owning)
         _bulletManager* bulletManager = nullptr;    // Pointer to bulletManager instance instantiated in scene (non-owning)
-        _bullet_config* bullet_1 = nullptr;
+        
         _sounds* sounds = nullptr;                  // Pointer to sounds instance instantiated in scene (non-owning)
 
         vector<unique_ptr<_enemy>> enemyList;   // List of enemy instances
