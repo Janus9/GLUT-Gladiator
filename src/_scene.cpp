@@ -118,7 +118,10 @@ void _scene::initScene()
 
     drawWorldBenchmark->startBenchmark();
 
-    enemyManager->initEnemyManager(player.get(), myWorld, bulletManager.get(), &turret_bullet, testSounds);
+    enemyManager->initEnemyManager(player.get(), myWorld, bulletManager.get(), testSounds);
+    enemyManager->bullet_1 = &turret_bullet;
+    enemyManager->bullet_2 = &gatling_bullet;
+
 
     // -- SOUND EFFECTS -- //
     // Register all SFX up front so first-play decoder stalls are avoided. Tune per-SFX volumes here.
@@ -153,9 +156,18 @@ void _scene::initScene()
     turret_bullet.width = 20.0f;
     turret_bullet.height = 4.0f;
     turret_bullet.lifespan = 3.0f;
-    turret_bullet.angleOffset = 8.0f;
+    turret_bullet.angleOffset = 4.0f;
     turret_bullet.penetration = 50;
     turret_bullet.damage = 20.0f;
+
+    gatling_bullet.amount = 1;
+    gatling_bullet.speed = 400.0f;
+    gatling_bullet.width = 12.0f;
+    gatling_bullet.height = 3.0f;
+    gatling_bullet.lifespan = 3.0f;
+    gatling_bullet.angleOffset = 10.0f;
+    gatling_bullet.penetration = 0;
+    gatling_bullet.damage = 5.0f;
 
     player->setHealth(200.0f);
     player->setMaxHealth(200.0f);
@@ -201,7 +213,7 @@ void _scene::initScene()
     }
     player->spawnPos = spawnPos;
 
-    // Spawn turrets
+    // Spawn default turrets //
     uniform_real_distribution<float> turret_pos_dist(-14000, 14000);
     for (int i = 0; i < 400; i++)
     {
@@ -217,6 +229,25 @@ void _scene::initScene()
             }
             enemyManager->addEnemy(spawnTurretPos,ENEMY_TURRET);
             lookingForTurretSpawn = false;
+        }
+    }
+
+    // Spawn gatling turrets //
+    uniform_real_distribution<float> gatling_pos_dist(-8000, 8000);
+    for (int i = 0; i < 75; i++)
+    {
+        bool lookingForGatlingSpawn = true;
+        while (lookingForGatlingSpawn)
+        {
+            Vec2f spawnGatlingPos = {gatling_pos_dist(rng), gatling_pos_dist(rng)};
+            _cell *spawnGatlingCell = myWorld->getCellAtWorld(spawnGatlingPos);
+            if (spawnGatlingCell && myWorld->isCellWall(spawnGatlingCell))
+            {
+                // Is a wall, retry
+                continue;
+            }
+            enemyManager->addEnemy(spawnGatlingPos,ENEMY_GATLING);
+            lookingForGatlingSpawn = false;
         }
     }
 }

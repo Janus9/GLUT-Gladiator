@@ -32,8 +32,6 @@ void _enemy::initEnemy(enemy_type type) {
 
             fireRate = 300.0f;
             slewRate = 90.0f;
-            bulletDamage = 20.0f;
-            bulletPenetration = 50.0f;
 
             detectionRadius = 256.0f;
 
@@ -61,10 +59,8 @@ void _enemy::initEnemy(enemy_type type) {
             setMaxHealth(400.0f);
             resetHealth();
 
-            fireRate = 1200.0f;
+            fireRate = 2000.0f;
             slewRate = 45.0f;
-            bulletDamage = 5.0f;
-            bulletPenetration = 0.0f;
             
             detectionRadius = 400.0f;
 
@@ -111,11 +107,10 @@ _enemyManager::~_enemyManager() {
     // dtor
 }
 
-void _enemyManager::initEnemyManager(_player* currentPlayer, _world* currentWorld, _bulletManager* currentBulletManager,_bullet_config* _bullet_1, _sounds* currentSounds) {
+void _enemyManager::initEnemyManager(_player* currentPlayer, _world* currentWorld, _bulletManager* currentBulletManager, _sounds* currentSounds) {
     player = currentPlayer;
     world = currentWorld;
     bulletManager = currentBulletManager;
-    bullet_1 = _bullet_1;
     sounds = currentSounds;
 
     particleManager->initParticleManager("images/enemy/hit_particle.png");
@@ -196,7 +191,7 @@ void _enemyManager::updateEnemies(double dt) {
                 if (enemy->isDead() && !enemy->inDeathAnimation) {
                     enemy->inDeathAnimation = true;
                     sprite->setFPS(12);
-                    sprite->setIdleFrame(1,8);
+                    sprite->setIdleFrame(8,1);
                     sprite->playAction("DEATH");
                     enemy->deathTime = 0.0;
                     if (sounds) sounds->playSfx("ENEMY_DEATH");
@@ -217,7 +212,7 @@ void _enemyManager::updateEnemies(double dt) {
                         // Focused on player -- ready to fire
                         enemy->firingTime += dt;
                         if (enemy->firingTime > 1.0f/(enemy->fireRate/60.0f)) {
-                            bulletManager->spawnBulletEffect(enemy->pos,player->pos,_team::ENEMY,*bullet_1);
+                            bulletManager->spawnBulletEffect(enemy->pos,player->pos,_team::ENEMY,*bullet_2);
                             if (sounds) sounds->playSfx("ENEMY_SHOOT");
                             sprite->setFPS(enemy->fireRate / 60.0f);
                             enemy->firingTime = 0;

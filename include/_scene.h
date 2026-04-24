@@ -81,6 +81,7 @@ class _scene
         unique_ptr<_bulletManager> bulletManager = make_unique<_bulletManager>();
         _bullet_config player_bullet;
         _bullet_config turret_bullet;
+        _bullet_config gatling_bullet;
 
         _sounds* testSounds = new _sounds();
 

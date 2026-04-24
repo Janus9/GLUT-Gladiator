@@ -32,8 +32,6 @@ class _enemy : public _unit {
         
         float fireRate = 0.0;               // In rounds per minute
         float slewRate = 0.0f;              // In degrees/second
-        float bulletDamage = 0.0f;
-        float bulletPenetration = 0.0f;
         float detectionRadius = 0.0f;       // How far enemy spots player
 
         double firingTime = 0.0;    // Elapsed time for shooting
@@ -52,7 +50,7 @@ class _enemyManager {
         _enemyManager();
         virtual ~_enemyManager();
 
-        void initEnemyManager(_player* currentPlayer, _world* currentWorld, _bulletManager* currentBulletManager,_bullet_config* _bullet_1, _sounds* currentSounds);
+        void initEnemyManager(_player* currentPlayer, _world* currentWorld, _bulletManager* currentBulletManager, _sounds* currentSounds);
 
         /**
          * Update function for enemies
@@ -79,12 +77,15 @@ class _enemyManager {
 
         // Returns number of enemies alive in the list
         int getNumEnemies();
+
+        _bullet_config* bullet_1 = nullptr;
+        _bullet_config* bullet_2 = nullptr;
     protected:
     private:
         _player* player = nullptr;                  // Pointer to player instance instantiated in scene (non-owning)
         _world* world = nullptr;                    // Pointer to world instance instantiated in scene (non-owning)
         _bulletManager* bulletManager = nullptr;    // Pointer to bulletManager instance instantiated in scene (non-owning)
-        _bullet_config* bullet_1 = nullptr;
+        
         _sounds* sounds = nullptr;                  // Pointer to sounds instance instantiated in scene (non-owning)
 
         vector<unique_ptr<_enemy>> enemyList;   // List of enemy instances
