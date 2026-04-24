@@ -487,13 +487,62 @@ int WINAPI WinMain(	HINSTANCE	hInstance,			// Instance
 		if (keys[VK_F1])						// Is F1 Being Pressed?
 		{
 			keys[VK_F1]=FALSE;					// If So Make Key FALSE
-			KillGLWindow();						// Kill Our Current Window
-			fullscreen=!fullscreen;				// Toggle Fullscreen / Windowed Mode
-			// Recreate Our OpenGL Window
-			if (!CreateGLWindow("Game Engine Lesson 01",fullscreenWidth,fullscreenHeight,256,fullscreen))
-			{
-				return 0;						// Quit If Window Was Not Created
+
+			// Toggle fullscreen in-place: flip window style + size without destroying
+			// the GL context, so textures, game state, and timers all survive.
+			static RECT savedWindowedRect = {0, 0, 0, 0};
+			static bool haveSavedWindowedRect = false;
+
+			if (!fullscreen) {
+				GetWindowRect(hWnd, &savedWindowedRect);
+				haveSavedWindowedRect = true;
 			}
+
+			fullscreen = !fullscreen;
+
+			MONITORINFO mi = { sizeof(mi) };
+			GetMonitorInfo(MonitorFromWindow(hWnd, MONITOR_DEFAULTTONEAREST), &mi);
+
+			DWORD newStyle, newExStyle;
+			int x, y, w, h;
+
+			if (fullscreen) {
+				newStyle   = WS_POPUP | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_VISIBLE;
+				newExStyle = WS_EX_APPWINDOW;
+				x = mi.rcMonitor.left;
+				y = mi.rcMonitor.top;
+				w = mi.rcMonitor.right  - mi.rcMonitor.left;
+				h = mi.rcMonitor.bottom - mi.rcMonitor.top;
+
+				hCursor = LoadCursorFromFile("cursor/normal.cur");
+				if (hCursor) SetCursor(hCursor);
+			} else {
+				newStyle   = WS_OVERLAPPEDWINDOW | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_VISIBLE;
+				newExStyle = WS_EX_APPWINDOW | WS_EX_WINDOWEDGE;
+
+				if (haveSavedWindowedRect) {
+					x = savedWindowedRect.left;
+					y = savedWindowedRect.top;
+					w = savedWindowedRect.right  - savedWindowedRect.left;
+					h = savedWindowedRect.bottom - savedWindowedRect.top;
+				} else {
+					int cw = 1280, ch = 720;
+					RECT r = { 0, 0, cw, ch };
+					AdjustWindowRectEx(&r, newStyle, FALSE, newExStyle);
+					w = r.right - r.left;
+					h = r.bottom - r.top;
+					x = mi.rcWork.left + ((mi.rcWork.right  - mi.rcWork.left) - w) / 2;
+					y = mi.rcWork.top  + ((mi.rcWork.bottom - mi.rcWork.top ) - h) / 2;
+				}
+
+				hCursor = NULL; // fall back to the class arrow cursor
+			}
+
+			SetWindowLongPtr(hWnd, GWL_STYLE,   newStyle);
+			SetWindowLongPtr(hWnd, GWL_EXSTYLE, newExStyle);
+			SetWindowPos(hWnd, HWND_TOP, x, y, w, h,
+				SWP_NOZORDER | SWP_FRAMECHANGED | SWP_SHOWWINDOW);
+			// WM_SIZE fires from SetWindowPos and drives wWidth/wHeight + reSize.
 		}
 	}
 
