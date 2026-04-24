@@ -8,6 +8,11 @@
 #include <_particleManager.h>
 #include <_sounds.h>
 
+enum enemy_type {
+    ENEMY_TURRET,
+    ENEMY_GATLING
+};
+
 class _enemy : public _unit {
     public:
         _enemy();
@@ -21,16 +26,21 @@ class _enemy : public _unit {
         void updateEnemy(double dt);
 
         // Initialization function for animations/sprites/textures etc
-        void initEnemy();
+        void initEnemy(enemy_type type);
   
         bool operator==(const _enemy &other) const;
         
-        float fireRate = 200; // In rounds per minute
+        float fireRate = 0.0;               // In rounds per minute
+        float slewRate = 0.0f;              // In degrees/second
+        float bulletDamage = 0.0f;
+        float bulletPenetration = 0.0f;
+        float detectionRadius = 0.0f;       // How far enemy spots player
 
         double firingTime = 0.0;    // Elapsed time for shooting
         double deathTime = 0.0;     // Elapsed time for death
 
         bool inDeathAnimation = false; // Whether enemy is in its death animation
+        enemy_type eType;
     protected:
     private:
         int enemyID;
@@ -55,7 +65,7 @@ class _enemyManager {
         void drawEnemies();
 
         // Adds a single enemy (only 1 type for now)
-        void addEnemy(const Vec2f &_pos);
+        void addEnemy(const Vec2f &_pos, enemy_type type);
 
         /**
          * Checks if any enemy instance is colliding with the provided position

@@ -99,10 +99,11 @@ class _unit {
          * @param _pos Position to focus on
          * @param speed Speed unit rotates (in degrees/s). Negative or 0.0 means instant rotation.
          * @param degreeTolerance Amount of tolerance in focusing for degrees +/- (defaults to +/- 5.0 degrees)
+         * @param sprite Sprite to apply rotation on (leave blank for nullptr which applies to single sprite)
          * 
          * @return True when focused on target 
          */
-        bool focusOn(const Vec2f &_pos, float speed, float degreeTolerance = 5.0f);
+        bool focusOn(const Vec2f &_pos, float speed, float degreeTolerance = 5.0f, _sprite* sprite = nullptr);
 
         /**
          * Sets the singular sprite.

@@ -215,7 +215,7 @@ void _scene::initScene()
                 // Is a wall, retry
                 continue;
             }
-            enemyManager->addEnemy(spawnTurretPos);
+            enemyManager->addEnemy(spawnTurretPos,ENEMY_TURRET);
             lookingForTurretSpawn = false;
         }
     }
@@ -741,7 +741,12 @@ void _scene::keyboardHandler(WPARAM wParam)
         switch (wParam)
         {
         case 192: // "~"
-            enemyManager->addEnemy(mouseWorldPos);
+            break;
+        case 49: // "1"
+            enemyManager->addEnemy(mouseWorldPos,ENEMY_TURRET);
+            break;
+        case 50: // "2"
+            enemyManager->addEnemy(mouseWorldPos,ENEMY_GATLING);
             break;
         case ' ': // SPACE
             break;
