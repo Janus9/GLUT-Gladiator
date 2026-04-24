@@ -86,7 +86,7 @@ class _scene
         _bullet_config turret_bullet;
         _bullet_config gatling_bullet;
 
-        _sounds* testSounds = nullptr; // Non-owning; set via setSounds() before initScene()
+        _sounds* soundManager = nullptr; // Non-owning; set via setSounds() before initScene()
 
         _lightSettings *myLight = new _lightSettings();     
         _model* myModel = new _model();

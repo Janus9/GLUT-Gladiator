@@ -38,7 +38,7 @@ _scene::~_scene()
 
 void _scene::setSounds(_sounds* sounds)
 {
-    testSounds = sounds;
+    soundManager = sounds;
 }
 
 GLint _scene::initGL()
@@ -120,30 +120,30 @@ void _scene::initScene()
 
     drawWorldBenchmark->startBenchmark();
 
-    enemyManager->initEnemyManager(player.get(), myWorld, bulletManager.get(), testSounds);
+    enemyManager->initEnemyManager(player.get(), myWorld, bulletManager.get(), soundManager);
     enemyManager->bullet_1 = &turret_bullet;
     enemyManager->bullet_2 = &gatling_bullet;
 
 
     // -- SOUND EFFECTS -- //
     // Register all SFX up front so first-play decoder stalls are avoided. Tune per-SFX volumes here.
-    testSounds->registerSfx("PLAYER_SHOOT", "sounds/player_shoot.mp3", 0.1f);  // Done
-    testSounds->registerSfx("ENEMY_SHOOT", "sounds/enemy_shoot.mp3", 0.05f);   // Done
-    testSounds->registerSfx("BULLET_HIT_WALL", "sounds/hit_wall.wav", 0.5f);   
-    testSounds->registerSfx("BULLET_HIT_UNIT", "sounds/test.m4a", 0.8f);       // This is a clown horn because I don't know when this triggers yet and want to be surprised
-    testSounds->registerSfx("ENEMY_DEATH", "sounds/enemy_death.wav", 0.1f);    // Done
-    testSounds->registerSfx("PLAYER_HURT", "sounds/player_hurt.mp3", 0.3f);    // Done
-    testSounds->registerSfx("PLAYER_DEATH", "sounds/player_death.wav", 0.5f);  // Done
-    testSounds->registerSfx("MINE_COMPLETE", "sounds/mine_complete.wav", 0.2f);// Done
-    testSounds->registerSfx("MINE_TICK", "sounds/mine_tick.wav", 0.2f);        // Done
+    soundManager->registerSfx("PLAYER_SHOOT", "sounds/player_shoot.mp3", 0.1f);  // Done
+    soundManager->registerSfx("ENEMY_SHOOT", "sounds/enemy_shoot.mp3", 0.05f);   // Done
+    soundManager->registerSfx("BULLET_HIT_WALL", "sounds/hit_wall.wav", 0.5f);   
+    soundManager->registerSfx("BULLET_HIT_UNIT", "sounds/test.m4a", 0.8f);       // This is a clown horn because I don't know when this triggers yet and want to be surprised
+    soundManager->registerSfx("ENEMY_DEATH", "sounds/enemy_death.wav", 0.1f);    // Done
+    soundManager->registerSfx("PLAYER_HURT", "sounds/player_hurt.mp3", 0.3f);    // Done
+    soundManager->registerSfx("PLAYER_DEATH", "sounds/player_death.wav", 0.5f);  // Done
+    soundManager->registerSfx("MINE_COMPLETE", "sounds/mine_complete.wav", 0.2f);// Done
+    soundManager->registerSfx("MINE_TICK", "sounds/mine_tick.wav", 0.2f);        // Done
 
-    testSounds->playBackgroundMusic("sounds/test_music.mp3");
+    soundManager->playBackgroundMusic("sounds/test_music.mp3");
 
     // -- SHADERS -- //
     // sh->initShader("shaders/V.vs","shaders/F.fs");
     // glUseProgram(sh->program);
 
-    bulletManager->initBulletManager("images/test_bullet.png", myWorld, player.get(), enemyManager.get(), testSounds);
+    bulletManager->initBulletManager("images/test_bullet.png", myWorld, player.get(), enemyManager.get(), soundManager);
     player_bullet.amount = 1;
     player_bullet.speed = 512.0f;
     player_bullet.width = 15.0f;
@@ -350,7 +350,7 @@ void _scene::drawScene()
 
 void _scene::updateAudio(double dt)
 {
-    testSounds->updateFadeIn(dt);
+    soundManager->updateFadeIn(dt);
 }
 
 // Runs in loop 60 times per second. dt is in ms.
@@ -359,7 +359,7 @@ void _scene::updateScene(double dt, bool *keysArray)
     // Copy data of keys array into keys
     keysPtr = keysArray;
 
-    testSounds->setListenerPos(player->pos);
+    soundManager->setListenerPos(player->pos);
 
     enemyManager->updateEnemies(dt);
     bulletManager->updateBulletManager(dt);
@@ -377,11 +377,11 @@ void _scene::updateScene(double dt, bool *keysArray)
             {
                 cout << "BLOCK HAS BEEN MINED \n";
                 hud->getHudSprite("PROGRESS_BAR")->getSprite()->stopAnimation(); // Mining finished, reset progress bar animation
-                testSounds->playSfx("MINE_COMPLETE");
+                soundManager->playSfx("MINE_COMPLETE");
             }
             else
             {
-                testSounds->playSfx("MINE_TICK");
+                soundManager->playSfx("MINE_TICK");
             }
             interactionTimer->reset();
         }
@@ -655,7 +655,7 @@ void _scene::updateScene(double dt, bool *keysArray)
                 offsetPos = {-4.0f, 8.0f};
             }
             bulletManager->spawnBulletEffect(player->pos + offsetPos, mouseWorldPos, _team::FRIENDLY, player_bullet);
-            testSounds->playSfx("PLAYER_SHOOT");
+            soundManager->playSfx("PLAYER_SHOOT");
             fireRateTimer.reset();
         }
         else
@@ -668,7 +668,7 @@ void _scene::updateScene(double dt, bool *keysArray)
     {
         if (!playerDeathSfxFired)
         {
-            testSounds->playSfx("PLAYER_DEATH");
+            soundManager->playSfx("PLAYER_DEATH");
             playerDeathSfxFired = true;
         }
         player->handlePlayerDeath(face);
