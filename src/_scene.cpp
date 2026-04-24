@@ -353,6 +353,20 @@ void _scene::updateAudio(double dt)
     testSounds->updateFadeIn(dt);
 }
 
+// Maps an aim vector (player-relative, +y = up) to one of 8 player face directions
+// by binning the angle into 45-degree sectors.
+static player_face faceFromAim(const Vec2f &aim)
+{
+    // GetRotationAngle returns: N=0, NW=90, S=180, E=270 (CCW from north).
+    float angle = GetRotationAngle({0.0f, 0.0f}, aim);
+    int sector = (int)floorf((angle + 22.5f) / 45.0f) & 7;
+    static const player_face faces[8] = {
+        PLAYER_FACE_N,  PLAYER_FACE_NW, PLAYER_FACE_W,  PLAYER_FACE_SW,
+        PLAYER_FACE_S,  PLAYER_FACE_SE, PLAYER_FACE_E,  PLAYER_FACE_NE,
+    };
+    return faces[sector];
+}
+
 // Runs in loop 60 times per second. dt is in ms.
 void _scene::updateScene(double dt, bool *keysArray)
 {
@@ -555,6 +569,7 @@ void _scene::updateScene(double dt, bool *keysArray)
         {
             if (player->isShooting)
             {
+                face = faceFromAim(mouseNormalPos);
                 action = PLAYER_ACTION_WALK_SHOOT;
             }
             else
@@ -574,59 +589,7 @@ void _scene::updateScene(double dt, bool *keysArray)
         {
             if (player->isShooting)
             {
-                // Do face check //
-                if (mouseNormalPos.y > 0.33f)
-                {
-                    // Face Up
-                    if (mouseNormalPos.x > -1.0f && mouseNormalPos.x < -0.33f)
-                    {
-                        // Top Left
-                        face = PLAYER_FACE_NW;
-                    }
-                    else if (mouseNormalPos.x > -0.33f && mouseNormalPos.x < 0.33f)
-                    {
-                        // Up
-                        face = PLAYER_FACE_N;
-                    }
-                    else
-                    {
-                        // Top Right
-                        face = PLAYER_FACE_NE;
-                    }
-                }
-                else if (mouseNormalPos.y > -0.33f)
-                {
-                    // Middle
-                    if (mouseNormalPos.x > 0.0f)
-                    {
-                        // Right
-                        face = PLAYER_FACE_E;
-                    }
-                    else
-                    {
-                        // Left
-                        face = PLAYER_FACE_W;
-                    }
-                }
-                else
-                {
-                    // Face Down
-                    if (mouseNormalPos.x > -1.0f && mouseNormalPos.x < -0.33f)
-                    {
-                        // Bottom Left
-                        face = PLAYER_FACE_SW;
-                    }
-                    else if (mouseNormalPos.x > -0.33f && mouseNormalPos.x < 0.33f)
-                    {
-                        // Up
-                        face = PLAYER_FACE_S;
-                    }
-                    else
-                    {
-                        // Bottom Right
-                        face = PLAYER_FACE_SE;
-                    }
-                }
+                face = faceFromAim(mouseNormalPos);
                 action = PLAYER_ACTION_IDLE_SHOOT;
             }
             else
