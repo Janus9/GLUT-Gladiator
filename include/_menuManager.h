@@ -70,6 +70,8 @@ class _menuManager {
         // Loads a given menu
         void loadMenu(menu_type type);
 
+        Vec2f getMenuMousePosition() const;
+
         menu_type getLoadedMenu() const;
 
         bool loadGame = false;  // If true main runs the scene initGL once, then resets the state
@@ -140,6 +142,7 @@ class _menuManager {
 
                 GLint u_texture = -1;
                 GLint u_projection = -1;
+                GLint u_view = -1;
                 GLint u_model = -1;
                 GLint u_isHovering = -1;
 
@@ -182,7 +185,7 @@ class _menuManager {
 
                 // Update menu
                 void updateMenu(double dt, const Vec2f &mousePos, bool mouseClicked, _sounds* sounds);
-
+                
                 menu_type redirectTo = MENU_NULL;   // If not null will redirect on next update by menuManager
             protected:
             private:
@@ -197,6 +200,8 @@ class _menuManager {
         menu_type selectedMenu = MENU_LANDING;
 
         _sounds* sounds = nullptr; // Non-owning; provided by main via initMenuManager
+
+        Vec2f mouseScreenClipPosition;
 
         static Vec2i windowDimensions;
 };

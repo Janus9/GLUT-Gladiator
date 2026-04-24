@@ -143,6 +143,7 @@ void _menuManager::drawMenuManager() {
 
 void _menuManager::updateMenuManager(double dt, const Vec2f &mousePos, bool mouseClicked) {
     _menu* menu = &menuList[selectedMenu];
+    mouseScreenClipPosition = mousePos;
 
     menu->updateMenu(dt,mousePos,mouseClicked,sounds);
     if (menu->redirectTo != MENU_NULL) {
@@ -156,6 +157,10 @@ void _menuManager::updateMenuManager(double dt, const Vec2f &mousePos, bool mous
 
 void _menuManager::loadMenu(menu_type type) {
     selectedMenu = type;
+}
+
+Vec2f _menuManager::getMenuMousePosition() const {
+    return mouseScreenClipPosition;
 }
 
 menu_type _menuManager::getLoadedMenu() const {
@@ -207,6 +212,7 @@ void _menuManager::_menuObject::initMenuObject(const menu_object_config &config)
 
     u_texture = glGetUniformLocation(program,"u_texture");
     u_projection = glGetUniformLocation(program,"u_projection");
+    u_view = glGetUniformLocation(program,"u_view");
     u_model = glGetUniformLocation(program,"u_model");
     u_isHovering = glGetUniformLocation(program,"u_isHovering");
 
@@ -220,12 +226,13 @@ void _menuManager::_menuObject::drawMenuObject(const Vec2i &wDim) {
 
     texture->bindTexture();
 
-    // Projection Matrix - Left, Right, Top, Bottom
+    // Projection Matrix // - Left, Right, Top, Bottom
     glm::mat4 projection = glm::ortho(0.0f, (float)wDim.x, 0.0f, (float)wDim.y);
+
+    // View Matrix // (identity cause no view movement for now)
+    glm::mat4 view(1.0f);   // Creates an indentity 
     
-    // We skip view matrix since its a menu (no camera movement)
-    
-    // Model Matrix
+    // Model Matrix //
     glm::mat4 model(1.0f);  // Creates an identity matrix
     // Scales the model to be the size of the window. 
     model = glm::scale(model, glm::vec3((float)wDim.x, (float)wDim.y, 1.0f));
@@ -234,6 +241,7 @@ void _menuManager::_menuObject::drawMenuObject(const Vec2i &wDim) {
     glUniform1i(u_texture,0);
 
     glUniformMatrix4fv(u_projection, 1, GL_FALSE, glm::value_ptr(projection));
+    glUniformMatrix4fv(u_view, 1, GL_FALSE, glm::value_ptr(view));
     glUniformMatrix4fv(u_model, 1, GL_FALSE, glm::value_ptr(model));
     GLint hoveringState;
     if (hasMouseState) {
