@@ -118,24 +118,33 @@ class _unit {
 
         // Clears the single sprite to nullptr
         void clearSingleSprite();
+        
+        // Sets max health to amount
+        void setMaxHealth(float amount);
+        
+        // Returns max health
+        float getMaxHealth() const;
+        
+        // Returns current health
+        float getHealth() const;
 
-        Vec2f scale = {1.0f, 1.0f};  // Scale of a unit in multiplier (so 2,2 is a unit 2x width by 2x height). Default unit width/height is # of pixels
-        Vec2f pos = {0.0f, 0.0f};    // Position of a unit in world space 
-        Vec2f offsetPos = {0.0f, 0.0f};    // Offset Position of a unit in world space for side scrollers
-        Col3f color = {1.0f, 1.0f, 1.0f}; // Color of the given unit 
+        // Returns health as a % from 0 - 1
+        float getHealthPct() const; 
 
-        Vec2f acc = {0.0f, 0.0f};
-        Vec2f vel = {0.0f, 0.0f};
+        // Sets health to an amount (negatives are rounded to 0)
+        void setHealth(float amount);
 
-        float health = 100.0f;
+        // Applies damage
+        void impulseDamage(float amount);
+        
+        // Applies healing
+        void impulseHealing(float amount);
 
-        _team team = _team::NEUTRAL;
+        // Sets current health to max health
+        void resetHealth();
 
         // Returns true if unit health is less than or equal to 0.0
         bool isDead() const;
-
-        // DEBUGGING FLAGS //
-        bool DEBUG_display_collision_bounds = false; // If true displays the display bounds
 
         // Returns te unit's unique ID 
         int getID() const;
@@ -151,8 +160,26 @@ class _unit {
         // noexcept tells the compiler that this function will never fail. It prevents vectors from defaulting to copy when moving instances
         _unit(_unit&& other) noexcept;
         _unit& operator=(_unit&& other) noexcept;
+
+        // DEBUGGING FLAGS //
+        bool DEBUG_display_collision_bounds = false; // If true displays the display bounds
+
+        // UNIT VARIABLES //
+
+        Vec2f scale = {1.0f, 1.0f};  // Scale of a unit in multiplier (so 2,2 is a unit 2x width by 2x height). Default unit width/height is # of pixels
+        Vec2f pos = {0.0f, 0.0f};    // Position of a unit in world space 
+        Vec2f offsetPos = {0.0f, 0.0f};    // Offset Position of a unit in world space for side scrollers
+        Col3f color = {1.0f, 1.0f, 1.0f}; // Color of the given unit 
+
+        Vec2f acc = {0.0f, 0.0f};
+        Vec2f vel = {0.0f, 0.0f};
+
+        _team team = _team::NEUTRAL;
     protected:
     private:
+        float currentHealth = 100.0f;   // Current health unit sits at
+        float maxHealth = 100.0f;       // Max health unit can hold
+
         _sprite* singleSprite = nullptr;             // Pointer to single sprite if unit only draws on at a time (common)
         vector<_sprite*> spriteList;                 // Vector for draw iteration
         unordered_map<string,_sprite*> spriteMap;    // Hashmap for lookups

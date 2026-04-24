@@ -64,25 +64,21 @@ class _player : public _unit {
         // Wrapper to handle player death animation and actions
         void handlePlayerDeath(player_face face);
 
-        /**
-         * Impulses damage and applies damage effects
-         * 
-         * @param amount Damange quantity to apply (negative is healing)
-         * @param damagePos Where to apply damage effects at (where bullet hits)
-         */
-        void impulseDamage(float amount, const Vec2f &damagePos);
-        
-        // Sets player health to amount entered
-        void setHealth(float amount);
-        
+        // Player Variables //
+        float fireRate = 400.0f; // RPM
+        float respawnTime = 5.0f; // Seconds to respawn.
+
         bool isMoving = false;      // Is player actively moving
         bool hasGun = false;        // Does player have gun equipped
         bool isShooting = false;    // Is the player actively shooting
 
-        float fireRate = 400; // RPM
-
         double deathTimeElapsed = 0.0;  // Time elapsed since death occured
         bool inDeathAnimation = false;  // Is player in the animation 
+   
+        // Procedure Events (Fire when true) //
+        bool playerTookDamage = false;
+
+        Vec2f spawnPos = {0.0f, 0.0f};
     protected:
     private:
         int FPS = 12;

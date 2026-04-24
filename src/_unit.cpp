@@ -126,7 +126,7 @@ _collisionBound* _unit::getCollisionBound() const {
 }
 
 bool _unit::isDead() const {
-    return health <= 0.0f;
+    return currentHealth <= 0.0f;
 }
 
 int _unit::getID() const {
@@ -162,6 +162,56 @@ _sprite* _unit::getSingleSprite() const {
 void _unit::clearSingleSprite() {
     singleSprite = nullptr;
 }
+
+
+void _unit::setMaxHealth(float amount) {
+    if (amount < 0) {
+        maxHealth = 0;
+        return;
+    }
+    maxHealth = amount;
+}
+        
+float _unit::getMaxHealth() const {
+    return maxHealth;
+}
+        
+float _unit::getHealth() const {
+    return currentHealth;
+}
+
+float _unit::getHealthPct() const {
+    if (maxHealth <= 0) return 0.0f;
+    return currentHealth / maxHealth;
+}
+
+void _unit::setHealth(float amount) {
+    if (amount < 0) {
+        currentHealth = 0;
+        return;
+    }
+    currentHealth = amount;
+}
+
+void _unit::impulseDamage(float amount) {
+    currentHealth -= amount;
+    if (currentHealth < 0) {
+        currentHealth = 0;
+    }
+}
+        
+void _unit::impulseHealing(float amount) {
+    currentHealth += amount;
+    if (currentHealth > maxHealth) {
+        currentHealth = maxHealth;
+    }
+}
+
+      
+void _unit::resetHealth() {
+    currentHealth = maxHealth;
+}
+
 
 bool _unit::operator==(const _unit &other) const {
     return unitID == other.unitID;

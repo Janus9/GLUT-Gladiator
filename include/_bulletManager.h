@@ -21,6 +21,8 @@ class _enemyManager;
  * @param width Width for draw/collision (in world units)
  * @param height Height for draw/collision (in world units)
  * @param lifespan How long the bullet lives for (in seconds)
+ * @param damage Damage bullet applies on hit
+ * @param penetration Higher means bullet pierces more units/tiles before death (ex/ 100 means 2 tiles or 4 enemies) (0 means none)
  */
 struct _bullet_config {
     int amount = 0; // Amount to spawn
@@ -36,6 +38,9 @@ struct _bullet_config {
     
     // Lifetime
     float lifespan = 0.0f;
+
+    float damage = 0.0f; // How much damage bullet applies on hit
+    float penetration = 0.0f; // How many tiles (or units) it penetrates
 };
 
 class _bulletManager {
@@ -113,6 +118,9 @@ class _bulletManager {
 
             float lifespan = 0.0f; // How long (in seconds) bullet lives 
             float age = 0.0f; // Bullets current age
+
+            float damage = 0.0f;
+            float health = 0.0f;
 
             _team team;
         };

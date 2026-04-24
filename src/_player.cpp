@@ -229,6 +229,10 @@ void _player::initPlayer() {
 }
 
 void _player::updatePlayer(double dt) {
+    if (playerTookDamage) {
+        bloodParticles->spawnEffect(pos,player_hit_effect);
+        playerTookDamage = false;
+    }
     bloodParticles->updateParticleManger(dt);
     if (inDeathAnimation) {
         deathTimeElapsed += dt;
@@ -277,6 +281,15 @@ void _player::setAnimationFPS(int _FPS) {
 }
 
 void _player::handlePlayerDeath(player_face face) {
+    if (deathTimeElapsed > respawnTime) {
+        // Handles respawn
+        inDeathAnimation = false;
+        deathTimeElapsed = 0.0;
+        resetHealth();
+        pos = spawnPos;
+        setAction(PLAYER_ACTION_IDLE_GUN,PLAYER_FACE_N);
+        return;
+    }
     if (inDeathAnimation) return; // Already in player death action -- skip
     PlayerAnimationResult result = getAnimationResult(PLAYER_ACTION_DEATH_GUN,face);
     if (result.valid) {
@@ -293,16 +306,6 @@ void _player::handlePlayerDeath(player_face face) {
             sprite->playAction(s_action);
         }
     }
-}
-
-void _player::impulseDamage(float amount, const Vec2f &damagePos) {
-    if (isDead()) return; // Player dead skip
-    health -= amount;
-    bloodParticles->spawnEffect(damagePos,player_hit_effect);
-}
-
-void _player::setHealth(float amount) {
-    health = amount;
 }
 
 // -- PRIVATE -- //
