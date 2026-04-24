@@ -37,6 +37,9 @@ class _scene
         // Initialization of scene objects
         void initScene();
 
+        // Inject the shared sound engine (owned by main). Must be called before initScene().
+        void setSounds(_sounds* sounds);
+
         // Runs and handles a window resize event
         void reSize(GLint width, GLint height);
         // Draws the scene using a double-buffer. Runs as fast as the loop will let it. No time-based events should ever be added in here. Those are for the updateScene()
@@ -82,7 +85,7 @@ class _scene
         _bullet_config player_bullet;
         _bullet_config turret_bullet;
 
-        _sounds* testSounds = new _sounds();
+        _sounds* testSounds = nullptr; // Non-owning; set via setSounds() before initScene()
 
         _lightSettings *myLight = new _lightSettings();     
         _model* myModel = new _model();

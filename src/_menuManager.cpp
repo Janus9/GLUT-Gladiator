@@ -19,8 +19,10 @@ _menuManager::_menuManager() {
 _menuManager::~_menuManager() {
 }
 
-void _menuManager::initMenuManager() {
+void _menuManager::initMenuManager(_sounds* sharedSounds) {
     cout << "Initializing the menu manager ...\n";
+
+    sounds = sharedSounds;
 
     //  -- Landing --  //
     menuList[MENU_LANDING].initMenu(MENU_LANDING);
@@ -142,7 +144,7 @@ void _menuManager::drawMenuManager() {
 void _menuManager::updateMenuManager(double dt, const Vec2f &mousePos, bool mouseClicked) {
     _menu* menu = &menuList[selectedMenu];
 
-    menu->updateMenu(dt,mousePos,mouseClicked);
+    menu->updateMenu(dt,mousePos,mouseClicked,sounds);
     if (menu->redirectTo != MENU_NULL) {
         if (menu->redirectTo == MENU_GAME) {
             loadGame = true;
@@ -256,6 +258,8 @@ void _menuManager::_menuObject::updateMenuObject(double dt, const Vec2f &mousePo
     float halfWidth = size.x * 0.5f;
     float halfHeight = size.y * 0.5f;
 
+    prevMouseHovering = mouseHovering;
+
     if (hasMouseState) {
         // AABB collision check
         if (mousePos.x > pos.x - halfWidth && 
@@ -272,6 +276,10 @@ void _menuManager::_menuObject::updateMenuObject(double dt, const Vec2f &mousePo
 
 bool _menuManager::_menuObject::getMouseState() const {
     return mouseHovering;
+}
+
+bool _menuManager::_menuObject::justEnteredHover() const {
+    return mouseHovering && !prevMouseHovering;
 }
 
 // -- PRIVATE -- //
@@ -396,13 +404,17 @@ void _menuManager::_menu::drawMenu(const Vec2i &wDim) {
     }
 }
 
-void _menuManager::_menu::updateMenu(double dt, const Vec2f &mousePos, bool mouseClicked) {
+void _menuManager::_menu::updateMenu(double dt, const Vec2f &mousePos, bool mouseClicked, _sounds* sounds) {
     timeSinceRedirect += dt;
     for (int i = 0; i < menuObjects.size(); i++) {
         _menuObject* menuObject = menuObjects[i].get();
         menuObject->updateMenuObject(dt, mousePos);
+        if (menuObject->justEnteredHover()) {
+            if (sounds) sounds->playSfx("MENU_HOVER");
+        }
         if (menuObject->getMouseState() && mouseClicked && timeSinceRedirect > 0.5) {
             cout << "Mouse clicked on ID: " << menuObject->getID() << "\n";
+            if (sounds) sounds->playSfx("MENU_CLICK");
             redirectTo = menuObject->getDestination();
             timeSinceRedirect = 0.0;
         }

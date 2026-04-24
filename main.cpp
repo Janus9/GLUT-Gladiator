@@ -18,6 +18,7 @@
 #include <_scene.h>          // My scene context
 #include <_timerPlusPlus.h>   // For the timer class
 #include <_menuManager.h>
+#include <_sounds.h>         // Shared audio engine (owned here, not by _scene)
 
 HDC			hDC=NULL;		// Private GDI Device Context
 HGLRC		hRC=NULL;		// Permanent Rendering Context
@@ -42,6 +43,7 @@ _logger Logger; //New instance of logger to be used in the program. Logger will 
 _scene *myScene = new _scene();//handling memory to point to specific scene values. makes an instance of scene
 unique_ptr<_timerPlusPlus> timer = make_unique<_timerPlusPlus>();
 unique_ptr<_menuManager> menuManager = make_unique<_menuManager>();
+_sounds* sharedSounds = new _sounds(); // Shared irrKlang engine used by both menus and scene
 
 //An option to parallel-check each individual function would be loops to handle interrupts
 //Parallel while loops to be able to handle in program is handled by the callback function
@@ -269,6 +271,7 @@ BOOL CreateGLWindow(char* title, int width, int height, int bits, bool fullscree
 	}
     glewInit();
 
+	myScene->setSounds(sharedSounds); // Inject shared audio engine before initScene so SFX registration works
 	myScene->initScene(); 			// Initializes scene classes and data (ONLY RUN ONCE)
 	myScene->reSize(width,height);  // Intended to resize the scene to match the width and height
 	wWidth = width;
@@ -278,7 +281,10 @@ BOOL CreateGLWindow(char* title, int width, int height, int bits, bool fullscree
 	Logger.InitLogger("logs/main.log");
 	timer->reset();
 
-	menuManager->initMenuManager();
+	sharedSounds->registerSfx("MENU_HOVER", "sounds/menu_hover.wav", 0.4f);
+	sharedSounds->registerSfx("MENU_CLICK", "sounds/menu_click.wav", 0.6f);
+
+	menuManager->initMenuManager(sharedSounds);
 	menuManager->loadMenu(MENU_LANDING); // CHANGE LATER
 	return TRUE;									// Success
 }
@@ -493,6 +499,10 @@ int WINAPI WinMain(	HINSTANCE	hInstance,			// Instance
 
 	// Shutdown
 	KillGLWindow();									// Kill The Window
+	delete myScene;                                 // Scene first so it stops touching sharedSounds before we drop the engine
+	myScene = nullptr;
+	delete sharedSounds;
+	sharedSounds = nullptr;
 	return (msg.wParam);							// Exit The Program. Program is then exited after the parameter has been fulfilled
 }
 

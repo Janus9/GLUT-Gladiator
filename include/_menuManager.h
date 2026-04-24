@@ -4,6 +4,7 @@
 #include <_common.h>
 #include <_texture.h>
 #include <_shader.h>
+#include <_sounds.h>
 
 // Math library for matrices and vectors etc -- https://github.com/g-truc/glm
 #include <glm/glm.hpp>
@@ -51,8 +52,10 @@ class _menuManager {
          *  - Home menu
          *  - Help menu
          *  - Pause menu
+         *
+         * @param sounds Shared sound engine used for MENU_HOVER / MENU_CLICK SFX. Non-owning; may be nullptr to disable audio.
          */
-        void initMenuManager();
+        void initMenuManager(_sounds* sounds);
 
         // Draw function -- Loads selected menu (or none if inMenu false)
         void drawMenuManager();
@@ -102,6 +105,9 @@ class _menuManager {
                 // Returns true if mouse is hovering the object
                 bool getMouseState() const;
 
+                // Returns true on the single frame the mouse first enters the object's AABB
+                bool justEnteredHover() const;
+
                 // Returns the ID of the object
                 string getID() const;
 
@@ -117,8 +123,9 @@ class _menuManager {
                 Vec2f size;
                 Vec2f pos;
 
-                bool mouseHovering = false; // Whether mouse is hovering the object
-                bool hasMouseState = false; // Whether object reacts to mouse (disabled on backgrounds)
+                bool mouseHovering = false;     // Whether mouse is hovering the object
+                bool prevMouseHovering = false; // Previous frame's hovering state (for hover-enter edge)
+                bool hasMouseState = false;     // Whether object reacts to mouse (disabled on backgrounds)
 
                 void buildVBO();
                 void buildEBO();
@@ -174,7 +181,7 @@ class _menuManager {
                 void drawMenu(const Vec2i &wDim);
 
                 // Update menu
-                void updateMenu(double dt, const Vec2f &mousePos, bool mouseClicked);
+                void updateMenu(double dt, const Vec2f &mousePos, bool mouseClicked, _sounds* sounds);
 
                 menu_type redirectTo = MENU_NULL;   // If not null will redirect on next update by menuManager
             protected:
@@ -188,7 +195,9 @@ class _menuManager {
 
         _menu menuList[MENU_COUNT]; // List of menus up to COUNT amount
         menu_type selectedMenu = MENU_LANDING;
-        
+
+        _sounds* sounds = nullptr; // Non-owning; provided by main via initMenuManager
+
         static Vec2i windowDimensions;
 };
 

@@ -26,9 +26,6 @@ _scene::~_scene()
     delete drawWorldBenchmark;
     drawWorldBenchmark = nullptr;
 
-    delete testSounds;
-    testSounds = nullptr;
-
     delete testUnit;
     testUnit = nullptr;
 
@@ -37,6 +34,11 @@ _scene::~_scene()
 
     delete sh;
     sh = nullptr;
+}
+
+void _scene::setSounds(_sounds* sounds)
+{
+    testSounds = sounds;
 }
 
 GLint _scene::initGL()
