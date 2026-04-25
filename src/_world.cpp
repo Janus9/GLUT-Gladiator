@@ -3,7 +3,7 @@
 // -- CELL -- // 
 
 bool _cell::setOutline(bool state) {
-    if (!this || !parentChunk) return false;
+if (!this || !parentChunk) return false;
     outlined = state;
     parentChunk->vboDirty = true;
     return true;
@@ -60,6 +60,33 @@ bool _chunk::setTileIdAt(TileId id, int index) {
     return true;
 }
 
+const _cell* _chunk::getAllCells() const {
+    return cellData;
+}
+
+const TileId* _chunk::getAllTileIds() const {
+    return tileData;
+}
+
+void _chunk::setAllCells(const _cell* cells) {
+    if (!cells) return;
+    memcpy(cellData,cells,256 * sizeof(_cell));
+    vboDirty = true;
+}
+
+void _chunk::setAllTiles(const TileId* tiles) {
+    if (!tiles) return;
+    memcpy(tileData,tiles,256 * sizeof(TileId));
+
+    // Set all cell IDs to match
+    _cell cellData[256];
+    for (int i = 0; i < 256; i++) {
+        cellData[i].tileId = tiles[i];
+    }
+    setAllCells(cellData);
+    vboDirty = true;
+}
+
 // -- WORLD -- //
 
 _world::_world()
@@ -84,13 +111,12 @@ void _world::initWorld()
 {
     initBenchmark->startBenchmark();
 
-    Logger.LogInfo("Initializing world for seed " + to_string(seed), LOG_BOTH);
+    // Logger.LogInfo("Initializing world for seed " + to_string(seed), LOG_BOTH);
     Logger.LogInfo("World has " + to_string(numStartingChunks) + " starting chunks.", LOG_BOTH);
 
     tileAtlas->loadTexture("images/set_1.png"); // Load the tile atlas texture
     // Reserve allocates memory but does not instantiate it -- resize allocates AND instantiates it (dont want that)
     worldChunks.reserve(numStartingChunks); // Resize the vector to hold numStartingChunks chunks
-    world_noise.resize(numStartingChunks*256);  // 256 tiles per chunk
 
     initTiles(); // Setup tiles
     
@@ -100,8 +126,9 @@ void _world::initWorld()
         Logger.LogWarning("numStartingChunks is not a perfect square. This may lead to an uneven distribution of chunks around the center.", LOG_BOTH);
     }
 
-    // Initialize world tiles and chunks here
-    runWorldGeneration(generation_iterations); 
+    // Initialize world tiles and chunks 
+    // runWorldGeneration(generation_iterations); 
+    importWorldFromFile("saves/test");
 
     // PARTICLE EFFECTS //
 
@@ -797,10 +824,145 @@ bool _world::damageCell(_cell* cell, float amount) {
     }
 }
 
+void _world::exportWorldToFile(const string &fileName) {
+    ofstream file(fileName + ".gg_world", ios::binary);     // Output as binary file
+    if (!file) {
+        cerr << "ERROR: Cannot create output file for: " << fileName << "\n";
+        return;
+    }
+    if (worldChunks.size() != numStartingChunks) {
+        cerr << "ERROR: Cannot create output file as world chunk count of: " << worldChunks.size() << " does not match starting chunk amount of: " << numStartingChunks << "\n";
+        return;
+    }
+
+    // Header Data Write //
+
+    const char header[2] = {'G','G'};   // Header ("GG")
+    file.write(header,2);
+    /**
+     * write() requires a const char* input for the data to write. 
+     * We use reinterpret_cast because it tells the compiler to "pretend" its raw bytes and not whatever datatype it is.
+     * unlike other casts, this does NOT change the data, only how its interpreted.
+     * This cast is safe with primative data types but NOT with others (structs, classes etc) 
+     * 
+     * We pass with & because we want the memory address
+     */
+    file.write(reinterpret_cast<const char*>(&seed),sizeof(seed));  // Seed
+
+    auto now = chrono::system_clock::now();
+    auto duration = now.time_since_epoch(); 
+    const uint64_t seconds = chrono::duration_cast<chrono::seconds>(duration).count();
+    file.write(reinterpret_cast<const char*>(&seconds),sizeof(seconds)); // Time Stamp    
+
+    const uint32_t version_id = WORLD_SAVE_VERSION;
+    file.write(reinterpret_cast<const char*>(&version_id),sizeof(version_id));  // Version ID
+    file.write(reinterpret_cast<const char*>(&numStartingChunks),sizeof(numStartingChunks)); // Chunk Count
+
+    const char data_header[4] = {'W','R','L','D'};
+    file.write(data_header,4); // Chunk Data Header ("WRLD")
+
+    // Chunk Data Write //
+
+    for (int i = 0; i < numStartingChunks; i++) {
+        const _chunk* chunk = &worldChunks[i];
+        const int32_t chunk_pos_x = chunk->chunkX;
+        const int32_t chunk_pos_y = chunk->chunkY;
+        const TileId* chunk_tile_ids = chunk->getAllTileIds();
+        file.write(reinterpret_cast<const char*>(&chunk_pos_x), sizeof(chunk_pos_x));        // Chunk Position X
+        file.write(reinterpret_cast<const char*>(&chunk_pos_y), sizeof(chunk_pos_y));        // Chunk Position Y
+        file.write(reinterpret_cast<const char*>(chunk_tile_ids), 256 * sizeof(TileId));     // Chunk Tile IDs (256 total)
+    }
+
+    const char end_stamp[3] = {'E','N','D'};
+    file.write(end_stamp,3); // End Stamp ("END")
+}
+
+void _world::importWorldFromFile(const string &fileName) {
+    ifstream file(fileName + ".gg_world", ios::binary);
+    if (!file) {
+        cerr << "ERROR: Cannot open file: " << fileName << "\n";
+        return;
+    }
+
+    char header[2];
+    file.read(header,2);
+    if (header[0] != 'G' || header[1] != 'G') {
+        cout << "ERROR: Invalid file header\n";
+        return;
+    }
+
+    uint32_t save_seed = 0;
+    file.read(reinterpret_cast<char*>(&save_seed), sizeof(save_seed));      // Seed
+    seed = save_seed;
+    rng = mt19937(seed);    // Set rng engine to seed
+
+    uint64_t time_stamp = 0;
+    file.read(reinterpret_cast<char*>(&time_stamp), sizeof(time_stamp));    // Time Stamp
+
+    uint32_t version_id = 0;
+    file.read(reinterpret_cast<char*>(&version_id), sizeof(version_id));    // Version ID
+    if (version_id != WORLD_SAVE_VERSION) {
+        cout << "WARNING: World file version of " << version_id << " does not match current version of "
+             << WORLD_SAVE_VERSION << " continuing with load but may fail\n";
+    }    
+
+    int32_t chunk_count = 0;
+    file.read(reinterpret_cast<char*>(&chunk_count), sizeof(chunk_count));  // Chunk Count
+    if (chunk_count != numStartingChunks) {
+        cout << "ERROR: Chunk Count of save " << fileName << " for " << chunk_count << "does not match count of " << numStartingChunks << "\n";
+        return;
+    }
+
+    char data_header[4];
+    file.read(data_header,4);    // Chunk Data Header
+    if (data_header[0] != 'W' || data_header[1] != 'R' || data_header[2] != 'L' || data_header[3] != 'D') {
+        cout << "ERROR: Invalid file header\n";
+        return;
+    }
+
+    // Read Chunk Data //
+    for (int i = 0; i < numStartingChunks; i++) {
+        uint32_t chunkX = 0;
+        uint32_t chunkY = 0;
+        TileId tileData[256];
+
+        file.read(reinterpret_cast<char*>(&chunkX),sizeof(chunkX));
+        file.read(reinterpret_cast<char*>(&chunkY),sizeof(chunkY));
+        file.read(reinterpret_cast<char*>(tileData),256 * sizeof(TileId));
+
+        // Build chunk
+        worldChunks.emplace_back();
+        _chunk* chunk = &worldChunks.back();
+
+        chunk->chunkX = chunkX;
+        chunk->chunkY = chunkY;
+        chunk->setAllTiles(tileData);
+
+        loadedChunks[{chunkX, chunkY}] = true;
+        chunkLookup[{chunkX, chunkY}] = chunk;
+    }
+
+    char end_stamp[3];
+    file.read(end_stamp,3);    // Chunk Data Header
+    if (end_stamp[0] != 'E' || end_stamp[1] != 'N' || end_stamp[2] != 'D') {
+        cout << "WARNING: Save " << fileName << "missing END stamp\n";
+    }
+}
+
+// -- PRIVATE -- //
+
 void _world::runWorldGeneration(int iterations) {
+    // Setup seed + rng engine 
+    seed = std::chrono::system_clock::now().time_since_epoch().count(); 
+    rng = mt19937(seed);
+
+    // Setup world_noise
+    world_noise.resize(numStartingChunks*256);  // 256 tiles per chunk
+    
     Logger.LogInfo("Running world generation for parameters: ");
     Logger.LogInfo(" - Noise Density: " + to_string(noise_distribution*100.0f) + "%");
     Logger.LogInfo(" - Generation Iterations: " + to_string(iterations));
+    Logger.LogInfo(" - Seed: " + to_string(seed));
 
     uniform_real_distribution<float> dist(0.0f,1.0f);
     
@@ -856,6 +1018,9 @@ void _world::runWorldGeneration(int iterations) {
     postProcessWorld();
     Logger.LogDebug("Post processing completed! Finalizing world now ...");
     finalizeWorld();
+
+    // Clean up data once world gen is done since no longer used
+    world_noise.clear();
 }
 
 void _world::mapCellNeighbors(_cell* cell, _cell* outNeighbors[9]) {

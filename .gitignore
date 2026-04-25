@@ -13,12 +13,14 @@ bin/
 build/
 logs/
 obj/
+saves/
 
 # FILE TYPES #
 *.log
 *.o
 *.exe
 *.dll
+*.gg_world
 
 # Ignore Mr. Claude
 CLAUDE.md

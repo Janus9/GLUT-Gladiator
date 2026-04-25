@@ -9,7 +9,7 @@ File: ".gg_world"
 | 0      | 2    | char[2]        | Header ("GG")
 | 2      | 4    | uint32_t       | Seed 
 | 6      | 8    | uint64_t       | Time Stamp
-| 14     | 4    | uint32_t       | Version ID (ex/ "v0.11" is 11 and "v1.12" is 112) 
+| 14     | 4    | uint32_t       | Version ID (not game version, whole numbers only) 
 | 18     | 4    | int32_t        | Chunk Count
 | 22     | 4    | char[4]        | Chunk Data Header ("WRLD")
 |--------|------|----------------|----------- (This is repeated for chunk count amount) (26 offset)

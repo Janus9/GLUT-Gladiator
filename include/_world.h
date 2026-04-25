@@ -182,6 +182,17 @@ class _chunk
          */
         bool setTileIdAt(TileId id, int index);
 
+        // Returns all 256 cells stored in the chunk as an array (readonly)
+        const _cell* getAllCells() const;
+
+        // Returns all 256 tiles stored in the chunk as an array (readonly)
+        const TileId* getAllTileIds() const;
+
+        // Sets all 256 cells to the array passed in
+        void setAllCells(const _cell* cells);
+
+        // Sets all 256 tiles to the array passed in
+        void setAllTiles(const TileId* tiles);
     protected:
     private:
         TileId tileData[256];  // 16x16 chunk
@@ -306,6 +317,21 @@ class _world
          */
         bool damageCell(_cell* cell, float amount);
 
+        // -- World Saving -- //
+        /**
+         * Exports the world to a file for saving and reading later
+         * 
+         * @param fileName Name of the file to export to (does not need .gg_world extension)
+         */
+        void exportWorldToFile(const string &fileName);
+
+        /**
+         * Imports the world from a save file
+         * 
+         * @param fileName Name of file to import from (does not need .gg_world extension)
+         */
+        void importWorldFromFile(const string &fileName);
+
         bool DEBUG_displayChunkBorders = false; // When enabled puts a red border around chunks
     protected:
     private:
@@ -316,9 +342,8 @@ class _world
 
         // -- RNG -- //
 
-        // Using a current time for the seed is chose because the normal std::random_device doesnt work for some reason
-        const int seed = (unsigned int)std::chrono::system_clock::now().time_since_epoch().count(); 
-        std::mt19937 rng{seed}; 
+        uint32_t seed; 
+        mt19937 rng; 
 
         // -- WORLD DATA -- //
 

@@ -7,8 +7,11 @@
 #define GLUT_DISABLE_ATEXIT_HACK   // glut.h here is classic GLUT; skip the inline ATEXIT stubs that reference __glut*WithExit symbols not exported by freeglut
 #define GRAVITY 9.81
 
-// INCLUDES //
+// Versions //
+#define GAME_VERSION 0.11           // Version of the game itself
+#define WORLD_SAVE_VERSION 1        // Version of the world save system
 
+// INCLUDES //
 #include <iostream>
 #include <GL/glew.h>    // for VBOs
 #include <GL/gl.h>
@@ -19,18 +22,18 @@
 #include <vector>
 #include <chrono>
 #include <string>
-#include <fstream>
 #include <ctime>
+#include <cstring>
 #include <iomanip>
 #include <sstream>
 #include <stdlib.h>
 #include <cstdint>  // for uint32_t and other fixed-width integer types
+#include <fstream>
 #include <_logger.h>
 #include <random>
 #include <limits>
 #include <algorithm>
 #include <unordered_map> // Hashtable
-#include <fstream>
 
 // USING // 
 

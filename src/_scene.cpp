@@ -776,6 +776,7 @@ void _scene::keyboardHandler(WPARAM wParam)
         switch (wParam)
         {
         case 192: // "~"
+            myWorld->exportWorldToFile("saves/test");
             break;
         case 49: // "1"
             enemyManager->addEnemy(mouseWorldPos,ENEMY_TURRET);
