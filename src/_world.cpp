@@ -86,8 +86,7 @@ void _chunk::setAllTiles(const TileId* tiles) {
     vboDirty = true;
 }
 
-const cell_serial_data* _chunk::serializeChunk() const {
-    cell_serial_data cell_data[256];
+void _chunk::serializeChunk(cell_serial_data (&cell_data)[256]) const {
     for (int i = 0; i < 256; i++) {
         const _cell* cell = &cellData[i]; 
         cell_data[i].tileID = cell->tileId;
@@ -95,8 +94,22 @@ const cell_serial_data* _chunk::serializeChunk() const {
         cell_data[i].padding = 0;   // Padding, does nothing.
         cell_data[i].health = cell->getHealth();
     }
-    return cell_data;
 }
+
+void _chunk::loadSerializedChunk(const cell_serial_data* cell_data) {
+    for (int i = 0; i < 256; i++) {
+        // Serialized Data //
+        tileData[i] = static_cast<TileId>(cell_data[i].tileID);
+        cellData[i].tileId = static_cast<TileId>(cell_data[i].tileID);
+        cellData[i].setOutline(static_cast<bool>(cell_data[i].outlined));
+        cellData[i].setHealth(cell_data[i].health);
+
+        // Non Serialized Data //
+        // Handled by VBO setup -- should be changed later
+        vboDirty = true;
+    }
+}
+
 
 // -- WORLD -- //
 
@@ -836,6 +849,7 @@ bool _world::damageCell(_cell* cell, float amount) {
 }
 
 void _world::exportWorldToFile(const string &fileName) {
+    cout << "Exporting world to save file: " << fileName << ".gg_world\n";
     ofstream file(fileName + ".gg_world", ios::binary);     // Output as binary file
     if (!file) {
         cerr << "ERROR: Cannot create output file for: " << fileName << "\n";
@@ -878,11 +892,15 @@ void _world::exportWorldToFile(const string &fileName) {
         const _chunk* chunk = &worldChunks[i];
         const int32_t chunk_pos_x = chunk->chunkX;
         const int32_t chunk_pos_y = chunk->chunkY;
-        const cell_serial_data* cell_data = chunk->serializeChunk();
+        cell_serial_data cell_data[256];
+        chunk->serializeChunk(cell_data);
         file.write(reinterpret_cast<const char*>(&chunk_pos_x), sizeof(chunk_pos_x));        // Chunk Position X
         file.write(reinterpret_cast<const char*>(&chunk_pos_y), sizeof(chunk_pos_y));        // Chunk Position Y
         file.write(reinterpret_cast<const char*>(cell_data), 256 * sizeof(cell_serial_data));
     }
+
+    cout << "Finished world saving!\n"
+         << "World Size: " << file.tellp() << " bytes\n";
 }
 
 void _world::importWorldFromFile(const string &fileName) {
@@ -944,7 +962,7 @@ void _world::importWorldFromFile(const string &fileName) {
 
         chunk->chunkX = chunkX;
         chunk->chunkY = chunkY;
-        chunk->setAllTiles(tileData);
+        chunk->loadSerializedChunk(cell_data);
 
         loadedChunks[{chunkX, chunkY}] = true;
         chunkLookup[{chunkX, chunkY}] = chunk;

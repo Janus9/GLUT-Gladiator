@@ -206,9 +206,16 @@ class _chunk
         /**
          * Serializes a chunk's cell/tile data for saving.
          * 
-         * @return Pointer to an array (256) of cell serial data
+         * @param cell_data Reference to an array of size 256 of cell_serial_data that chunk dumps into
          */
-        const cell_serial_data* serializeChunk() const;
+        void serializeChunk(cell_serial_data (&cell_data)[256]) const;
+
+        /**
+         * Reads an array of cell data into the chunk
+         * 
+         * @param cell_data Pointer to an array (256) of cell data.
+         */
+        void loadSerializedChunk(const cell_serial_data* cell_data);
     protected:
     private:
         TileId tileData[256];  // 16x16 chunk

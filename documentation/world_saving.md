@@ -16,10 +16,11 @@ File: ".gg_world"
 |      -- CHUNK DATA --          |
 | 0      | 4    | int32_t        | Chunk Position X
 | 4      | 4    | int32_t        | Chunk Position Y 
-| 8      | 1536 | cell_aata[256] | Chunk Cell/Tile Data (See Below)
+| 8      | 1536 | cell_data[256] | Chunk Cell/Tile Data (See Below)
 |--------|------|----------------|----------- (Data for "Cell Data" above)
 |       -- CELL DATA --          |
 | 0      | 1    | uint8_t        | Tile ID
 | 1      | 1    | uint8_t        | Outlined (Boolean)
-| 2      | 4    | float          | Health
+| 2      | 2    | uint16_t       | Padding
+| 4      | 4    | float          | Health
 |--------|------|----------------|----------- (End of File) 
