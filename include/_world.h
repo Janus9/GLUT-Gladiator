@@ -27,6 +27,16 @@
 class _chunk; // Forward declaration for cell
 
 /**
+ * This is for serializing data for world saving. It stores cell/tile data of a chunk.
+ */
+struct cell_serial_data {         // Offset 
+    uint8_t tileID;               // 1 byte
+    uint8_t outlined;             // 2 bytes
+    uint16_t padding;             // 4 bytes (Do not change)   
+    float health;                 // 8 bytes
+};
+
+/**
  * Enum mapped to TileId number as an unsigned 8 bit int. 
  * Naming goes: TILE_[TYPE]_[SUBTYPE]_[VARIANT]
  */
@@ -192,6 +202,13 @@ class _chunk
 
         // Sets all 256 tiles to the array passed in
         void setAllTiles(const TileId* tiles);
+
+        /**
+         * Serializes a chunk's cell/tile data for saving.
+         * 
+         * @return Pointer to an array (256) of cell serial data
+         */
+        const cell_serial_data* serializeChunk() const;
     protected:
     private:
         TileId tileData[256];  // 16x16 chunk

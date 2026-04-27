@@ -86,6 +86,18 @@ void _chunk::setAllTiles(const TileId* tiles) {
     vboDirty = true;
 }
 
+const cell_serial_data* _chunk::serializeChunk() const {
+    cell_serial_data cell_data[256];
+    for (int i = 0; i < 256; i++) {
+        const _cell* cell = &cellData[i]; 
+        cell_data[i].tileID = cell->tileId;
+        cell_data[i].outlined = static_cast<uint8_t>(cell->isOutlined());
+        cell_data[i].padding = 0;   // Padding, does nothing.
+        cell_data[i].health = cell->getHealth();
+    }
+    return cell_data;
+}
+
 // -- WORLD -- //
 
 _world::_world()
@@ -866,14 +878,11 @@ void _world::exportWorldToFile(const string &fileName) {
         const _chunk* chunk = &worldChunks[i];
         const int32_t chunk_pos_x = chunk->chunkX;
         const int32_t chunk_pos_y = chunk->chunkY;
-        const TileId* chunk_tile_ids = chunk->getAllTileIds();
+        const cell_serial_data* cell_data = chunk->serializeChunk();
         file.write(reinterpret_cast<const char*>(&chunk_pos_x), sizeof(chunk_pos_x));        // Chunk Position X
         file.write(reinterpret_cast<const char*>(&chunk_pos_y), sizeof(chunk_pos_y));        // Chunk Position Y
-        file.write(reinterpret_cast<const char*>(chunk_tile_ids), 256 * sizeof(TileId));     // Chunk Tile IDs (256 total)
+        file.write(reinterpret_cast<const char*>(cell_data), 256 * sizeof(cell_serial_data));
     }
-
-    const char end_stamp[3] = {'E','N','D'};
-    file.write(end_stamp,3); // End Stamp ("END")
 }
 
 void _world::importWorldFromFile(const string &fileName) {
@@ -923,11 +932,11 @@ void _world::importWorldFromFile(const string &fileName) {
     for (int i = 0; i < numStartingChunks; i++) {
         uint32_t chunkX = 0;
         uint32_t chunkY = 0;
-        TileId tileData[256];
+        cell_serial_data cell_data[256];
 
         file.read(reinterpret_cast<char*>(&chunkX),sizeof(chunkX));
         file.read(reinterpret_cast<char*>(&chunkY),sizeof(chunkY));
-        file.read(reinterpret_cast<char*>(tileData),256 * sizeof(TileId));
+        file.read(reinterpret_cast<char*>(cell_data),256 * sizeof(cell_serial_data));
 
         // Build chunk
         worldChunks.emplace_back();
@@ -939,12 +948,6 @@ void _world::importWorldFromFile(const string &fileName) {
 
         loadedChunks[{chunkX, chunkY}] = true;
         chunkLookup[{chunkX, chunkY}] = chunk;
-    }
-
-    char end_stamp[3];
-    file.read(end_stamp,3);    // Chunk Data Header
-    if (end_stamp[0] != 'E' || end_stamp[1] != 'N' || end_stamp[2] != 'D') {
-        cout << "WARNING: Save " << fileName << "missing END stamp\n";
     }
 }
 
