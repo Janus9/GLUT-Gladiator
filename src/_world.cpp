@@ -17,7 +17,6 @@ bool _cell::impluseHealth(float amount) {
     health += amount;
     if (health <= 0) {
         health = 0; // Bound health to 0
-        alive = false;
         return true;
     }
     return false;
@@ -33,7 +32,7 @@ float _cell::getHealth() const {
 }
 
 bool _cell::isAlive() const {
-    return alive;
+    return health > 0.0f;
 }
 
 // -- CHUNK -- //

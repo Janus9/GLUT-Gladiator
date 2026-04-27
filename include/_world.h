@@ -105,7 +105,6 @@ class _cell
         bool isAlive() const;
     protected:
     private:
-        bool alive = true;
         bool outlined = false;
         float health = 100.0f;
 };
