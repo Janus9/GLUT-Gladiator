@@ -27,7 +27,6 @@
 class _scene
 {
     public:
-
         _scene();
         virtual ~_scene();
 
@@ -91,7 +90,6 @@ class _scene
         _lightSettings *myLight = new _lightSettings();     
         _model* myModel = new _model();
         _world* myWorld = new _world();
-        
 
         _unit* testUnit = new _unit();
 

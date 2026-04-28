@@ -57,7 +57,7 @@ void _menuManager::initMenuManager(_sounds* sharedSounds) {
         MENU_NULL
     });
     menuList[MENU_HOME].addMenuObject({
-        "images/menu/start_button.png",
+        "images/menu/play_button.png",
         {0.2f, 0.2f},
         {0.5f, 0.2f},
         true,

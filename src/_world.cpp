@@ -881,6 +881,8 @@ void _world::exportWorldToFile(const string &fileName) {
 
     const uint32_t version_id = WORLD_SAVE_VERSION;
     file.write(reinterpret_cast<const char*>(&version_id),sizeof(version_id));  // Version ID
+    const float game_id = GAME_VERSION;
+    file.write(reinterpret_cast<const char*>(&game_id),sizeof(game_id));  // Game Version
     file.write(reinterpret_cast<const char*>(&numStartingChunks),sizeof(numStartingChunks)); // Chunk Count
 
     const char data_header[4] = {'W','R','L','D'};
@@ -904,6 +906,8 @@ void _world::exportWorldToFile(const string &fileName) {
 }
 
 void _world::importWorldFromFile(const string &fileName) {
+    cout << "Starting world import from: " << fileName + ".gg_world\n";
+
     ifstream file(fileName + ".gg_world", ios::binary);
     if (!file) {
         cerr << "ERROR: Cannot open file: " << fileName << "\n";
@@ -931,6 +935,13 @@ void _world::importWorldFromFile(const string &fileName) {
         cout << "WARNING: World file version of " << version_id << " does not match current version of "
              << WORLD_SAVE_VERSION << " continuing with load but may fail\n";
     }    
+
+    uint32_t game_id = 0;
+    file.read(reinterpret_cast<char*>(&game_id), sizeof(game_id));    // Version ID
+    if (game_id < GAME_VERSION) {
+        cout << "WARNING: Game file version of " << game_id << " does not match loaded version of the game "
+             << WORLD_SAVE_VERSION << " continuing with load but may fail\n";
+    }  
 
     int32_t chunk_count = 0;
     file.read(reinterpret_cast<char*>(&chunk_count), sizeof(chunk_count));  // Chunk Count
@@ -967,6 +978,8 @@ void _world::importWorldFromFile(const string &fileName) {
         loadedChunks[{chunkX, chunkY}] = true;
         chunkLookup[{chunkX, chunkY}] = chunk;
     }
+
+    cout << "Finished world import from: " << fileName + ".gg_world\n";
 }
 
 // -- PRIVATE -- //
