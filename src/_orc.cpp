@@ -142,8 +142,15 @@ void _orc::updateOrc(double dt, _player* player, _sounds* sounds) {
         const double swingEnd = double(ATTACK_FRAMES)    / double(ORC_ATTACK_FPS);
 
         if (!damageDealtThisSwing && cooldownTimer >= hitTime) {
-            // Hit lands only if the boxes are still touching at the hit frame.
-            if (isColliding(*player) && !player->isDead()) {
+            // Hit lands if the player is still in melee contact at the hit
+            // frame. Strict box-overlap fails when boxes are flush after
+            // push-out, so we use a center-to-center distance threshold that
+            // covers touching plus a small forgiveness margin.
+            //   orc box 16x16  (half ~8) + player box 18x24 (half 9/12)
+            //   touching distance ≈ 17 horizontal / 20 vertical → 28 pad
+            constexpr float HIT_REACH = 28.0f;
+            float dist = pos.distance(player->pos);
+            if (dist <= HIT_REACH && !player->isDead()) {
                 player->impulseDamage(attackDamage);
                 player->playerTookDamage = true;
                 if (sounds) sounds->playSfx("PLAYER_HURT");
