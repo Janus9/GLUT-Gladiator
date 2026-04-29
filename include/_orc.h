@@ -44,6 +44,10 @@ class _orc : public _enemy {
         // takes a hit. Triggers HURT animation if alive.
         void notifyDamaged() override;
 
+        // Called by _enemyManager once when the orc has just died, to play
+        // the directional DEATH animation. Idempotent.
+        void triggerDeath(_sounds* sounds);
+
         // -- Stats -- //
         float moveSpeed      = 60.0f;   // units / second
         float attackRange    = 24.0f;   // distance to enter ATTACK
