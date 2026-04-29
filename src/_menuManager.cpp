@@ -197,6 +197,7 @@ void _menuManager::updateMenuManager(double dt, const Vec2f &mousePos, bool mous
     menu->updateMenu(dt,mousePos,mouseClicked,sounds);
     if (menu->redirectTo != MENU_NULL) {
         if (menu->redirectTo == MENU_GAME) {
+            if (!scene->isInitialized()) return; // Scene must be initialized if were trying to load the game
             loadGame = true;
         }
         loadMenu(menu->redirectTo);     // Load menu

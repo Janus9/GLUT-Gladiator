@@ -89,8 +89,6 @@ class _menuManager {
          *  - Position
          *  - Size
          *  - Texture
-         *  
-         * Handles events for mouse hover/click etc TODO
          */
         class _menuObject {
             public:
