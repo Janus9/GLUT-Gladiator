@@ -63,7 +63,7 @@ void _menuManager::initMenuManager(_sounds* sharedSounds) {
         true,
         "home_start_button",
         MENU_HOME,
-        MENU_GAME
+        MENU_SAVES
     });
     menuList[MENU_HOME].addMenuObject({
         "images/menu/help_button.png",
@@ -82,6 +82,36 @@ void _menuManager::initMenuManager(_sounds* sharedSounds) {
         "home_landing_button",
         MENU_HOME,
         MENU_LANDING
+    });
+
+    // -- Saves -- //
+    menuList[MENU_SAVES].initMenu(MENU_SAVES);
+    menuList[MENU_SAVES].addMenuObject({
+        "images/menu/landing_page.png",
+        {1.0f, 1.0f},
+        {0.5f, 0.5f},
+        false,
+        "saves_bg",
+        MENU_SAVES,
+        MENU_NULL
+    });
+    menuList[MENU_SAVES].addMenuObject({
+        "images/menu/generate_button.png",
+        {0.2f, 0.2f},
+        {0.35f, 0.2f},
+        true,
+        "saves_generate_button",
+        MENU_SAVES,
+        MENU_NULL
+    });
+    menuList[MENU_SAVES].addMenuObject({
+        "images/menu/load_button.png",
+        {0.2f, 0.2f},
+        {0.65f, 0.2f},
+        true,
+        "saves_load_button",
+        MENU_SAVES,
+        MENU_NULL
     });
 
     // -- Help -- //
@@ -152,6 +182,16 @@ void _menuManager::updateMenuManager(double dt, const Vec2f &mousePos, bool mous
         }
         loadMenu(menu->redirectTo);     // Load menu
         menu->redirectTo = MENU_NULL;   // Reset menu redirection state
+    }
+
+    if (menu->generateWorldEvent) {
+        menu->generateWorldEvent = false;
+        cout << "Generate World Event!\n";
+    }
+    
+    if (menu->loadWorldEvent) {
+        menu->loadWorldEvent = false;
+        cout << "Load World Event!\n";
     }
 }
 
@@ -422,6 +462,11 @@ void _menuManager::_menu::updateMenu(double dt, const Vec2f &mousePos, bool mous
         }
         if (menuObject->getMouseState() && mouseClicked && timeSinceRedirect > 0.5) {
             cout << "Mouse clicked on ID: " << menuObject->getID() << "\n";
+            if (menuObject->getID() == "saves_generate_button") {
+                generateWorldEvent = true;
+            } else if (menuObject->getID() == "saves_load_button") {
+                loadWorldEvent = true;
+            }
             if (sounds) sounds->playSfx("MENU_CLICK");
             redirectTo = menuObject->getDestination();
             timeSinceRedirect = 0.0;

@@ -18,6 +18,7 @@ enum menu_type {
     MENU_HOME,
     MENU_HELP,
     MENU_PAUSE,
+    MENU_SAVES,
     MENU_COUNT // DO NOT MOVE -- KEEP AT BACK
 };
 
@@ -187,6 +188,9 @@ class _menuManager {
                 void updateMenu(double dt, const Vec2f &mousePos, bool mouseClicked, _sounds* sounds);
                 
                 menu_type redirectTo = MENU_NULL;   // If not null will redirect on next update by menuManager
+
+                bool generateWorldEvent = false;
+                bool loadWorldEvent = false;
             protected:
             private:
                 vector<unique_ptr<_menuObject>> menuObjects;
