@@ -34,7 +34,10 @@ class _scene
         GLint initGL(); 
 
         // Initialization of scene objects
-        void initScene();
+        void initScene(bool loadWorld);
+
+        // Runs a save command to save the world/player/enemies etc to a save file
+        void saveScene();
 
         // Inject the shared sound engine (owned by main). Must be called before initScene().
         void setSounds(_sounds* sounds);
@@ -50,9 +53,12 @@ class _scene
         // Handles input messsages send from windows -- used for controls etc
         int winMsg(HWND	hWnd, UINT uMsg, WPARAM	wParam, LPARAM lParam);
 
-        // CLASSES //
+        // Returns true if the scene is initialized and ready
+        bool isInitialized() const;
     protected:
     private:
+        bool sceneInitialized = false;
+
         // Window dimensions
         int width, height; 
 

@@ -60,8 +60,12 @@ GLint _scene::initGL()
     return true;
 }
 
-void _scene::initScene()
+void _scene::initScene(bool loadWorld)
 {
+    if (sceneInitialized) {
+        cout << "WARNING: Scene already initialized, skipping\n";
+        return;
+    }
     // -- CLASS INIT -- //
 
     cout << "Running Scene Class Initialization ... \n";
@@ -114,7 +118,7 @@ void _scene::initScene()
     hud->getHudSprite("PROGRESS_BAR")->getSprite()->setIdleFrame(0, 0);
 
     myLight->setLight(GL_LIGHT0); // The light onto the object from the pointer is set to be the instantiated light from before
-    myWorld->initWorld();         // Initialize the world
+    myWorld->initWorld(loadWorld);         // Initialize the world
 
     debugTimer.reset();
 
@@ -252,6 +256,12 @@ void _scene::initScene()
             lookingForGatlingSpawn = false;
         }
     }
+
+    sceneInitialized = true;
+}
+
+void _scene::saveScene() {
+    myWorld->exportWorldToFile("saves/game");
 }
 
 void _scene::reSize(GLint width, GLint height)
@@ -776,7 +786,6 @@ void _scene::keyboardHandler(WPARAM wParam)
         switch (wParam)
         {
         case 192: // "~"
-            myWorld->exportWorldToFile("saves/test");
             break;
         case 49: // "1"
             enemyManager->addEnemy(mouseWorldPos,ENEMY_TURRET);
@@ -879,6 +888,12 @@ int _scene::winMsg(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     return 0;
 }
+
+bool _scene::isInitialized() const {
+    return sceneInitialized;
+}
+
+// -- PRIVATE -- //
 
 void _scene::applyCamera()
 {

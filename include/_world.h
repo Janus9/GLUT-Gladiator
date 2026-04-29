@@ -228,8 +228,12 @@ class _world
         _world();
         virtual ~_world();
         
-        // Initializes the world by loading tile textures and generating the initial chunks.
-        void initWorld();
+        /**
+         * Initializes the world by loading tile textures and generating the initial chunks.
+         * 
+         * @param loadWorld If true world is loaded and NOT generated
+         */
+        void initWorld(bool loadWorld);
 
         // Draw function for world
         void drawWorld(float left, float right, float top, float bottom);
@@ -358,6 +362,8 @@ class _world
         bool DEBUG_displayChunkBorders = false; // When enabled puts a red border around chunks
     protected:
     private:
+        bool worldInitialized = false;
+
         // -- PARTICLE MANAGER -- //
         _particleManager* cellParticles = new _particleManager();
         particle_effect wall_break_effect;

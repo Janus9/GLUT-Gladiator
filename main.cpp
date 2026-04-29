@@ -272,7 +272,6 @@ BOOL CreateGLWindow(char* title, int width, int height, int bits, bool fullscree
     glewInit();
 
 	myScene->setSounds(sharedSounds); // Inject shared audio engine before initScene so SFX registration works
-	myScene->initScene(); 			// Initializes scene classes and data (ONLY RUN ONCE)
 	myScene->reSize(width,height);  // Intended to resize the scene to match the width and height
 	wWidth = width;
 	wHeight = height;
@@ -284,7 +283,7 @@ BOOL CreateGLWindow(char* title, int width, int height, int bits, bool fullscree
 	sharedSounds->registerSfx("MENU_HOVER", "sounds/menu_hover.wav", 0.4f);
 	sharedSounds->registerSfx("MENU_CLICK", "sounds/menu_click.wav", 0.6f);
 
-	menuManager->initMenuManager(sharedSounds);
+	menuManager->initMenuManager(sharedSounds, myScene);
 	menuManager->loadMenu(MENU_LANDING); // CHANGE LATER
 	return TRUE;									// Success
 }
@@ -463,8 +462,10 @@ int WINAPI WinMain(	HINSTANCE	hInstance,			// Instance
 				if (timer->getMilliseconds() > UPDATE_DELAY) // If the time since the last update is greater than 16.67ms (60fps), update the scene
 				{
 					double dt = timer->getSeconds();
-					myScene->updateScene(dt,keys); //Update the scene with the time since the last update
-					myScene->updateAudio(dt); // Tick audio fades
+					if (myScene->isInitialized()) {
+						myScene->updateScene(dt,keys); //Update the scene with the time since the last update
+						myScene->updateAudio(dt); // Tick audio fades
+					}
 					timer->reset(); // Reset the timer for the next update
 				}
 				myScene->drawScene(); //So long as the key is not escaping (quitting), keep drawing the scene
@@ -490,7 +491,7 @@ int WINAPI WinMain(	HINSTANCE	hInstance,			// Instance
 			KillGLWindow();						// Kill Our Current Window
 			fullscreen=!fullscreen;				// Toggle Fullscreen / Windowed Mode
 			// Recreate Our OpenGL Window
-			if (!CreateGLWindow("Game Engine Lesson 01",fullscreenWidth,fullscreenHeight,256,fullscreen))
+			if (!CreateGLWindow("GLUT Gladiator",fullscreenWidth,fullscreenHeight,256,fullscreen))
 			{
 				return 0;						// Quit If Window Was Not Created
 			}

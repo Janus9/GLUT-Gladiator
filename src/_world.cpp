@@ -131,8 +131,13 @@ _world::~_world()
     cellParticles = nullptr;
 }
 
-void _world::initWorld()
+void _world::initWorld(bool loadWorld)
 {
+    if (worldInitialized) {
+        cout << "WARNING: World has already been initialized, skipping\n";
+        return;
+    }
+
     initBenchmark->startBenchmark();
 
     // Logger.LogInfo("Initializing world for seed " + to_string(seed), LOG_BOTH);
@@ -151,8 +156,11 @@ void _world::initWorld()
     }
 
     // Initialize world tiles and chunks 
-    // runWorldGeneration(generation_iterations); 
-    importWorldFromFile("saves/test");
+    if (loadWorld) {
+        importWorldFromFile("saves/game");
+    } else {
+        runWorldGeneration(generation_iterations); 
+    }
 
     // PARTICLE EFFECTS //
 
@@ -200,6 +208,7 @@ void _world::initWorld()
     initBenchmark->clickBenchmark();
     double time = initBenchmark->getAverageResult();
 
+    worldInitialized = true;
     Logger.LogInfo("World initialization for " + to_string(worldChunks.size()) + "chunks took " + to_string(time) + "ms");
 }
 
