@@ -747,10 +747,6 @@ void _scene::keyboardHandler(WPARAM wParam)
             enemyManager->addEnemy(mouseWorldPos,ENEMY_GATLING);
             break;
         case 51: // "3"
-            std::cout << "[ORC SPAWN] mouseScreenPos=" << mouseScreenPos.toString()
-                      << " mouseNormalPos=" << mouseNormalPos.toString()
-                      << " mouseWorldPos=" << mouseWorldPos.toString()
-                      << " playerPos=" << player->pos.toString() << "\n";
             enemyManager->addEnemy(mouseWorldPos,ENEMY_ORC);
             break;
         case ' ': // SPACE
