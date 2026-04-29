@@ -1,4 +1,5 @@
 #include <_enemyManager.h>
+#include <_orc.h>
 
 // -- -- ENEMY -- -- //
 
@@ -185,6 +186,24 @@ void _enemyManager::updateEnemies(double dt) {
                 break;
             }
 
+            // -- ORC -- //
+            case ENEMY_ORC: {
+                _orc* orc = static_cast<_orc*>(enemy);
+                if (enemy->isDead() && !enemy->inDeathAnimation) {
+                    orc->triggerDeath(sounds);
+                    continue;
+                } else if (enemy->isDead() && enemy->deathTime > 5.0f) {
+                    enemyList.erase(enemyList.begin() + i);
+                    continue;
+                }
+                if (enemy->isDead()) {
+                    enemy->deathTime += dt;
+                    continue;
+                }
+                orc->updateOrc(dt, player, sounds);
+                break;
+            }
+
             // -- GATLING TURRET -- //
             case ENEMY_GATLING: {
                 _sprite* sprite = enemy->getSprite("TURRET");
@@ -241,14 +260,24 @@ void _enemyManager::drawEnemies() {
             case ENEMY_GATLING:
                 enemyList[i]->drawUnit();
                 break;
+            case ENEMY_ORC:
+                enemyList[i]->drawUnitSingular();
+                break;
         }
     }
     particleManager->drawParticleManager();
 }
 
 void _enemyManager::addEnemy(const Vec2f &_pos, enemy_type type) {
-    unique_ptr<_enemy> newEnemy = make_unique<_enemy>();
-    newEnemy->initEnemy(type);
+    unique_ptr<_enemy> newEnemy;
+    if (type == ENEMY_ORC) {
+        unique_ptr<_orc> orc = make_unique<_orc>();
+        orc->initOrc();
+        newEnemy = move(orc);
+    } else {
+        newEnemy = make_unique<_enemy>();
+        newEnemy->initEnemy(type);
+    }
     newEnemy->pos = _pos;
     enemyList.push_back(move(newEnemy));
 }
