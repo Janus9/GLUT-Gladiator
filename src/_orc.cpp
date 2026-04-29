@@ -19,10 +19,6 @@ namespace {
     constexpr int   ROW_UP    = 1;
     constexpr int   ROW_LEFT  = 2;
     constexpr int   ROW_RIGHT = 3;
-
-    // A small forgiveness margin so the swing still connects if the player
-    // clips just past attackRange between frames.
-    constexpr float HIT_RANGE_PAD = 6.0f;
 }
 
 _orc::_orc() {
@@ -122,6 +118,8 @@ void _orc::updateOrc(double dt, _player* player, _sounds* sounds) {
     if (!player) return;
     if (isDead()) return;     // Manager handles death/despawn timing.
 
+    bool resolved = false; // mid-frame state finalized; skip remaining branches
+
     // -- HURT (interrupts everything but death) -- //
     if (inHurt) {
         vel = {0.0f, 0.0f};
@@ -131,22 +129,21 @@ void _orc::updateOrc(double dt, _player* player, _sounds* sounds) {
             inHurt = false;
             hurtTimer = 0.0;
         } else {
-            pos += vel * (float)dt;
-            return;
+            resolved = true;
         }
     }
 
     // -- ATTACK swing in progress -- //
-    if (inAttack) {
+    if (!resolved && inAttack) {
         vel = {0.0f, 0.0f};
         cooldownTimer += dt; // measured from start of swing in this state
 
-        const double hitTime    = double(ATTACK_HIT_FRAME) / double(ORC_ATTACK_FPS);
-        const double swingEnd   = double(ATTACK_FRAMES)    / double(ORC_ATTACK_FPS);
+        const double hitTime  = double(ATTACK_HIT_FRAME) / double(ORC_ATTACK_FPS);
+        const double swingEnd = double(ATTACK_FRAMES)    / double(ORC_ATTACK_FPS);
 
         if (!damageDealtThisSwing && cooldownTimer >= hitTime) {
-            float dist = pos.distance(player->pos);
-            if (dist <= attackRange + HIT_RANGE_PAD && !player->isDead()) {
+            // Hit lands only if the boxes are still touching at the hit frame.
+            if (isColliding(*player) && !player->isDead()) {
                 player->impulseDamage(attackDamage);
                 player->playerTookDamage = true;
                 if (sounds) sounds->playSfx("PLAYER_HURT");
@@ -159,49 +156,59 @@ void _orc::updateOrc(double dt, _player* player, _sounds* sounds) {
             damageDealtThisSwing = false;
             cooldownTimer = 0.0; // restart cooldown clock
         }
-        pos += vel * (float)dt;
-        return;
+        resolved = true;
     }
 
     // -- Normal AI: chase / attack / idle -- //
-    Vec2f delta = player->pos - pos;
-    float dist = std::sqrt(delta.x * delta.x + delta.y * delta.y);
+    if (!resolved) {
+        Vec2f delta = player->pos - pos;
+        float dist  = std::sqrt(delta.x * delta.x + delta.y * delta.y);
 
-    if (dist > detectionRadius || player->isDead()) {
-        // Idle — out of range or no target.
-        vel = {0.0f, 0.0f};
-        if (_sprite* s = getSprite(animationTable[action].sprite)) s->stopAnimation();
-        pos += vel * (float)dt;
-        cooldownTimer += dt;
-        return;
-    }
+        if (dist > detectionRadius || player->isDead()) {
+            // Idle — out of range or no target.
+            vel = {0.0f, 0.0f};
+            if (_sprite* s = getSprite(animationTable[action].sprite)) s->stopAnimation();
+            cooldownTimer += dt;
+        } else {
+            face = faceFromVec(delta);
 
-    face = faceFromVec(delta);
-
-    if (dist <= attackRange && cooldownTimer >= attackCooldown) {
-        // Begin a swing.
-        vel = {0.0f, 0.0f};
-        inAttack = true;
-        damageDealtThisSwing = false;
-        cooldownTimer = 0.0;
-        setAction(attackActionFor(face));
-        if (_sprite* s = getSprite("ATTACK")) {
-            s->setFPS(ORC_ATTACK_FPS);
-            s->startAnimation();
+            if (isColliding(*player) && cooldownTimer >= attackCooldown) {
+                // In contact — begin a swing.
+                vel = {0.0f, 0.0f};
+                inAttack = true;
+                damageDealtThisSwing = false;
+                cooldownTimer = 0.0;
+                setAction(attackActionFor(face));
+                if (_sprite* s = getSprite("ATTACK")) {
+                    s->setFPS(ORC_ATTACK_FPS);
+                    s->startAnimation();
+                }
+            } else {
+                // Chase.
+                Vec2f dir = (dist > 0.0001f) ? Vec2f{delta.x / dist, delta.y / dist} : Vec2f{0.0f, 0.0f};
+                vel = {dir.x * moveSpeed, dir.y * moveSpeed};
+                setAction(walkActionFor(face));
+                if (_sprite* s = getSprite("WALK")) {
+                    s->setFPS(ORC_WALK_FPS);
+                    s->startAnimation();
+                }
+                cooldownTimer += dt;
+            }
         }
-    } else {
-        // Chase.
-        Vec2f dir = (dist > 0.0001f) ? Vec2f{delta.x / dist, delta.y / dist} : Vec2f{0.0f, 0.0f};
-        vel = {dir.x * moveSpeed, dir.y * moveSpeed};
-        setAction(walkActionFor(face));
-        if (_sprite* s = getSprite("WALK")) {
-            s->setFPS(ORC_WALK_FPS);
-            s->startAnimation();
-        }
-        cooldownTimer += dt;
     }
 
     pos += vel * (float)dt;
+
+    // Push out of any overlap with the player so the boxes only touch, never overlap.
+    // Resolve along the smaller-overlap axis to produce natural sliding contact.
+    if (isColliding(*player)) {
+        Vec2f p = getPenetration(*player);
+        if (std::fabs(p.x) < std::fabs(p.y)) {
+            pos.x -= p.x;
+        } else {
+            pos.y -= p.y;
+        }
+    }
 }
 
 void _orc::drawOrc() {
