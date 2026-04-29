@@ -159,7 +159,7 @@ void _orc::updateOrc(double dt, _player* player, _sounds* sounds) {
         resolved = true;
     }
 
-    // -- Normal AI: chase / attack / idle -- //
+    // -- Normal AI: chase / idle. Attack decision is deferred to post-move. -- //
     if (!resolved) {
         Vec2f delta = player->pos - pos;
         float dist  = std::sqrt(delta.x * delta.x + delta.y * delta.y);
@@ -171,42 +171,44 @@ void _orc::updateOrc(double dt, _player* player, _sounds* sounds) {
             cooldownTimer += dt;
         } else {
             face = faceFromVec(delta);
-
-            if (isColliding(*player) && cooldownTimer >= attackCooldown) {
-                // In contact — begin a swing.
-                vel = {0.0f, 0.0f};
-                inAttack = true;
-                damageDealtThisSwing = false;
-                cooldownTimer = 0.0;
-                setAction(attackActionFor(face));
-                if (_sprite* s = getSprite("ATTACK")) {
-                    s->setFPS(ORC_ATTACK_FPS);
-                    s->startAnimation();
-                }
-            } else {
-                // Chase.
-                Vec2f dir = (dist > 0.0001f) ? Vec2f{delta.x / dist, delta.y / dist} : Vec2f{0.0f, 0.0f};
-                vel = {dir.x * moveSpeed, dir.y * moveSpeed};
-                setAction(walkActionFor(face));
-                if (_sprite* s = getSprite("WALK")) {
-                    s->setFPS(ORC_WALK_FPS);
-                    s->startAnimation();
-                }
-                cooldownTimer += dt;
+            // Always chase here; if we make contact this frame the post-move
+            // step below will swap us into ATTACK.
+            Vec2f dir = (dist > 0.0001f) ? Vec2f{delta.x / dist, delta.y / dist} : Vec2f{0.0f, 0.0f};
+            vel = {dir.x * moveSpeed, dir.y * moveSpeed};
+            setAction(walkActionFor(face));
+            if (_sprite* s = getSprite("WALK")) {
+                s->setFPS(ORC_WALK_FPS);
+                s->startAnimation();
             }
+            cooldownTimer += dt;
         }
     }
 
     pos += vel * (float)dt;
 
-    // Push out of any overlap with the player so the boxes only touch, never overlap.
-    // Resolve along the smaller-overlap axis to produce natural sliding contact.
-    if (isColliding(*player)) {
+    // If we ended up overlapping the player, this is a "contact" frame.
+    // Push out so boxes only touch, then optionally promote chase->attack.
+    bool madeContact = isColliding(*player);
+    if (madeContact) {
         Vec2f p = getPenetration(*player);
         if (std::fabs(p.x) < std::fabs(p.y)) {
             pos.x -= p.x;
         } else {
             pos.y -= p.y;
+        }
+
+        if (!resolved && !inAttack && !inHurt && !player->isDead()
+            && cooldownTimer >= attackCooldown) {
+            // Promote to attack state — overrides the chase vel/animation we just set.
+            vel = {0.0f, 0.0f};
+            inAttack = true;
+            damageDealtThisSwing = false;
+            cooldownTimer = 0.0;
+            setAction(attackActionFor(face));
+            if (_sprite* s = getSprite("ATTACK")) {
+                s->setFPS(ORC_ATTACK_FPS);
+                s->startAnimation();
+            }
         }
     }
 }
