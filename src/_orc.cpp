@@ -1,4 +1,5 @@
 #include <_orc.h>
+#include <_world.h>
 
 #include <cmath>
 
@@ -114,7 +115,7 @@ void _orc::initOrc() {
     if (_sprite* s = getSprite("WALK")) s->stopAnimation();
 }
 
-void _orc::updateOrc(double dt, _player* player, _sounds* sounds) {
+void _orc::updateOrc(double dt, _player* player, _world* world, _sounds* sounds) {
     if (!player) return;
     if (isDead()) return;     // Manager handles death/despawn timing.
 
@@ -191,7 +192,38 @@ void _orc::updateOrc(double dt, _player* player, _sounds* sounds) {
         }
     }
 
-    pos += vel * (float)dt;
+    // Per-axis world-tile probe so orcs are blocked by walls just like the
+    // player. Probe at the leading edge of the collision box (plus the two
+    // perpendicular corners) so the sprite stops at the wall instead of
+    // sinking in until its center crosses the tile boundary.
+    float stepX = vel.x * (float)dt;
+    float stepY = vel.y * (float)dt;
+    _collisionBound* box = getCollisionBound();
+    if (world && box) {
+        const Vec2f boxSize = box->getSize();
+        const float halfW = boxSize.x * 0.5f;
+        const float halfH = boxSize.y * 0.5f;
+        const float inset = 0.5f; // keep corner probes off the perpendicular tile seam
+
+        auto blockedX = [&](float dx) {
+            float edgeX = (dx > 0.0f ? halfW : -halfW) + dx;
+            const _tile* a = world->getTileAtWorld(pos + Vec2f(edgeX,  halfH - inset));
+            const _tile* b = world->getTileAtWorld(pos + Vec2f(edgeX, -halfH + inset));
+            return (a && a->hasCollision) || (b && b->hasCollision);
+        };
+        auto blockedY = [&](float dy) {
+            float edgeY = (dy > 0.0f ? halfH : -halfH) + dy;
+            const _tile* a = world->getTileAtWorld(pos + Vec2f( halfW - inset, edgeY));
+            const _tile* b = world->getTileAtWorld(pos + Vec2f(-halfW + inset, edgeY));
+            return (a && a->hasCollision) || (b && b->hasCollision);
+        };
+
+        if (stepX != 0.0f && !blockedX(stepX)) pos.x += stepX;
+        if (stepY != 0.0f && !blockedY(stepY)) pos.y += stepY;
+    } else {
+        pos.x += stepX;
+        pos.y += stepY;
+    }
 
     // If we ended up overlapping the player, this is a "contact" frame.
     // Push out so boxes only touch, then optionally promote chase->attack.

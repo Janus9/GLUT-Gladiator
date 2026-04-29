@@ -200,7 +200,7 @@ void _enemyManager::updateEnemies(double dt) {
                     enemy->deathTime += dt;
                     continue;
                 }
-                orc->updateOrc(dt, player, sounds);
+                orc->updateOrc(dt, player, world, sounds);
                 break;
             }
 
