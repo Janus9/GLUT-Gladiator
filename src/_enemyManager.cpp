@@ -279,6 +279,10 @@ void _enemyManager::addEnemy(const Vec2f &_pos, enemy_type type) {
         newEnemy->initEnemy(type);
     }
     newEnemy->pos = _pos;
+    if (type == ENEMY_ORC) {
+        std::cout << "[ORC SPAWN] requested _pos=" << _pos.toString()
+                  << " actual newEnemy->pos=" << newEnemy->pos.toString() << "\n";
+    }
     enemyList.push_back(move(newEnemy));
 }
 

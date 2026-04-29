@@ -131,7 +131,7 @@ void _orc::updateOrc(double dt, _player* player, _sounds* sounds) {
             inHurt = false;
             hurtTimer = 0.0;
         } else {
-            applyPhysics(dt);
+            pos += vel * (float)dt;
             return;
         }
     }
@@ -159,7 +159,7 @@ void _orc::updateOrc(double dt, _player* player, _sounds* sounds) {
             damageDealtThisSwing = false;
             cooldownTimer = 0.0; // restart cooldown clock
         }
-        applyPhysics(dt);
+        pos += vel * (float)dt;
         return;
     }
 
@@ -171,7 +171,7 @@ void _orc::updateOrc(double dt, _player* player, _sounds* sounds) {
         // Idle — out of range or no target.
         vel = {0.0f, 0.0f};
         if (_sprite* s = getSprite(animationTable[action].sprite)) s->stopAnimation();
-        applyPhysics(dt);
+        pos += vel * (float)dt;
         cooldownTimer += dt;
         return;
     }
@@ -201,7 +201,7 @@ void _orc::updateOrc(double dt, _player* player, _sounds* sounds) {
         cooldownTimer += dt;
     }
 
-    applyPhysics(dt);
+    pos += vel * (float)dt;
 }
 
 void _orc::drawOrc() {
