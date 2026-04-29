@@ -44,7 +44,7 @@ class _orc : public _enemy {
 
         // Called by _bulletManager (via _enemy::notifyDamaged) when this orc
         // takes a hit. Triggers HURT animation if alive.
-        void notifyDamaged() override;
+        void notifyDamaged(_sounds* sounds) override;
 
         // Called by _enemyManager once when the orc has just died, to play
         // the directional DEATH animation. Idempotent.

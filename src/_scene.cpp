@@ -36,7 +36,7 @@ _scene::~_scene()
     sh = nullptr;
 }
 
-void _scene::setSounds(_sounds* sounds)
+void _scene::setSounds(_sounds *sounds)
 {
     soundManager = sounds;
 }
@@ -124,18 +124,20 @@ void _scene::initScene()
     enemyManager->bullet_1 = &turret_bullet;
     enemyManager->bullet_2 = &gatling_bullet;
 
-
     // -- SOUND EFFECTS -- //
     // Register all SFX up front so first-play decoder stalls are avoided. Tune per-SFX volumes here.
-    soundManager->registerSfx("PLAYER_SHOOT", "sounds/player_shoot.mp3", 0.1f);  // Done
-    soundManager->registerSfx("ENEMY_SHOOT", "sounds/enemy_shoot.mp3", 0.05f);   // Done
-    soundManager->registerSfx("BULLET_HIT_WALL", "sounds/hit_wall.wav", 0.5f);   
-    soundManager->registerSfx("BULLET_HIT_UNIT", "sounds/test.m4a", 0.8f);       // This is a clown horn because I don't know when this triggers yet and want to be surprised
-    soundManager->registerSfx("ENEMY_DEATH", "sounds/enemy_death.wav", 0.1f);    // Done
-    soundManager->registerSfx("PLAYER_HURT", "sounds/player_hurt.mp3", 0.3f);    // Done
-    soundManager->registerSfx("PLAYER_DEATH", "sounds/player_death.wav", 0.5f);  // Done
-    soundManager->registerSfx("MINE_COMPLETE", "sounds/mine_complete.wav", 0.2f);// Done
-    soundManager->registerSfx("MINE_TICK", "sounds/mine_tick.wav", 0.2f);        // Done
+    soundManager->registerSfx("PLAYER_SHOOT", "sounds/player_shoot.mp3", 0.1f); // Done
+    soundManager->registerSfx("ENEMY_SHOOT", "sounds/enemy_shoot.mp3", 0.05f);  // Done
+    soundManager->registerSfx("BULLET_HIT_WALL", "sounds/hit_wall.wav", 0.5f);
+    soundManager->registerSfx("BULLET_HIT_UNIT", "sounds/test.m4a", 0.8f);        // This is a clown horn because I don't know when this triggers yet and want to be surprised
+    soundManager->registerSfx("ENEMY_DEATH", "sounds/enemy_death.wav", 0.1f);     // Done
+    soundManager->registerSfx("PLAYER_HURT", "sounds/player_hurt.mp3", 0.3f);     // Done
+    soundManager->registerSfx("PLAYER_DEATH", "sounds/player_death.wav", 0.5f);   // Done
+    soundManager->registerSfx("MINE_COMPLETE", "sounds/mine_complete.wav", 0.2f); // Done
+    soundManager->registerSfx("MINE_TICK", "sounds/mine_tick.wav", 0.2f);         // Done
+    soundManager->registerSfx("ORC_ATTACK", "sounds/orc_attack.mp3", 0.1f);
+    soundManager->registerSfx("ORC_HURT", "sounds/orc_hurt.mp3", 0.05f);
+    soundManager->registerSfx("ORC_DEATH", "sounds/orc_death.mp3", 0.5f);
 
     soundManager->playBackgroundMusic("sounds/test_music.mp3");
 
@@ -176,31 +178,37 @@ void _scene::initScene()
 
     /**
      * World is 128 x 128 chunks (32,768 x 32,768 world units)
-     * Player spawns in bounds: -15,000 to -12,000 AND 12,000 to 15,000 
-     * 
+     * Player spawns in bounds: -15,000 to -12,000 AND 12,000 to 15,000
+     *
      */
 
-    // Find spawn 
+    // Find spawn
     const float numChunks = NUM_CHUNKS;
     // Total chunk area to length/width * num tiles * 16 units per tile / 2 since 0,0 is center
     float bounds = sqrt(numChunks) * 16 * 16 * 0.5;
-    uniform_real_distribution<float> player_pos_neg_dist(-1.0f,1.0f);           // Coin flip for positive vs negative side
-    uniform_real_distribution<float> player_pos_dist_neg(-15000.0f,-12000.0f);  // Distribution for negative side
-    uniform_real_distribution<float> player_pos_dist_pos(12000.0f,15000.0f);    // Distribution for positive side
+    uniform_real_distribution<float> player_pos_neg_dist(-1.0f, 1.0f);          // Coin flip for positive vs negative side
+    uniform_real_distribution<float> player_pos_dist_neg(-15000.0f, -12000.0f); // Distribution for negative side
+    uniform_real_distribution<float> player_pos_dist_pos(12000.0f, 15000.0f);   // Distribution for positive side
     bool lookingForSpawn = true;
     while (lookingForSpawn)
     {
         // Assign X //
-        if (player_pos_neg_dist(rng) > 0.0f) {
+        if (player_pos_neg_dist(rng) > 0.0f)
+        {
             spawnPos.x = player_pos_dist_pos(rng);
-        } else {
+        }
+        else
+        {
             spawnPos.x = player_pos_dist_neg(rng);
         }
 
         // Assign Y //
-        if (player_pos_neg_dist(rng) > 0.0f) {
+        if (player_pos_neg_dist(rng) > 0.0f)
+        {
             spawnPos.y = player_pos_dist_pos(rng);
-        } else {
+        }
+        else
+        {
             spawnPos.y = player_pos_dist_neg(rng);
         }
 
@@ -229,7 +237,7 @@ void _scene::initScene()
                 // Is a wall, retry
                 continue;
             }
-            enemyManager->addEnemy(spawnTurretPos,ENEMY_TURRET);
+            enemyManager->addEnemy(spawnTurretPos, ENEMY_TURRET);
             lookingForTurretSpawn = false;
         }
     }
@@ -248,7 +256,7 @@ void _scene::initScene()
                 // Is a wall, retry
                 continue;
             }
-            enemyManager->addEnemy(spawnGatlingPos,ENEMY_GATLING);
+            enemyManager->addEnemy(spawnGatlingPos, ENEMY_GATLING);
             lookingForGatlingSpawn = false;
         }
     }
@@ -361,8 +369,14 @@ static player_face faceFromAim(const Vec2f &aim)
     float angle = GetRotationAngle({0.0f, 0.0f}, aim);
     int sector = (int)floorf((angle + 22.5f) / 45.0f) & 7;
     static const player_face faces[8] = {
-        PLAYER_FACE_N,  PLAYER_FACE_NW, PLAYER_FACE_W,  PLAYER_FACE_SW,
-        PLAYER_FACE_S,  PLAYER_FACE_SE, PLAYER_FACE_E,  PLAYER_FACE_NE,
+        PLAYER_FACE_N,
+        PLAYER_FACE_NW,
+        PLAYER_FACE_W,
+        PLAYER_FACE_SW,
+        PLAYER_FACE_S,
+        PLAYER_FACE_SE,
+        PLAYER_FACE_E,
+        PLAYER_FACE_NE,
     };
     return faces[sector];
 }
@@ -741,13 +755,13 @@ void _scene::keyboardHandler(WPARAM wParam)
         case 192: // "~"
             break;
         case 49: // "1"
-            enemyManager->addEnemy(mouseWorldPos,ENEMY_TURRET);
+            enemyManager->addEnemy(mouseWorldPos, ENEMY_TURRET);
             break;
         case 50: // "2"
-            enemyManager->addEnemy(mouseWorldPos,ENEMY_GATLING);
+            enemyManager->addEnemy(mouseWorldPos, ENEMY_GATLING);
             break;
         case 51: // "3"
-            enemyManager->addEnemy(mouseWorldPos,ENEMY_ORC);
+            enemyManager->addEnemy(mouseWorldPos, ENEMY_ORC);
             break;
         case ' ': // SPACE
             break;

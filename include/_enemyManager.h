@@ -31,7 +31,7 @@ class _enemy : public _unit {
 
         // Hook fired by _bulletManager after impulseDamage. Subclasses override
         // to react (e.g. _orc plays HURT animation). Default is no-op.
-        virtual void notifyDamaged() {}
+        virtual void notifyDamaged(_sounds* sounds) {}
 
         bool operator==(const _enemy &other) const;
         

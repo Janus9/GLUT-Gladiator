@@ -248,6 +248,7 @@ void _orc::updateOrc(double dt, _player* player, _world* world, _sounds* sounds)
                 s->setFPS(ORC_ATTACK_FPS);
                 s->startAnimation();
             }
+            if (sounds) sounds->playSfx("ORC_ATTACK");
         }
     }
 }
@@ -269,11 +270,11 @@ void _orc::triggerDeath(_sounds* sounds) {
         s->setIdleFrame(animationTable[deathAct].idleFrame.x, animationTable[deathAct].idleFrame.y);
         s->playAction(animationTable[deathAct].action);
     }
-    if (sounds) sounds->playSfx("ENEMY_DEATH");
+    if (sounds) sounds->playSfx("ORC_DEATH");
     deathTime = 0.0;
 }
 
-void _orc::notifyDamaged() {
+void _orc::notifyDamaged(_sounds* sounds) {
     if (isDead()) return;
     if (inHurt) return;
     inAttack = false;
@@ -285,6 +286,7 @@ void _orc::notifyDamaged() {
         s->setFPS(ORC_HURT_FPS);
         s->startAnimation();
     }
+    if (sounds) sounds->playSfx("ORC_HURT");
 }
 
 // -- PRIVATE -- //
