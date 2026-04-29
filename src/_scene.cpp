@@ -248,43 +248,46 @@ void _scene::initScene(bool loadWorld)
     }
     player->spawnPos = spawnPos;
 
-    // Spawn default turrets //
-    uniform_real_distribution<float> turret_pos_dist(-14000, 14000);
-    for (int i = 0; i < 400; i++)
-    {
-        bool lookingForTurretSpawn = true;
-        while (lookingForTurretSpawn)
+    // Dont spawn enemies when world is loaded
+    if (!loadWorld) {
+        // Spawn default turrets //
+        uniform_real_distribution<float> turret_pos_dist(-14000, 14000);
+        for (int i = 0; i < 400; i++)
         {
-            Vec2f spawnTurretPos = {turret_pos_dist(rng), turret_pos_dist(rng)};
-            _cell *spawnTurretCell = myWorld->getCellAtWorld(spawnTurretPos);
-            if (spawnTurretCell && myWorld->isCellWall(spawnTurretCell))
+            bool lookingForTurretSpawn = true;
+            while (lookingForTurretSpawn)
             {
-                // Is a wall, retry
-                continue;
+                Vec2f spawnTurretPos = {turret_pos_dist(rng), turret_pos_dist(rng)};
+                _cell *spawnTurretCell = myWorld->getCellAtWorld(spawnTurretPos);
+                if (spawnTurretCell && myWorld->isCellWall(spawnTurretCell))
+                {
+                    // Is a wall, retry
+                    continue;
+                }
+                enemyManager->addEnemy(spawnTurretPos,default_turret_config);
+                lookingForTurretSpawn = false;
             }
-            enemyManager->addEnemy(spawnTurretPos,default_turret_config);
-            lookingForTurretSpawn = false;
         }
-    }
-
-    // Spawn gatling turrets //
-    uniform_real_distribution<float> gatling_pos_dist(-8000, 8000);
-    for (int i = 0; i < 75; i++)
-    {
-        bool lookingForGatlingSpawn = true;
-        while (lookingForGatlingSpawn)
+    
+        // Spawn gatling turrets //
+        uniform_real_distribution<float> gatling_pos_dist(-8000, 8000);
+        for (int i = 0; i < 75; i++)
         {
-            Vec2f spawnGatlingPos = {gatling_pos_dist(rng), gatling_pos_dist(rng)};
-            _cell *spawnGatlingCell = myWorld->getCellAtWorld(spawnGatlingPos);
-            if (spawnGatlingCell && myWorld->isCellWall(spawnGatlingCell))
+            bool lookingForGatlingSpawn = true;
+            while (lookingForGatlingSpawn)
             {
-                // Is a wall, retry
-                continue;
+                Vec2f spawnGatlingPos = {gatling_pos_dist(rng), gatling_pos_dist(rng)};
+                _cell *spawnGatlingCell = myWorld->getCellAtWorld(spawnGatlingPos);
+                if (spawnGatlingCell && myWorld->isCellWall(spawnGatlingCell))
+                {
+                    // Is a wall, retry
+                    continue;
+                }
+                enemyManager->addEnemy(spawnGatlingPos,gatling_turret_config);
+                lookingForGatlingSpawn = false;
             }
-            enemyManager->addEnemy(spawnGatlingPos,gatling_turret_config);
-            lookingForGatlingSpawn = false;
         }
-    }
+    }    
 
     sceneInitialized = true;
 }
@@ -330,8 +333,8 @@ bool _scene::saveSceneToFile(const string &fileName) {
     vector<chunk_serial_data> world_data = myWorld->exportSerializeWorld();
     if (!world_data.empty()) {
         cout << "Writing world data:\n"
-             << "Number of chunks: " << world_data.size() << "\n"
-             << "Size of world: " << world_data.size() * sizeof(chunk_serial_data) << " bytes\n";
+             << " - Number of chunks: " << world_data.size() << "\n"
+             << " - Size of world: " << world_data.size() * sizeof(chunk_serial_data) << " bytes\n";
         // This writes the contents of the entire vector to file
         file.write(reinterpret_cast<const char*>(world_data.data()), world_data.size() * sizeof(chunk_serial_data));
 
@@ -352,13 +355,13 @@ bool _scene::saveSceneToFile(const string &fileName) {
     }
 
     cout << "Writing enemy data:\n"
-         << "Number of chunks: " << enemy_data.size() << "\n"
-         << "Size of world: " << enemy_data.size() * sizeof(enemy_serial_data) << " bytes\n";
+         << " - Number of enemies: " << enemy_data.size() << "\n"
+         << " - Size of enemies: " << enemy_data.size() * sizeof(enemy_serial_data) << " bytes\n";
 
     const char enemy_header[4] = {'E','N','M','Y'};
     file.write(enemy_header,4); // Enemy Data Header ("ENMY")
 
-    const uint32_t number_enemies = enemy_data.size();
+    const uint32_t number_enemies = static_cast<uint32_t>(enemy_data.size());
     file.write(reinterpret_cast<const char*>(&number_enemies),sizeof(number_enemies)); // Enemy Count
 
     file.write(reinterpret_cast<const char*>(enemy_data.data()), enemy_data.size() * sizeof(enemy_serial_data)); // Enemy Data
@@ -443,8 +446,8 @@ bool _scene::loadSceneFromFile(const string &fileName) {
     }
 
     cout << "Read world data:\n"
-         << "Number of chunks: " << world_data.size() << "\n"
-         << "Size of world: " << world_data.size() * sizeof(chunk_serial_data) << " bytes\n";
+         << " - Number of chunks: " << world_data.size() << "\n"
+         << " - Size of world: " << world_data.size() * sizeof(chunk_serial_data) << " bytes\n";
 
     myWorld->importSerializeWorld(world_data);
 
@@ -460,12 +463,17 @@ bool _scene::loadSceneFromFile(const string &fileName) {
     uint32_t enemy_count = 0;
     file.read(reinterpret_cast<char*>(&enemy_count), sizeof(enemy_count));  // Enemy Count
 
+    cout << "Enemie count read: " << enemy_count << "\n";
+
     if (enemy_count == 0) {
         cout << "WARNING: Enemy count is 0\n";
     }
 
     vector<enemy_serial_data> enemy_data;
+    enemy_data.resize(enemy_count);
     file.read(reinterpret_cast<char*>(enemy_data.data()), enemy_data.size() * sizeof(enemy_serial_data));
+
+    enemyManager->importSerializedEnemies(enemy_data);
 
     if (!file) {
         cout << "ERROR: Unable to read chunk data\n";
@@ -478,11 +486,11 @@ bool _scene::loadSceneFromFile(const string &fileName) {
     }
 
     cout << "Read enemy data:\n"
-         << "Number of enemies: " << enemy_data.size() << "\n"
-         << "Size of enemies: " << enemy_data.size() * sizeof(enemy_serial_data) << " bytes\n";
+         << " - Number of enemies: " << enemy_data.size() << "\n"
+         << " - Size of enemies: " << enemy_data.size() * sizeof(enemy_serial_data) << " bytes\n";
 
     cout << "Finished game import from: " << fileName + ".gg_world\n"
-         << "Save Size: " << file.tellg() << " bytes\n";
+         << " - Save Size: " << file.tellg() << " bytes\n";
 
     return true;
 }

@@ -275,6 +275,7 @@ vector<enemy_serial_data> _enemyManager::exportSerializedEnemies() const {
     vector<enemy_serial_data> enemy_data;
     for (int i = 0; i < enemyList.size(); i++) {
         const _enemy* enemy = enemyList[i].get();
+        if (enemy->inDeathAnimation || enemy->isDead()) continue; // Skip dead enemies
         enemy_data.push_back(enemy->serializeEnemy());
     }
     return enemy_data;
