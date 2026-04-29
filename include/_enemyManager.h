@@ -10,7 +10,8 @@
 
 enum enemy_type {
     ENEMY_TURRET,
-    ENEMY_GATLING
+    ENEMY_GATLING,
+    ENEMY_ORC
 };
 
 class _enemy : public _unit {
@@ -27,7 +28,11 @@ class _enemy : public _unit {
 
         // Initialization function for animations/sprites/textures etc
         void initEnemy(enemy_type type);
-  
+
+        // Hook fired by _bulletManager after impulseDamage. Subclasses override
+        // to react (e.g. _orc plays HURT animation). Default is no-op.
+        virtual void notifyDamaged() {}
+
         bool operator==(const _enemy &other) const;
         
         float fireRate = 0.0;               // In rounds per minute

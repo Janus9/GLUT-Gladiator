@@ -12,6 +12,9 @@ void _player::initPlayer() {
     scale = {0.8f, 0.8f};
     pos = {0.0f, 0.0f}; // Start player in the center of the screen
 
+    // AABB used by enemies (e.g. _orc) to prevent overlap and decide melee contact.
+    setCollisionBox({18.0f, 24.0f});
+
     bloodParticles->initParticleManager("images/player/blood_particle.png");
     player_hit_effect.amount = 15;
 

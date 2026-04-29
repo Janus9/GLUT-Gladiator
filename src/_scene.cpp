@@ -746,6 +746,9 @@ void _scene::keyboardHandler(WPARAM wParam)
         case 50: // "2"
             enemyManager->addEnemy(mouseWorldPos,ENEMY_GATLING);
             break;
+        case 51: // "3"
+            enemyManager->addEnemy(mouseWorldPos,ENEMY_ORC);
+            break;
         case ' ': // SPACE
             break;
         case 221: // "]"

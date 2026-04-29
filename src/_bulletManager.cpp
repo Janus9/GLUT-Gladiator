@@ -159,6 +159,7 @@ void _bulletManager::updateBulletManager(double dt) {
             _enemy* enemy = enemyManager->isColliding(b->pos,5.0f);
             if (enemy) {
                 enemy->impulseDamage(b->damage);
+                enemy->notifyDamaged();
                 if (sounds) sounds->playSfx("BULLET_HIT_UNIT");
                 b->health -= 25;
             }
