@@ -103,6 +103,9 @@ enemy_serial_data _enemy::serializeEnemy() const {
     enemy_data.fireRate = fireRate;
     enemy_data.slewRate = slewRate;
     enemy_data.detectionRadius = detectionRadius;
+    enemy_data.posX = pos.x;
+    enemy_data.posY = pos.y;
+    enemy_data.padding = 0; // Padding doesnt do anything
     return enemy_data;
 }
 
@@ -268,7 +271,7 @@ void _enemyManager::addEnemy(const Vec2f &_pos, const enemy_config &config) {
     enemyList.push_back(move(newEnemy));
 }
 
-vector<enemy_serial_data> _enemyManager::serializeEnemies() const {
+vector<enemy_serial_data> _enemyManager::exportSerializedEnemies() const {
     vector<enemy_serial_data> enemy_data;
     for (int i = 0; i < enemyList.size(); i++) {
         const _enemy* enemy = enemyList[i].get();
@@ -276,6 +279,27 @@ vector<enemy_serial_data> _enemyManager::serializeEnemies() const {
     }
     return enemy_data;
 }
+
+bool _enemyManager::importSerializedEnemies(const vector<enemy_serial_data> &enemy_data) {
+    if (enemy_data.empty()) {
+        cout << "ERROR: Cannot import enemies as the data is empty\n";
+        return false;
+    }
+    enemyList.reserve(enemy_data.size());
+    enemy_config tempConfig; // This config is modified and fed repeatably for adding enemies
+    for (int i = 0; i < enemy_data.size(); i++) {
+        tempConfig.type = static_cast<enemy_type>(enemy_data[i].type);
+        tempConfig.team = static_cast<_team>(enemy_data[i].team);
+        tempConfig.maxHP = enemy_data[i].maxHP;
+        tempConfig.fireRate = enemy_data[i].fireRate;
+        tempConfig.slewRate = enemy_data[i].slewRate;
+        tempConfig.detectionRadius = enemy_data[i].detectionRadius;
+
+        addEnemy({enemy_data[i].posX,enemy_data[i].posY},tempConfig);
+    }
+    return true;
+}
+
 
 _enemy* _enemyManager::isColliding(const Vec2f &pos, float registerDistance) const {
     for (int i = 0; i < enemyList.size(); i++) {

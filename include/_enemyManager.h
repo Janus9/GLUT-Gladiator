@@ -23,6 +23,11 @@ struct enemy_serial_data {
     float fireRate;
     float slewRate;
     float detectionRadius;
+
+    float posX;
+    float posY;
+
+    uint16_t padding;   // For keeping divisible by 4
 };
 
 /**
@@ -102,7 +107,16 @@ class _enemyManager {
         void addEnemy(const Vec2f &_pos, const enemy_config &config);
 
         // Returns a vector of all the serialized enemies for saving
-        vector<enemy_serial_data> serializeEnemies() const;
+        vector<enemy_serial_data> exportSerializedEnemies() const;
+        
+        /**
+         * Reads a vector of serialized enemy data for import
+         * 
+         * @param enemy_data Vector of enemy data
+         * 
+         * @return True if operation was successful
+         */
+        bool importSerializedEnemies(const vector<enemy_serial_data> &enemy_data);
 
         /**
          * Checks if any enemy instance is colliding with the provided position

@@ -322,10 +322,10 @@ bool _scene::saveSceneToFile(const string &fileName) {
     const int numStartingChunks = NUM_CHUNKS;
     file.write(reinterpret_cast<const char*>(&numStartingChunks),sizeof(numStartingChunks)); // Chunk Count
 
+    // Chunk Data Write //
+    
     const char data_header[4] = {'W','R','L','D'};
     file.write(data_header,4); // Chunk Data Header ("WRLD")
-
-    // Chunk Data Write //
 
     vector<chunk_serial_data> world_data = myWorld->exportSerializeWorld();
     if (!world_data.empty()) {
@@ -341,6 +341,30 @@ bool _scene::saveSceneToFile(const string &fileName) {
         }
     } else {
         cout << "ERROR: Size of world data is 0\n";
+    }
+
+    // Enemy Data Write //
+
+    vector<enemy_serial_data> enemy_data = enemyManager->exportSerializedEnemies();
+    if (enemy_data.empty()) {
+        cout << "ERROR: Enemy data is empty\n";
+        return false;
+    }
+
+    cout << "Writing enemy data:\n"
+         << "Number of chunks: " << enemy_data.size() << "\n"
+         << "Size of world: " << enemy_data.size() * sizeof(enemy_serial_data) << " bytes\n";
+
+    const char enemy_header[4] = {'E','N','M','Y'};
+    file.write(enemy_header,4); // Enemy Data Header ("ENMY")
+
+    const uint32_t number_enemies = enemy_data.size();
+    file.write(reinterpret_cast<const char*>(&number_enemies),sizeof(number_enemies)); // Enemy Count
+
+    file.write(reinterpret_cast<const char*>(enemy_data.data()), enemy_data.size() * sizeof(enemy_serial_data)); // Enemy Data
+    if (!file) {
+        cout << "ERROR: Save failed to write the enemy data\n";
+        return false;
     }
 
     cout << "Finished game saving!\n"
@@ -395,6 +419,8 @@ bool _scene::loadSceneFromFile(const string &fileName) {
         return false;
     }
 
+    // Read Chunk Data //
+    
     char data_header[4];
     file.read(data_header,4);    // Chunk Data Header
     if (data_header[0] != 'W' || data_header[1] != 'R' || data_header[2] != 'L' || data_header[3] != 'D') {
@@ -402,11 +428,14 @@ bool _scene::loadSceneFromFile(const string &fileName) {
         return false;
     }
 
-    // Read Chunk Data //
-
     vector<chunk_serial_data> world_data;
     world_data.resize(chunk_count);
     file.read(reinterpret_cast<char*>(world_data.data()), world_data.size() * sizeof(chunk_serial_data));
+
+    if (!file) {
+        cout << "ERROR: Unable to read chunk data\n";
+        return false;
+    }
 
     if (world_data.empty()) {
         cout << "ERROR: World data read is empty\n";
@@ -418,6 +447,39 @@ bool _scene::loadSceneFromFile(const string &fileName) {
          << "Size of world: " << world_data.size() * sizeof(chunk_serial_data) << " bytes\n";
 
     myWorld->importSerializeWorld(world_data);
+
+    // Read Enemy Data //
+
+    char enemy_header[4];
+    file.read(enemy_header,4);    // Enemy Data Header
+    if (enemy_header[0] != 'E' || enemy_header[1] != 'N' || enemy_header[2] != 'M' || enemy_header[3] != 'Y') {
+        cout << "ERROR: Invalid enemy data header\n";
+        return false;
+    }
+
+    uint32_t enemy_count = 0;
+    file.read(reinterpret_cast<char*>(&enemy_count), sizeof(enemy_count));  // Enemy Count
+
+    if (enemy_count == 0) {
+        cout << "WARNING: Enemy count is 0\n";
+    }
+
+    vector<enemy_serial_data> enemy_data;
+    file.read(reinterpret_cast<char*>(enemy_data.data()), enemy_data.size() * sizeof(enemy_serial_data));
+
+    if (!file) {
+        cout << "ERROR: Unable to read chunk data\n";
+        return false;
+    }
+
+    if (enemy_data.empty()) {
+        cout << "ERROR: Enemy data read is empty\n";
+        return false;
+    }
+
+    cout << "Read enemy data:\n"
+         << "Number of enemies: " << enemy_data.size() << "\n"
+         << "Size of enemies: " << enemy_data.size() * sizeof(enemy_serial_data) << " bytes\n";
 
     cout << "Finished game import from: " << fileName + ".gg_world\n"
          << "Save Size: " << file.tellg() << " bytes\n";
