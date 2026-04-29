@@ -95,6 +95,17 @@ void _enemy::initEnemy(const enemy_config &config) {
     }
 }
 
+enemy_serial_data _enemy::serializeEnemy() const {
+    enemy_serial_data enemy_data;
+    enemy_data.type = static_cast<uint8_t>(eType);
+    enemy_data.team = static_cast<uint8_t>(team);
+    enemy_data.maxHP = getMaxHealth();
+    enemy_data.fireRate = fireRate;
+    enemy_data.slewRate = slewRate;
+    enemy_data.detectionRadius = detectionRadius;
+    return enemy_data;
+}
+
 bool _enemy::operator==(const _enemy &other) const {
     return enemyID == other.enemyID;
 }
@@ -255,6 +266,15 @@ void _enemyManager::addEnemy(const Vec2f &_pos, const enemy_config &config) {
     newEnemy->initEnemy(config);
     newEnemy->pos = _pos;
     enemyList.push_back(move(newEnemy));
+}
+
+vector<enemy_serial_data> _enemyManager::serializeEnemies() const {
+    vector<enemy_serial_data> enemy_data;
+    for (int i = 0; i < enemyList.size(); i++) {
+        const _enemy* enemy = enemyList[i].get();
+        enemy_data.push_back(enemy->serializeEnemy());
+    }
+    return enemy_data;
 }
 
 _enemy* _enemyManager::isColliding(const Vec2f &pos, float registerDistance) const {

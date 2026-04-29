@@ -36,8 +36,19 @@ class _scene
         // Initialization of scene objects
         void initScene(bool loadWorld);
 
-        // Runs a save command to save the world/player/enemies etc to a save file
-        void saveScene();
+        /**
+         * Runs a save command to save the world/player/enemies etc to a save file specified
+         *
+         * @return True if operation succeeded
+         */
+        bool saveSceneToFile(const string &fileName);
+
+        /**
+         * Runs a load command to load the world/player/enemies etc from a save file specified
+         * 
+         * @return True if operation succeeded
+         */
+        bool loadSceneFromFile(const string &fileName);
 
         // Inject the shared sound engine (owned by main). Must be called before initScene().
         void setSounds(_sounds* sounds);
@@ -166,6 +177,7 @@ class _scene
         int frameCount = 0;                 // Number of frames between FPS prints
 
         // Rng machine
+        uint32_t seed; 
         mt19937 rng;
 };
 

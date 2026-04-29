@@ -37,6 +37,15 @@ struct cell_serial_data {         // Offset
 };
 
 /**
+ * This is for serializing data for world saving. It stores chunk data and contains the cell data (see below).
+ */
+struct chunk_serial_data {
+    int32_t chunkX;
+    int32_t chunkY;
+    cell_serial_data cell_data[256];
+};
+
+/**
  * Enum mapped to TileId number as an unsigned 8 bit int. 
  * Naming goes: TILE_[TYPE]_[SUBTYPE]_[VARIANT]
  */
@@ -203,19 +212,9 @@ class _chunk
         // Sets all 256 tiles to the array passed in
         void setAllTiles(const TileId* tiles);
 
-        /**
-         * Serializes a chunk's cell/tile data for saving.
-         * 
-         * @param cell_data Reference to an array of size 256 of cell_serial_data that chunk dumps into
-         */
-        void serializeChunk(cell_serial_data (&cell_data)[256]) const;
+        chunk_serial_data serializeChunk() const;
 
-        /**
-         * Reads an array of cell data into the chunk
-         * 
-         * @param cell_data Pointer to an array (256) of cell data.
-         */
-        void loadSerializedChunk(const cell_serial_data* cell_data);
+        void loadSerializedChunk(const chunk_serial_data &chunk_data);
     protected:
     private:
         TileId tileData[256];  // 16x16 chunk
@@ -345,19 +344,15 @@ class _world
         bool damageCell(_cell* cell, float amount);
 
         // -- World Saving -- //
-        /**
-         * Exports the world to a file for saving and reading later
-         * 
-         * @param fileName Name of the file to export to (does not need .gg_world extension)
-         */
-        void exportWorldToFile(const string &fileName);
+        
+        // Returns a vector of serialized chunk data for export
+        vector<chunk_serial_data> exportSerializeWorld() const;
 
-        /**
-         * Imports the world from a save file
-         * 
-         * @param fileName Name of file to import from (does not need .gg_world extension)
-         */
-        void importWorldFromFile(const string &fileName);
+        // Reads a vector of serialized chunk data for import
+        void importSerializeWorld(vector<chunk_serial_data> world_data);
+
+        // Sets the seed for the world generation
+        void setSeed(uint32_t _seed);
 
         bool DEBUG_displayChunkBorders = false; // When enabled puts a red border around chunks
     protected:
@@ -370,7 +365,6 @@ class _world
         particle_effect wall_damage_effect;
 
         // -- RNG -- //
-
         uint32_t seed; 
         mt19937 rng; 
 

@@ -14,6 +14,18 @@ enum enemy_type : uint8_t {
 };
 
 /**
+ * This is for serializing data for world saving. It stores enemy data.
+ */
+struct enemy_serial_data {
+    uint8_t type;
+    uint8_t team;
+    float maxHP;
+    float fireRate;
+    float slewRate;
+    float detectionRadius;
+};
+
+/**
  * Configuration for creating an enemy
  * 
  * @param type Type of enemy to spawn 
@@ -48,6 +60,9 @@ class _enemy : public _unit {
 
         // Initialization function for animations/sprites/textures etc
         void initEnemy(const enemy_config &config);
+
+        // Returns a serialized struct of the enemy
+        enemy_serial_data serializeEnemy() const;
   
         bool operator==(const _enemy &other) const;
         
@@ -85,6 +100,9 @@ class _enemyManager {
 
         // Adds a single enemy (only 1 type for now)
         void addEnemy(const Vec2f &_pos, const enemy_config &config);
+
+        // Returns a vector of all the serialized enemies for saving
+        vector<enemy_serial_data> serializeEnemies() const;
 
         /**
          * Checks if any enemy instance is colliding with the provided position

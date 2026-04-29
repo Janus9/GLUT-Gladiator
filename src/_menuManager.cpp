@@ -204,21 +204,29 @@ void _menuManager::updateMenuManager(double dt, const Vec2f &mousePos, bool mous
     }
 
     if (menu->generateWorldEvent) {
-        menu->generateWorldEvent = false;
-        scene->initScene(false);            // Setup scene to generate world
         cout << "Generate World Event!\n";
+        menu->generateWorldEvent = false;
+        // Dont load world as it gets generated
+        scene->initScene(false);            // Setup scene to generate world
     }
     
     if (menu->loadWorldEvent) {
-        menu->loadWorldEvent = false;
-        scene->initScene(true);             // Setup scene to load world
         cout << "Load World Event!\n";
+        menu->loadWorldEvent = false;
+        if (!scene->loadSceneFromFile("saves/game")) {
+            cout << "ERROR: Save failed to load correctly\n";
+            return;
+        }
+        scene->initScene(true);             // Setup scene to load world
     }
 
     if (menu->saveGameEvent) {
-        menu->saveGameEvent = false;
-        scene->saveScene();
         cout << "Save Game Event!\n";
+        menu->saveGameEvent = false;
+        if (!scene->saveSceneToFile("saves/game")) {
+            cout << "ERROR: Failed to save game correctly\n";
+            return;
+        }
     }
 }
 

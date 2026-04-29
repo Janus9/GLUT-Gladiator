@@ -86,23 +86,29 @@ void _chunk::setAllTiles(const TileId* tiles) {
     vboDirty = true;
 }
 
-void _chunk::serializeChunk(cell_serial_data (&cell_data)[256]) const {
+chunk_serial_data _chunk::serializeChunk() const {
+    chunk_serial_data chunk_data;
+    chunk_data.chunkX = chunkX;
+    chunk_data.chunkY = chunkY;
     for (int i = 0; i < 256; i++) {
         const _cell* cell = &cellData[i]; 
-        cell_data[i].tileID = cell->tileId;
-        cell_data[i].outlined = static_cast<uint8_t>(cell->isOutlined());
-        cell_data[i].padding = 0;   // Padding, does nothing.
-        cell_data[i].health = cell->getHealth();
+        chunk_data.cell_data[i].tileID = cell->tileId;
+        chunk_data.cell_data[i].outlined = static_cast<uint8_t>(cell->isOutlined());
+        chunk_data.cell_data[i].padding = 0;   // Padding, does nothing.
+        chunk_data.cell_data[i].health = cell->getHealth();
     }
+    return chunk_data;
 }
 
-void _chunk::loadSerializedChunk(const cell_serial_data* cell_data) {
+void _chunk::loadSerializedChunk(const chunk_serial_data &chunk_data) {
+    chunkX = chunk_data.chunkX;
+    chunkY = chunk_data.chunkY;
     for (int i = 0; i < 256; i++) {
         // Serialized Data //
-        tileData[i] = static_cast<TileId>(cell_data[i].tileID);
-        cellData[i].tileId = static_cast<TileId>(cell_data[i].tileID);
-        cellData[i].setOutline(static_cast<bool>(cell_data[i].outlined));
-        cellData[i].setHealth(cell_data[i].health);
+        tileData[i] = static_cast<TileId>(chunk_data.cell_data[i].tileID);
+        cellData[i].tileId = static_cast<TileId>(chunk_data.cell_data[i].tileID);
+        cellData[i].setOutline(static_cast<bool>(chunk_data.cell_data[i].outlined));
+        cellData[i].setHealth(chunk_data.cell_data[i].health);
 
         // Non Serialized Data //
         // Handled by VBO setup -- should be changed later
@@ -145,7 +151,6 @@ void _world::initWorld(bool loadWorld)
 
     tileAtlas->loadTexture("images/set_1.png"); // Load the tile atlas texture
     // Reserve allocates memory but does not instantiate it -- resize allocates AND instantiates it (dont want that)
-    worldChunks.reserve(numStartingChunks); // Resize the vector to hold numStartingChunks chunks
 
     initTiles(); // Setup tiles
     
@@ -155,10 +160,8 @@ void _world::initWorld(bool loadWorld)
         Logger.LogWarning("numStartingChunks is not a perfect square. This may lead to an uneven distribution of chunks around the center.", LOG_BOTH);
     }
 
-    // Initialize world tiles and chunks 
-    if (loadWorld) {
-        importWorldFromFile("saves/game");
-    } else {
+    // Only run generation when we dont load the world  
+    if (!loadWorld) {
         runWorldGeneration(generation_iterations); 
     }
 
@@ -857,143 +860,41 @@ bool _world::damageCell(_cell* cell, float amount) {
     }
 }
 
-void _world::exportWorldToFile(const string &fileName) {
-    cout << "Exporting world to save file: " << fileName << ".gg_world\n";
-    ofstream file(fileName + ".gg_world", ios::binary);     // Output as binary file
-    if (!file) {
-        cerr << "ERROR: Cannot create output file for: " << fileName << "\n";
-        return;
-    }
-    if (worldChunks.size() != numStartingChunks) {
-        cerr << "ERROR: Cannot create output file as world chunk count of: " << worldChunks.size() << " does not match starting chunk amount of: " << numStartingChunks << "\n";
-        return;
-    }
-
-    // Header Data Write //
-
-    const char header[2] = {'G','G'};   // Header ("GG")
-    file.write(header,2);
-    /**
-     * write() requires a const char* input for the data to write. 
-     * We use reinterpret_cast because it tells the compiler to "pretend" its raw bytes and not whatever datatype it is.
-     * unlike other casts, this does NOT change the data, only how its interpreted.
-     * This cast is safe with primative data types but NOT with others (structs, classes etc) 
-     * 
-     * We pass with & because we want the memory address
-     */
-    file.write(reinterpret_cast<const char*>(&seed),sizeof(seed));  // Seed
-
-    auto now = chrono::system_clock::now();
-    auto duration = now.time_since_epoch(); 
-    const uint64_t seconds = chrono::duration_cast<chrono::seconds>(duration).count();
-    file.write(reinterpret_cast<const char*>(&seconds),sizeof(seconds)); // Time Stamp    
-
-    const uint32_t version_id = WORLD_SAVE_VERSION;
-    file.write(reinterpret_cast<const char*>(&version_id),sizeof(version_id));  // Version ID
-    const float game_id = GAME_VERSION;
-    file.write(reinterpret_cast<const char*>(&game_id),sizeof(game_id));  // Game Version
-    file.write(reinterpret_cast<const char*>(&numStartingChunks),sizeof(numStartingChunks)); // Chunk Count
-
-    const char data_header[4] = {'W','R','L','D'};
-    file.write(data_header,4); // Chunk Data Header ("WRLD")
-
-    // Chunk Data Write //
-
+vector<chunk_serial_data> _world::exportSerializeWorld() const {
+    vector<chunk_serial_data> world_data;
     for (int i = 0; i < numStartingChunks; i++) {
         const _chunk* chunk = &worldChunks[i];
-        const int32_t chunk_pos_x = chunk->chunkX;
-        const int32_t chunk_pos_y = chunk->chunkY;
-        cell_serial_data cell_data[256];
-        chunk->serializeChunk(cell_data);
-        file.write(reinterpret_cast<const char*>(&chunk_pos_x), sizeof(chunk_pos_x));        // Chunk Position X
-        file.write(reinterpret_cast<const char*>(&chunk_pos_y), sizeof(chunk_pos_y));        // Chunk Position Y
-        file.write(reinterpret_cast<const char*>(cell_data), 256 * sizeof(cell_serial_data));
+        world_data.push_back(chunk->serializeChunk());
     }
-
-    cout << "Finished world saving!\n"
-         << "World Size: " << file.tellp() << " bytes\n";
+    return world_data;
 }
 
-void _world::importWorldFromFile(const string &fileName) {
-    cout << "Starting world import from: " << fileName + ".gg_world\n";
-
-    ifstream file(fileName + ".gg_world", ios::binary);
-    if (!file) {
-        cerr << "ERROR: Cannot open file: " << fileName << "\n";
-        return;
-    }
-
-    char header[2];
-    file.read(header,2);
-    if (header[0] != 'G' || header[1] != 'G') {
-        cout << "ERROR: Invalid file header\n";
-        return;
-    }
-
-    uint32_t save_seed = 0;
-    file.read(reinterpret_cast<char*>(&save_seed), sizeof(save_seed));      // Seed
-    seed = save_seed;
-    rng = mt19937(seed);    // Set rng engine to seed
-
-    uint64_t time_stamp = 0;
-    file.read(reinterpret_cast<char*>(&time_stamp), sizeof(time_stamp));    // Time Stamp
-
-    uint32_t version_id = 0;
-    file.read(reinterpret_cast<char*>(&version_id), sizeof(version_id));    // Version ID
-    if (version_id != WORLD_SAVE_VERSION) {
-        cout << "WARNING: World file version of " << version_id << " does not match current version of "
-             << WORLD_SAVE_VERSION << " continuing with load but may fail\n";
-    }    
-
-    uint32_t game_id = 0;
-    file.read(reinterpret_cast<char*>(&game_id), sizeof(game_id));    // Version ID
-    if (game_id < GAME_VERSION) {
-        cout << "WARNING: Game file version of " << game_id << " does not match loaded version of the game "
-             << WORLD_SAVE_VERSION << " continuing with load but may fail\n";
-    }  
-
-    int32_t chunk_count = 0;
-    file.read(reinterpret_cast<char*>(&chunk_count), sizeof(chunk_count));  // Chunk Count
-    if (chunk_count != numStartingChunks) {
-        cout << "ERROR: Chunk Count of save " << fileName << " for " << chunk_count << "does not match count of " << numStartingChunks << "\n";
-        return;
-    }
-
-    char data_header[4];
-    file.read(data_header,4);    // Chunk Data Header
-    if (data_header[0] != 'W' || data_header[1] != 'R' || data_header[2] != 'L' || data_header[3] != 'D') {
-        cout << "ERROR: Invalid file header\n";
-        return;
-    }
-
-    // Read Chunk Data //
-    for (int i = 0; i < numStartingChunks; i++) {
-        uint32_t chunkX = 0;
-        uint32_t chunkY = 0;
-        cell_serial_data cell_data[256];
-
-        file.read(reinterpret_cast<char*>(&chunkX),sizeof(chunkX));
-        file.read(reinterpret_cast<char*>(&chunkY),sizeof(chunkY));
-        file.read(reinterpret_cast<char*>(cell_data),256 * sizeof(cell_serial_data));
-
+void _world::importSerializeWorld(vector<chunk_serial_data> world_data) {
+    for (int i = 0; i < world_data.size(); i++) {
         // Build chunk
+        worldChunks.reserve(numStartingChunks);
         worldChunks.emplace_back();
         _chunk* chunk = &worldChunks.back();
+        chunk->loadSerializedChunk(world_data[i]);
 
-        chunk->chunkX = chunkX;
-        chunk->chunkY = chunkY;
-        chunk->loadSerializedChunk(cell_data);
+        int chunkX = world_data[i].chunkX;
+        int chunkY = world_data[i].chunkY;
 
         loadedChunks[{chunkX, chunkY}] = true;
         chunkLookup[{chunkX, chunkY}] = chunk;
     }
+}
 
-    cout << "Finished world import from: " << fileName + ".gg_world\n";
+
+void _world::setSeed(uint32_t _seed) {
+    seed = _seed;
 }
 
 // -- PRIVATE -- //
 
 void _world::runWorldGeneration(int iterations) {
+    worldChunks.reserve(numStartingChunks); // Resize the vector to hold numStartingChunks chunks
+    
     // Setup seed + rng engine 
     seed = std::chrono::system_clock::now().time_since_epoch().count(); 
     rng = mt19937(seed);

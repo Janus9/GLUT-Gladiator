@@ -66,6 +66,12 @@ void _scene::initScene(bool loadWorld)
         cout << "WARNING: Scene already initialized, skipping\n";
         return;
     }
+    // -- RNG SETUP -- //    
+    if (!loadWorld) {
+        seed = std::chrono::system_clock::now().time_since_epoch().count(); 
+        rng = mt19937(seed);
+    }
+
     // -- CLASS INIT -- //
 
     cout << "Running Scene Class Initialization ... \n";
@@ -283,9 +289,142 @@ void _scene::initScene(bool loadWorld)
     sceneInitialized = true;
 }
 
-void _scene::saveScene() {
-    myWorld->exportWorldToFile("saves/game");
+bool _scene::saveSceneToFile(const string &fileName) {
+    cout << "Exporting game to save file: " << fileName << ".gg_world\n";
+    ofstream file(fileName + ".gg_world", ios::binary);     // Output as binary file
+    if (!file) {
+        cerr << "ERROR: Cannot create output file for: " << fileName << "\n";
+        return false;
+    }
+    // Header Data Write //
+
+    const char header[2] = {'G','G'};   // Header ("GG")
+    file.write(header,2);
+    /**
+     * write() requires a const char* input for the data to write. 
+     * We use reinterpret_cast because it tells the compiler to "pretend" its raw bytes and not whatever datatype it is.
+     * unlike other casts, this does NOT change the data, only how its interpreted.
+     * This cast is safe with primative data types but NOT with others (structs, classes etc) 
+     * 
+     * We pass with & because we want the memory address
+     */
+    file.write(reinterpret_cast<const char*>(&seed),sizeof(seed));  // Seed
+
+    auto now = chrono::system_clock::now();
+    auto duration = now.time_since_epoch(); 
+    const uint64_t seconds = chrono::duration_cast<chrono::seconds>(duration).count();
+    file.write(reinterpret_cast<const char*>(&seconds),sizeof(seconds)); // Time Stamp    
+
+    const uint32_t version_id = WORLD_SAVE_VERSION;
+    file.write(reinterpret_cast<const char*>(&version_id),sizeof(version_id));  // Version ID
+    const float game_id = GAME_VERSION;
+    file.write(reinterpret_cast<const char*>(&game_id),sizeof(game_id));  // Game Version
+    const int numStartingChunks = NUM_CHUNKS;
+    file.write(reinterpret_cast<const char*>(&numStartingChunks),sizeof(numStartingChunks)); // Chunk Count
+
+    const char data_header[4] = {'W','R','L','D'};
+    file.write(data_header,4); // Chunk Data Header ("WRLD")
+
+    // Chunk Data Write //
+
+    vector<chunk_serial_data> world_data = myWorld->exportSerializeWorld();
+    if (!world_data.empty()) {
+        cout << "Writing world data:\n"
+             << "Number of chunks: " << world_data.size() << "\n"
+             << "Size of world: " << world_data.size() * sizeof(chunk_serial_data) << " bytes\n";
+        // This writes the contents of the entire vector to file
+        file.write(reinterpret_cast<const char*>(world_data.data()), world_data.size() * sizeof(chunk_serial_data));
+
+        if (!file) {
+            cout << "ERROR: Save failed to write the world data\n";
+            return false;
+        }
+    } else {
+        cout << "ERROR: Size of world data is 0\n";
+    }
+
+    cout << "Finished game saving!\n"
+         << "Save Size: " << file.tellp() << " bytes\n";
+
+    return true;
 }
+
+bool _scene::loadSceneFromFile(const string &fileName) {
+    cout << "Starting game import from: " << fileName + ".gg_world\n";
+
+    ifstream file(fileName + ".gg_world", ios::binary);
+    if (!file) {
+        cerr << "ERROR: Cannot open file: " << fileName << "\n";
+        return false;
+    }
+
+    char header[2];
+    file.read(header,2);
+    if (header[0] != 'G' || header[1] != 'G') {
+        cout << "ERROR: Invalid file header\n";
+        return false;
+    }
+
+    uint32_t save_seed = 0;
+    file.read(reinterpret_cast<char*>(&save_seed), sizeof(save_seed));      // Seed
+    seed = save_seed;
+    rng = mt19937(seed);    // Set rng engine to seed
+
+    uint64_t time_stamp = 0;
+    file.read(reinterpret_cast<char*>(&time_stamp), sizeof(time_stamp));    // Time Stamp
+
+    uint32_t version_id = 0;
+    file.read(reinterpret_cast<char*>(&version_id), sizeof(version_id));    // Version ID
+    if (version_id != WORLD_SAVE_VERSION) {
+        cout << "WARNING: World file version of " << version_id << " does not match current version of "
+             << WORLD_SAVE_VERSION << " continuing with load but may fail\n";
+    }    
+
+    float game_id = 0;
+    file.read(reinterpret_cast<char*>(&game_id), sizeof(game_id));    // Version ID
+    if (game_id < GAME_VERSION) {
+        cout << "WARNING: Game file version of " << game_id << " does not match loaded version of the game "
+             << WORLD_SAVE_VERSION << " continuing with load but may fail\n";
+    }  
+
+    int32_t chunk_count = 0;
+    file.read(reinterpret_cast<char*>(&chunk_count), sizeof(chunk_count));  // Chunk Count
+    const int numStartingChunks = NUM_CHUNKS;
+    if (chunk_count != numStartingChunks) {
+        cout << "ERROR: Chunk Count of save " << fileName << " for " << chunk_count << "does not match count of " << numStartingChunks << "\n";
+        return false;
+    }
+
+    char data_header[4];
+    file.read(data_header,4);    // Chunk Data Header
+    if (data_header[0] != 'W' || data_header[1] != 'R' || data_header[2] != 'L' || data_header[3] != 'D') {
+        cout << "ERROR: Invalid chunk data header\n";
+        return false;
+    }
+
+    // Read Chunk Data //
+
+    vector<chunk_serial_data> world_data;
+    world_data.resize(chunk_count);
+    file.read(reinterpret_cast<char*>(world_data.data()), world_data.size() * sizeof(chunk_serial_data));
+
+    if (world_data.empty()) {
+        cout << "ERROR: World data read is empty\n";
+        return false;
+    }
+
+    cout << "Read world data:\n"
+         << "Number of chunks: " << world_data.size() << "\n"
+         << "Size of world: " << world_data.size() * sizeof(chunk_serial_data) << " bytes\n";
+
+    myWorld->importSerializeWorld(world_data);
+
+    cout << "Finished game import from: " << fileName + ".gg_world\n"
+         << "Save Size: " << file.tellg() << " bytes\n";
+
+    return true;
+}
+
 
 void _scene::reSize(GLint width, GLint height)
 {
