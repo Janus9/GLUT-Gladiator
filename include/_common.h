@@ -419,7 +419,7 @@ inline int modFloor(int a, int b)
     return r;
 }
 
-enum class _team {
+enum class _team : uint8_t {
     FRIENDLY,
     ENEMY,
     NEUTRAL

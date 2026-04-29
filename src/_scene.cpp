@@ -147,7 +147,11 @@ void _scene::initScene(bool loadWorld)
     // sh->initShader("shaders/V.vs","shaders/F.fs");
     // glUseProgram(sh->program);
 
+
+    // -- BULLETS -- //
     bulletManager->initBulletManager("images/test_bullet.png", myWorld, player.get(), enemyManager.get(), soundManager);
+    
+    // Player //
     player_bullet.amount = 1;
     player_bullet.speed = 512.0f;
     player_bullet.width = 15.0f;
@@ -157,6 +161,7 @@ void _scene::initScene(bool loadWorld)
     player_bullet.penetration = 0.0f;
     player_bullet.damage = 15.0f;
 
+    // Default Turret //
     turret_bullet.amount = 1;
     turret_bullet.speed = 400.0f;
     turret_bullet.width = 20.0f;
@@ -166,6 +171,7 @@ void _scene::initScene(bool loadWorld)
     turret_bullet.penetration = 50;
     turret_bullet.damage = 20.0f;
 
+    // Gatling Turret //
     gatling_bullet.amount = 1;
     gatling_bullet.speed = 400.0f;
     gatling_bullet.width = 12.0f;
@@ -174,6 +180,23 @@ void _scene::initScene(bool loadWorld)
     gatling_bullet.angleOffset = 10.0f;
     gatling_bullet.penetration = 0;
     gatling_bullet.damage = 5.0f;
+
+    // -- ENEMY CONFIGS -- //
+    // Default Turret //
+    default_turret_config.type = ENEMY_TURRET;
+    default_turret_config.team = _team::ENEMY;
+    default_turret_config.maxHP = 75.0f;
+    default_turret_config.fireRate = 300.0f;
+    default_turret_config.slewRate = 90.0f;
+    default_turret_config.detectionRadius = 256.0f;
+
+    // Gatling Turret //
+    gatling_turret_config.type = ENEMY_GATLING;
+    gatling_turret_config.team = _team::ENEMY;
+    gatling_turret_config.maxHP = 400.0f;
+    gatling_turret_config.fireRate = 1500.0f;
+    gatling_turret_config.slewRate = 50.0f;
+    gatling_turret_config.detectionRadius = 400.0f;
 
     player->setHealth(200.0f);
     player->setMaxHealth(200.0f);
@@ -233,7 +256,7 @@ void _scene::initScene(bool loadWorld)
                 // Is a wall, retry
                 continue;
             }
-            enemyManager->addEnemy(spawnTurretPos,ENEMY_TURRET);
+            enemyManager->addEnemy(spawnTurretPos,default_turret_config);
             lookingForTurretSpawn = false;
         }
     }
@@ -252,7 +275,7 @@ void _scene::initScene(bool loadWorld)
                 // Is a wall, retry
                 continue;
             }
-            enemyManager->addEnemy(spawnGatlingPos,ENEMY_GATLING);
+            enemyManager->addEnemy(spawnGatlingPos,gatling_turret_config);
             lookingForGatlingSpawn = false;
         }
     }
@@ -788,10 +811,10 @@ void _scene::keyboardHandler(WPARAM wParam)
         case 192: // "~"
             break;
         case 49: // "1"
-            enemyManager->addEnemy(mouseWorldPos,ENEMY_TURRET);
+            enemyManager->addEnemy(mouseWorldPos,default_turret_config);
             break;
         case 50: // "2"
-            enemyManager->addEnemy(mouseWorldPos,ENEMY_GATLING);
+            enemyManager->addEnemy(mouseWorldPos,gatling_turret_config);
             break;
         case ' ': // SPACE
             break;

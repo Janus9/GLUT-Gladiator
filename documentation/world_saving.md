@@ -2,7 +2,6 @@ This document details how a world save file is structured and saved.
 
 File: ".gg_world"
 
-
        -- META DATA --  
 | Offset | Size | Data Type      | Name    
 |--------|------|----------------|----------- 
@@ -17,11 +16,20 @@ File: ".gg_world"
 |      -- CHUNK DATA --          |
 | 0      | 4    | int32_t        | Chunk Position X
 | 4      | 4    | int32_t        | Chunk Position Y 
-| 8      | 1536 | cell_data[256] | Chunk Cell/Tile Data (See Below)
+| 8      | 2048 | cell_data[256] | Chunk Cell/Tile Data (See Below)
 |--------|------|----------------|----------- (Data for "Cell Data" above)
 |       -- CELL DATA --          |
 | 0      | 1    | uint8_t        | Tile ID
 | 1      | 1    | uint8_t        | Outlined (Boolean)
 | 2      | 2    | uint16_t       | Padding
 | 4      | 4    | float          | Health
+|--------|------|----------------|-----------  
+|      -- ENEMY DATA --          |
+| 0      | 1    | uint8_t        | Enemy Type (enum)
+| 0      | 1    | uint8_t        | Enemy Team (enum)
+| 0      | 4    | float          | Current Health
+| 0      | 4    | float          | Max Health
+| 0      | 4    | float          | Position X
+| 0      | 4    | float          | Position Y
+| 0      | 4    | float          | Position Z
 |--------|------|----------------|----------- (End of File) 

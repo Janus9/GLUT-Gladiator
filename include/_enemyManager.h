@@ -8,10 +8,31 @@
 #include <_particleManager.h>
 #include <_sounds.h>
 
-enum enemy_type {
+enum enemy_type : uint8_t {
     ENEMY_TURRET,
     ENEMY_GATLING
 };
+
+/**
+ * Configuration for creating an enemy
+ * 
+ * @param type Type of enemy to spawn 
+ * @param team Team for the enemy 
+ * @param maxHP Maximum (and current hp on spawn) enemy has
+ * @param fireRate How fast the enemy shoots
+ * @param slewRate How fast the enemy rotates to face player
+ * @param detectionRadius How far away enemy detects player
+ */
+struct enemy_config {
+    enemy_type type;
+    _team team;
+    
+    float maxHP;
+    float fireRate;
+    float slewRate;
+    float detectionRadius;
+};
+
 
 class _enemy : public _unit {
     public:
@@ -26,7 +47,7 @@ class _enemy : public _unit {
         void updateEnemy(double dt);
 
         // Initialization function for animations/sprites/textures etc
-        void initEnemy(enemy_type type);
+        void initEnemy(const enemy_config &config);
   
         bool operator==(const _enemy &other) const;
         
@@ -63,7 +84,7 @@ class _enemyManager {
         void drawEnemies();
 
         // Adds a single enemy (only 1 type for now)
-        void addEnemy(const Vec2f &_pos, enemy_type type);
+        void addEnemy(const Vec2f &_pos, const enemy_config &config);
 
         /**
          * Checks if any enemy instance is colliding with the provided position

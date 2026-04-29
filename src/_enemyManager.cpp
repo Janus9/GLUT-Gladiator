@@ -21,21 +21,23 @@ void _enemy::updateEnemy(double dt) {
 
 }
 
-void _enemy::initEnemy(enemy_type type) {
+void _enemy::initEnemy(const enemy_config &config) {
 
-    switch (type) {
+    switch (config.type) {
         // -- DEFAULT TURRET -- //
         case ENEMY_TURRET: {
             // Data Setup //
-            setMaxHealth(75.0f);
+            setMaxHealth(config.maxHP);
             resetHealth();
 
-            fireRate = 300.0f;
-            slewRate = 90.0f;
+            fireRate = config.fireRate;
+            slewRate = config.slewRate;
 
-            detectionRadius = 256.0f;
+            detectionRadius = config.detectionRadius;
 
-            eType = type;
+            eType = config.type;
+            team = config.team;
+
             // Sprite Setup //
             setupSprite("MAIN");
             _sprite* main_sprite = getSprite("MAIN");
@@ -56,15 +58,17 @@ void _enemy::initEnemy(enemy_type type) {
         // -- GATLING TURRET -- //
         case ENEMY_GATLING: {
             // Data Setup //
-            setMaxHealth(400.0f);
+            setMaxHealth(config.maxHP);
             resetHealth();
 
-            fireRate = 2000.0f;
-            slewRate = 45.0f;
-            
-            detectionRadius = 400.0f;
+            fireRate = config.fireRate;
+            slewRate = config.slewRate;
 
-            eType = type;
+            detectionRadius = config.detectionRadius;
+
+            eType = config.type;
+            team = config.team;
+
             // Sprite Setup //
             setupSprite("BASE");
             _sprite* base_sprite = getSprite("BASE");
@@ -246,9 +250,9 @@ void _enemyManager::drawEnemies() {
     particleManager->drawParticleManager();
 }
 
-void _enemyManager::addEnemy(const Vec2f &_pos, enemy_type type) {
+void _enemyManager::addEnemy(const Vec2f &_pos, const enemy_config &config) {
     unique_ptr<_enemy> newEnemy = make_unique<_enemy>();
-    newEnemy->initEnemy(type);
+    newEnemy->initEnemy(config);
     newEnemy->pos = _pos;
     enemyList.push_back(move(newEnemy));
 }

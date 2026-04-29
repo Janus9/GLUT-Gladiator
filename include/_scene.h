@@ -84,6 +84,8 @@ class _scene
 
         // Enemies
         unique_ptr<_enemyManager> enemyManager = make_unique<_enemyManager>();
+        enemy_config default_turret_config;
+        enemy_config gatling_turret_config;
         
         // Bullets (Projectiles)
         unique_ptr<_bulletManager> bulletManager = make_unique<_bulletManager>();
