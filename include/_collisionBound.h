@@ -71,6 +71,9 @@ class _collisionBound {
 
         // Returns the locked position if locked, else the free position
         Vec2f getPos() const;
+
+        // Returns the size (width, height) of the collision box
+        Vec2f getSize() const { return size; }
     protected:
     private:
         const Vec2f* posLocked = nullptr; // Const because we dont want to change the pos were tracking

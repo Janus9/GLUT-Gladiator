@@ -6,6 +6,8 @@
 #include <_player.h>
 #include <_sounds.h>
 
+class _world;
+
 enum orc_action {
     ORC_ACTION_NULL,
     ORC_WALK_DOWN,   ORC_WALK_UP,   ORC_WALK_LEFT,   ORC_WALK_RIGHT,
@@ -35,7 +37,7 @@ class _orc : public _enemy {
         void initOrc();
 
         // Per-frame AI + animation FSM. Manager handles dead/despawn timing.
-        void updateOrc(double dt, _player* player, _sounds* sounds);
+        void updateOrc(double dt, _player* player, _world* world, _sounds* sounds);
 
         // Selects active sprite for current action and draws it.
         void drawOrc();
