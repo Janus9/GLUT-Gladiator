@@ -260,11 +260,15 @@ void _scene::initScene(bool loadWorld)
         player->spawnPos = spawnPos;
     }
 
+    const int number_default_turrets = 500;
+    const int number_gatling_turrets = 100;
+    const int number_orcs = 1000;
+
     // Dont spawn enemies when world is loaded
     if (!loadWorld) {
         // Spawn default turrets //
         uniform_real_distribution<float> turret_pos_dist(-14000, 14000);
-        for (int i = 0; i < 400; i++)
+        for (int i = 0; i < number_default_turrets; i++)
         {
             bool lookingForTurretSpawn = true;
             while (lookingForTurretSpawn)
@@ -282,8 +286,8 @@ void _scene::initScene(bool loadWorld)
         }
     
         // Spawn gatling turrets //
-        uniform_real_distribution<float> gatling_pos_dist(-8000, 8000);
-        for (int i = 0; i < 75; i++)
+        uniform_real_distribution<float> gatling_pos_dist(-4000, 4000);
+        for (int i = 0; i < number_gatling_turrets; i++)
         {
             bool lookingForGatlingSpawn = true;
             while (lookingForGatlingSpawn)
@@ -297,6 +301,25 @@ void _scene::initScene(bool loadWorld)
                 }
                 enemyManager->addEnemy(spawnGatlingPos,gatling_turret_config);
                 lookingForGatlingSpawn = false;
+            }
+        }
+
+        // Spawn Orcs //
+        uniform_real_distribution<float> orc_pos_dist(-8000, 8000);
+        for (int i = 0; i < number_orcs; i++)
+        {
+            bool lookingForOrcSpawn = true;
+            while (lookingForOrcSpawn)
+            {
+                Vec2f spawnOrcPos = {orc_pos_dist(rng), orc_pos_dist(rng)};
+                _cell *spawnOrcCell = myWorld->getCellAtWorld(spawnOrcPos);
+                if (spawnOrcCell && myWorld->isCellWall(spawnOrcCell))
+                {
+                    // Is a wall, retry
+                    continue;
+                }
+                enemyManager->addEnemy(spawnOrcPos,orc_config);
+                lookingForOrcSpawn = false;
             }
         }
     }    
