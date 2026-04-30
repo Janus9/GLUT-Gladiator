@@ -422,6 +422,11 @@ player_serial_data _player::exportSerializedPlayer() const {
     player_data.spawnPosY = spawnPos.y;
     player_data.movementSpeed = movementSpeed;
     player_data.numDeaths = numDeaths;
+    player_data.magCapacity = magCapacity;
+    player_data.magLevel = magLevel;
+    player_data.reserveCapacity = reserveCapacity;
+    player_data.reserveLevel = reserveLevel;
+    player_data.reloadSpeed = reloadSpeed;
     // Padding -- doesnt do anything
     player_data.padding1 = 0;
     player_data.padding2 = 0;
@@ -441,6 +446,11 @@ void _player::importSerializedPlayer(const player_serial_data &player_data) {
     spawnPos.y = player_data.spawnPosY;
     movementSpeed = player_data.movementSpeed;
     numDeaths = player_data.numDeaths;
+    magCapacity = player_data.magCapacity;
+    magLevel = player_data.magLevel;
+    reserveCapacity = player_data.reserveCapacity;
+    reserveLevel = player_data.reserveLevel;
+    reloadSpeed = player_data.reloadSpeed;
 }
 
 void _player::procReload() {

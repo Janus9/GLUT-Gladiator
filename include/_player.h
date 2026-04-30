@@ -23,6 +23,12 @@ struct player_serial_data {
     float movementSpeed;
     int32_t numDeaths;
 
+    int32_t magCapacity;
+    int32_t magLevel;
+    int32_t reserveCapacity;
+    int32_t reserveLevel;
+    float reloadSpeed;
+
     uint8_t padding1;
     uint16_t padding2;
 };
