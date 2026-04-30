@@ -23,6 +23,7 @@
 #include<_shader.h>
 #include<_player.h>
 #include<_enemyManager.h>
+#include<_fob.h>
 
 class _scene
 {
@@ -94,7 +95,7 @@ class _scene
         player_face face = PLAYER_FACE_NULL;
 
         // FOB //
-        unique_ptr<_unit> FOB = make_unique<_unit>();
+        unique_ptr<_fob> FOB = make_unique<_fob>();
 
         // Enemies
         unique_ptr<_enemyManager> enemyManager = make_unique<_enemyManager>();

@@ -86,16 +86,7 @@ void _scene::initScene(bool loadWorld)
     player->hasGun = true;
 
     // -- FOB -- //
-    FOB->setCollisionBox({32.0f,32.0f});
-    FOB->setupSprite("MAIN");
-    _sprite* fob_sprite = FOB->getSprite("MAIN");
-    if (fob_sprite) {
-        fob_sprite->initSprite("images/fob/idle.png",8,1,sprite_direction::LEFT,12);
-        fob_sprite->createSpriteAction(sprite_action("IDLE",0,0,7));
-        fob_sprite->loadSpriteAction("IDLE");
-        fob_sprite->startAnimation();
-    }
-
+    FOB->initFob(player.get());
     // -- HUD -- //
 
     hud->addHudText("FPS");
