@@ -302,19 +302,20 @@ void _player::updatePlayer(double dt) {
         if (reloadTimeElapsed >= reloadSpeed) {
             // reload finished //
             cout << "Player reload finished\n";
+            int numBulletsFromReserve = 0;  // How many bullets to put INTO the mag from reserve
+            int numBulletsIntoMag = magCapacity - magLevel;  // How many bullets to put INTO the mag
             
-            int numBulletsToApply = 0;  // How many bullets to put INTO the mag
-            int numBulletRemaining = reserveLevel - magCapacity; // How many bullets remain in reserve after reload
+            int numBulletRemaining = reserveLevel - numBulletsIntoMag; // How many bullets remain in reserve after reload
             if (numBulletRemaining < 0) {
                 // Negative means reserve is less than mag capacity, we add the remainder
                 reserveLevel = 0;
-                numBulletsToApply = magCapacity + numBulletRemaining; // num bullet remaining is negative so it takes away bullets
+                numBulletsFromReserve = magCapacity + numBulletRemaining; // num bullet remaining is negative so it takes away bullets
             } else {
                 // Excess bullets in reserve
-                reserveLevel-=magCapacity;
-                numBulletsToApply = magCapacity;
+                reserveLevel-=numBulletsIntoMag;
+                numBulletsFromReserve = magCapacity;
             }
-            magLevel = numBulletsToApply;
+            magLevel = numBulletsFromReserve;
 
             reloadTimeElapsed = 0.0;
             reloading = false;
