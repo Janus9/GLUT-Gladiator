@@ -140,17 +140,23 @@ void _enemyManager::initEnemyManager(_player* currentPlayer, _world* currentWorl
     turret_hit_effect.maxVelX = 8.0f;
     turret_hit_effect.minVelY = 10.0f;
     turret_hit_effect.maxVelY = 25.0f;
+    turret_hit_effect.minRotation = -45.0f;
+    turret_hit_effect.maxRotation = 45.0f;
 
     turret_hit_effect.minRadius = 1.0f;
     turret_hit_effect.maxRadius = 2.0f;
 
-    turret_hit_effect.minLifeTime = 0.5f;
-    turret_hit_effect.maxLifeTime = 1.1f;
+    turret_hit_effect.minLifeTime = 5.0f;
+    turret_hit_effect.maxLifeTime = 5.0f;
 
     turret_hit_effect.minSpawnOffsetX = -3.0f;
     turret_hit_effect.maxSpawnOffsetX = 3.0f;
     turret_hit_effect.minSpawnOffsetY = -3.0f;
     turret_hit_effect.maxSpawnOffsetY = 3.0f;
+
+    turret_hit_effect.hasGravity = true;
+    turret_hit_effect.hasFloor = true;
+    turret_hit_effect.floorOffset = -10.0f;
 
     // Turret Death Effect //
     turret_death_effect.amount = 45;
@@ -165,32 +171,42 @@ void _enemyManager::initEnemyManager(_player* currentPlayer, _world* currentWorl
     turret_death_effect.minRadius = 1.8f;
     turret_death_effect.maxRadius = 3.2f;
 
-    turret_death_effect.minLifeTime = 0.6f;
-    turret_death_effect.maxLifeTime = 1.6f;
+    turret_death_effect.minLifeTime = 5.0f;
+    turret_death_effect.maxLifeTime = 5.0f;
 
     turret_death_effect.minSpawnOffsetX = -4.5f;
     turret_death_effect.maxSpawnOffsetX = 4.5f;
     turret_death_effect.minSpawnOffsetY = -4.5f;
     turret_death_effect.maxSpawnOffsetY = 4.5f;
 
-     // Gatling Death Effect //
-    gatling_death_effect.amount = 105;
+    turret_death_effect.hasGravity = true;
+    turret_death_effect.hasFloor = true;
+    turret_death_effect.floorOffset = -10.0f;
 
-    gatling_death_effect.minVelX = -6.0f;
-    gatling_death_effect.maxVelX = 6.0f;
-    gatling_death_effect.minVelY = 20.0f;
-    gatling_death_effect.maxVelY = 35.0f;
+     // Gatling Death Effect //
+    gatling_death_effect.amount = 200;
+
+    gatling_death_effect.minVelX = -7.0f;
+    gatling_death_effect.maxVelX = 7.0f;
+    gatling_death_effect.minVelY = 30.0f;
+    gatling_death_effect.maxVelY = 55.0f;
+    gatling_death_effect.minRotation = -65.0f;
+    gatling_death_effect.maxRotation = 65.0f;
 
     gatling_death_effect.minRadius = 2.5f;
-    gatling_death_effect.maxRadius = 3.7f;
+    gatling_death_effect.maxRadius = 4.5f;
 
-    gatling_death_effect.minLifeTime = 1.0f;
-    gatling_death_effect.maxLifeTime = 2.3f;
+    gatling_death_effect.minLifeTime = 5.0f;
+    gatling_death_effect.maxLifeTime = 5.0f;
 
-    gatling_death_effect.minSpawnOffsetX = -4.5f;
-    gatling_death_effect.maxSpawnOffsetX = 4.5f;
-    gatling_death_effect.minSpawnOffsetY = -2.5f;
-    gatling_death_effect.maxSpawnOffsetY = 2.5f;
+    gatling_death_effect.minSpawnOffsetX = -12.0f;
+    gatling_death_effect.maxSpawnOffsetX = 12.0f;
+    gatling_death_effect.minSpawnOffsetY = -12.0f;
+    gatling_death_effect.maxSpawnOffsetY = 12.0f;
+
+    gatling_death_effect.hasGravity = true;
+    gatling_death_effect.hasFloor = true;
+    gatling_death_effect.floorOffset = -10.0f;
 }
 
 void _enemyManager::updateEnemies(double dt) {

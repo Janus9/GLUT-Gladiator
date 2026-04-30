@@ -95,10 +95,15 @@ void _particleManager::updateParticleManger(double dt) {
             p->alive = false;
         }
 
+        if (p->hasFloor && p->pos.y <= p->floorPosY) {
+            // Particle hit floor
+            p->alive = false;
+        }
+
         if (!p->alive) continue;
 
         p->acc.x = 0.0f;
-        p->acc.y = -GRAVITY * 4;
+        if(p->hasGravity) p->acc.y = -GRAVITY * 4;
 
         p->vel += p->acc * dt;
         p->pos += p->vel * dt;
@@ -141,6 +146,10 @@ void _particleManager::spawnEffect(const Vec2f &pos, const particle_effect &effe
             p->death = lifeTime_dist(rng);
 
             p->alive = true;
+
+            p->hasGravity = effect.hasGravity;
+            p->hasFloor = effect.hasFloor;
+            p->floorPosY = p->pos.y + effect.floorOffset;
         }
     }
 }

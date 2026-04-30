@@ -278,9 +278,9 @@ void _scene::initScene(bool loadWorld)
 
     FOB->pos = player->spawnPos;
 
-    const int number_default_turrets = 500;
+    const int number_default_turrets = 100;
     const int number_gatling_turrets = 100;
-    const int number_orcs = 1000;
+    const int number_orcs = 100;
 
     // Dont spawn enemies when world is loaded
     if (!loadWorld) {

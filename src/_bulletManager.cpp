@@ -69,12 +69,17 @@ void _bulletManager::initBulletManager(const string &fileName, _world* currentWo
     bullet_shell_effect.maxVelX = 10.5f;
     bullet_shell_effect.minVelY = 15.0f;
     bullet_shell_effect.maxVelY = 28.0f;
+    bullet_shell_effect.minRotation = 30.0f;
+    bullet_shell_effect.maxRotation = 45.0f;
 
     bullet_shell_effect.minRadius = 2.0f;
     bullet_shell_effect.maxRadius = 2.0f;
 
-    bullet_shell_effect.minLifeTime = 0.5f;
-    bullet_shell_effect.maxLifeTime = 1.1f;
+    bullet_shell_effect.minLifeTime = 5.0f;
+    bullet_shell_effect.maxLifeTime = 5.0f;
+
+    bullet_shell_effect.hasFloor = true;
+    bullet_shell_effect.floorOffset = -24.0f;
 
     // 7 entries per vertex, 4 vertex per primitive (quad), MAX_BULLETS amount, ~4 bytes per float (may change)
     int maxSizeBytes = 7 * 4 * MAX_BULLETS * sizeof(float);

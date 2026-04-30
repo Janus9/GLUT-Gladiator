@@ -36,6 +36,17 @@ struct particle_effect {
 
     float minRotation = 0.0f;      // Minimum Rotation speed of the particles (degrees/second) 
     float maxRotation = 0.0f;      // Maximum Rotation speed of the particles (degrees/second)
+
+    bool hasGravity = true;        // If TRUE then gravity applies 
+    
+    bool hasFloor = false;         // If TRUE then particle dies below floor (spawnPosY + floorOffset)
+    float floorOffset = 0.0f;      // Fixed offset distance for the floor (Y pos)
+
+    bool hasWaveEffect = false;    // If TRUE then particle wobbles left/right on a wave (recommended for no gravity effects)
+    float waveAmplitudeMin = 0.0f; // Min value for wave height (world units)
+    float waveAmplitudeMax = 0.0f; // Max value for wave height (world units)
+    float waveFrequencyMin = 0.0f; // Min frequency of the wave (full cycle per second)
+    float waveFrequencyMax = 0.0f; // Max frequency of the wave (full cycle per second) 
 };
 
 struct particle {
@@ -53,6 +64,12 @@ struct particle {
     float age = 0.0f; // Particles current age
 
     float angle = 0.0f;
+
+    bool hasGravity;
+    bool hasFloor;
+    float floorPosY;
+
+    float t;
 };
 
 class _particleManager {
