@@ -228,16 +228,113 @@ void _player::initPlayer() {
     animationTable[PLAYER_ACTION_DEATH_GUN][PLAYER_FACE_SW] = {"DEATH_GUN","DEATH_GUN_SW",{7,1}};
     animationTable[PLAYER_ACTION_DEATH_GUN][PLAYER_FACE_W] = {"DEATH_GUN","DEATH_GUN_W",{7,1}};
     animationTable[PLAYER_ACTION_DEATH_GUN][PLAYER_FACE_NW] = {"DEATH_GUN","DEATH_GUN_NW",{7,2}};
+
+    // Idle Reload Animation //
+    setupSprite("IDLE_RELOAD");
+    _sprite* reload_gun_sprite = getSprite("IDLE_RELOAD");
+    if (reload_gun_sprite) {
+        reload_gun_sprite->initSprite("images/player/Reloading/Reloading.png", 8, 6, sprite_direction::LEFT,12); // No natural direction due to top down
+    
+        reload_gun_sprite->createSpriteAction(sprite_action("IDLE_RELOAD_N",3,0,7));
+        reload_gun_sprite->createSpriteAction(sprite_action("IDLE_RELOAD_NE",4,0,7));
+        reload_gun_sprite->createSpriteAction(sprite_action("IDLE_RELOAD_E",5,0,7));
+        reload_gun_sprite->createSpriteAction(sprite_action("IDLE_RELOAD_SE",5,0,7));
+        reload_gun_sprite->createSpriteAction(sprite_action("IDLE_RELOAD_S",0,0,7));
+        reload_gun_sprite->createSpriteAction(sprite_action("IDLE_RELOAD_SW",1,0,7));
+        reload_gun_sprite->createSpriteAction(sprite_action("IDLE_RELOAD_W",1,0,7));
+        reload_gun_sprite->createSpriteAction(sprite_action("IDLE_RELOAD_NW",2,0,7));
+        reload_gun_sprite->offsetPoint = {0.0f, 8.0f};
+    }
+
+    animationTable[PLAYER_ACTION_IDLE_RELOAD][PLAYER_FACE_N] = {"IDLE_RELOAD","IDLE_RELOAD_N",{7,3}};
+    animationTable[PLAYER_ACTION_IDLE_RELOAD][PLAYER_FACE_NE] = {"IDLE_RELOAD","IDLE_RELOAD_NE",{7,4}};
+    animationTable[PLAYER_ACTION_IDLE_RELOAD][PLAYER_FACE_E] = {"IDLE_RELOAD","IDLE_RELOAD_E",{7,5}};
+    animationTable[PLAYER_ACTION_IDLE_RELOAD][PLAYER_FACE_SE] = {"IDLE_RELOAD","IDLE_RELOAD_SE",{7,5}};
+    animationTable[PLAYER_ACTION_IDLE_RELOAD][PLAYER_FACE_S] = {"IDLE_RELOAD","IDLE_RELOAD_S",{7,0}};
+    animationTable[PLAYER_ACTION_IDLE_RELOAD][PLAYER_FACE_SW] = {"IDLE_RELOAD","IDLE_RELOAD_SW",{7,1}};
+    animationTable[PLAYER_ACTION_IDLE_RELOAD][PLAYER_FACE_W] = {"IDLE_RELOAD","IDLE_RELOAD_W",{7,1}};
+    animationTable[PLAYER_ACTION_IDLE_RELOAD][PLAYER_FACE_NW] = {"IDLE_RELOAD","IDLE_RELOAD_NW",{7,2}};
+    // Walk Reload Animation //
+    setupSprite("WALK_RELOAD");
+    _sprite* walk_reload_sprite = getSprite("WALK_RELOAD");
+    if (walk_reload_sprite) {
+        walk_reload_sprite->initSprite("images/player/Walk_while_Reloading - NEW/Walk_while_reloading.png", 8, 8, sprite_direction::LEFT,12); // No natural direction due to top down
+    
+        walk_reload_sprite->createSpriteAction(sprite_action("WALK_RELOAD_N",3,0,7));
+        walk_reload_sprite->createSpriteAction(sprite_action("WALK_RELOAD_NE",4,0,7));
+        walk_reload_sprite->createSpriteAction(sprite_action("WALK_RELOAD_E",6,0,7));
+        walk_reload_sprite->createSpriteAction(sprite_action("WALK_RELOAD_SE",5,0,7));
+        walk_reload_sprite->createSpriteAction(sprite_action("WALK_RELOAD_S",0,0,7));
+        walk_reload_sprite->createSpriteAction(sprite_action("WALK_RELOAD_SW",1,0,7));
+        walk_reload_sprite->createSpriteAction(sprite_action("WALK_RELOAD_W",7,0,7));
+        walk_reload_sprite->createSpriteAction(sprite_action("WALK_RELOAD_NW",2,0,7));
+        walk_reload_sprite->offsetPoint = {0.0f, 8.0f};
+    }
+
+    animationTable[PLAYER_ACTION_WALK_RELOAD][PLAYER_FACE_N] = {"WALK_RELOAD","WALK_RELOAD_N",{0,3}};
+    animationTable[PLAYER_ACTION_WALK_RELOAD][PLAYER_FACE_NE] = {"WALK_RELOAD","WALK_RELOAD_NE",{0,4}};
+    animationTable[PLAYER_ACTION_WALK_RELOAD][PLAYER_FACE_E] = {"WALK_RELOAD","WALK_RELOAD_E",{0,6}};
+    animationTable[PLAYER_ACTION_WALK_RELOAD][PLAYER_FACE_SE] = {"WALK_RELOAD","WALK_RELOAD_SE",{0,5}};
+    animationTable[PLAYER_ACTION_WALK_RELOAD][PLAYER_FACE_S] = {"WALK_RELOAD","WALK_RELOAD_S",{0,0}};
+    animationTable[PLAYER_ACTION_WALK_RELOAD][PLAYER_FACE_SW] = {"WALK_RELOAD","WALK_RELOAD_SW",{0,1}};
+    animationTable[PLAYER_ACTION_WALK_RELOAD][PLAYER_FACE_W] = {"WALK_RELOAD","WALK_RELOAD_W",{0,7}};
+    animationTable[PLAYER_ACTION_WALK_RELOAD][PLAYER_FACE_NW] = {"WALK_RELOAD","WALK_RELOAD_NW",{0,2}};
+
 }
 
 void _player::updatePlayer(double dt) {
+
+    // Damage Event //
     if (playerTookDamage) {
         bloodParticles->spawnEffect(pos,player_hit_effect);
         playerTookDamage = false;
     }
     bloodParticles->updateParticleManger(dt);
+    
+    // Death Event //
     if (inDeathAnimation) {
         deathTimeElapsed += dt;
+    }
+
+    // Reload Event //
+    if (reloading) {
+        reloadTimeElapsed += dt;
+        if (reloadTimeElapsed >= reloadSpeed) {
+            // reload finished //
+            cout << "Player reload finished\n";
+            
+            int numBulletsToApply = 0;  // How many bullets to put INTO the mag
+            int numBulletRemaining = reserveLevel - magCapacity; // How many bullets remain in reserve after reload
+            if (numBulletRemaining < 0) {
+                // Negative means reserve is less than mag capacity, we add the remainder
+                reserveLevel = 0;
+                numBulletsToApply = magCapacity + numBulletRemaining; // num bullet remaining is negative so it takes away bullets
+            } else {
+                // Excess bullets in reserve
+                reserveLevel-=magCapacity;
+                numBulletsToApply = magCapacity;
+            }
+            magLevel = numBulletsToApply;
+
+            reloadTimeElapsed = 0.0;
+            reloading = false;
+        }
+    }
+
+    // Shoot Event //
+    if (isShooting) {
+        if (magLevel <= 0) {
+            // Empty mag
+            isShooting = false;
+        } else {
+            // Has ammo
+            shootTimeElapsed += dt;
+            if (shootTimeElapsed > 1 / (fireRate / 60)) {
+                // Bullet fired
+                shootTimeElapsed = 0.0;
+                magLevel--;
+            }
+        }
     }
 }
 
@@ -343,6 +440,17 @@ void _player::importSerializedPlayer(const player_serial_data &player_data) {
     spawnPos.y = player_data.spawnPosY;
     movementSpeed = player_data.movementSpeed;
     numDeaths = player_data.numDeaths;
+}
+
+void _player::procReload() {
+    if (reloading) return; // Early return on reloading for call saftey
+    if (reserveLevel <= 0 || magLevel == magCapacity) return; // Early return, no bullets to reload or mag is full
+    cout << "Reload event started\n";
+    reloading = true;
+}
+
+bool _player::isReloading() const {
+    return reloading;
 }
 
 // -- PRIVATE -- //

@@ -116,6 +116,12 @@ void _scene::initScene(bool loadWorld)
     hud->addHudText("PLAYER_HEALTH");
     hud->getHudText("PLAYER_HEALTH")->setFont(GLUT_BITMAP_HELVETICA_18);
 
+    hud->addHudText("PLAYER_AMMO");
+    hud->getHudText("PLAYER_AMMO")->setFont(GLUT_BITMAP_HELVETICA_18);
+
+    hud->addHudText("PLAYER_RESERVE");
+    hud->getHudText("PLAYER_RESERVE")->setFont(GLUT_BITMAP_HELVETICA_18);
+
     hud->addHudSprite("PROGRESS_BAR");
     hud->getHudSprite("PROGRESS_BAR")->getSprite()->initSprite("images/progress_bar.png", 5, 1, sprite_direction::RIGHT);
     hud->getHudSprite("PROGRESS_BAR")->getSprite()->scale = {1.5f, 1.5f};
@@ -215,6 +221,13 @@ void _scene::initScene(bool loadWorld)
     orc_config.detectionRadius = 200.0f;
 
     if(!loadWorld) {
+        player->fireRate = 400.0f;
+        player->magCapacity = 30;
+        player->magLevel = 30;
+        player->reserveCapacity = 200;
+        player->reserveLevel = 200;
+        player->reloadSpeed = 2.5f;
+
         player->setHealth(200.0f);
         player->setMaxHealth(200.0f);
         
@@ -572,9 +585,12 @@ void _scene::reSize(GLint width, GLint height)
     // These should be moved to main at some point
     _hud::setHudViewportDimensions(width, height);
 
+
+    // This needs to be cleaned up eventually //
     float offset = 40.0f;
     float spacing = 20.0f;
 
+    // Set hud positions
     if (hud->getHudText("FPS"))
         hud->getHudText("FPS")->position = {20.0f, height - offset};
     if (hud->getHudText("FPS"))
@@ -613,8 +629,10 @@ void _scene::reSize(GLint width, GLint height)
         offset += spacing;
     if (hud->getHudText("PLAYER_HEALTH"))
         hud->getHudText("PLAYER_HEALTH")->position = {20.0f, 0 + 40.0f};
-    if (hud->getHudText("PLAYER_HEALTH"))
-        offset += spacing;
+    if (hud->getHudText("PLAYER_RESERVE"))
+        hud->getHudText("PLAYER_RESERVE")->position = {20.0f, 0 + 80.0f};
+    if (hud->getHudText("PLAYER_AMMO"))
+        hud->getHudText("PLAYER_AMMO")->position = {20.0f, 0 + 120.0f};
     if (hud->getHudSprite("PROGRESS_BAR"))
         hud->getHudSprite("PROGRESS_BAR")->position = {width / 2.0, 100.0f};
 
@@ -878,6 +896,7 @@ void _scene::updateScene(double dt, bool *keysArray)
         }
     }
 
+    // Player walk action //
     if (player->isMoving && !player->isDead())
     {
         // Walking
@@ -919,6 +938,7 @@ void _scene::updateScene(double dt, bool *keysArray)
         }
     }
 
+    // Player Shoot Action //
     if (SPACE && !player->isDead())
     {
         if (fireRateTimer.getSeconds() > 1.0f / (player->fireRate / 60.0f))
@@ -943,6 +963,7 @@ void _scene::updateScene(double dt, bool *keysArray)
         }
     }
 
+    // Player Dead Action //
     if (player->isDead())
     {
         if (!playerDeathSfxFired)
@@ -955,6 +976,20 @@ void _scene::updateScene(double dt, bool *keysArray)
     else
     {
         playerDeathSfxFired = false; // Reset so a future respawn retriggers the SFX on next death
+    }
+
+    if (player->isReloading()) {
+        player->setAnimationFPS(8.0f / player->reloadSpeed);
+        
+        if (player->isMoving) {
+            // Walk reload
+            action = PLAYER_ACTION_WALK_RELOAD;
+        } else {
+            // Idle reload
+            action = PLAYER_ACTION_IDLE_RELOAD;
+        }
+    } else {
+        player->setAnimationFPS(12);
     }
 
     player->setAction(action, face);
@@ -1003,6 +1038,8 @@ void _scene::updateScene(double dt, bool *keysArray)
     hud->getHudText("MOUSE_WORLD")->setText("Mouse World Coords: " + mouseWorldPos.toString());
     hud->getHudText("MOUSE_NORMAL")->setText("Mouse Normal Coords: " + mouseNormalPos.toString());
     hud->getHudText("PLAYER_HEALTH")->setText("HP: " + to_string(player->getHealth()));
+    hud->getHudText("PLAYER_AMMO")->setText("Ammo: " + to_string(player->magLevel) + " / " + to_string(player->magCapacity));
+    hud->getHudText("PLAYER_RESERVE")->setText("Reserve: " + to_string(player->reserveLevel) + " / " + to_string(player->reserveCapacity));
     // const _tile* tile = myWorld->getTileAtWorld(player->pos);
 
     const _tile *tile = myWorld->getTileAtWorld(Vec2f(mouseWorldPos.x, mouseWorldPos.y));
@@ -1066,6 +1103,9 @@ void _scene::keyboardHandler(WPARAM wParam)
             enemyManager->addEnemy(mouseWorldPos, orc_config);
             break;
         case ' ': // SPACE
+            break;
+        case 82: // R
+            player->procReload();
             break;
         case 221: // "]"
             debugEnabled = !debugEnabled;

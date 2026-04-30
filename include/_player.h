@@ -46,9 +46,11 @@ enum player_action {
     PLAYER_ACTION_WALK,
     PLAYER_ACTION_WALK_GUN,
     PLAYER_ACTION_WALK_SHOOT,
+    PLAYER_ACTION_WALK_RELOAD,
     PLAYER_ACTION_IDLE,
     PLAYER_ACTION_IDLE_GUN,
     PLAYER_ACTION_IDLE_SHOOT,
+    PLAYER_ACTION_IDLE_RELOAD,
     PLAYER_ACTION_DEATH_GUN,
     // KEEP AT BACK //
     PLAYER_ACTION_COUNT 
@@ -92,11 +94,24 @@ class _player : public _unit {
         // Imports a serialized data package of the player for import
         void importSerializedPlayer(const player_serial_data &player_data);
 
+        // Applies reload event to the player, safe to apply constantly as the state doesnt change
+        void procReload();
+
+        // Returns true if player is activley reloading
+        bool isReloading() const;
+
         // Player Variables //
-        float fireRate = 400.0f; // RPM
         float respawnTime = 5.0f; // Seconds to respawn.
         float movementSpeed = 120.0f; // World units / second
         int numDeaths = 0;  // Number of times player has died
+        
+        // Weapon Variables //
+        float fireRate;          // RPM
+        int magCapacity;         // Maximum bullets in magazine
+        int magLevel;            // Current bullets in magazine
+        int reserveCapacity;     // Maximum bullets in reserve             
+        int reserveLevel;        // Current bullets in reserve
+        float reloadSpeed;       // How fast weapon reloads (in seconds)
 
         bool isMoving = false;      // Is player actively moving
         bool hasGun = false;        // Does player have gun equipped
@@ -112,6 +127,12 @@ class _player : public _unit {
     protected:
     private:
         int FPS = 12;
+
+        bool reloading = false;
+        double reloadTimeElapsed = 0.0;
+
+        double shootTimeElapsed = 0.0;
+
         struct PlayerAnimationResult {
             string sprite = ""; // Which sprite
             string action = ""; // Which action (direction facing)

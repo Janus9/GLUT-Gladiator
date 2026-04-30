@@ -29,7 +29,7 @@ void _sprite::initSprite(const string &fileName, int _framesX, int _framesY, con
     pixelsX = texture->width / framesX; 
     pixelsY = texture->height / framesY; 
 
-    cout << "Initialized a sprite for " << fileName << " Pixel Dim: (" << pixelsX << "px, " << pixelsY << "px)\n";
+    // cout << "Initialized a sprite for " << fileName << " Pixel Dim: (" << pixelsX << "px, " << pixelsY << "px)\n";
 
     // Pixel draw stop is an index so sub 1
     pixelDrawStop = pixelsY-1;
