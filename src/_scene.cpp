@@ -1218,8 +1218,8 @@ void _scene::applyCamera()
         cameraY = player->pos.y;
     }
 
-    float renderCameraX = floor(cameraX);
-    float renderCameraY = floor(cameraY);
+    float renderCameraX = cameraX;
+    float renderCameraY = cameraY;
 
     float halfWidth = width * 0.5f / cameraZoom;   // Adjust half-width based on zoom level
     float halfHeight = height * 0.5f / cameraZoom; // Adjust half-height based on zoom level
