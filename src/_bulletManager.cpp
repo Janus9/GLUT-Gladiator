@@ -8,12 +8,18 @@ float _bulletManager::right = 0.0f;
 float _bulletManager::top = 0.0f;
 float _bulletManager::bottom = 0.0f;
 
+glm::mat4 _bulletManager::viewProjectionMatrix;
+
 void _bulletManager::setViewportDimensions(float _left, float _right, float _top, float _bottom) {
     left = _left;
     right = _right;
     top = _top;
     bottom = _bottom;
 }    
+
+void _bulletManager::setViewProjectionMatrix(const glm::mat4 &_viewProjectionMatrix) {
+    viewProjectionMatrix = _viewProjectionMatrix;
+}
 
 // -- PUBLIC -- //
 
@@ -66,6 +72,7 @@ void _bulletManager::initBulletManager(const string &fileName, _world* currentWo
     
     // Uniforms
     u_dimensions = glGetUniformLocation(program,"u_dimensions");
+    u_viewProjectionMatrix = glGetUniformLocation(program,"u_viewProjectionMatrix");
     u_texture = glGetUniformLocation(program,"u_texture");
 
     bulletDrops->initParticleManager("images/bullet_casing.png",1000);
@@ -113,6 +120,7 @@ void _bulletManager::drawBulletManager() {
 
     // Setup uniforms
     glUniform4f(u_dimensions,left,right,top,bottom);
+    glUniformMatrix4fv(u_viewProjectionMatrix, 1, GL_FALSE, glm::value_ptr(viewProjectionMatrix));
     glUniform1i(u_texture, 0); // Uses texture slot not ID thus its 0
 
     glBindVertexArray(vaoID);

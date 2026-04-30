@@ -10,6 +10,10 @@
 #include <_player.h>
 #include <_sounds.h>
 
+#include <glm/glm.hpp>                      // Core library
+#include <glm/gtc/matrix_transform.hpp>     // Matrix ops like transform, scale, ortho, etc
+#include <glm/gtc/type_ptr.hpp>             // Send GLM datatypes (matrix) to GPU
+
 class _enemyManager;
 
 /**
@@ -88,6 +92,9 @@ class _bulletManager {
          * @param _bottom Window bottom bound from scene
          */
         static void setViewportDimensions(float _left, float _right, float _top, float _bottom);    
+
+        // Sets the view projection matrix
+        static void setViewProjectionMatrix(const glm::mat4 &_viewProjectionMatrix);
     protected:
     private:
         _player* player = nullptr;                  // Pointer to player instance instantiated in scene (non-owning)
@@ -135,6 +142,7 @@ class _bulletManager {
         
         GLint u_dimensions = -1;
         GLint u_texture = -1;
+        GLint u_viewProjectionMatrix = -1;
 
         void buildVbo(); // Builds the VBO
         void buildEbo(); // Builds the EBO (only done once)
@@ -145,6 +153,8 @@ class _bulletManager {
         static float right;
         static float top;
         static float bottom;
+
+        static glm::mat4 viewProjectionMatrix;
         
         // Rng machine
         mt19937 rng;

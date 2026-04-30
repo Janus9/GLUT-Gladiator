@@ -25,6 +25,11 @@
 #include<_enemyManager.h>
 #include<_fob.h>
 
+// Matrix math for shaders //
+#include <glm/glm.hpp>                      // Core library
+#include <glm/gtc/matrix_transform.hpp>     // Matrix ops like transform, scale, ortho, etc
+#include <glm/gtc/type_ptr.hpp>             // Send GLM datatypes (matrix) to GPU
+
 class _scene
 {
     public:
@@ -184,6 +189,11 @@ class _scene
         // Rng machine
         uint32_t seed; 
         mt19937 rng;
+
+        // GML Matrix //
+        glm::mat4 sceneProjectionMatrix;
+        glm::mat4 sceneViewMatix;
+        glm::mat4 sceneViewProjectionMatrix;
 };
 
 #endif // _SCENE_H

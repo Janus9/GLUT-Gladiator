@@ -1231,6 +1231,16 @@ void _scene::applyCamera()
 
     _bulletManager::setViewportDimensions(left, right, top, bottom);
 
+    // GLM Matrix Building //
+
+    sceneProjectionMatrix = glm::ortho(left,right,bottom,top);  // Mirrors glOrtho
+    sceneViewMatix = glm::mat4(1.0f); // Identity (view is baked into projection for now)
+    sceneViewProjectionMatrix = sceneProjectionMatrix * sceneViewMatix;
+
+    _bulletManager::setViewProjectionMatrix(sceneViewProjectionMatrix);
+
+    // Legacy Matrix Building //
+
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
 
