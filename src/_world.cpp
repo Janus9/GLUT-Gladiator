@@ -3,7 +3,7 @@
 // -- CELL -- // 
 
 bool _cell::setOutline(bool state) {
-    if (!this || !parentChunk) return false;
+if (!this || !parentChunk) return false;
     outlined = state;
     parentChunk->vboDirty = true;
     return true;
@@ -17,7 +17,6 @@ bool _cell::impluseHealth(float amount) {
     health += amount;
     if (health <= 0) {
         health = 0; // Bound health to 0
-        alive = false;
         return true;
     }
     return false;
@@ -33,7 +32,7 @@ float _cell::getHealth() const {
 }
 
 bool _cell::isAlive() const {
-    return alive;
+    return health > 0.0f;
 }
 
 // -- CHUNK -- //
@@ -60,6 +59,64 @@ bool _chunk::setTileIdAt(TileId id, int index) {
     return true;
 }
 
+const _cell* _chunk::getAllCells() const {
+    return cellData;
+}
+
+const TileId* _chunk::getAllTileIds() const {
+    return tileData;
+}
+
+void _chunk::setAllCells(const _cell* cells) {
+    if (!cells) return;
+    memcpy(cellData,cells,256 * sizeof(_cell));
+    vboDirty = true;
+}
+
+void _chunk::setAllTiles(const TileId* tiles) {
+    if (!tiles) return;
+    memcpy(tileData,tiles,256 * sizeof(TileId));
+
+    // Set all cell IDs to match
+    _cell cellData[256];
+    for (int i = 0; i < 256; i++) {
+        cellData[i].tileId = tiles[i];
+    }
+    setAllCells(cellData);
+    vboDirty = true;
+}
+
+chunk_serial_data _chunk::serializeChunk() const {
+    chunk_serial_data chunk_data;
+    chunk_data.chunkX = chunkX;
+    chunk_data.chunkY = chunkY;
+    for (int i = 0; i < 256; i++) {
+        const _cell* cell = &cellData[i]; 
+        chunk_data.cell_data[i].tileID = cell->tileId;
+        chunk_data.cell_data[i].outlined = static_cast<uint8_t>(cell->isOutlined());
+        chunk_data.cell_data[i].padding = 0;   // Padding, does nothing.
+        chunk_data.cell_data[i].health = cell->getHealth();
+    }
+    return chunk_data;
+}
+
+void _chunk::loadSerializedChunk(const chunk_serial_data &chunk_data) {
+    chunkX = chunk_data.chunkX;
+    chunkY = chunk_data.chunkY;
+    for (int i = 0; i < 256; i++) {
+        // Serialized Data //
+        tileData[i] = static_cast<TileId>(chunk_data.cell_data[i].tileID);
+        cellData[i].tileId = static_cast<TileId>(chunk_data.cell_data[i].tileID);
+        cellData[i].setOutline(static_cast<bool>(chunk_data.cell_data[i].outlined));
+        cellData[i].setHealth(chunk_data.cell_data[i].health);
+
+        // Non Serialized Data //
+        // Handled by VBO setup -- should be changed later
+        vboDirty = true;
+    }
+}
+
+
 // -- WORLD -- //
 
 _world::_world()
@@ -80,17 +137,20 @@ _world::~_world()
     cellParticles = nullptr;
 }
 
-void _world::initWorld()
+void _world::initWorld(bool loadWorld)
 {
+    if (worldInitialized) {
+        cout << "WARNING: World has already been initialized, skipping\n";
+        return;
+    }
+
     initBenchmark->startBenchmark();
 
-    Logger.LogInfo("Initializing world for seed " + to_string(seed), LOG_BOTH);
+    // Logger.LogInfo("Initializing world for seed " + to_string(seed), LOG_BOTH);
     Logger.LogInfo("World has " + to_string(numStartingChunks) + " starting chunks.", LOG_BOTH);
 
     tileAtlas->loadTexture("images/set_1.png"); // Load the tile atlas texture
     // Reserve allocates memory but does not instantiate it -- resize allocates AND instantiates it (dont want that)
-    worldChunks.reserve(numStartingChunks); // Resize the vector to hold numStartingChunks chunks
-    world_noise.resize(numStartingChunks*256);  // 256 tiles per chunk
 
     initTiles(); // Setup tiles
     
@@ -100,8 +160,10 @@ void _world::initWorld()
         Logger.LogWarning("numStartingChunks is not a perfect square. This may lead to an uneven distribution of chunks around the center.", LOG_BOTH);
     }
 
-    // Initialize world tiles and chunks here
-    runWorldGeneration(generation_iterations); 
+    // Only run generation when we dont load the world  
+    if (!loadWorld) {
+        runWorldGeneration(generation_iterations); 
+    }
 
     // PARTICLE EFFECTS //
 
@@ -149,6 +211,7 @@ void _world::initWorld()
     initBenchmark->clickBenchmark();
     double time = initBenchmark->getAverageResult();
 
+    worldInitialized = true;
     Logger.LogInfo("World initialization for " + to_string(worldChunks.size()) + "chunks took " + to_string(time) + "ms");
 }
 
@@ -797,10 +860,52 @@ bool _world::damageCell(_cell* cell, float amount) {
     }
 }
 
+vector<chunk_serial_data> _world::exportSerializeWorld() const {
+    vector<chunk_serial_data> world_data;
+    for (int i = 0; i < numStartingChunks; i++) {
+        const _chunk* chunk = &worldChunks[i];
+        world_data.push_back(chunk->serializeChunk());
+    }
+    return world_data;
+}
+
+void _world::importSerializeWorld(vector<chunk_serial_data> world_data) {
+    for (int i = 0; i < world_data.size(); i++) {
+        // Build chunk
+        worldChunks.reserve(numStartingChunks);
+        worldChunks.emplace_back();
+        _chunk* chunk = &worldChunks.back();
+        chunk->loadSerializedChunk(world_data[i]);
+
+        int chunkX = world_data[i].chunkX;
+        int chunkY = world_data[i].chunkY;
+
+        loadedChunks[{chunkX, chunkY}] = true;
+        chunkLookup[{chunkX, chunkY}] = chunk;
+    }
+}
+
+
+void _world::setSeed(uint32_t _seed) {
+    seed = _seed;
+}
+
+// -- PRIVATE -- //
+
 void _world::runWorldGeneration(int iterations) {
+    worldChunks.reserve(numStartingChunks); // Resize the vector to hold numStartingChunks chunks
+    
+    // Setup seed + rng engine 
+    seed = std::chrono::system_clock::now().time_since_epoch().count(); 
+    rng = mt19937(seed);
+
+    // Setup world_noise
+    world_noise.resize(numStartingChunks*256);  // 256 tiles per chunk
+    
     Logger.LogInfo("Running world generation for parameters: ");
     Logger.LogInfo(" - Noise Density: " + to_string(noise_distribution*100.0f) + "%");
     Logger.LogInfo(" - Generation Iterations: " + to_string(iterations));
+    Logger.LogInfo(" - Seed: " + to_string(seed));
 
     uniform_real_distribution<float> dist(0.0f,1.0f);
     
@@ -856,6 +961,9 @@ void _world::runWorldGeneration(int iterations) {
     postProcessWorld();
     Logger.LogDebug("Post processing completed! Finalizing world now ...");
     finalizeWorld();
+
+    // Clean up data once world gen is done since no longer used
+    world_noise.clear();
 }
 
 void _world::mapCellNeighbors(_cell* cell, _cell* outNeighbors[9]) {

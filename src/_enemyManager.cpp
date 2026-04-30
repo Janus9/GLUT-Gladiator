@@ -22,21 +22,23 @@ void _enemy::updateEnemy(double dt) {
 
 }
 
-void _enemy::initEnemy(enemy_type type) {
+void _enemy::initEnemy(const enemy_config &config) {
 
-    switch (type) {
+    switch (config.type) {
         // -- DEFAULT TURRET -- //
         case ENEMY_TURRET: {
             // Data Setup //
-            setMaxHealth(75.0f);
+            setMaxHealth(config.maxHP);
             resetHealth();
 
-            fireRate = 300.0f;
-            slewRate = 90.0f;
+            fireRate = config.fireRate;
+            slewRate = config.slewRate;
 
-            detectionRadius = 256.0f;
+            detectionRadius = config.detectionRadius;
 
-            eType = type;
+            eType = config.type;
+            team = config.team;
+
             // Sprite Setup //
             setupSprite("MAIN");
             _sprite* main_sprite = getSprite("MAIN");
@@ -57,15 +59,17 @@ void _enemy::initEnemy(enemy_type type) {
         // -- GATLING TURRET -- //
         case ENEMY_GATLING: {
             // Data Setup //
-            setMaxHealth(400.0f);
+            setMaxHealth(config.maxHP);
             resetHealth();
 
-            fireRate = 2000.0f;
-            slewRate = 45.0f;
-            
-            detectionRadius = 400.0f;
+            fireRate = config.fireRate;
+            slewRate = config.slewRate;
 
-            eType = type;
+            detectionRadius = config.detectionRadius;
+
+            eType = config.type;
+            team = config.team;
+
             // Sprite Setup //
             setupSprite("BASE");
             _sprite* base_sprite = getSprite("BASE");
@@ -90,6 +94,20 @@ void _enemy::initEnemy(enemy_type type) {
             break;
         }
     }
+}
+
+enemy_serial_data _enemy::serializeEnemy() const {
+    enemy_serial_data enemy_data;
+    enemy_data.type = static_cast<uint8_t>(eType);
+    enemy_data.team = static_cast<uint8_t>(team);
+    enemy_data.maxHP = getMaxHealth();
+    enemy_data.fireRate = fireRate;
+    enemy_data.slewRate = slewRate;
+    enemy_data.detectionRadius = detectionRadius;
+    enemy_data.posX = pos.x;
+    enemy_data.posY = pos.y;
+    enemy_data.padding = 0; // Padding doesnt do anything
+    return enemy_data;
 }
 
 bool _enemy::operator==(const _enemy &other) const {
@@ -268,19 +286,50 @@ void _enemyManager::drawEnemies() {
     particleManager->drawParticleManager();
 }
 
-void _enemyManager::addEnemy(const Vec2f &_pos, enemy_type type) {
+void _enemyManager::addEnemy(const Vec2f &_pos, const enemy_config &config) {
     unique_ptr<_enemy> newEnemy;
-    if (type == ENEMY_ORC) {
+    if (config.type == ENEMY_ORC) {
         unique_ptr<_orc> orc = make_unique<_orc>();
         orc->initOrc();
         newEnemy = move(orc);
     } else {
         newEnemy = make_unique<_enemy>();
-        newEnemy->initEnemy(type);
+        newEnemy->initEnemy(config);
     }
     newEnemy->pos = _pos;
     enemyList.push_back(move(newEnemy));
 }
+
+vector<enemy_serial_data> _enemyManager::exportSerializedEnemies() const {
+    vector<enemy_serial_data> enemy_data;
+    for (int i = 0; i < enemyList.size(); i++) {
+        const _enemy* enemy = enemyList[i].get();
+        if (enemy->inDeathAnimation || enemy->isDead()) continue; // Skip dead enemies
+        enemy_data.push_back(enemy->serializeEnemy());
+    }
+    return enemy_data;
+}
+
+bool _enemyManager::importSerializedEnemies(const vector<enemy_serial_data> &enemy_data) {
+    if (enemy_data.empty()) {
+        cout << "ERROR: Cannot import enemies as the data is empty\n";
+        return false;
+    }
+    enemyList.reserve(enemy_data.size());
+    enemy_config tempConfig; // This config is modified and fed repeatably for adding enemies
+    for (int i = 0; i < enemy_data.size(); i++) {
+        tempConfig.type = static_cast<enemy_type>(enemy_data[i].type);
+        tempConfig.team = static_cast<_team>(enemy_data[i].team);
+        tempConfig.maxHP = enemy_data[i].maxHP;
+        tempConfig.fireRate = enemy_data[i].fireRate;
+        tempConfig.slewRate = enemy_data[i].slewRate;
+        tempConfig.detectionRadius = enemy_data[i].detectionRadius;
+
+        addEnemy({enemy_data[i].posX,enemy_data[i].posY},tempConfig);
+    }
+    return true;
+}
+
 
 _enemy* _enemyManager::isColliding(const Vec2f &pos, float registerDistance) const {
     for (int i = 0; i < enemyList.size(); i++) {

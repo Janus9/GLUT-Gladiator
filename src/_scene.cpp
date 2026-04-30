@@ -60,8 +60,18 @@ GLint _scene::initGL()
     return true;
 }
 
-void _scene::initScene()
+void _scene::initScene(bool loadWorld)
 {
+    if (sceneInitialized) {
+        cout << "WARNING: Scene already initialized, skipping\n";
+        return;
+    }
+    // -- RNG SETUP -- //    
+    if (!loadWorld) {
+        seed = std::chrono::system_clock::now().time_since_epoch().count(); 
+        rng = mt19937(seed);
+    }
+
     // -- CLASS INIT -- //
 
     cout << "Running Scene Class Initialization ... \n";
@@ -114,7 +124,7 @@ void _scene::initScene()
     hud->getHudSprite("PROGRESS_BAR")->getSprite()->setIdleFrame(0, 0);
 
     myLight->setLight(GL_LIGHT0); // The light onto the object from the pointer is set to be the instantiated light from before
-    myWorld->initWorld();         // Initialize the world
+    myWorld->initWorld(loadWorld);         // Initialize the world
 
     debugTimer.reset();
 
@@ -145,7 +155,11 @@ void _scene::initScene()
     // sh->initShader("shaders/V.vs","shaders/F.fs");
     // glUseProgram(sh->program);
 
+
+    // -- BULLETS -- //
     bulletManager->initBulletManager("images/test_bullet.png", myWorld, player.get(), enemyManager.get(), soundManager);
+    
+    // Player //
     player_bullet.amount = 1;
     player_bullet.speed = 512.0f;
     player_bullet.width = 15.0f;
@@ -155,6 +169,7 @@ void _scene::initScene()
     player_bullet.penetration = 0.0f;
     player_bullet.damage = 15.0f;
 
+    // Default Turret //
     turret_bullet.amount = 1;
     turret_bullet.speed = 400.0f;
     turret_bullet.width = 20.0f;
@@ -164,6 +179,7 @@ void _scene::initScene()
     turret_bullet.penetration = 50;
     turret_bullet.damage = 20.0f;
 
+    // Gatling Turret //
     gatling_bullet.amount = 1;
     gatling_bullet.speed = 400.0f;
     gatling_bullet.width = 12.0f;
@@ -173,93 +189,356 @@ void _scene::initScene()
     gatling_bullet.penetration = 0;
     gatling_bullet.damage = 5.0f;
 
-    player->setHealth(200.0f);
-    player->setMaxHealth(200.0f);
+    // -- ENEMY CONFIGS -- //
+    // Default Turret //
+    default_turret_config.type = ENEMY_TURRET;
+    default_turret_config.team = _team::ENEMY;
+    default_turret_config.maxHP = 75.0f;
+    default_turret_config.fireRate = 300.0f;
+    default_turret_config.slewRate = 90.0f;
+    default_turret_config.detectionRadius = 256.0f;
 
+    // Gatling Turret //
+    gatling_turret_config.type = ENEMY_GATLING;
+    gatling_turret_config.team = _team::ENEMY;
+    gatling_turret_config.maxHP = 400.0f;
+    gatling_turret_config.fireRate = 1500.0f;
+    gatling_turret_config.slewRate = 50.0f;
+    gatling_turret_config.detectionRadius = 400.0f;
+
+    // Orc //
+    orc_config.type = ENEMY_ORC;
+    orc_config.team = _team::ENEMY;
+    orc_config.maxHP = 100.0f;
+    orc_config.fireRate = 0.0f; // Not needed
+    orc_config.slewRate = 0.0f; // Not needed
+    orc_config.detectionRadius = 200.0f;
+
+    if(!loadWorld) {
+        player->setHealth(200.0f);
+        player->setMaxHealth(200.0f);
+        
+        /**
+         * World is 128 x 128 chunks (32,768 x 32,768 world units)
+         * Player spawns in bounds: -15,000 to -12,000 AND 12,000 to 15,000 
+         * 
+         */
+    
+        // Find spawn 
+        const float numChunks = NUM_CHUNKS;
+        // Total chunk area to length/width * num tiles * 16 units per tile / 2 since 0,0 is center
+        float bounds = sqrt(numChunks) * 16 * 16 * 0.5;
+        uniform_real_distribution<float> player_pos_neg_dist(-1.0f,1.0f);           // Coin flip for positive vs negative side
+        uniform_real_distribution<float> player_pos_dist_neg(-15000.0f,-12000.0f);  // Distribution for negative side
+        uniform_real_distribution<float> player_pos_dist_pos(12000.0f,15000.0f);    // Distribution for positive side
+        bool lookingForSpawn = true;
+        while (lookingForSpawn)
+        {
+            // Assign X //
+            if (player_pos_neg_dist(rng) > 0.0f) {
+                spawnPos.x = player_pos_dist_pos(rng);
+            } else {
+                spawnPos.x = player_pos_dist_neg(rng);
+            }
+    
+            // Assign Y //
+            if (player_pos_neg_dist(rng) > 0.0f) {
+                spawnPos.y = player_pos_dist_pos(rng);
+            } else {
+                spawnPos.y = player_pos_dist_neg(rng);
+            }
+    
+            _cell *spawnCell = myWorld->getCellAtWorld(spawnPos);
+            if (spawnCell && myWorld->isCellWall(spawnCell))
+            {
+                // Is a wall, retry
+                continue;
+            }
+            player->pos = spawnPos;
+            lookingForSpawn = false;
+        }
+        player->spawnPos = spawnPos;
+    }
+
+    // Dont spawn enemies when world is loaded
+    if (!loadWorld) {
+        // Spawn default turrets //
+        uniform_real_distribution<float> turret_pos_dist(-14000, 14000);
+        for (int i = 0; i < 400; i++)
+        {
+            bool lookingForTurretSpawn = true;
+            while (lookingForTurretSpawn)
+            {
+                Vec2f spawnTurretPos = {turret_pos_dist(rng), turret_pos_dist(rng)};
+                _cell *spawnTurretCell = myWorld->getCellAtWorld(spawnTurretPos);
+                if (spawnTurretCell && myWorld->isCellWall(spawnTurretCell))
+                {
+                    // Is a wall, retry
+                    continue;
+                }
+                enemyManager->addEnemy(spawnTurretPos,default_turret_config);
+                lookingForTurretSpawn = false;
+            }
+        }
+    
+        // Spawn gatling turrets //
+        uniform_real_distribution<float> gatling_pos_dist(-8000, 8000);
+        for (int i = 0; i < 75; i++)
+        {
+            bool lookingForGatlingSpawn = true;
+            while (lookingForGatlingSpawn)
+            {
+                Vec2f spawnGatlingPos = {gatling_pos_dist(rng), gatling_pos_dist(rng)};
+                _cell *spawnGatlingCell = myWorld->getCellAtWorld(spawnGatlingPos);
+                if (spawnGatlingCell && myWorld->isCellWall(spawnGatlingCell))
+                {
+                    // Is a wall, retry
+                    continue;
+                }
+                enemyManager->addEnemy(spawnGatlingPos,gatling_turret_config);
+                lookingForGatlingSpawn = false;
+            }
+        }
+    }    
+
+    sceneInitialized = true;
+}
+
+bool _scene::saveSceneToFile(const string &fileName) {
+    cout << "Exporting game to save file: " << fileName << ".gg_world\n";
+    ofstream file(fileName + ".gg_world", ios::binary);     // Output as binary file
+    if (!file) {
+        cerr << "ERROR: Cannot create output file for: " << fileName << "\n";
+        return false;
+    }
+    // Header Data Write //
+
+    const char header[2] = {'G','G'};   // Header ("GG")
+    file.write(header,2);
     /**
-     * World is 128 x 128 chunks (32,768 x 32,768 world units)
-     * Player spawns in bounds: -15,000 to -12,000 AND 12,000 to 15,000
-     *
+     * write() requires a const char* input for the data to write. 
+     * We use reinterpret_cast because it tells the compiler to "pretend" its raw bytes and not whatever datatype it is.
+     * unlike other casts, this does NOT change the data, only how its interpreted.
+     * This cast is safe with primative data types but NOT with others (structs, classes etc) 
+     * 
+     * We pass with & because we want the memory address
      */
+    file.write(reinterpret_cast<const char*>(&seed),sizeof(seed));  // Seed
 
-    // Find spawn
-    const float numChunks = NUM_CHUNKS;
-    // Total chunk area to length/width * num tiles * 16 units per tile / 2 since 0,0 is center
-    float bounds = sqrt(numChunks) * 16 * 16 * 0.5;
-    uniform_real_distribution<float> player_pos_neg_dist(-1.0f, 1.0f);          // Coin flip for positive vs negative side
-    uniform_real_distribution<float> player_pos_dist_neg(-15000.0f, -12000.0f); // Distribution for negative side
-    uniform_real_distribution<float> player_pos_dist_pos(12000.0f, 15000.0f);   // Distribution for positive side
-    bool lookingForSpawn = true;
-    while (lookingForSpawn)
-    {
-        // Assign X //
-        if (player_pos_neg_dist(rng) > 0.0f)
-        {
-            spawnPos.x = player_pos_dist_pos(rng);
-        }
-        else
-        {
-            spawnPos.x = player_pos_dist_neg(rng);
-        }
+    auto now = chrono::system_clock::now();
+    auto duration = now.time_since_epoch(); 
+    const uint64_t seconds = chrono::duration_cast<chrono::seconds>(duration).count();
+    file.write(reinterpret_cast<const char*>(&seconds),sizeof(seconds)); // Time Stamp    
 
-        // Assign Y //
-        if (player_pos_neg_dist(rng) > 0.0f)
-        {
-            spawnPos.y = player_pos_dist_pos(rng);
-        }
-        else
-        {
-            spawnPos.y = player_pos_dist_neg(rng);
-        }
+    const uint32_t version_id = WORLD_SAVE_VERSION;
+    file.write(reinterpret_cast<const char*>(&version_id),sizeof(version_id));  // Version ID
+    const float game_id = GAME_VERSION;
+    file.write(reinterpret_cast<const char*>(&game_id),sizeof(game_id));  // Game Version
+    const int numStartingChunks = NUM_CHUNKS;
+    file.write(reinterpret_cast<const char*>(&numStartingChunks),sizeof(numStartingChunks)); // Chunk Count
 
-        _cell *spawnCell = myWorld->getCellAtWorld(spawnPos);
-        if (spawnCell && myWorld->isCellWall(spawnCell))
-        {
-            // Is a wall, retry
-            continue;
-        }
-        player->pos = spawnPos;
-        lookingForSpawn = false;
-    }
-    player->spawnPos = spawnPos;
+    // Chunk Data Write //
+    
+    const char data_header[4] = {'W','R','L','D'};
+    file.write(data_header,4); // Chunk Data Header ("WRLD")
 
-    // Spawn default turrets //
-    uniform_real_distribution<float> turret_pos_dist(-14000, 14000);
-    for (int i = 0; i < 400; i++)
-    {
-        bool lookingForTurretSpawn = true;
-        while (lookingForTurretSpawn)
-        {
-            Vec2f spawnTurretPos = {turret_pos_dist(rng), turret_pos_dist(rng)};
-            _cell *spawnTurretCell = myWorld->getCellAtWorld(spawnTurretPos);
-            if (spawnTurretCell && myWorld->isCellWall(spawnTurretCell))
-            {
-                // Is a wall, retry
-                continue;
-            }
-            enemyManager->addEnemy(spawnTurretPos, ENEMY_TURRET);
-            lookingForTurretSpawn = false;
+    vector<chunk_serial_data> world_data = myWorld->exportSerializeWorld();
+    if (!world_data.empty()) {
+        cout << "Writing world data:\n"
+             << " - Number of chunks: " << world_data.size() << "\n"
+             << " - Size of world: " << world_data.size() * sizeof(chunk_serial_data) << " bytes\n";
+        // This writes the contents of the entire vector to file
+        file.write(reinterpret_cast<const char*>(world_data.data()), world_data.size() * sizeof(chunk_serial_data));
+
+        if (!file) {
+            cout << "ERROR: Save failed to write the world data\n";
+            return false;
         }
+    } else {
+        cout << "ERROR: Size of world data is 0\n";
     }
 
-    // Spawn gatling turrets //
-    uniform_real_distribution<float> gatling_pos_dist(-8000, 8000);
-    for (int i = 0; i < 75; i++)
-    {
-        bool lookingForGatlingSpawn = true;
-        while (lookingForGatlingSpawn)
-        {
-            Vec2f spawnGatlingPos = {gatling_pos_dist(rng), gatling_pos_dist(rng)};
-            _cell *spawnGatlingCell = myWorld->getCellAtWorld(spawnGatlingPos);
-            if (spawnGatlingCell && myWorld->isCellWall(spawnGatlingCell))
-            {
-                // Is a wall, retry
-                continue;
-            }
-            enemyManager->addEnemy(spawnGatlingPos, ENEMY_GATLING);
-            lookingForGatlingSpawn = false;
-        }
+    // Enemy Data Write //
+
+    vector<enemy_serial_data> enemy_data = enemyManager->exportSerializedEnemies();
+    if (enemy_data.empty()) {
+        cout << "ERROR: Enemy data is empty\n";
+        return false;
     }
+
+    cout << "Writing enemy data:\n"
+         << " - Number of enemies: " << enemy_data.size() << "\n"
+         << " - Size of enemies: " << enemy_data.size() * sizeof(enemy_serial_data) << " bytes\n";
+
+    const char enemy_header[4] = {'E','N','M','Y'};
+    file.write(enemy_header,4); // Enemy Data Header ("ENMY")
+
+    const uint32_t number_enemies = static_cast<uint32_t>(enemy_data.size());
+    file.write(reinterpret_cast<const char*>(&number_enemies),sizeof(number_enemies)); // Enemy Count
+
+    file.write(reinterpret_cast<const char*>(enemy_data.data()), enemy_data.size() * sizeof(enemy_serial_data)); // Enemy Data
+    if (!file) {
+        cout << "ERROR: Save failed to write the enemy data\n";
+        return false;
+    }
+
+    // Player Data Write //
+
+    cout << "Writing player data:\n"
+         << " - Size of player: " << sizeof(player_serial_data) << " bytes\n";
+
+    const char player_header[4] = {'P','L','Y','R'};
+    file.write(player_header,4); // Player Data Header ("PLYR")
+
+    player_serial_data player_data = player->exportSerializedPlayer();
+    file.write(reinterpret_cast<const char*>(&player_data), sizeof(player_data));
+
+    if (!file) {
+        cout << "ERROR: Save failed to write the player data\n";
+        return false;
+    }
+
+    cout << "Finished game saving!\n"
+         << "Save Size: " << file.tellp() << " bytes\n";
+
+    return true;
+}
+
+bool _scene::loadSceneFromFile(const string &fileName) {
+    cout << "Starting game import from: " << fileName + ".gg_world\n";
+
+    ifstream file(fileName + ".gg_world", ios::binary);
+    if (!file) {
+        cerr << "ERROR: Cannot open file: " << fileName << "\n";
+        return false;
+    }
+
+    char header[2];
+    file.read(header,2);
+    if (header[0] != 'G' || header[1] != 'G') {
+        cout << "ERROR: Invalid file header\n";
+        return false;
+    }
+
+    uint32_t save_seed = 0;
+    file.read(reinterpret_cast<char*>(&save_seed), sizeof(save_seed));      // Seed
+    seed = save_seed;
+    rng = mt19937(seed);    // Set rng engine to seed
+
+    uint64_t time_stamp = 0;
+    file.read(reinterpret_cast<char*>(&time_stamp), sizeof(time_stamp));    // Time Stamp
+
+    uint32_t version_id = 0;
+    file.read(reinterpret_cast<char*>(&version_id), sizeof(version_id));    // Version ID
+    if (version_id != WORLD_SAVE_VERSION) {
+        cout << "WARNING: World file version of " << version_id << " does not match current version of "
+             << WORLD_SAVE_VERSION << " continuing with load but may fail\n";
+    }    
+
+    float game_id = 0;
+    file.read(reinterpret_cast<char*>(&game_id), sizeof(game_id));    // Version ID
+    if (game_id < GAME_VERSION) {
+        cout << "WARNING: Game file version of " << game_id << " does not match loaded version of the game "
+             << WORLD_SAVE_VERSION << " continuing with load but may fail\n";
+    }  
+
+    int32_t chunk_count = 0;
+    file.read(reinterpret_cast<char*>(&chunk_count), sizeof(chunk_count));  // Chunk Count
+    const int numStartingChunks = NUM_CHUNKS;
+    if (chunk_count != numStartingChunks) {
+        cout << "ERROR: Chunk Count of save " << fileName << " for " << chunk_count << "does not match count of " << numStartingChunks << "\n";
+        return false;
+    }
+
+    // Read Chunk Data //
+    
+    char data_header[4];
+    file.read(data_header,4);    // Chunk Data Header
+    if (data_header[0] != 'W' || data_header[1] != 'R' || data_header[2] != 'L' || data_header[3] != 'D') {
+        cout << "ERROR: Invalid chunk data header\n";
+        return false;
+    }
+
+    vector<chunk_serial_data> world_data;
+    world_data.resize(chunk_count);
+    file.read(reinterpret_cast<char*>(world_data.data()), world_data.size() * sizeof(chunk_serial_data));
+
+    if (!file) {
+        cout << "ERROR: Unable to read chunk data\n";
+        return false;
+    }
+
+    if (world_data.empty()) {
+        cout << "ERROR: World data read is empty\n";
+        return false;
+    }
+
+    cout << "Read world data:\n"
+         << " - Number of chunks: " << world_data.size() << "\n"
+         << " - Size of world: " << world_data.size() * sizeof(chunk_serial_data) << " bytes\n";
+
+    myWorld->importSerializeWorld(world_data);
+
+    // Read Enemy Data //
+
+    char enemy_header[4];
+    file.read(enemy_header,4);    // Enemy Data Header
+    if (enemy_header[0] != 'E' || enemy_header[1] != 'N' || enemy_header[2] != 'M' || enemy_header[3] != 'Y') {
+        cout << "ERROR: Invalid enemy data header\n";
+        return false;
+    }
+
+    uint32_t enemy_count = 0;
+    file.read(reinterpret_cast<char*>(&enemy_count), sizeof(enemy_count));  // Enemy Count
+
+    cout << "Enemie count read: " << enemy_count << "\n";
+
+    if (enemy_count == 0) {
+        cout << "WARNING: Enemy count is 0\n";
+    }
+
+    vector<enemy_serial_data> enemy_data;
+    enemy_data.resize(enemy_count);
+    file.read(reinterpret_cast<char*>(enemy_data.data()), enemy_data.size() * sizeof(enemy_serial_data));
+
+    enemyManager->importSerializedEnemies(enemy_data);
+
+    if (!file) {
+        cout << "ERROR: Unable to read chunk data\n";
+        return false;
+    }
+
+    if (enemy_data.empty()) {
+        cout << "ERROR: Enemy data read is empty\n";
+        return false;
+    }
+
+    cout << "Read enemy data:\n"
+         << " - Number of enemies: " << enemy_data.size() << "\n"
+         << " - Size of enemies: " << enemy_data.size() * sizeof(enemy_serial_data) << " bytes\n";
+
+    // Read Player Data //
+
+    char player_header[4];
+    file.read(player_header,4);    // Enemy Data Header
+    if (player_header[0] != 'P' || player_header[1] != 'L' || player_header[2] != 'Y' || player_header[3] != 'R') {
+        cout << "ERROR: Invalid player data header\n";
+        return false;
+    }
+
+    player_serial_data player_data;
+    file.read(reinterpret_cast<char*>(&player_data),sizeof(player_data));
+
+    player->importSerializedPlayer(player_data);
+
+    cout << "Read player data:\n"
+         << " - Size of player: " << sizeof(player_data) << " bytes\n";
+
+
+    cout << "Finished game import from: " << fileName + ".gg_world\n"
+         << " - Save Size: " << file.tellg() << " bytes\n";
+
+    return true;
 }
 
 void _scene::reSize(GLint width, GLint height)
@@ -755,13 +1034,13 @@ void _scene::keyboardHandler(WPARAM wParam)
         case 192: // "~"
             break;
         case 49: // "1"
-            enemyManager->addEnemy(mouseWorldPos, ENEMY_TURRET);
+            enemyManager->addEnemy(mouseWorldPos, default_turret_config);
             break;
         case 50: // "2"
-            enemyManager->addEnemy(mouseWorldPos, ENEMY_GATLING);
+            enemyManager->addEnemy(mouseWorldPos, gatling_turret_config);
             break;
         case 51: // "3"
-            enemyManager->addEnemy(mouseWorldPos, ENEMY_ORC);
+            enemyManager->addEnemy(mouseWorldPos, orc_config);
             break;
         case ' ': // SPACE
             break;
@@ -858,6 +1137,12 @@ int _scene::winMsg(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     return 0;
 }
+
+bool _scene::isInitialized() const {
+    return sceneInitialized;
+}
+
+// -- PRIVATE -- //
 
 void _scene::applyCamera()
 {

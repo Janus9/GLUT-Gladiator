@@ -5,6 +5,28 @@
 #include <_unit.h>
 #include <_particleManager.h>
 
+struct player_serial_data {
+    uint8_t team;
+
+    float maxHP;
+    float currentHP;
+
+    float posX;
+    float posY;
+
+    float fireRate;
+    float respawnTime;
+
+    float spawnPosX;
+    float spawnPosY;
+
+    float movementSpeed;
+    int32_t numDeaths;
+
+    uint8_t padding1;
+    uint16_t padding2;
+};
+
 enum player_face {
     PLAYER_FACE_NULL,
     PLAYER_FACE_N,
@@ -64,9 +86,17 @@ class _player : public _unit {
         // Wrapper to handle player death animation and actions
         void handlePlayerDeath(player_face face);
 
+        // Exports a serialized data package of the player for export
+        player_serial_data exportSerializedPlayer() const;
+
+        // Imports a serialized data package of the player for import
+        void importSerializedPlayer(const player_serial_data &player_data);
+
         // Player Variables //
         float fireRate = 400.0f; // RPM
         float respawnTime = 5.0f; // Seconds to respawn.
+        float movementSpeed = 120.0f; // World units / second
+        int numDeaths = 0;  // Number of times player has died
 
         bool isMoving = false;      // Is player actively moving
         bool hasGun = false;        // Does player have gun equipped

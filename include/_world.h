@@ -27,6 +27,25 @@
 class _chunk; // Forward declaration for cell
 
 /**
+ * This is for serializing data for world saving. It stores cell/tile data of a chunk.
+ */
+struct cell_serial_data {         // Offset 
+    uint8_t tileID;               // 1 byte
+    uint8_t outlined;             // 2 bytes
+    uint16_t padding;             // 4 bytes (Do not change)   
+    float health;                 // 8 bytes
+};
+
+/**
+ * This is for serializing data for world saving. It stores chunk data and contains the cell data (see below).
+ */
+struct chunk_serial_data {
+    int32_t chunkX;
+    int32_t chunkY;
+    cell_serial_data cell_data[256];
+};
+
+/**
  * Enum mapped to TileId number as an unsigned 8 bit int. 
  * Naming goes: TILE_[TYPE]_[SUBTYPE]_[VARIANT]
  */
@@ -105,7 +124,6 @@ class _cell
         bool isAlive() const;
     protected:
     private:
-        bool alive = true;
         bool outlined = false;
         float health = 100.0f;
 };
@@ -182,6 +200,21 @@ class _chunk
          */
         bool setTileIdAt(TileId id, int index);
 
+        // Returns all 256 cells stored in the chunk as an array (readonly)
+        const _cell* getAllCells() const;
+
+        // Returns all 256 tiles stored in the chunk as an array (readonly)
+        const TileId* getAllTileIds() const;
+
+        // Sets all 256 cells to the array passed in
+        void setAllCells(const _cell* cells);
+
+        // Sets all 256 tiles to the array passed in
+        void setAllTiles(const TileId* tiles);
+
+        chunk_serial_data serializeChunk() const;
+
+        void loadSerializedChunk(const chunk_serial_data &chunk_data);
     protected:
     private:
         TileId tileData[256];  // 16x16 chunk
@@ -194,8 +227,12 @@ class _world
         _world();
         virtual ~_world();
         
-        // Initializes the world by loading tile textures and generating the initial chunks.
-        void initWorld();
+        /**
+         * Initializes the world by loading tile textures and generating the initial chunks.
+         * 
+         * @param loadWorld If true world is loaded and NOT generated
+         */
+        void initWorld(bool loadWorld);
 
         // Draw function for world
         void drawWorld(float left, float right, float top, float bottom);
@@ -306,19 +343,30 @@ class _world
          */
         bool damageCell(_cell* cell, float amount);
 
+        // -- World Saving -- //
+        
+        // Returns a vector of serialized chunk data for export
+        vector<chunk_serial_data> exportSerializeWorld() const;
+
+        // Reads a vector of serialized chunk data for import
+        void importSerializeWorld(vector<chunk_serial_data> world_data);
+
+        // Sets the seed for the world generation
+        void setSeed(uint32_t _seed);
+
         bool DEBUG_displayChunkBorders = false; // When enabled puts a red border around chunks
     protected:
     private:
+        bool worldInitialized = false;
+
         // -- PARTICLE MANAGER -- //
         _particleManager* cellParticles = new _particleManager();
         particle_effect wall_break_effect;
         particle_effect wall_damage_effect;
 
         // -- RNG -- //
-
-        // Using a current time for the seed is chose because the normal std::random_device doesnt work for some reason
-        const int seed = (unsigned int)std::chrono::system_clock::now().time_since_epoch().count(); 
-        std::mt19937 rng{seed}; 
+        uint32_t seed; 
+        mt19937 rng; 
 
         // -- WORLD DATA -- //
 

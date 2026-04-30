@@ -8,11 +8,51 @@
 #include <_particleManager.h>
 #include <_sounds.h>
 
-enum enemy_type {
+enum enemy_type : uint8_t {
     ENEMY_TURRET,
     ENEMY_GATLING,
     ENEMY_ORC
 };
+
+/**
+ * This is for serializing data for world saving. It stores enemy data.
+ * 
+ * MODIFY LATER TO SAVE ACTUAL ENEMY HEALTH
+ */
+struct enemy_serial_data {
+    uint8_t type;
+    uint8_t team;
+    float maxHP;
+    float fireRate;
+    float slewRate;
+    float detectionRadius;
+
+    float posX;
+    float posY;
+
+    uint16_t padding;   // For keeping divisible by 4
+};
+
+/**
+ * Configuration for creating an enemy
+ * 
+ * @param type Type of enemy to spawn 
+ * @param team Team for the enemy 
+ * @param maxHP Maximum (and current hp on spawn) enemy has
+ * @param fireRate How fast the enemy shoots
+ * @param slewRate How fast the enemy rotates to face player
+ * @param detectionRadius How far away enemy detects player
+ */
+struct enemy_config {
+    enemy_type type;
+    _team team;
+    
+    float maxHP;
+    float fireRate;
+    float slewRate;
+    float detectionRadius;
+};
+
 
 class _enemy : public _unit {
     public:
@@ -27,12 +67,15 @@ class _enemy : public _unit {
         void updateEnemy(double dt);
 
         // Initialization function for animations/sprites/textures etc
-        void initEnemy(enemy_type type);
+        void initEnemy(const enemy_config &config);
 
         // Hook fired by _bulletManager after impulseDamage. Subclasses override
         // to react (e.g. _orc plays HURT animation). Default is no-op.
         virtual void notifyDamaged(_sounds* sounds) {}
 
+        // Returns a serialized struct of the enemy
+        enemy_serial_data serializeEnemy() const;
+  
         bool operator==(const _enemy &other) const;
         
         float fireRate = 0.0;               // In rounds per minute
@@ -68,7 +111,19 @@ class _enemyManager {
         void drawEnemies();
 
         // Adds a single enemy (only 1 type for now)
-        void addEnemy(const Vec2f &_pos, enemy_type type);
+        void addEnemy(const Vec2f &_pos, const enemy_config &config);
+
+        // Returns a vector of all the serialized enemies for saving
+        vector<enemy_serial_data> exportSerializedEnemies() const;
+        
+        /**
+         * Reads a vector of serialized enemy data for import
+         * 
+         * @param enemy_data Vector of enemy data
+         * 
+         * @return True if operation was successful
+         */
+        bool importSerializedEnemies(const vector<enemy_serial_data> &enemy_data);
 
         /**
          * Checks if any enemy instance is colliding with the provided position

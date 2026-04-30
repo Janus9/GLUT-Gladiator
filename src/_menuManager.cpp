@@ -19,10 +19,11 @@ _menuManager::_menuManager() {
 _menuManager::~_menuManager() {
 }
 
-void _menuManager::initMenuManager(_sounds* sharedSounds) {
+void _menuManager::initMenuManager(_sounds* sharedSounds, _scene* _scene) {
     cout << "Initializing the menu manager ...\n";
 
     sounds = sharedSounds;
+    scene = _scene;
 
     //  -- Landing --  //
     menuList[MENU_LANDING].initMenu(MENU_LANDING);
@@ -57,13 +58,13 @@ void _menuManager::initMenuManager(_sounds* sharedSounds) {
         MENU_NULL
     });
     menuList[MENU_HOME].addMenuObject({
-        "images/menu/start_button.png",
+        "images/menu/play_button.png",
         {0.2f, 0.2f},
         {0.5f, 0.2f},
         true,
         "home_start_button",
         MENU_HOME,
-        MENU_GAME
+        MENU_SAVES
     });
     menuList[MENU_HOME].addMenuObject({
         "images/menu/help_button.png",
@@ -82,6 +83,46 @@ void _menuManager::initMenuManager(_sounds* sharedSounds) {
         "home_landing_button",
         MENU_HOME,
         MENU_LANDING
+    });
+
+    // -- Saves -- //
+    menuList[MENU_SAVES].initMenu(MENU_SAVES);
+    menuList[MENU_SAVES].addMenuObject({
+        "images/menu/landing_page.png",
+        {1.0f, 1.0f},
+        {0.5f, 0.5f},
+        false,
+        "saves_bg",
+        MENU_SAVES,
+        MENU_NULL
+    });
+    menuList[MENU_SAVES].addMenuObject({
+        "images/menu/generate_button.png",
+        {0.2f, 0.2f},
+        {0.35f, 0.2f},
+        true,
+        "saves_generate_button",
+        MENU_SAVES,
+        MENU_NULL
+    });
+    menuList[MENU_SAVES].addMenuObject({
+        "images/menu/load_button.png",
+        {0.2f, 0.2f},
+        {0.65f, 0.2f},
+        true,
+        "saves_load_button",
+        MENU_SAVES,
+        MENU_NULL
+    });
+
+    menuList[MENU_SAVES].addMenuObject({
+        "images/menu/start_button.png",
+        {0.2f, 0.2f},
+        {0.5f, 0.5f},
+        true,
+        "saves_start_button",
+        MENU_SAVES,
+        MENU_GAME
     });
 
     // -- Help -- //
@@ -125,7 +166,6 @@ void _menuManager::initMenuManager(_sounds* sharedSounds) {
         MENU_PAUSE,
         MENU_GAME
     });
-
     menuList[MENU_PAUSE].addMenuObject({
         "images/menu/menu_button.png",
         {0.2f, 0.2f},
@@ -134,6 +174,15 @@ void _menuManager::initMenuManager(_sounds* sharedSounds) {
         "pause_menu_button",
         MENU_PAUSE,
         MENU_HOME
+    });
+    menuList[MENU_PAUSE].addMenuObject({
+        "images/menu/save_button.png",
+        {0.2f, 0.2f},
+        {0.5f, 0.5f},
+        true,
+        "pause_save_button",
+        MENU_PAUSE,
+        MENU_NULL
     });
 }
 
@@ -148,10 +197,37 @@ void _menuManager::updateMenuManager(double dt, const Vec2f &mousePos, bool mous
     menu->updateMenu(dt,mousePos,mouseClicked,sounds);
     if (menu->redirectTo != MENU_NULL) {
         if (menu->redirectTo == MENU_GAME) {
+            if (!scene->isInitialized()) return; // Scene must be initialized if were trying to load the game
             loadGame = true;
         }
         loadMenu(menu->redirectTo);     // Load menu
         menu->redirectTo = MENU_NULL;   // Reset menu redirection state
+    }
+
+    if (menu->generateWorldEvent) {
+        cout << "Generate World Event!\n";
+        menu->generateWorldEvent = false;
+        // Dont load world as it gets generated
+        scene->initScene(false);            // Setup scene to generate world
+    }
+    
+    if (menu->loadWorldEvent) {
+        cout << "Load World Event!\n";
+        menu->loadWorldEvent = false;
+        if (!scene->loadSceneFromFile("saves/game")) {
+            cout << "ERROR: Save failed to load correctly\n";
+            return;
+        }
+        scene->initScene(true);             // Setup scene to load world
+    }
+
+    if (menu->saveGameEvent) {
+        cout << "Save Game Event!\n";
+        menu->saveGameEvent = false;
+        if (!scene->saveSceneToFile("saves/game")) {
+            cout << "ERROR: Failed to save game correctly\n";
+            return;
+        }
     }
 }
 
@@ -422,6 +498,13 @@ void _menuManager::_menu::updateMenu(double dt, const Vec2f &mousePos, bool mous
         }
         if (menuObject->getMouseState() && mouseClicked && timeSinceRedirect > 0.5) {
             cout << "Mouse clicked on ID: " << menuObject->getID() << "\n";
+            if (menuObject->getID() == "saves_generate_button") {
+                generateWorldEvent = true;
+            } else if (menuObject->getID() == "saves_load_button") {
+                loadWorldEvent = true;
+            } else if (menuObject->getID() == "pause_save_button") {
+                saveGameEvent = true;
+            }
             if (sounds) sounds->playSfx("MENU_CLICK");
             redirectTo = menuObject->getDestination();
             timeSinceRedirect = 0.0;

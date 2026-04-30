@@ -10,7 +10,6 @@ _player::~_player() {
 
 void _player::initPlayer() {
     scale = {0.8f, 0.8f};
-    pos = {0.0f, 0.0f}; // Start player in the center of the screen
 
     // AABB used by enemies (e.g. _orc) to prevent overlap and decide melee contact.
     setCollisionBox({18.0f, 24.0f});
@@ -309,6 +308,41 @@ void _player::handlePlayerDeath(player_face face) {
             sprite->playAction(s_action);
         }
     }
+}
+
+player_serial_data _player::exportSerializedPlayer() const {
+    player_serial_data player_data;
+
+    player_data.team = static_cast<uint8_t>(team);
+    player_data.maxHP = getMaxHealth();
+    player_data.currentHP = getHealth();
+    player_data.posX = pos.x;
+    player_data.posY = pos.y;
+    player_data.fireRate = fireRate;
+    player_data.respawnTime = respawnTime;
+    player_data.spawnPosX = spawnPos.x;
+    player_data.spawnPosY = spawnPos.y;
+    player_data.movementSpeed = movementSpeed;
+    player_data.numDeaths = numDeaths;
+    // Padding -- doesnt do anything
+    player_data.padding1 = 0;
+    player_data.padding2 = 0;
+
+    return player_data;
+}
+
+void _player::importSerializedPlayer(const player_serial_data &player_data) {
+    team = static_cast<_team>(player_data.team);
+    setMaxHealth(player_data.maxHP);
+    setHealth(player_data.currentHP);
+    pos.x = player_data.posX;
+    pos.y = player_data.posY;
+    fireRate = player_data.fireRate;
+    respawnTime = player_data.respawnTime;
+    spawnPos.x = player_data.spawnPosX;
+    spawnPos.y = player_data.spawnPosY;
+    movementSpeed = player_data.movementSpeed;
+    numDeaths = player_data.numDeaths;
 }
 
 // -- PRIVATE -- //

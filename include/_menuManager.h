@@ -5,6 +5,7 @@
 #include <_texture.h>
 #include <_shader.h>
 #include <_sounds.h>
+#include <_scene.h>
 
 // Math library for matrices and vectors etc -- https://github.com/g-truc/glm
 #include <glm/glm.hpp>
@@ -18,6 +19,7 @@ enum menu_type {
     MENU_HOME,
     MENU_HELP,
     MENU_PAUSE,
+    MENU_SAVES,
     MENU_COUNT // DO NOT MOVE -- KEEP AT BACK
 };
 
@@ -55,7 +57,7 @@ class _menuManager {
          *
          * @param sounds Shared sound engine used for MENU_HOVER / MENU_CLICK SFX. Non-owning; may be nullptr to disable audio.
          */
-        void initMenuManager(_sounds* sounds);
+        void initMenuManager(_sounds* sounds, _scene* _scene);
 
         // Draw function -- Loads selected menu (or none if inMenu false)
         void drawMenuManager();
@@ -87,8 +89,6 @@ class _menuManager {
          *  - Position
          *  - Size
          *  - Texture
-         *  
-         * Handles events for mouse hover/click etc TODO
          */
         class _menuObject {
             public:
@@ -187,6 +187,10 @@ class _menuManager {
                 void updateMenu(double dt, const Vec2f &mousePos, bool mouseClicked, _sounds* sounds);
                 
                 menu_type redirectTo = MENU_NULL;   // If not null will redirect on next update by menuManager
+
+                bool generateWorldEvent = false;
+                bool loadWorldEvent = false;
+                bool saveGameEvent = false;
             protected:
             private:
                 vector<unique_ptr<_menuObject>> menuObjects;
@@ -200,6 +204,7 @@ class _menuManager {
         menu_type selectedMenu = MENU_LANDING;
 
         _sounds* sounds = nullptr; // Non-owning; provided by main via initMenuManager
+        _scene* scene = nullptr; // Non-owning; provided by main via initMenuManager
 
         Vec2f mouseScreenClipPosition;
 

@@ -27,7 +27,6 @@
 class _scene
 {
     public:
-
         _scene();
         virtual ~_scene();
 
@@ -35,7 +34,21 @@ class _scene
         GLint initGL(); 
 
         // Initialization of scene objects
-        void initScene();
+        void initScene(bool loadWorld);
+
+        /**
+         * Runs a save command to save the world/player/enemies etc to a save file specified
+         *
+         * @return True if operation succeeded
+         */
+        bool saveSceneToFile(const string &fileName);
+
+        /**
+         * Runs a load command to load the world/player/enemies etc from a save file specified
+         * 
+         * @return True if operation succeeded
+         */
+        bool loadSceneFromFile(const string &fileName);
 
         // Inject the shared sound engine (owned by main). Must be called before initScene().
         void setSounds(_sounds* sounds);
@@ -51,9 +64,12 @@ class _scene
         // Handles input messsages send from windows -- used for controls etc
         int winMsg(HWND	hWnd, UINT uMsg, WPARAM	wParam, LPARAM lParam);
 
-        // CLASSES //
+        // Returns true if the scene is initialized and ready
+        bool isInitialized() const;
     protected:
     private:
+        bool sceneInitialized = false;
+
         // Window dimensions
         int width, height; 
 
@@ -79,6 +95,9 @@ class _scene
 
         // Enemies
         unique_ptr<_enemyManager> enemyManager = make_unique<_enemyManager>();
+        enemy_config default_turret_config;
+        enemy_config gatling_turret_config;
+        enemy_config orc_config;
         
         // Bullets (Projectiles)
         unique_ptr<_bulletManager> bulletManager = make_unique<_bulletManager>();
@@ -91,7 +110,6 @@ class _scene
         _lightSettings *myLight = new _lightSettings();     
         _model* myModel = new _model();
         _world* myWorld = new _world();
-        
 
         _unit* testUnit = new _unit();
 
@@ -160,6 +178,7 @@ class _scene
         int frameCount = 0;                 // Number of frames between FPS prints
 
         // Rng machine
+        uint32_t seed; 
         mt19937 rng;
 };
 
