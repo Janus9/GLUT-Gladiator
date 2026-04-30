@@ -15,6 +15,8 @@ enum enemy_type : uint8_t {
 
 /**
  * This is for serializing data for world saving. It stores enemy data.
+ * 
+ * MODIFY LATER TO SAVE ACTUAL ENEMY HEALTH
  */
 struct enemy_serial_data {
     uint8_t type;

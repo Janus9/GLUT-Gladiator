@@ -204,49 +204,51 @@ void _scene::initScene(bool loadWorld)
     gatling_turret_config.slewRate = 50.0f;
     gatling_turret_config.detectionRadius = 400.0f;
 
-    player->setHealth(200.0f);
-    player->setMaxHealth(200.0f);
-
-    /**
-     * World is 128 x 128 chunks (32,768 x 32,768 world units)
-     * Player spawns in bounds: -15,000 to -12,000 AND 12,000 to 15,000 
-     * 
-     */
-
-    // Find spawn 
-    const float numChunks = NUM_CHUNKS;
-    // Total chunk area to length/width * num tiles * 16 units per tile / 2 since 0,0 is center
-    float bounds = sqrt(numChunks) * 16 * 16 * 0.5;
-    uniform_real_distribution<float> player_pos_neg_dist(-1.0f,1.0f);           // Coin flip for positive vs negative side
-    uniform_real_distribution<float> player_pos_dist_neg(-15000.0f,-12000.0f);  // Distribution for negative side
-    uniform_real_distribution<float> player_pos_dist_pos(12000.0f,15000.0f);    // Distribution for positive side
-    bool lookingForSpawn = true;
-    while (lookingForSpawn)
-    {
-        // Assign X //
-        if (player_pos_neg_dist(rng) > 0.0f) {
-            spawnPos.x = player_pos_dist_pos(rng);
-        } else {
-            spawnPos.x = player_pos_dist_neg(rng);
-        }
-
-        // Assign Y //
-        if (player_pos_neg_dist(rng) > 0.0f) {
-            spawnPos.y = player_pos_dist_pos(rng);
-        } else {
-            spawnPos.y = player_pos_dist_neg(rng);
-        }
-
-        _cell *spawnCell = myWorld->getCellAtWorld(spawnPos);
-        if (spawnCell && myWorld->isCellWall(spawnCell))
+    if(!loadWorld) {
+        player->setHealth(200.0f);
+        player->setMaxHealth(200.0f);
+        
+        /**
+         * World is 128 x 128 chunks (32,768 x 32,768 world units)
+         * Player spawns in bounds: -15,000 to -12,000 AND 12,000 to 15,000 
+         * 
+         */
+    
+        // Find spawn 
+        const float numChunks = NUM_CHUNKS;
+        // Total chunk area to length/width * num tiles * 16 units per tile / 2 since 0,0 is center
+        float bounds = sqrt(numChunks) * 16 * 16 * 0.5;
+        uniform_real_distribution<float> player_pos_neg_dist(-1.0f,1.0f);           // Coin flip for positive vs negative side
+        uniform_real_distribution<float> player_pos_dist_neg(-15000.0f,-12000.0f);  // Distribution for negative side
+        uniform_real_distribution<float> player_pos_dist_pos(12000.0f,15000.0f);    // Distribution for positive side
+        bool lookingForSpawn = true;
+        while (lookingForSpawn)
         {
-            // Is a wall, retry
-            continue;
+            // Assign X //
+            if (player_pos_neg_dist(rng) > 0.0f) {
+                spawnPos.x = player_pos_dist_pos(rng);
+            } else {
+                spawnPos.x = player_pos_dist_neg(rng);
+            }
+    
+            // Assign Y //
+            if (player_pos_neg_dist(rng) > 0.0f) {
+                spawnPos.y = player_pos_dist_pos(rng);
+            } else {
+                spawnPos.y = player_pos_dist_neg(rng);
+            }
+    
+            _cell *spawnCell = myWorld->getCellAtWorld(spawnPos);
+            if (spawnCell && myWorld->isCellWall(spawnCell))
+            {
+                // Is a wall, retry
+                continue;
+            }
+            player->pos = spawnPos;
+            lookingForSpawn = false;
         }
-        player->pos = spawnPos;
-        lookingForSpawn = false;
+        player->spawnPos = spawnPos;
     }
-    player->spawnPos = spawnPos;
 
     // Dont spawn enemies when world is loaded
     if (!loadWorld) {
@@ -370,6 +372,22 @@ bool _scene::saveSceneToFile(const string &fileName) {
         return false;
     }
 
+    // Player Data Write //
+
+    cout << "Writing player data:\n"
+         << " - Size of player: " << sizeof(player_serial_data) << " bytes\n";
+
+    const char player_header[4] = {'P','L','Y','R'};
+    file.write(player_header,4); // Player Data Header ("PLYR")
+
+    player_serial_data player_data = player->exportSerializedPlayer();
+    file.write(reinterpret_cast<const char*>(&player_data), sizeof(player_data));
+
+    if (!file) {
+        cout << "ERROR: Save failed to write the player data\n";
+        return false;
+    }
+
     cout << "Finished game saving!\n"
          << "Save Size: " << file.tellp() << " bytes\n";
 
@@ -489,12 +507,29 @@ bool _scene::loadSceneFromFile(const string &fileName) {
          << " - Number of enemies: " << enemy_data.size() << "\n"
          << " - Size of enemies: " << enemy_data.size() * sizeof(enemy_serial_data) << " bytes\n";
 
+    // Read Player Data //
+
+    char player_header[4];
+    file.read(player_header,4);    // Enemy Data Header
+    if (player_header[0] != 'P' || player_header[1] != 'L' || player_header[2] != 'Y' || player_header[3] != 'R') {
+        cout << "ERROR: Invalid player data header\n";
+        return false;
+    }
+
+    player_serial_data player_data;
+    file.read(reinterpret_cast<char*>(&player_data),sizeof(player_data));
+
+    player->importSerializedPlayer(player_data);
+
+    cout << "Read player data:\n"
+         << " - Size of player: " << sizeof(player_data) << " bytes\n";
+
+
     cout << "Finished game import from: " << fileName + ".gg_world\n"
          << " - Save Size: " << file.tellg() << " bytes\n";
 
     return true;
 }
-
 
 void _scene::reSize(GLint width, GLint height)
 {
