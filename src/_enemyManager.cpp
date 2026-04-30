@@ -159,6 +159,8 @@ void _enemyManager::initEnemyManager(_player* currentPlayer, _world* currentWorl
     turret_death_effect.maxVelX = 12.0f;
     turret_death_effect.minVelY = 14.0f;
     turret_death_effect.maxVelY = 30.0f;
+    turret_death_effect.minRotation = -45.0f;
+    turret_death_effect.maxRotation = 45.0f;
 
     turret_death_effect.minRadius = 1.8f;
     turret_death_effect.maxRadius = 3.2f;

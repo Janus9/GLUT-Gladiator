@@ -1236,6 +1236,7 @@ void _scene::applyCamera()
     sceneViewProjectionMatrix = sceneProjectionMatrix * sceneViewMatix;
 
     _bulletManager::setViewProjectionMatrix(sceneViewProjectionMatrix);
+    _particleManager::setViewProjectionMatrix(sceneViewProjectionMatrix);
 
     // Legacy Matrix Building //
 

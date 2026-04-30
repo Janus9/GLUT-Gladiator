@@ -1,5 +1,13 @@
 #include <_particleManager.h>
 
+// -- STATIC MEMBERS -- //
+
+glm::mat4 _particleManager::viewProjectionMatrix;
+
+void _particleManager::setViewProjectionMatrix(const glm::mat4 &_viewProjectionMatrix) {
+    viewProjectionMatrix = _viewProjectionMatrix;
+}
+
 // -- PUBLIC -- //
 
 _particleManager::_particleManager() : rng(random_device{}()) {
@@ -15,6 +23,10 @@ _particleManager::~_particleManager() {
         glDeleteBuffers(1,&eboID); // tell the GPU to delete the index buffer
         eboID = 0;
     }
+    if (vaoID != 0) {
+        glDeleteVertexArrays(1,&vaoID); // tell the GPU to delete the array buffer
+        vaoID = 0;
+    }
 
     delete texture;
     texture = nullptr;
@@ -27,41 +39,54 @@ void _particleManager::initParticleManager(const string& fileName, int _maxParti
     maxParticles = _maxParticles;
     texture->loadTexture(fileName);
 
+    // -- SHADER SETUP -- //
+    particleShader.initShader("shaders/particle_manager/vertex.vs","shaders/particle_manager/fragment.fs");
+    uint32_t program = particleShader.getProgram();
+
+    // Uniforms
+    u_viewProjectionMatrix = glGetUniformLocation(program,"u_viewProjectionMatrix");
+    u_texture = glGetUniformLocation(program,"u_texture");
+
     glGenBuffers(1, &vboID); // Create a VBO buffer for particles
     glGenBuffers(1, &eboID); // Create a VBO buffer for particles
+    glGenVertexArrays(1, &vaoID);
 
     particles.resize(maxParticles); // Set particles up in vector
 
+    int maxSizeBytes = 7 * 4 * maxParticles * sizeof(float);
+
+    glBindBuffer(GL_ARRAY_BUFFER,vboID);
+    // This allocates memoery for the buffer but does NOT assign any data
+    glBufferData(GL_ARRAY_BUFFER,maxSizeBytes,nullptr,GL_DYNAMIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER,0);
+
     buildEBO();
+    buildVAO();
 }
 
 void _particleManager::drawParticleManager() {
     buildVBO();
+    
+    if (aliveParticles <= 0) return; // No particles skip update loop
+    
+    glUseProgram(particleShader.getProgram());
+    
     texture->bindTexture();
 
-    glColor3f(1.0f,1.0f,1.0f); // Reset color
+    // Setup uniforms
+    glUniformMatrix4fv(u_viewProjectionMatrix, 1, GL_FALSE, glm::value_ptr(viewProjectionMatrix));
+    glUniform1i(u_texture, 0); // Uses texture slot not ID thus its 0
 
-    glEnableClientState(GL_VERTEX_ARRAY);
-    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+    glBindVertexArray(vaoID);
+    glDrawElements(GL_TRIANGLES, aliveParticles * 6, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
 
-    glBindBuffer(GL_ARRAY_BUFFER, vboID);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboID);
-
-    glVertexPointer(2, GL_FLOAT, 4 * sizeof(float), (void*)0);
-    glTexCoordPointer(2, GL_FLOAT, 4 * sizeof(float), (void*)(2 * sizeof(float)));
-
-    glDrawElements(GL_TRIANGLES, numParticlesInUse * 6, GL_UNSIGNED_INT, (void*)0);
-    
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-    glDisableClientState(GL_VERTEX_ARRAY);
-    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-
-    // glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ZERO);
+    glUseProgram(0);
+  
 }
 
 void _particleManager::updateParticleManger(double dt) {
+    if (aliveParticles <= 0) return; // No particles skip update loop
     for (int i = 0; i < maxParticles; i++) {
         particle* p = &particles[i];
         
@@ -77,12 +102,15 @@ void _particleManager::updateParticleManger(double dt) {
 
         p->vel += p->acc * dt;
         p->pos += p->vel * dt;
+
+        p->angle += p->rotationSpeed * dt;
     }
 }
 
 void _particleManager::spawnEffect(const Vec2f &pos, const particle_effect &effect) {
     uniform_real_distribution<float> vel_x_dist(effect.minVelX, effect.maxVelX);
     uniform_real_distribution<float> vel_y_dist(effect.minVelY, effect.maxVelY);
+    uniform_real_distribution<float> rot_dist(effect.minRotation, effect.maxRotation);
 
     uniform_real_distribution<float> radius_dist(effect.minRadius, effect.maxRadius);
 
@@ -105,7 +133,8 @@ void _particleManager::spawnEffect(const Vec2f &pos, const particle_effect &effe
 
             p->vel.x = vel_x_dist(rng);
             p->vel.y = vel_y_dist(rng);
-            
+            p->rotationSpeed = rot_dist(rng);
+
             p->radius = radius_dist(rng);
             
             p->age = 0.0f;
@@ -127,42 +156,59 @@ void _particleManager::buildVBO() {
     float particleVboData[maxParticles * 4 * 2 * 2];
     int vIndex = 0;
     
-    numParticlesInUse = 0;
+    aliveParticles = 0;
     for (int i = 0; i < maxParticles; i++) {
         particle* p = &particles[i];
         if (!p->alive) continue; // Skips particles that are dead
 
-        float x = p->pos.x;
-        float y = p->pos.y;
-        float r = p->radius;
+        float angle = p->angle;
+
+        float centerX = p->pos.x;
+        float centerY = p->pos.y;
+
+        // Can change to width/height later
+        float halfWidth = p->radius * 0.5f;
+        float halfHeight = p->radius * 0.5f;
         
         // Vbo (Quad) //
         // Bottom-left (0)
-        particleVboData[vIndex++] = x; 
-        particleVboData[vIndex++] = y; 
+        particleVboData[vIndex++] = -halfWidth; 
+        particleVboData[vIndex++] = -halfHeight; 
         particleVboData[vIndex++] = 0.0f; 
         particleVboData[vIndex++] = 1.0f; 
+        particleVboData[vIndex++] = centerX; 
+        particleVboData[vIndex++] = centerY; 
+        particleVboData[vIndex++] = angle; 
         // Bottom-right (1)
-        particleVboData[vIndex++] = x + r; 
-        particleVboData[vIndex++] = y; 
+        particleVboData[vIndex++] = halfWidth; 
+        particleVboData[vIndex++] = -halfHeight; 
         particleVboData[vIndex++] = 1.0f; 
         particleVboData[vIndex++] = 1.0f; 
+        particleVboData[vIndex++] = centerX; 
+        particleVboData[vIndex++] = centerY; 
+        particleVboData[vIndex++] = angle; 
         // Top-right (2)
-        particleVboData[vIndex++] = x + r; 
-        particleVboData[vIndex++] = y + r; 
+        particleVboData[vIndex++] = halfWidth; 
+        particleVboData[vIndex++] = halfHeight; 
         particleVboData[vIndex++] = 1.0f; 
         particleVboData[vIndex++] = 0.0f; 
+        particleVboData[vIndex++] = centerX; 
+        particleVboData[vIndex++] = centerY; 
+        particleVboData[vIndex++] = angle; 
         // Top-left (3)
-        particleVboData[vIndex++] = x; 
-        particleVboData[vIndex++] = y + r; 
+        particleVboData[vIndex++] = -halfWidth; 
+        particleVboData[vIndex++] = halfHeight; 
         particleVboData[vIndex++] = 0.0f; 
         particleVboData[vIndex++] = 0.0f; 
+        particleVboData[vIndex++] = centerX; 
+        particleVboData[vIndex++] = centerY; 
+        particleVboData[vIndex++] = angle; 
 
-        numParticlesInUse++;
+        aliveParticles++;
     }
 
     glBindBuffer(GL_ARRAY_BUFFER, vboID);
-    glBufferData(GL_ARRAY_BUFFER, vIndex * sizeof(float), particleVboData, GL_DYNAMIC_DRAW); // We only send the particles that are alive
+    glBufferSubData(GL_ARRAY_BUFFER,0,vIndex * sizeof(float),particleVboData); // We only send the particles that are alive
     glBindBuffer(GL_ARRAY_BUFFER,0);
 }
 
@@ -194,4 +240,41 @@ void _particleManager::buildEBO() {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0);
 
     eboBuilt = true;
+}
+
+void _particleManager::buildVAO() {
+    // Bind the vertex array
+    glBindVertexArray(vaoID);
+    
+    // Bind the buffers (setup before attributes since they read from the VBO)
+    glBindBuffer(GL_ARRAY_BUFFER,vboID);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,eboID);
+
+    // Enable the attribute arrays (not setup with data yet, just enabled)
+    glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
+    glEnableVertexAttribArray(2);
+    glEnableVertexAttribArray(3);
+
+    GLsizei stride = 7 * sizeof(float);
+
+    /**
+     * void glVertexAttribPointer 	
+     * ---------------------------
+     * GLuint index          - Attribute to be modified (like a cache)
+     * GLint size            - Number of components in the attribute (ex/ vec2 is 2)
+  	 * GLenum type           - Type of data (ex/ float is GL_FLOAT)
+  	 * GLboolean normalized  - ??? just set to GL_FALSE
+  	 * GLsizei stride        - How much data per vertex (here its 7 floats so 7 * sizeof(float))
+  	 * const void * pointer  - Offset of data for first component to start at (ex/ localPos is 0 since its first in the VBO structure setup)
+     * 
+     */
+
+    // Setup a data array for the attributes (data is per vertex!)
+    glVertexAttribPointer(0,2,GL_FLOAT,GL_FALSE,stride,(void*)(0 * sizeof(float)));
+    glVertexAttribPointer(1,2,GL_FLOAT,GL_FALSE,stride,(void*)(2 * sizeof(float)));
+    glVertexAttribPointer(2,2,GL_FLOAT,GL_FALSE,stride,(void*)(4 * sizeof(float)));
+    glVertexAttribPointer(3,1,GL_FLOAT,GL_FALSE,stride,(void*)(6 * sizeof(float)));
+
+    glBindVertexArray(0);
 }

@@ -292,14 +292,14 @@ void _bulletManager::buildVbo() {
     }
 
     glBindBuffer(GL_ARRAY_BUFFER, vboID);
-    glBufferSubData(GL_ARRAY_BUFFER,0,vIndex * sizeof(float),bulletVboData); // We only send the particles that are alive
+    glBufferSubData(GL_ARRAY_BUFFER,0,vIndex * sizeof(float),bulletVboData); // We only send the bullets that are alive
     glBindBuffer(GL_ARRAY_BUFFER,0);
 }
 
 void _bulletManager::buildEbo() {
     /**
      * The ebo is what we actually use to build the object, it holds indicies TO the vbo. 
-     * However, it doesnt hold indicies to each variable (float) its to each vertex. Despite a quad being used for the particles,
+     * However, it doesnt hold indicies to each variable (float) its to each vertex. Despite a quad being used for the bullets,
      * we treat it as 2 triangles (quads are depricated in modern openGL), each triangle requires 3 verticies so 3*2 is 6 verticies per tile.
      */
     uint32_t particleEboData[MAX_BULLETS * 6];
