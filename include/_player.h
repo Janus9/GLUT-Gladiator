@@ -110,6 +110,7 @@ class _player : public _unit {
         float respawnTime = 5.0f; // Seconds to respawn.
         float movementSpeed = 120.0f; // World units / second
         int numDeaths = 0;  // Number of times player has died
+        Vec2f spawnPos = {0.0f, 0.0f};
         
         // Weapon Variables //
         float fireRate;          // RPM
@@ -128,8 +129,7 @@ class _player : public _unit {
    
         // Procedure Events (Fire when true) //
         bool playerTookDamage = false;
-
-        Vec2f spawnPos = {0.0f, 0.0f};
+        bool playerShootEvent = false;
     protected:
     private:
         int FPS = 12;

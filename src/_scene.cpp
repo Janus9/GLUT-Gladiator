@@ -828,7 +828,7 @@ void _scene::updateScene(double dt, bool *keysArray)
     bool D = keysPtr['D'];
     bool SPACE = keysPtr[VK_SPACE];
 
-    if (SPACE)
+    if (SPACE && player->magLevel > 0 && !player->isReloading())
     {
         player->isShooting = true;
     }
@@ -939,30 +939,25 @@ void _scene::updateScene(double dt, bool *keysArray)
     }
 
     // Player Shoot Action //
-    if (SPACE && !player->isDead())
+    if (player->playerShootEvent && !player->isDead())
     {
-        if (fireRateTimer.getSeconds() > 1.0f / (player->fireRate / 60.0f))
+        player->playerShootEvent = false;
+        player->setAnimationFPS(player->fireRate / 60);
+        Vec2f offsetPos;
+        if (face == PLAYER_FACE_E)
         {
-            player->setAnimationFPS(player->fireRate / 60);
-            Vec2f offsetPos;
-            if (face == PLAYER_FACE_E)
-            {
-                offsetPos = {4.0f, 8.0f};
-            }
-            else
-            {
-                offsetPos = {-4.0f, 8.0f};
-            }
-            bulletManager->spawnBulletEffect(player->pos + offsetPos, mouseWorldPos, _team::FRIENDLY, player_bullet);
-            soundManager->playSfx("PLAYER_SHOOT");
-            fireRateTimer.reset();
+            offsetPos = {4.0f, 8.0f};
         }
         else
         {
-            player->setAnimationFPS(12);
+            offsetPos = {-4.0f, 8.0f};
         }
+        bulletManager->spawnBulletEffect(player->pos + offsetPos, mouseWorldPos, _team::FRIENDLY, player_bullet);
+        soundManager->playSfx("PLAYER_SHOOT");
+    } else {
+        player->setAnimationFPS(12);
     }
-
+        
     // Player Dead Action //
     if (player->isDead())
     {

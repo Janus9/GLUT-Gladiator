@@ -332,6 +332,7 @@ void _player::updatePlayer(double dt) {
             shootTimeElapsed += dt;
             if (shootTimeElapsed > 1 / (fireRate / 60)) {
                 // Bullet fired
+                playerShootEvent = true;
                 shootTimeElapsed = 0.0;
                 magLevel--;
             }
