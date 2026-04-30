@@ -81,18 +81,6 @@ class _bulletManager {
          */
         void spawnBulletEffect(const Vec2f &pos, const Vec2f &dest, _team bulletTeam, const _bullet_config &config);
 
-        /**
-         * Statically sets the window viewport.
-         * Needed for bullet shaders.
-         * Call in the scene cameraUpdate function or where the glOrtho command is called.
-         * 
-         * @param _left Window left bound from scene
-         * @param _right Window right bound from scene
-         * @param _top Window top bound from scene
-         * @param _bottom Window bottom bound from scene
-         */
-        static void setViewportDimensions(float _left, float _right, float _top, float _bottom);    
-
         // Sets the view projection matrix
         static void setViewProjectionMatrix(const glm::mat4 &_viewProjectionMatrix);
     protected:
@@ -140,19 +128,12 @@ class _bulletManager {
         GLuint eboID = 0;
         GLuint vaoID = 0;
         
-        GLint u_dimensions = -1;
         GLint u_texture = -1;
         GLint u_viewProjectionMatrix = -1;
 
         void buildVbo(); // Builds the VBO
         void buildEbo(); // Builds the EBO (only done once)
         void buildVao(); // Builds the VAO (only done once)
-
-        // Static Viewport Dimensions
-        static float left;
-        static float right;
-        static float top;
-        static float bottom;
 
         static glm::mat4 viewProjectionMatrix;
         

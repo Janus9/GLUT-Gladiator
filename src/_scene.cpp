@@ -1229,8 +1229,6 @@ void _scene::applyCamera()
     bottom = renderCameraY - halfHeight;
     top = renderCameraY + halfHeight;
 
-    _bulletManager::setViewportDimensions(left, right, top, bottom);
-
     // GLM Matrix Building //
 
     sceneProjectionMatrix = glm::ortho(left,right,bottom,top);  // Mirrors glOrtho
