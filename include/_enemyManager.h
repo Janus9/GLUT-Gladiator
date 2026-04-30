@@ -152,6 +152,8 @@ class _enemyManager {
 
         unique_ptr<_particleManager> particleManager = make_unique<_particleManager>();
         particle_effect turret_hit_effect;
+        particle_effect turret_death_effect;
+        particle_effect gatling_death_effect;
 };
 
 #endif // _ENEMY_MANAGER_H

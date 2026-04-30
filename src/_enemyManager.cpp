@@ -133,7 +133,7 @@ void _enemyManager::initEnemyManager(_player* currentPlayer, _world* currentWorl
     sounds = currentSounds;
 
     particleManager->initParticleManager("images/enemy/hit_particle.png");
-    // turret hit effect
+    // Turret Hit Effect //
     turret_hit_effect.amount = 15;
 
     turret_hit_effect.minVelX = -8.0f;
@@ -151,6 +151,44 @@ void _enemyManager::initEnemyManager(_player* currentPlayer, _world* currentWorl
     turret_hit_effect.maxSpawnOffsetX = 3.0f;
     turret_hit_effect.minSpawnOffsetY = -3.0f;
     turret_hit_effect.maxSpawnOffsetY = 3.0f;
+
+    // Turret Death Effect //
+    turret_death_effect.amount = 45;
+
+    turret_death_effect.minVelX = -12.0f;
+    turret_death_effect.maxVelX = 12.0f;
+    turret_death_effect.minVelY = 14.0f;
+    turret_death_effect.maxVelY = 30.0f;
+
+    turret_death_effect.minRadius = 1.8f;
+    turret_death_effect.maxRadius = 3.2f;
+
+    turret_death_effect.minLifeTime = 0.6f;
+    turret_death_effect.maxLifeTime = 1.6f;
+
+    turret_death_effect.minSpawnOffsetX = -4.5f;
+    turret_death_effect.maxSpawnOffsetX = 4.5f;
+    turret_death_effect.minSpawnOffsetY = -4.5f;
+    turret_death_effect.maxSpawnOffsetY = 4.5f;
+
+     // Gatling Death Effect //
+    gatling_death_effect.amount = 105;
+
+    gatling_death_effect.minVelX = -6.0f;
+    gatling_death_effect.maxVelX = 6.0f;
+    gatling_death_effect.minVelY = 20.0f;
+    gatling_death_effect.maxVelY = 35.0f;
+
+    gatling_death_effect.minRadius = 2.5f;
+    gatling_death_effect.maxRadius = 3.7f;
+
+    gatling_death_effect.minLifeTime = 1.0f;
+    gatling_death_effect.maxLifeTime = 2.3f;
+
+    gatling_death_effect.minSpawnOffsetX = -4.5f;
+    gatling_death_effect.maxSpawnOffsetX = 4.5f;
+    gatling_death_effect.minSpawnOffsetY = -2.5f;
+    gatling_death_effect.maxSpawnOffsetY = 2.5f;
 }
 
 void _enemyManager::updateEnemies(double dt) {
@@ -170,6 +208,7 @@ void _enemyManager::updateEnemies(double dt) {
                     enemy->getSingleSprite()->setIdleFrame(3,1);
                     enemy->getSingleSprite()->playAction("DEATH");
                     enemy->deathTime = 0.0;
+                    particleManager->spawnEffect(enemy->pos,turret_death_effect);
                     if (sounds) sounds->playSfx("ENEMY_DEATH");
                     continue;
                 } else if (enemy->isDead() && enemy->deathTime > 5.0f) {
@@ -232,6 +271,7 @@ void _enemyManager::updateEnemies(double dt) {
                     sprite->playAction("DEATH");
                     enemy->deathTime = 0.0;
                     if (sounds) sounds->playSfx("ENEMY_DEATH");
+                    particleManager->spawnEffect(enemy->pos,gatling_death_effect);
                     continue;
                 } else if (enemy->isDead() && enemy->deathTime > 6.0f) {
                     enemyList.erase(enemyList.begin() + i);
