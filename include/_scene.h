@@ -93,6 +93,9 @@ class _scene
         player_action action = PLAYER_ACTION_NULL;
         player_face face = PLAYER_FACE_NULL;
 
+        // FOB //
+        unique_ptr<_unit> FOB = make_unique<_unit>();
+
         // Enemies
         unique_ptr<_enemyManager> enemyManager = make_unique<_enemyManager>();
         enemy_config default_turret_config;
