@@ -86,6 +86,8 @@ class _particleManager {
         /**
          * Initializes the particle manager
          * 
+         * For the images, see the enemy_particles for an example, you just need them all in a row
+         * 
          * @param fileName File image atlas to apply
          * @param _numImages How many images are in the atlas file
          * @param _maxParticles Number of particles the system holds (defaults to 1,000)
