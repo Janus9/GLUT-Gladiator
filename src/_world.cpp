@@ -257,9 +257,8 @@ void _world::initWorld(bool loadWorld)
     testLight.active = true;
     testLight.pos = cameraPosition; // Updated constantly
     testLight.intensity = 1.0f;
-    testLight.color = {1.0f,0.0f,0.0f};
+    testLight.color = {1.0f,1.0f,0.4f};
     testLight.radius = 300.0f;
-
 
     initTiles(); // Setup tiles
     
@@ -559,6 +558,7 @@ void _world::drawWorld(float left, float right, float top, float bottom)
 void _world::updateWorld(double dt) {
     time += dt;
     testLight.pos = cameraPosition; 
+    testLight.intensity = (1.0f/8.0f) * cos(0.5 * 2 * PI * time) + (7.0f/8.0f);
     cellParticles->updateParticleManger(dt);
 }
 

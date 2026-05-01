@@ -11,14 +11,14 @@ uniform float u_time;
 
 out vec2 v_atlasUV;
 flat out float v_selected;   // Fragment shader interpolates values unless flat is applied
-flat out vec2 v_modelPos;
+out vec2 v_modelPos;
 
 void main() {
     vec2 modelPos = a_dimensions + a_localPos;
 
     v_atlasUV = a_texCoord;
     v_selected = a_selected;
-    v_modelPos = a_localPos;
+    v_modelPos = modelPos;
 
     gl_Position = u_viewProjectionMatrix * vec4(modelPos, 0.0, 1.0);
 }

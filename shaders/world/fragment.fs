@@ -5,7 +5,7 @@
 // From the vertex shader
 in vec2 v_atlasUV;  
 flat in float v_selected;
-flat in vec2 v_modelPos;
+in vec2 v_modelPos;
 
 // sampler2D is a reference to a 2D image in GPU memory (SOIL stores images in GPU!)
 uniform sampler2D u_texture;
@@ -32,7 +32,7 @@ void main() {
     float brightness = u_lightIntensity - clamp(dist / u_lightRadius, 0.0, u_lightIntensity); // Force X to stay within min, max value
     brightness = brightness * brightness; // Soften
 
-    vec3 ambient = vec3(0.2); 
+    vec3 ambient = vec3(0.05); // Add an ambient light (can be changed)
     vec3 light = ambient + (u_lightColor * brightness * u_lightIntensity);
     light = clamp(light, 0.0, 1.0);
 
