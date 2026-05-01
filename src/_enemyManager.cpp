@@ -234,9 +234,9 @@ void _enemyManager::initEnemyManager(_player* currentPlayer, _world* currentWorl
     gatling_death_effect_smoke.hasGravity = false;
 
     gatling_death_effect_smoke.waveAmplitudeMin = 2.0f;
-    gatling_death_effect_smoke.waveAmplitudeMax = 6.0f;
-    gatling_death_effect_smoke.waveFrequencyMin = 0.3f;
-    gatling_death_effect_smoke.waveFrequencyMax = 1.0f;
+    gatling_death_effect_smoke.waveAmplitudeMax = 3.0f;
+    gatling_death_effect_smoke.waveFrequencyMin = 0.5f;
+    gatling_death_effect_smoke.waveFrequencyMax = 1.2f;
 }
 
 void _enemyManager::updateEnemies(double dt) {
