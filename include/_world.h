@@ -363,6 +363,9 @@ class _world
         // Sets the view projection matrix
         static void setViewProjectionMatrix(const glm::mat4 &_viewProjectionMatrix);
 
+        // Sets the camera position
+        static void setCameraPosition(const Vec2f &_cameraPosition);
+
         bool DEBUG_displayChunkBorders = false; // When enabled puts a red border around chunks
     protected:
     private:
@@ -447,6 +450,11 @@ class _world
         _shader shader;
         GLint u_viewProjectionMatrix = -1;
         GLint u_texture = -1;
+        GLint u_cameraPos = -1;
+        GLint u_time = -1;
+
+        float time = 0.0f;
+        static Vec2f cameraPosition; 
 
         // -- DEBUGGING -- //
         

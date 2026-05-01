@@ -174,12 +174,7 @@ void _particleManager::spawnEffect(const Vec2f &pos, const particle_effect &effe
 // -- PRIVATE -- //
 
 void _particleManager::buildVBO() {
-    /**
-     * Particles are rendered as a quad.
-     * They require 4 vertices of 2 components of 2 floats each (x,y,u,v) 
-     * 4 vertices * 2 components (pos/tex) * 2 floats each (x,y/u,v) for 2D
-     */
-    float particleVboData[maxParticles * 4 * 2 * 2];
+    float particleVboData[maxParticles * 10 * 4];
     int vIndex = 0;
     
     aliveParticles = 0;
