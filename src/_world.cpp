@@ -37,6 +37,13 @@ bool _cell::isAlive() const {
 
 // -- CHUNK -- //
 
+_chunk::_chunk() {
+    // Creates the buffers for the chunk
+    glGenBuffers(1, &tileVboID);
+    glGenBuffers(1, &chunkLineVboID); 
+    glGenBuffers(1, &tileLineVboID); 
+}
+
 TileId _chunk::getTileIdAt(int index) const {
     if (!this) return TILE_NULL;
     if (index < 0 || index > 255) return TILE_NULL;
@@ -118,6 +125,14 @@ void _chunk::loadSerializedChunk(const chunk_serial_data &chunk_data) {
 
 
 // -- WORLD -- //
+
+// STATIC MEMBERS //
+
+glm::mat4 _world::viewProjectionMatrix;
+
+void _world::setViewProjectionMatrix(const glm::mat4 &_viewProjectionMatrix) {
+    viewProjectionMatrix = _viewProjectionMatrix;
+}
 
 _world::_world()
 {
@@ -427,20 +442,6 @@ void _world::buildChunkVBO(_chunk* chunk) {
             tileVboData[index++] = tile->v0;  
         }
     }
-
-    // VBO uninitialized if 0 -- creates an ID for the GPU buffer (only done once)
-    if (chunk->tileVboID == 0) {
-        glGenBuffers(1, &chunk->tileVboID);
-    }
-
-    if (chunk->chunkLineVboID == 0) {
-        glGenBuffers(1, &chunk->chunkLineVboID); 
-    }
-
-    if (chunk->tileLineVboID == 0) {
-        glGenBuffers(1, &chunk->tileLineVboID); 
-    }
-
     // Tile Data VBO //
     glBindBuffer(GL_ARRAY_BUFFER, chunk->tileVboID); // Working with this specific buffer
     glBufferData(GL_ARRAY_BUFFER, sizeof(tileVboData), tileVboData, GL_STATIC_DRAW); // Copy the system memory buffer (tileVboData) into a GPU memory buffer
@@ -459,6 +460,10 @@ void _world::buildChunkVBO(_chunk* chunk) {
     chunk->tileLineVboSize = tileOutlineVboData.size();
 
     chunk->vboDirty = false;
+}
+
+void _world::buildChunkEBO(_chunk* chunk) {
+
 }
 
 void _world::drawWorld(float left, float right, float top, float bottom)

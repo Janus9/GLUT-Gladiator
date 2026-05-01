@@ -23,6 +23,11 @@
 #include <_texture.h>
 #include <_benchmark.h>
 #include <_particleManager.h>
+#include <_shader.h>
+
+#include <glm/glm.hpp>                      // Core library
+#include <glm/gtc/matrix_transform.hpp>     // Matrix ops like transform, scale, ortho, etc
+#include <glm/gtc/type_ptr.hpp>             // Send GLM datatypes (matrix) to GPU
 
 class _chunk; // Forward declaration for cell
 
@@ -160,6 +165,8 @@ struct _tile
 class _chunk
 {
     public:
+        _chunk();
+
         int chunkX;
         int chunkY;
 
@@ -167,6 +174,7 @@ class _chunk
         size_t tileLineVboSize;
 
         GLuint tileVboID = 0;       // ID for the GPU memory of tiles
+        GLuint tileEboID = 0;       // ID for the GPU index memory of the tiles
         GLuint chunkLineVboID = 0;  // ID for the GPU memory of lines
         
         bool vboDirty = true;       // If dirty then we update the chunk (when tiles change)
@@ -354,6 +362,9 @@ class _world
         // Sets the seed for the world generation
         void setSeed(uint32_t _seed);
 
+        // Sets the view projection matrix
+        static void setViewProjectionMatrix(const glm::mat4 &_viewProjectionMatrix);
+
         bool DEBUG_displayChunkBorders = false; // When enabled puts a red border around chunks
     protected:
     private:
@@ -390,6 +401,9 @@ class _world
 
         // Builds a VBO for each chunk of all 256 tiles
         void buildChunkVBO(_chunk* chunk);
+
+        // Builds a static EBO for each chunk of all 256 tiles
+        void buildChunkEBO(_chunk* chunk);
 
         /*
             Main storage of world data. The world is made up of chunks (16x16 tiles) thus holding 256 tiles each.
@@ -433,6 +447,9 @@ class _world
          */
         void mapCellNeighbors(_cell* cell, _cell* outNeighbors[9]);
 
+        // -- SHADERS -- //
+        static glm::mat4 viewProjectionMatrix;
+        _shader shader;
 
         // -- DEBUGGING -- //
         
