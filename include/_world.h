@@ -446,12 +446,21 @@ class _world
         void mapCellNeighbors(_cell* cell, _cell* outNeighbors[9]);
 
         // -- SHADERS -- //
+        light testLight;
+
         static glm::mat4 viewProjectionMatrix;
         _shader shader;
         GLint u_viewProjectionMatrix = -1;
         GLint u_texture = -1;
         GLint u_cameraPos = -1;
         GLint u_time = -1;
+
+        // Single for now
+        GLint u_lightCount = -1;
+        GLint u_lightPos = -1;
+        GLint u_lightRadius = -1;
+        GLint u_lightIntensity = -1;
+        GLint u_lightColor = -1;
 
         float time = 0.0f;
         static Vec2f cameraPosition; 

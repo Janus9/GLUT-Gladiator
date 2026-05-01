@@ -425,4 +425,14 @@ enum class _team : uint8_t {
     NEUTRAL
 };
 
+
+struct light {
+    Vec2f pos;
+    float radius;
+    float intensity;    // Value from 0-1
+    Col3f color;
+    
+    bool active;
+};
+
 #endif // _COMMON_H

@@ -248,6 +248,19 @@ void _world::initWorld(bool loadWorld)
     u_cameraPos = glGetUniformLocation(program,"u_cameraPos");
     u_time = glGetUniformLocation(program,"u_time");
 
+    u_lightCount = glGetUniformLocation(program,"u_lightCount");
+    u_lightPos = glGetUniformLocation(program,"u_lightPos");
+    u_lightRadius = glGetUniformLocation(program,"u_lightRadius");
+    u_lightIntensity = glGetUniformLocation(program,"u_lightIntensity");
+    u_lightColor = glGetUniformLocation(program,"u_lightColor");
+
+    testLight.active = true;
+    testLight.pos = cameraPosition; // Updated constantly
+    testLight.intensity = 1.0f;
+    testLight.color = {1.0f,0.0f,0.0f};
+    testLight.radius = 300.0f;
+
+
     initTiles(); // Setup tiles
     
     double sqrtNumChunks = sqrt(numStartingChunks);
@@ -504,6 +517,12 @@ void _world::drawWorld(float left, float right, float top, float bottom)
     glUniform2f(u_cameraPos, cameraPosition.x, cameraPosition.y);
     glUniform1f(u_time,time);
 
+    glUniform1i(u_lightCount,1);
+    glUniform2f(u_lightPos,testLight.pos.x,testLight.pos.y);
+    glUniform1f(u_lightRadius,testLight.radius);
+    glUniform1f(u_lightIntensity,testLight.intensity);
+    glUniform3f(u_lightColor,testLight.color.r,testLight.color.g,testLight.color.b);
+
     // Calculate which chunks are visible
     int minChunkX = (int)floor(left / (16 * TILE_W));
     int maxChunkX = (int)ceil(right / (16 * TILE_W));
@@ -539,6 +558,7 @@ void _world::drawWorld(float left, float right, float top, float bottom)
 
 void _world::updateWorld(double dt) {
     time += dt;
+    testLight.pos = cameraPosition; 
     cellParticles->updateParticleManger(dt);
 }
 
