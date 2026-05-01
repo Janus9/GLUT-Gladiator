@@ -40,8 +40,80 @@ bool _cell::isAlive() const {
 _chunk::_chunk() {
     // Creates the buffers for the chunk
     glGenBuffers(1, &tileVboID);
+    glGenBuffers(1, &tileEboID);
+    glGenVertexArrays(1, &tileVaoID);
+
     glGenBuffers(1, &chunkLineVboID); 
     glGenBuffers(1, &tileLineVboID); 
+
+    // CHUNK EBO SETUP //
+
+    // 6 vertices * 6 floats * 256 tiles per chunk
+    uint32_t tileEboData[6 * 6 * 256];
+    int vertexOffset = 0;
+    int eIndex = 0;
+    for (int i = 0; i < 256; i++) {
+        // Ebo (Two Triangles) //
+        // Triangle 1
+        tileEboData[eIndex++] = vertexOffset + 0; // BL   
+        tileEboData[eIndex++] = vertexOffset + 1; // BR
+        tileEboData[eIndex++] = vertexOffset + 2; // TR
+        // Triangle 2
+        tileEboData[eIndex++] = vertexOffset + 0; // BL
+        tileEboData[eIndex++] = vertexOffset + 2; // TR
+        tileEboData[eIndex++] = vertexOffset + 3; // TL
+
+        vertexOffset += 4;
+    }
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, tileEboID);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(tileEboData), tileEboData, GL_STATIC_DRAW);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0);
+
+    // CHUNK VAO SETUP //
+
+    glBindVertexArray(tileVaoID);
+
+    // Setup buffers
+    glBindBuffer(GL_ARRAY_BUFFER,tileVboID);            // VBO
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,tileEboID);    // EBO
+    
+    // 6 floats per vertex 
+    GLsizei stride = 6 * sizeof(float);
+
+    // Setup attributes
+    glEnableVertexAttribArray(0);       // Size (vec2)
+    glVertexAttribPointer(0,2,GL_FLOAT,GL_FALSE,stride,(void*)(0 * sizeof(float)));
+    glEnableVertexAttribArray(1);       // Texture Coords (vec2)
+    glVertexAttribPointer(1,2,GL_FLOAT,GL_FALSE,stride,(void*)(2 * sizeof(float)));
+    glEnableVertexAttribArray(2);       // Position (vec2)
+    glVertexAttribPointer(2,2,GL_FLOAT,GL_FALSE,stride,(void*)(4 * sizeof(float)));
+
+    glBindVertexArray(0);
+}
+
+_chunk::~_chunk() {
+    if (tileLineVboID != 0) {
+        glDeleteBuffers(1,&tileLineVboID); 
+        tileLineVboID = 0;
+    }
+    if (chunkLineVboID != 0) {
+        glDeleteBuffers(1,&chunkLineVboID); 
+        chunkLineVboID = 0;
+    }
+
+    if (tileVboID != 0) {
+        glDeleteBuffers(1,&tileVboID); 
+        tileVboID = 0;
+    }
+    if (tileEboID != 0) {
+        glDeleteBuffers(1,&tileEboID); 
+        tileEboID = 0;
+    }
+    if (tileVaoID != 0) {
+        glDeleteVertexArrays(1,&tileVaoID); 
+        tileVaoID = 0;
+    }
 }
 
 TileId _chunk::getTileIdAt(int index) const {
@@ -123,7 +195,6 @@ void _chunk::loadSerializedChunk(const chunk_serial_data &chunk_data) {
     }
 }
 
-
 // -- WORLD -- //
 
 // STATIC MEMBERS //
@@ -166,6 +237,14 @@ void _world::initWorld(bool loadWorld)
 
     tileAtlas->loadTexture("images/set_1.png"); // Load the tile atlas texture
     // Reserve allocates memory but does not instantiate it -- resize allocates AND instantiates it (dont want that)
+
+    // -- SHADER SETUP -- //
+    shader.initShader("shaders/world/vertex.vs","shaders/world/fragment.fs");
+    uint32_t program = shader.getProgram();
+
+    // Uniforms
+    u_viewProjectionMatrix = glGetUniformLocation(program,"u_viewProjectionMatrix");
+    u_texture = glGetUniformLocation(program,"u_texture");
 
     initTiles(); // Setup tiles
     
@@ -336,10 +415,9 @@ bool _world::setTileInAtlas(int xIndex, int yIndex, _tile &tile) {
 }
 
 void _world::buildChunkVBO(_chunk* chunk) {
-    // 1 tile = 4 vertices, 1 vertex = 4 floats (2 for vertex, 2 for texture) = 16
-    // 256 tiles * 16 from above gives 4096
-    float tileVboData[4096];
-    int index = 0;
+    // 4 Verticies of 6 floats and 256 total
+    float tileVboData[4 * 6 * 256];
+    int vIndex = 0;
 
     // Line VBO Data //
     float x0 = (chunk->chunkX * 16) * TILE_W; 
@@ -372,10 +450,13 @@ void _world::buildChunkVBO(_chunk* chunk) {
             cell->index = tileIndex; // Match every draw cycle
             cell->parentChunk = chunk;
 
-            float worldX = (chunk->chunkX * 16 + x) * TILE_W;
-            float worldY = (chunk->chunkY * 16 + y) * TILE_H;
+            float halfWidth = TILE_W * 0.5f;
+            float halfHeight = TILE_H * 0.5f;
 
-            cell->pos = {worldX + TILE_W/2.0f, worldY + TILE_H/2.0f};
+            float worldXCenter = (chunk->chunkX * 16 + x) * TILE_W + halfWidth;
+            float worldYCenter = (chunk->chunkY * 16 + y) * TILE_H + halfHeight;
+
+            cell->pos = {worldXCenter, worldYCenter};
 
             // Outline VBO Setup //
 
@@ -383,63 +464,71 @@ void _world::buildChunkVBO(_chunk* chunk) {
             if (cell->isOutlined()) {
                 // Bottom-Left -> Bottom-Right //
                 // bottom-left
-                tileOutlineVboData.push_back(worldX);
-                tileOutlineVboData.push_back(worldY);
+                tileOutlineVboData.push_back(worldXCenter - halfWidth);
+                tileOutlineVboData.push_back(worldYCenter - halfHeight);
                 // bottom-right
-                tileOutlineVboData.push_back(worldX + TILE_W);
-                tileOutlineVboData.push_back(worldY);
+                tileOutlineVboData.push_back(worldXCenter + halfWidth);
+                tileOutlineVboData.push_back(worldYCenter - halfHeight);
     
                 // Bottom-Right -> Top-Right //
                 // bottom-right
-                tileOutlineVboData.push_back(worldX + TILE_W);
-                tileOutlineVboData.push_back(worldY);
+                tileOutlineVboData.push_back(worldXCenter + halfWidth);
+                tileOutlineVboData.push_back(worldYCenter - halfHeight);
                 // top-right
-                tileOutlineVboData.push_back(worldX + TILE_W);
-                tileOutlineVboData.push_back(worldY + TILE_H);
+                tileOutlineVboData.push_back(worldXCenter + halfWidth);
+                tileOutlineVboData.push_back(worldYCenter + halfHeight);
     
                 // Top-Right -> Top-Left //
                 // top-right
-                tileOutlineVboData.push_back(worldX + TILE_W);
-                tileOutlineVboData.push_back(worldY + TILE_H);
+                tileOutlineVboData.push_back(worldXCenter + halfWidth);
+                tileOutlineVboData.push_back(worldYCenter + halfHeight);
                 // top-left
-                tileOutlineVboData.push_back(worldX);
-                tileOutlineVboData.push_back(worldY + TILE_H);
+                tileOutlineVboData.push_back(worldXCenter - halfWidth);
+                tileOutlineVboData.push_back(worldYCenter + halfHeight);
 
                 // Top-Left - Bottom-Left //
                 // top-left
-                tileOutlineVboData.push_back(worldX);
-                tileOutlineVboData.push_back(worldY + TILE_H);
+                tileOutlineVboData.push_back(worldXCenter - halfWidth);
+                tileOutlineVboData.push_back(worldYCenter + halfHeight);
                 // bottom-left
-                tileOutlineVboData.push_back(worldX);
-                tileOutlineVboData.push_back(worldY);
+                tileOutlineVboData.push_back(worldXCenter - halfWidth);
+                tileOutlineVboData.push_back(worldYCenter - halfHeight);
             }
 
             // Tile VBO Setup //
             // The VBO is set up identical to how we would do glVertex2f and glTexCoord2f
             
             // Bottom-left
-            tileVboData[index++] = worldX;
-            tileVboData[index++] = worldY;
-            tileVboData[index++] = tile->u0;
-            tileVboData[index++] = tile->v1;
+            tileVboData[vIndex++] = -halfWidth;
+            tileVboData[vIndex++] = -halfHeight;
+            tileVboData[vIndex++] = tile->u0;
+            tileVboData[vIndex++] = tile->v1;
+            tileVboData[vIndex++] = worldXCenter;
+            tileVboData[vIndex++] = worldYCenter;
             
             // Bottom-right
-            tileVboData[index++] = worldX + TILE_W;
-            tileVboData[index++] = worldY;
-            tileVboData[index++] = tile->u1;
-            tileVboData[index++] = tile->v1;
+            tileVboData[vIndex++] = halfWidth;
+            tileVboData[vIndex++] = -halfHeight;
+            tileVboData[vIndex++] = tile->u1;
+            tileVboData[vIndex++] = tile->v1;
+            tileVboData[vIndex++] = worldXCenter;
+            tileVboData[vIndex++] = worldYCenter;
             
             // Top-right
-            tileVboData[index++] = worldX + TILE_W;
-            tileVboData[index++] = worldY + TILE_H;
-            tileVboData[index++] = tile->u1;
-            tileVboData[index++] = tile->v0;
+            tileVboData[vIndex++] = halfWidth;
+            tileVboData[vIndex++] = halfHeight;
+            tileVboData[vIndex++] = tile->u1;
+            tileVboData[vIndex++] = tile->v0;
+            tileVboData[vIndex++] = worldXCenter;
+            tileVboData[vIndex++] = worldYCenter;
             
             // Top-left
-            tileVboData[index++] = worldX;
-            tileVboData[index++] = worldY + TILE_H;
-            tileVboData[index++] = tile->u0;
-            tileVboData[index++] = tile->v0;  
+            tileVboData[vIndex++] = -halfWidth;
+            tileVboData[vIndex++] = halfHeight;
+            tileVboData[vIndex++] = tile->u0;
+            tileVboData[vIndex++] = tile->v0;  
+            tileVboData[vIndex++] = worldXCenter;
+            tileVboData[vIndex++] = worldYCenter;
         }
     }
     // Tile Data VBO //
@@ -462,16 +551,15 @@ void _world::buildChunkVBO(_chunk* chunk) {
     chunk->vboDirty = false;
 }
 
-void _world::buildChunkEBO(_chunk* chunk) {
-
-}
-
 void _world::drawWorld(float left, float right, float top, float bottom)
 {
     // Since its an atlas we only need one text bind. Each tile takes a snippit of the atlas
+    glUseProgram(shader.getProgram());
+    
     tileAtlas->bindTexture();
 
-    glColor4f(1.0f,1.0f,1.0f,1.0f);
+    glUniformMatrix4fv(u_viewProjectionMatrix, 1, GL_FALSE, glm::value_ptr(viewProjectionMatrix));
+    glUniform1i(u_texture, 0); 
 
     // Tell OpenGL were using VBOs
     glEnableClientState(GL_VERTEX_ARRAY);
@@ -497,13 +585,17 @@ void _world::drawWorld(float left, float right, float top, float bottom)
                 buildChunkVBO(chunk);
             }
 
-            // Draw Tile VBO //
-            glColor3f(1.0f,1.0f,1.0f); // Reset color to white for blank canvas
+            // Draw Tiles  //
+            glBindVertexArray(chunk->tileVaoID);
+            glDrawElements(GL_TRIANGLES, 256 * 6, GL_UNSIGNED_INT, 0);
+            glBindVertexArray(0);
+            
+            // glColor3f(1.0f,1.0f,1.0f); // Reset color to white for blank canvas
 
-            glBindBuffer(GL_ARRAY_BUFFER, chunk->tileVboID);
-            glVertexPointer(2, GL_FLOAT, 4 * sizeof(float), (void*)0);
-            glTexCoordPointer(2, GL_FLOAT, 4 * sizeof(float), (void*)(2 * sizeof(float)));
-            glDrawArrays(GL_QUADS, 0, 256 * 4);  // 256 tiles * 4 vertices
+            // glBindBuffer(GL_ARRAY_BUFFER, chunk->tileVboID);
+            // glVertexPointer(2, GL_FLOAT, 4 * sizeof(float), (void*)0);
+            // glTexCoordPointer(2, GL_FLOAT, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+            // glDrawArrays(GL_QUADS, 0, 256 * 4);  // 256 tiles * 4 vertices
 
             // Draw Tile Line VBO //
             glBindBuffer(GL_ARRAY_BUFFER, chunk->tileLineVboID);
@@ -535,6 +627,8 @@ void _world::drawWorld(float left, float right, float top, float bottom)
 
     glDisableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+
+    glUseProgram(0);
 
     // Draw everything else before image bind of world
     cellParticles->drawParticleManager();
@@ -692,7 +786,6 @@ TileId _world::determineTileType(const bool neighborTiles[9]) const {
     return TILE_WALL_CENTER;
 }
 
-
 /*
 When tiles are made from noise its flat but since we load chunk by chunk we have to convert this flat array into 
 a coordinate system for chunks
@@ -707,9 +800,11 @@ void _world::finalizeWorld() {
         int new_chunkX = i % (int)sqrt(numStartingChunks) - floor(sqrt(numStartingChunks) / 2);
         int new_chunkY = i / (int)sqrt(numStartingChunks) - floor(sqrt(numStartingChunks) / 2);
 
-        _chunk newChunk;
-        newChunk.chunkX = new_chunkX;
-        newChunk.chunkY = new_chunkY;
+        worldChunks.emplace_back();
+
+        _chunk* newChunk = &worldChunks.back();
+        newChunk->chunkX = new_chunkX;
+        newChunk->chunkY = new_chunkY;
 
         // Calculate the starting position of this chunk in the world grid
         int chunkStartX = (new_chunkX + (int)floor(sqrt(numStartingChunks) / 2)) * 16;
@@ -730,14 +825,12 @@ void _world::finalizeWorld() {
                 
                 TileId newId = static_cast<TileId>(world_noise[world_noise_index]);
 
-                newChunk.setTileIdAt(newId,chunk_tile_index);
+                newChunk->setTileIdAt(newId,chunk_tile_index);
             }
         }
 
-        worldChunks.push_back(newChunk);
-
         loadedChunks[{new_chunkX, new_chunkY}] = true;
-        chunkLookup[{new_chunkX, new_chunkY}] = &worldChunks.back();
+        chunkLookup[{new_chunkX, new_chunkY}] = newChunk;
     }
     Logger.LogDebug("World noise has been mapped to tiles and has been finalized!");
 }
@@ -762,7 +855,6 @@ _chunk* _world::getChunkAtWorld(const Vec2f &pos) const {
     // Just a wrapper of the two functions
     return getChunkAt(worldToChunkPos(pos));
 }
-
 
 const _tile* _world::getTileFromChunkIndex(const _chunk* chunk, const int index) const {
     if (index < 0 || index > 255) return nullptr;
@@ -889,7 +981,6 @@ void _world::importSerializeWorld(vector<chunk_serial_data> world_data) {
         chunkLookup[{chunkX, chunkY}] = chunk;
     }
 }
-
 
 void _world::setSeed(uint32_t _seed) {
     seed = _seed;

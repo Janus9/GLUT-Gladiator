@@ -166,15 +166,19 @@ class _chunk
 {
     public:
         _chunk();
+        virtual ~_chunk();
 
         int chunkX;
         int chunkY;
 
+        // This should really be private info 
+
         GLuint tileLineVboID = 0;   // ID for the GPU memory of lines around tiles
         size_t tileLineVboSize;
 
-        GLuint tileVboID = 0;       // ID for the GPU memory of tiles
+        GLuint tileVboID = 0;       // ID for the GPU vertex memory of tiles
         GLuint tileEboID = 0;       // ID for the GPU index memory of the tiles
+        GLuint tileVaoID = 0;       // ID for the GPU array memory of the tiles
         GLuint chunkLineVboID = 0;  // ID for the GPU memory of lines
         
         bool vboDirty = true;       // If dirty then we update the chunk (when tiles change)
@@ -402,9 +406,6 @@ class _world
         // Builds a VBO for each chunk of all 256 tiles
         void buildChunkVBO(_chunk* chunk);
 
-        // Builds a static EBO for each chunk of all 256 tiles
-        void buildChunkEBO(_chunk* chunk);
-
         /*
             Main storage of world data. The world is made up of chunks (16x16 tiles) thus holding 256 tiles each.
             Each tile is represented by a single byte holding an ID that uses the world_tiles lookup to establish a texture and parameters for that tile.
@@ -450,6 +451,8 @@ class _world
         // -- SHADERS -- //
         static glm::mat4 viewProjectionMatrix;
         _shader shader;
+        GLint u_viewProjectionMatrix = -1;
+        GLint u_texture = -1;
 
         // -- DEBUGGING -- //
         

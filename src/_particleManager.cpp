@@ -86,7 +86,6 @@ void _particleManager::drawParticleManager() {
     glBindVertexArray(0);
 
     glUseProgram(0);
-  
 }
 
 void _particleManager::updateParticleManger(double dt) {
