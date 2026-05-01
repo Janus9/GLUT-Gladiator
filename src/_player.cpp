@@ -14,7 +14,7 @@ void _player::initPlayer() {
     // AABB used by enemies (e.g. _orc) to prevent overlap and decide melee contact.
     setCollisionBox({18.0f, 24.0f});
 
-    bloodParticles->initParticleManager("images/player/blood_particle.png");
+    bloodParticles->initParticleManager("images/player/blood_particle.png",1,1000);
     player_hit_effect.amount = 15;
 
     player_hit_effect.minVelX = -8.0f;

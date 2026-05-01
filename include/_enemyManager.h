@@ -154,6 +154,7 @@ class _enemyManager {
         particle_effect turret_hit_effect;
         particle_effect turret_death_effect;
         particle_effect gatling_death_effect;
+        particle_effect gatling_death_effect_smoke;
 };
 
 #endif // _ENEMY_MANAGER_H

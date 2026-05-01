@@ -35,8 +35,10 @@ _particleManager::~_particleManager() {
     timer = nullptr;
 }
 
-void _particleManager::initParticleManager(const string& fileName, int _maxParticles) {
+void _particleManager::initParticleManager(const string& fileName, int _numImages, int _maxParticles) {
     maxParticles = _maxParticles;
+    numImages = _numImages;
+
     texture->loadTexture(fileName);
 
     // -- SHADER SETUP -- //
@@ -164,6 +166,8 @@ void _particleManager::spawnEffect(const Vec2f &pos, const particle_effect &effe
             p->waveAmplitude = wave_amp_dist(rng);
             p->waveFrequency = wave_freq_dist(rng);
             p->waveOffset = wave_off_dist(rng);
+
+            p->imageIndex = effect.imageIndex;
         }
     }
 }
@@ -192,12 +196,18 @@ void _particleManager::buildVBO() {
         // Can change to width/height later
         float halfWidth = p->radius * 0.5f;
         float halfHeight = p->radius * 0.5f;
+
+        if (numImages == 0) {
+            // No images cant build VBO (protect against divide by 0)
+            return;
+        }
+        const float uWidth = 1.0f / numImages;
         
         // Vbo (Quad) //
         // Bottom-left (0)
         particleVboData[vIndex++] = -halfWidth; 
         particleVboData[vIndex++] = -halfHeight; 
-        particleVboData[vIndex++] = 0.0f; 
+        particleVboData[vIndex++] = p->imageIndex * uWidth; 
         particleVboData[vIndex++] = 1.0f; 
         particleVboData[vIndex++] = centerX; 
         particleVboData[vIndex++] = centerY; 
@@ -208,7 +218,7 @@ void _particleManager::buildVBO() {
         // Bottom-right (1)
         particleVboData[vIndex++] = halfWidth; 
         particleVboData[vIndex++] = -halfHeight; 
-        particleVboData[vIndex++] = 1.0f; 
+        particleVboData[vIndex++] = (p->imageIndex + 1) * uWidth; 
         particleVboData[vIndex++] = 1.0f; 
         particleVboData[vIndex++] = centerX; 
         particleVboData[vIndex++] = centerY; 
@@ -219,7 +229,7 @@ void _particleManager::buildVBO() {
         // Top-right (2)
         particleVboData[vIndex++] = halfWidth; 
         particleVboData[vIndex++] = halfHeight; 
-        particleVboData[vIndex++] = 1.0f; 
+        particleVboData[vIndex++] = (p->imageIndex + 1) * uWidth; 
         particleVboData[vIndex++] = 0.0f; 
         particleVboData[vIndex++] = centerX; 
         particleVboData[vIndex++] = centerY; 
@@ -230,7 +240,7 @@ void _particleManager::buildVBO() {
         // Top-left (3)
         particleVboData[vIndex++] = -halfWidth; 
         particleVboData[vIndex++] = halfHeight; 
-        particleVboData[vIndex++] = 0.0f; 
+        particleVboData[vIndex++] = p->imageIndex * uWidth; 
         particleVboData[vIndex++] = 0.0f; 
         particleVboData[vIndex++] = centerX; 
         particleVboData[vIndex++] = centerY; 

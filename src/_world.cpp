@@ -167,7 +167,7 @@ void _world::initWorld(bool loadWorld)
 
     // PARTICLE EFFECTS //
 
-    cellParticles->initParticleManager("images/particle.png",10000); // Particles for cell usage
+    cellParticles->initParticleManager("images/particle.png",1,10000); // Particles for cell usage
     // wall_break_effect
     wall_break_effect.amount = 100;
 

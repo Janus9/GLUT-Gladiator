@@ -132,9 +132,10 @@ void _enemyManager::initEnemyManager(_player* currentPlayer, _world* currentWorl
     bulletManager = currentBulletManager;
     sounds = currentSounds;
 
-    particleManager->initParticleManager("images/enemy/hit_particle.png");
+    particleManager->initParticleManager("images/enemy/enemy_particles.png",4,10000);
     // Turret Hit Effect //
     turret_hit_effect.amount = 15;
+    turret_hit_effect.imageIndex = 3;
 
     turret_hit_effect.minVelX = -8.0f;
     turret_hit_effect.maxVelX = 8.0f;
@@ -160,6 +161,7 @@ void _enemyManager::initEnemyManager(_player* currentPlayer, _world* currentWorl
 
     // Turret Death Effect //
     turret_death_effect.amount = 45;
+    turret_death_effect.imageIndex = 0;
 
     turret_death_effect.minVelX = -12.0f;
     turret_death_effect.maxVelX = 12.0f;
@@ -183,8 +185,9 @@ void _enemyManager::initEnemyManager(_player* currentPlayer, _world* currentWorl
     turret_death_effect.hasFloor = true;
     turret_death_effect.floorOffset = -10.0f;
 
-     // Gatling Death Effect //
-    gatling_death_effect.amount = 200;
+    // Gatling Death Effect //
+    gatling_death_effect.amount = 100;
+    gatling_death_effect.imageIndex = 1;
 
     gatling_death_effect.minVelX = -7.0f;
     gatling_death_effect.maxVelX = 7.0f;
@@ -199,14 +202,41 @@ void _enemyManager::initEnemyManager(_player* currentPlayer, _world* currentWorl
     gatling_death_effect.minLifeTime = 5.0f;
     gatling_death_effect.maxLifeTime = 5.0f;
 
-    gatling_death_effect.minSpawnOffsetX = -12.0f;
-    gatling_death_effect.maxSpawnOffsetX = 12.0f;
-    gatling_death_effect.minSpawnOffsetY = -12.0f;
-    gatling_death_effect.maxSpawnOffsetY = 12.0f;
+    gatling_death_effect.minSpawnOffsetX = -16.0f;
+    gatling_death_effect.maxSpawnOffsetX = 16.0f;
+    gatling_death_effect.minSpawnOffsetY = -16.0f;
+    gatling_death_effect.maxSpawnOffsetY = 16.0f;
 
     gatling_death_effect.hasGravity = true;
     gatling_death_effect.hasFloor = true;
     gatling_death_effect.floorOffset = -10.0f;
+
+    // Gatling Death Smoke Effect //
+    gatling_death_effect_smoke.amount = 250;
+    gatling_death_effect_smoke.imageIndex = 2;
+
+    gatling_death_effect_smoke.minVelX = -3.0f;
+    gatling_death_effect_smoke.maxVelX = 3.0f;
+    gatling_death_effect_smoke.minVelY = 15.0f;
+    gatling_death_effect_smoke.maxVelY = 25.0f;
+
+    gatling_death_effect_smoke.minRadius = 2.9f;
+    gatling_death_effect_smoke.maxRadius = 5.1f;
+
+    gatling_death_effect_smoke.minLifeTime = 3.5f;
+    gatling_death_effect_smoke.maxLifeTime = 6.0f;
+
+    gatling_death_effect_smoke.minSpawnOffsetX = -6.0f;
+    gatling_death_effect_smoke.maxSpawnOffsetX = 6.0f;
+    gatling_death_effect_smoke.minSpawnOffsetY = -6.0f;
+    gatling_death_effect_smoke.maxSpawnOffsetY = 6.0f;
+
+    gatling_death_effect_smoke.hasGravity = false;
+
+    gatling_death_effect_smoke.waveAmplitudeMin = 2.0f;
+    gatling_death_effect_smoke.waveAmplitudeMax = 6.0f;
+    gatling_death_effect_smoke.waveFrequencyMin = 0.3f;
+    gatling_death_effect_smoke.waveFrequencyMax = 1.0f;
 }
 
 void _enemyManager::updateEnemies(double dt) {
@@ -290,6 +320,7 @@ void _enemyManager::updateEnemies(double dt) {
                     enemy->deathTime = 0.0;
                     if (sounds) sounds->playSfx("ENEMY_DEATH");
                     particleManager->spawnEffect(enemy->pos,gatling_death_effect);
+                    particleManager->spawnEffect(enemy->pos,gatling_death_effect_smoke);
                     continue;
                 } else if (enemy->isDead() && enemy->deathTime > 6.0f) {
                     enemyList.erase(enemyList.begin() + i);

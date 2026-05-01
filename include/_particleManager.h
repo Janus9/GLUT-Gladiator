@@ -17,6 +17,7 @@
  */
 struct particle_effect {
     int amount = 0;                // Amount of particles to spawn
+    int imageIndex = 0;            // Which image to access
 
     float minVelX = 0.0f;          // Minimum horizontal velocity
     float maxVelX = 0.0f;          // Maximum horizontal velocity 
@@ -73,6 +74,8 @@ struct particle {
     float waveAmplitude;
     float waveFrequency;
     float waveOffset; // Randomly chosen
+
+    int imageIndex;
 };
 
 class _particleManager {
@@ -83,10 +86,11 @@ class _particleManager {
         /**
          * Initializes the particle manager
          * 
-         * @param fileName Image to apply to each particle (cannot be changed)
-         * @param maxParticles Number of particles the system holds (defaults to 10,000)
+         * @param fileName File image atlas to apply
+         * @param _numImages How many images are in the atlas file
+         * @param _maxParticles Number of particles the system holds (defaults to 1,000)
          */
-        void initParticleManager(const string& fileName, int _maxParticles = 10000);
+        void initParticleManager(const string& fileName, int _numImages, int _maxParticles = 1000);
 
         // Draw function
         void drawParticleManager();
@@ -138,6 +142,8 @@ class _particleManager {
         float t_value = 0.0f;
 
         static glm::mat4 viewProjectionMatrix;
+
+        int numImages = 0;
 
         // Rng machine
         mt19937 rng;   
