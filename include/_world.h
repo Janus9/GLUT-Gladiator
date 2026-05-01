@@ -172,15 +172,9 @@ class _chunk
         int chunkY;
 
         // This should really be private info 
-
-        GLuint tileLineVboID = 0;   // ID for the GPU memory of lines around tiles
-        size_t tileLineVboSize;
-
         GLuint tileVboID = 0;       // ID for the GPU vertex memory of tiles
         GLuint tileEboID = 0;       // ID for the GPU index memory of the tiles
         GLuint tileVaoID = 0;       // ID for the GPU array memory of the tiles
-        GLuint chunkLineVboID = 0;  // ID for the GPU memory of lines
-        
         bool vboDirty = true;       // If dirty then we update the chunk (when tiles change)
 
         /**

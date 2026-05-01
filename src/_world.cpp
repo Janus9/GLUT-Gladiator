@@ -43,9 +43,6 @@ _chunk::_chunk() {
     glGenBuffers(1, &tileEboID);
     glGenVertexArrays(1, &tileVaoID);
 
-    glGenBuffers(1, &chunkLineVboID); 
-    glGenBuffers(1, &tileLineVboID); 
-
     // CHUNK EBO SETUP //
 
     // 6 vertices * 6 floats * 256 tiles per chunk
@@ -93,15 +90,6 @@ _chunk::_chunk() {
 }
 
 _chunk::~_chunk() {
-    if (tileLineVboID != 0) {
-        glDeleteBuffers(1,&tileLineVboID); 
-        tileLineVboID = 0;
-    }
-    if (chunkLineVboID != 0) {
-        glDeleteBuffers(1,&chunkLineVboID); 
-        chunkLineVboID = 0;
-    }
-
     if (tileVboID != 0) {
         glDeleteBuffers(1,&tileVboID); 
         tileVboID = 0;
@@ -541,18 +529,6 @@ void _world::buildChunkVBO(_chunk* chunk) {
     glBufferData(GL_ARRAY_BUFFER, sizeof(tileVboData), tileVboData, GL_STATIC_DRAW); // Copy the system memory buffer (tileVboData) into a GPU memory buffer
     glBindBuffer(GL_ARRAY_BUFFER, 0); // Make sure to set vbo to 0 (nothing) to signal we're done working with this tileVboID
 
-    // Chunk Line Data VBO //
-    glBindBuffer(GL_ARRAY_BUFFER, chunk->chunkLineVboID); // Working with chunkLineVboID
-    glBufferData(GL_ARRAY_BUFFER, sizeof(lineVboData), lineVboData, GL_STATIC_DRAW); // Copy the lineVboData into a GPU buffer. GL_STATIC_DRAW because the lines will never change
-    glBindBuffer(GL_ARRAY_BUFFER, 0); // Make sure to set vbo to 0 (nothing) to signal we're done working with this chunkLineVboID
-
-    // Tile Line Data VBO //
-    glBindBuffer(GL_ARRAY_BUFFER, chunk->tileLineVboID);
-    glBufferData(GL_ARRAY_BUFFER, tileOutlineVboData.size() * sizeof(float), tileOutlineVboData.data(), GL_STATIC_DRAW);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-    chunk->tileLineVboSize = tileOutlineVboData.size();
-
     chunk->vboDirty = false;
 }
 
@@ -565,10 +541,6 @@ void _world::drawWorld(float left, float right, float top, float bottom)
 
     glUniformMatrix4fv(u_viewProjectionMatrix, 1, GL_FALSE, glm::value_ptr(viewProjectionMatrix));
     glUniform1i(u_texture, 0); 
-
-    // Tell OpenGL were using VBOs
-    glEnableClientState(GL_VERTEX_ARRAY);
-    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
     // Calculate which chunks are visible
     int minChunkX = (int)floor(left / (16 * TILE_W));
@@ -594,44 +566,8 @@ void _world::drawWorld(float left, float right, float top, float bottom)
             glBindVertexArray(chunk->tileVaoID);
             glDrawElements(GL_TRIANGLES, 256 * 6, GL_UNSIGNED_INT, 0);
             glBindVertexArray(0);
-            
-            // glColor3f(1.0f,1.0f,1.0f); // Reset color to white for blank canvas
-
-            // glBindBuffer(GL_ARRAY_BUFFER, chunk->tileVboID);
-            // glVertexPointer(2, GL_FLOAT, 4 * sizeof(float), (void*)0);
-            // glTexCoordPointer(2, GL_FLOAT, 4 * sizeof(float), (void*)(2 * sizeof(float)));
-            // glDrawArrays(GL_QUADS, 0, 256 * 4);  // 256 tiles * 4 vertices
-
-            // Draw Tile Line VBO //
-            glBindBuffer(GL_ARRAY_BUFFER, chunk->tileLineVboID);
-            glVertexPointer(2, GL_FLOAT, 0, (void*)0); // We use 0 because its tightly packed data
-
-            glDisable(GL_TEXTURE_2D); // Textures will disrupt the lines
-            glColor3f(0.0f,0.0f,1.0f);
-            glLineWidth(2.0f);
-            
-            glDrawArrays(GL_LINES, 0, chunk->tileLineVboSize/2); // Two floats per vertex so divide by 2
-            
-            glEnable(GL_TEXTURE_2D);
-
-            // Draw Chunk Line VBO //
-            if (DEBUG_displayChunkBorders) {
-                glBindBuffer(GL_ARRAY_BUFFER, chunk->chunkLineVboID);
-                glVertexPointer(2, GL_FLOAT, 0, (void*)0); // We use 0 because its tightly packed data
-
-                glDisable(GL_TEXTURE_2D); // Textures will disrupt the lines
-                glColor3f(1.0f,0.0f,0.0f);
-                glLineWidth(3.0f);
-             
-                glDrawArrays(GL_LINE_LOOP, 0, 4); // Draw a GL_LINE_LOOP of 4 points so 8 values total
-             
-                glEnable(GL_TEXTURE_2D);
-            }
         }
     }
-
-    glDisableClientState(GL_VERTEX_ARRAY);
-    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 
     glUseProgram(0);
 
