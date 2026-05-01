@@ -179,13 +179,23 @@ void _world::initWorld(bool loadWorld)
     wall_break_effect.minRadius = 1.0f;
     wall_break_effect.maxRadius = 3.0f;
 
-    wall_break_effect.minLifeTime = 0.6f;
-    wall_break_effect.maxLifeTime = 1.3f;
+    // wall_break_effect.minLifeTime = 0.6f;
+    // wall_break_effect.maxLifeTime = 1.3f;
+
+    wall_break_effect.minLifeTime = 5.0f;
+    wall_break_effect.maxLifeTime = 5.0f;
 
     wall_break_effect.minSpawnOffsetX = -8.0f;
     wall_break_effect.maxSpawnOffsetX = 8.0f;
     wall_break_effect.minSpawnOffsetY = -8.0f;
     wall_break_effect.maxSpawnOffsetY = 8.0f;
+
+    wall_break_effect.hasGravity = false;
+
+    wall_break_effect.waveAmplitudeMin = 6.0f;
+    wall_break_effect.waveAmplitudeMax = 6.0f;
+    wall_break_effect.waveFrequencyMin = 1.0f;
+    wall_break_effect.waveFrequencyMax = 1.0f;
 
     // _wall_damage_effect
     wall_damage_effect.amount = 10;

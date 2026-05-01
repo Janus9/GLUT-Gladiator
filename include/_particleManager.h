@@ -42,7 +42,7 @@ struct particle_effect {
     bool hasFloor = false;         // If TRUE then particle dies below floor (spawnPosY + floorOffset)
     float floorOffset = 0.0f;      // Fixed offset distance for the floor (Y pos)
 
-    bool hasWaveEffect = false;    // If TRUE then particle wobbles left/right on a wave (recommended for no gravity effects)
+    // Keep 0.0 for no effect //
     float waveAmplitudeMin = 0.0f; // Min value for wave height (world units)
     float waveAmplitudeMax = 0.0f; // Max value for wave height (world units)
     float waveFrequencyMin = 0.0f; // Min frequency of the wave (full cycle per second)
@@ -53,23 +53,26 @@ struct particle {
     bool alive = false;
 
     // Physics //
-    Vec2f pos = {0.0f,0.0f};              
-    Vec2f vel = {0.0f,0.0f};              
-    Vec2f acc = {0.0f,0.0f};
-    float rotationSpeed = 0.0f;
+    Vec2f pos;              
+    Vec2f vel;              
+    Vec2f acc;
+    float rotationSpeed;
     
-    float radius = 0.0f;
+    float radius;
 
-    float death = 0.0f; // When the particle will die (an offset from birth decides this)
-    float age = 0.0f; // Particles current age
+    float death;    // When the particle will die (an offset from birth decides this)
+    float age;      // Particles current age
 
-    float angle = 0.0f;
+    float angle;
 
     bool hasGravity;
+   
     bool hasFloor;
     float floorPosY;
 
-    float t;
+    float waveAmplitude;
+    float waveFrequency;
+    float waveOffset; // Randomly chosen
 };
 
 class _particleManager {
@@ -130,6 +133,9 @@ class _particleManager {
         _shader particleShader;
         GLint u_viewProjectionMatrix = -1;
         GLint u_texture = -1;
+        GLint u_t = -1;
+
+        float t_value = 0.0f;
 
         static glm::mat4 viewProjectionMatrix;
 
