@@ -221,6 +221,11 @@ _world::~_world()
 
     delete cellParticles;
     cellParticles = nullptr;
+
+    chunkLookup.clear();
+    loadedChunks.clear();
+
+    worldChunks.clear();
 }
 
 void _world::initWorld(bool loadWorld)
