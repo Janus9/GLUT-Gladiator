@@ -13,10 +13,10 @@ uniform vec2 u_cameraPos;
 uniform float u_time;
 
 uniform int u_lightCount;
-uniform vec2 u_lightPos;            // Position of the light
-uniform float u_lightRadius;        // Radius light illuminates
-uniform float u_lightIntensity;     // Light intensity (0-1)
-uniform vec3 u_lightColor;          // Color light illuminates
+uniform vec2 u_lightPos[MAX_LIGHTS];            // Position of the light
+uniform float u_lightRadius[MAX_LIGHTS];        // Radius light illuminates
+uniform float u_lightIntensity[MAX_LIGHTS];     // Light intensity (0-1)
+uniform vec3 u_lightColor[MAX_LIGHTS];          // Color light illuminates
 
 // This can be any name
 out vec4 FragColor;
@@ -28,15 +28,20 @@ void main() {
     
     vec4 baseColor = texture(u_texture, v_atlasUV);
 
-    float dist = distance(v_modelPos, u_lightPos); // Distance from pixel to lightPos
-    float brightness = u_lightIntensity - clamp(dist / u_lightRadius, 0.0, u_lightIntensity); // Force X to stay within min, max value
-    brightness = brightness * brightness; // Soften
 
     vec3 ambient = vec3(0.05); // Add an ambient light (can be changed)
-    vec3 light = ambient + (u_lightColor * brightness * u_lightIntensity);
-    light = clamp(light, 0.0, 1.0);
+    vec3 lightAccum = ambient;
 
-    baseColor.rgb *= light;
+    for (int i = 0; i < u_lightCount; i++) {
+        float dist = distance(v_modelPos, u_lightPos[i]); // Distance from pixel to lightPos
+        float brightness = u_lightIntensity[i] - clamp(dist / u_lightRadius[i], 0.0, u_lightIntensity[i]); // Force X to stay within min, max value
+        brightness = brightness * brightness; // Soften
+        vec3 light = u_lightColor[i] * brightness * u_lightIntensity[i];
+    }
+
+    lightAccum = clamp(lightAccum, 0.0, 1.0);
+
+    baseColor.rgb *= lightAccum;
 
     if (v_selected > 0.0) {
         // Selected
