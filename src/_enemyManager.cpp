@@ -116,21 +116,55 @@ bool _enemy::operator==(const _enemy &other) const {
 
 // -- -- ENEMY MANAGER -- -- //
 
+// -- STATIC -- //
+glm::mat4 _enemyManager::viewProjectionMatrix;
+
+void _enemyManager::setViewProjectionMatrix(const glm::mat4 &_viewProjectionMatrix) {
+    viewProjectionMatrix = _viewProjectionMatrix;
+}
+
 // -- PUBLIC -- //
 
 _enemyManager::_enemyManager() {
-    // ctor
+    
 }
 
 _enemyManager::~_enemyManager() {
-    // dtor
+    if (vboID != 0) {
+        glDeleteBuffers(1,&vboID); // tell the GPU to delete the vertex buffer
+        vboID = 0;
+    }
+    if (eboID != 0) {
+        glDeleteBuffers(1,&eboID); // tell the GPU to delete the index buffer
+        eboID = 0;
+    }
+    if (vaoID != 0) {
+        glDeleteVertexArrays(1,&vaoID); // tell the GPU to delete the array buffer
+        vaoID = 0;
+    }
 }
 
-void _enemyManager::initEnemyManager(_player* currentPlayer, _world* currentWorld, _bulletManager* currentBulletManager, _sounds* currentSounds) {
+void _enemyManager::initEnemyManager(_player* currentPlayer, _world* currentWorld, _bulletManager* currentBulletManager, _sounds* currentSounds, _lightManager* lightManager) {
     player = currentPlayer;
     world = currentWorld;
     bulletManager = currentBulletManager;
     sounds = currentSounds;
+    sceneLightManager = lightManager;
+
+    // -- SHADER SETUP -- //
+    shader.initShader("shaders/enemy_manager/vertex.vs","shaders/enemy_manager/fragment.fs");
+    uint32_t program = shader.getProgram();
+
+    // Uniforms
+    u_viewProjectionMatrix = glGetUniformLocation(program,"u_viewProjectionMatrix");
+    u_texture = glGetUniformLocation(program,"u_texture");
+    u_time = glGetUniformLocation(program,"u_time");
+
+    glGenBuffers(1, &vboID); 
+    glGenBuffers(1, &eboID); 
+    glGenVertexArrays(1, &vaoID);
+
+    buildVAO();
 
     particleManager->initParticleManager("images/enemy/enemy_particles.png",4,10000);
     // Turret Hit Effect //
@@ -240,14 +274,31 @@ void _enemyManager::initEnemyManager(_player* currentPlayer, _world* currentWorl
 }
 
 void _enemyManager::updateEnemies(double dt) {
+    time += dt;
+
     // Iterate backwards to removal safety
     particleManager->updateParticleManger(dt);
     if (enemyList.size() <= 0) return; // Empty list - no need to run loop
     if (!player || player->isDead()) return; // No player, or player is dead
     for (int i = enemyList.size()-1; i >= 0; i--) {
         _enemy* enemy = enemyList[i].get();
-        switch(enemy->eType) {
-            
+        
+        // Kill enemy event //
+        if (enemy->isDead()) {
+            // Get a list of sprites registered to the enemy
+            const vector<_sprite*>& enemySpriteList = enemy->getSpriteList();
+            for (const auto &sprite : enemySpriteList) {
+                // For each one, remove it from our texture map (remove from draw call)
+                GLuint textureID = sprite->getTextureID();
+                vector<_sprite*> &spriteVector = textureMap.at(textureID);      // Pull vector out of the map
+                auto it = find(spriteVector.begin(),spriteVector.end(),sprite);
+                spriteVector.erase(it);
+            }
+
+            spriteCount -= enemy->getNumSprites();
+        }
+
+        switch(enemy->eType) {            
             // -- DEFAULT TURRET -- //
             case ENEMY_TURRET: {
                 if (enemy->isDead() && !enemy->inDeathAnimation) {
@@ -359,19 +410,73 @@ void _enemyManager::updateEnemies(double dt) {
 }
 
 void _enemyManager::drawEnemies() {
-    for (int i = 0; i < enemyList.size(); i++) {
-        switch(enemyList[i]->eType) {
-            case ENEMY_TURRET:
-                enemyList[i]->drawUnitSingular();
-                break;
-            case ENEMY_GATLING:
-                enemyList[i]->drawUnit();
-                break;
-            case ENEMY_ORC:
-                enemyList[i]->drawUnitSingular();
-                break;
-        }
+    if (spriteCount <= 0) {
+        // No enemies to draw
+        particleManager->drawParticleManager();
+        return;
     }
+
+    glUseProgram(shader.getProgram());
+
+    // Setup uniforms
+    glUniformMatrix4fv(u_viewProjectionMatrix, 1, GL_FALSE, glm::value_ptr(viewProjectionMatrix));
+    glUniform1i(u_texture, 0); // Uses texture slot not ID thus its 0
+    glUniform1f(u_time,time);
+
+    glBindVertexArray(vaoID);
+
+    for (auto it = textureMap.begin(); it != textureMap.end(); it++) {
+        GLuint textureID = it->first;                   // Texture ID
+        vector<_sprite*> &spriteVector = it->second;    // List of sprites mapped to texture ID
+
+        if (spriteVector.size() <= 0) {
+            // Texture ID is empty, skip
+            continue;
+        } 
+
+        // BUILD BATCH VBO //
+        int spriteBatchCount = spriteVector.size();
+        float vboData[spriteBatchCount * 7 * 4];
+        int vIndex = 0;
+
+        for (auto &sprite : spriteVector) {
+            sprite->buildSpriteVBO(vboData,vIndex);
+        }
+
+        glBindBuffer(GL_ARRAY_BUFFER, vboID);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(vboData), vboData, GL_DYNAMIC_DRAW);
+
+        // BUILD BATCH EBO //
+        uint32_t eboData[spriteBatchCount * 6];
+        int vertexOffset = 0;
+        int eIndex = 0;
+
+        for (int i = 0; i < spriteBatchCount; i++) {
+            // Triangle 1
+            eboData[eIndex++] = vertexOffset + 0; // BL   
+            eboData[eIndex++] = vertexOffset + 1; // BR
+            eboData[eIndex++] = vertexOffset + 2; // TR
+            // Triangle 2
+            eboData[eIndex++] = vertexOffset + 0; // BL
+            eboData[eIndex++] = vertexOffset + 2; // TR
+            eboData[eIndex++] = vertexOffset + 3; // TL
+
+            vertexOffset += 4;
+        }
+
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboID);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(eboData), eboData, GL_DYNAMIC_DRAW);
+
+        glBindTexture(GL_TEXTURE_2D, textureID);
+
+        glDrawElements(GL_TRIANGLES, spriteBatchCount * 6, GL_UNSIGNED_INT, 0);
+    } 
+
+    glBindVertexArray(0);
+
+    glUseProgram(0);
+    
+
     particleManager->drawParticleManager();
 }
 
@@ -386,6 +491,16 @@ void _enemyManager::addEnemy(const Vec2f &_pos, const enemy_config &config) {
         newEnemy->initEnemy(config);
     }
     newEnemy->pos = _pos;
+
+    const vector<_sprite*>& enemySpriteList = newEnemy->getSpriteList();
+    for (const auto &sprite : enemySpriteList) {
+        GLuint textureID = sprite->getTextureID();
+        textureMap[textureID].push_back(sprite);    // Creates an entry if one doesnt exist (or updates if it does)
+    }
+
+    spriteCount += newEnemy->getNumSprites();   // Increase sprite count
+
+    // Push_back last to avoid weird move stuff
     enemyList.push_back(move(newEnemy));
 }
 
@@ -437,3 +552,26 @@ int _enemyManager::getNumEnemies() {
 }
 
 // -- PRIVATE -- //
+
+void _enemyManager::buildVAO() {
+    glBindVertexArray(vaoID);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vboID);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboID);
+
+    GLsizei stride = 7 * sizeof(float);
+
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0,2,GL_FLOAT,GL_FALSE,stride,(void*)(0 * sizeof(float))); // Size (vec2)
+
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1,2,GL_FLOAT,GL_FALSE,stride,(void*)(2 * sizeof(float))); // Tex Coords (vec2)
+
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(2,2,GL_FLOAT,GL_FALSE,stride,(void*)(4 * sizeof(float))); // Center position (vec2)
+
+    glEnableVertexAttribArray(3);
+    glVertexAttribPointer(3,1,GL_FLOAT,GL_FALSE,stride,(void*)(6 * sizeof(float))); // Angle (float)
+
+    glBindVertexArray(0);
+}

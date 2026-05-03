@@ -140,7 +140,7 @@ void _scene::initScene(bool loadWorld)
 
     drawWorldBenchmark->startBenchmark();
 
-    enemyManager->initEnemyManager(player.get(), myWorld, bulletManager.get(), soundManager);
+    enemyManager->initEnemyManager(player.get(), myWorld, bulletManager.get(), soundManager, lightManager.get());
     enemyManager->bullet_1 = &turret_bullet;
     enemyManager->bullet_2 = &gatling_bullet;
 

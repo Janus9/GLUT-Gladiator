@@ -1,7 +1,10 @@
 #include <_sprite.h>
 
-// Static -- shared accross all instances of sprite
+// -- STATIC MEMBERS -- //
+
 int _sprite::nextID = 0;
+
+// -- PUBLIC -- //
 
 _sprite::_sprite() {
     // ctor
@@ -12,7 +15,7 @@ _sprite::_sprite() {
 }
 
 _sprite::~_sprite() {
-    // dtor
+    
 }
 
 void _sprite::initSprite(const string &fileName, int _framesX, int _framesY, const sprite_direction &direction, int _FPS) {
@@ -37,6 +40,8 @@ void _sprite::initSprite(const string &fileName, int _framesX, int _framesY, con
     defaultDirection = direction;
 
     setFPS(_FPS);
+
+    
 }
 
 void _sprite::createSpriteAction(const sprite_action &action) {
@@ -322,4 +327,63 @@ Vec2f _sprite::getSize() const {
 
 bool _sprite::operator==(const _sprite &other) const {
     return spriteID == other.getID();
+}
+
+void _sprite::buildSpriteVBO(float* vboData, int &vIndex) const {
+    float frameWidth = 1.0f/framesX;
+    float frameHeight = 1.0f/framesY;
+
+    float halfWidth = pixelsX * scale.x * 0.5f;
+    float halfHeight = pixelsY * scale.y * 0.5f;
+
+    // top-left
+    float u0 = currentFrameX * (frameWidth);
+    float v0 = currentFrameY * (frameHeight);
+    
+    // bottom-right
+    float u1 = (currentFrameX+1) * (frameWidth);
+    float v1 = (currentFrameY+1) * (frameHeight);
+
+    float rotRad = degreeToRad(rot); // Shaders require radians
+
+    // Quad //
+    // Bottom Left
+    vboData[vIndex++] = -halfWidth;         // Size X
+    vboData[vIndex++] = -halfHeight;        // Size Y
+    vboData[vIndex++] = u0;                 // Tex Coord X
+    vboData[vIndex++] = v1;                 // Tex Coord Y
+    vboData[vIndex++] = pos.x;              // Pos X
+    vboData[vIndex++] = pos.y;              // Pos Y
+    vboData[vIndex++] = rotRad;             // Angle (Radians)
+    // Bottom Right
+    vboData[vIndex++] = halfWidth;         
+    vboData[vIndex++] = -halfHeight;        
+    vboData[vIndex++] = u1;                 
+    vboData[vIndex++] = v1;                
+    vboData[vIndex++] = pos.x;              
+    vboData[vIndex++] = pos.y;              
+    vboData[vIndex++] = rotRad;             
+    // Top Right
+    vboData[vIndex++] = halfWidth;         
+    vboData[vIndex++] = halfHeight;        
+    vboData[vIndex++] = u1;                 
+    vboData[vIndex++] = v0;                
+    vboData[vIndex++] = pos.x;              
+    vboData[vIndex++] = pos.y;              
+    vboData[vIndex++] = rotRad;   
+    // Top Left
+    vboData[vIndex++] = -halfWidth;         
+    vboData[vIndex++] = halfHeight;        
+    vboData[vIndex++] = u0;                 
+    vboData[vIndex++] = v0;                
+    vboData[vIndex++] = pos.x;              
+    vboData[vIndex++] = pos.y;              
+    vboData[vIndex++] = rotRad;   
+}
+        
+GLuint _sprite::getTextureID() const {
+    if (texture) {
+        return texture->textID;
+    }
+    return 0;
 }

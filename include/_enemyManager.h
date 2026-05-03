@@ -7,6 +7,13 @@
 #include <_bulletManager.h>
 #include <_particleManager.h>
 #include <_sounds.h>
+#include <_shader.h>
+#include <_lightManager.h>
+
+// Matrix math for shaders //
+#include <glm/glm.hpp>                      // Core library
+#include <glm/gtc/matrix_transform.hpp>     // Matrix ops like transform, scale, ortho, etc
+#include <glm/gtc/type_ptr.hpp>             // Send GLM datatypes (matrix) to GPU
 
 enum enemy_type : uint8_t {
     ENEMY_TURRET,
@@ -98,7 +105,7 @@ class _enemyManager {
         _enemyManager();
         virtual ~_enemyManager();
 
-        void initEnemyManager(_player* currentPlayer, _world* currentWorld, _bulletManager* currentBulletManager, _sounds* currentSounds);
+        void initEnemyManager(_player* currentPlayer, _world* currentWorld, _bulletManager* currentBulletManager, _sounds* currentSounds, _lightManager* lightManager);
 
         /**
          * Update function for enemies
@@ -138,6 +145,8 @@ class _enemyManager {
         // Returns number of enemies alive in the list
         int getNumEnemies();
 
+        static void setViewProjectionMatrix(const glm::mat4 &_viewProjectionMatrix);
+
         _bullet_config* bullet_1 = nullptr;
         _bullet_config* bullet_2 = nullptr;
     protected:
@@ -155,6 +164,26 @@ class _enemyManager {
         particle_effect turret_death_effect;
         particle_effect gatling_death_effect;
         particle_effect gatling_death_effect_smoke;
+
+        // -- SHADERS -- //
+        unordered_map<GLuint, vector<_sprite*>> textureMap; // Maps a textureID to a batch of sprites using the same texture
+
+        uint32_t spriteCount = 0;   // TODO DOES NOTHING
+
+        void buildVAO();
+
+        GLuint vboID = 0;
+        GLuint eboID = 0;
+        GLuint vaoID = 0;
+        _lightManager* sceneLightManager = nullptr; // Pointer to scene lightManager (non-owning)
+
+        static glm::mat4 viewProjectionMatrix;
+        _shader shader;
+        GLint u_viewProjectionMatrix = -1;
+        GLint u_texture = -1;
+        GLint u_time = -1;
+
+        float time = 0.0f;
 };
 
 #endif // _ENEMY_MANAGER_H

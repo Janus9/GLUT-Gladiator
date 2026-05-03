@@ -150,6 +150,20 @@ class _unit {
         // Returns te unit's unique ID 
         int getID() const;
 
+        /**
+         * Adds data from each sprite in the unit
+         * 
+         * @param vboData Pointer to vboData to add to
+         * @param vIndex Index in the array
+         */
+        void buildUnitVBO(float* vboData, int &vIndex) const;
+
+        /** Returns a reference to the unit's list of sprites (readonly) */
+        const vector<_sprite*>& getSpriteList() const;
+
+        /** Returns the number of sprites registered to the unit */
+        int getNumSprites() const;
+
         // OPEARTOR OVERLOADS  //
         bool operator==(const _unit &other) const;
 

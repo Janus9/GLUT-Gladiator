@@ -133,6 +133,25 @@ int _unit::getID() const {
     return unitID;
 }
 
+void _unit::buildUnitVBO(float* vboData, int &vIndex) const {
+    if (singleSprite) {
+        singleSprite->buildSpriteVBO(vboData, vIndex);
+    } else {
+        for (const auto &sprite : spriteList) {
+            sprite->buildSpriteVBO(vboData, vIndex);
+        }
+    }
+}
+
+const vector<_sprite*>& _unit::getSpriteList() const {
+    return spriteList;
+}
+
+int _unit::getNumSprites() const {
+    return spriteList.size();
+}
+
+
 bool _unit::focusOn(const Vec2f &_pos, float speed, float degreeTolerance, _sprite* sprite) {
     _sprite* currentSprite = nullptr;
     if (sprite) {

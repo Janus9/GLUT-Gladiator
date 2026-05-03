@@ -4,6 +4,8 @@
 #include <_common.h>
 #include <_texture.h>
 #include <_timerPlusPlus.h>
+#include <_shader.h>
+#include <_lightManager.h>
 
 // Enum for a sprite's direction
 enum class sprite_direction {
@@ -161,6 +163,17 @@ class _sprite {
         // Returns the size of the sprite (in world units) and adjusted to it's scale factor. 
         Vec2f getSize() const;
 
+        /**
+         * Adds data to an array for VBO data
+         * 
+         * @param vboData Pointer to vboData to add to
+         * @param vIndex Index in the array
+         */
+        void buildSpriteVBO(float* vboData, int &vIndex) const;
+
+        // Retuns the sprite's current texture ID
+        GLuint getTextureID() const;
+
         // -- Sprite Attributes -- //
         Vec2f scale = {1.0f, 1.0f};         // Scale of a sprite in multiplier (so 2,2 is a sprite 2x width by 2x height). Default sprite width/height is # of pixels
         Vec2f pos = {0.0f, 0.0f};           // Position of a sprite in world space 
@@ -225,7 +238,7 @@ class _sprite {
         bool singleActionInProgress = false;
 
         int spriteID;
-        static int nextID;
+        static int nextID;   
 };
 
 #endif // _SPRITE_H
