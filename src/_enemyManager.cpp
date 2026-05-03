@@ -436,18 +436,18 @@ void _enemyManager::drawEnemies() {
 
         // BUILD BATCH VBO //
         int spriteBatchCount = spriteVector.size();
-        float vboData[spriteBatchCount * 7 * 4];
+        vector<float> vboData(spriteBatchCount * 7 * 4);
         int vIndex = 0;
 
         for (auto &sprite : spriteVector) {
-            sprite->buildSpriteVBO(vboData,vIndex);
+            sprite->buildSpriteVBO(vboData.data(),vIndex);
         }
 
         glBindBuffer(GL_ARRAY_BUFFER, vboID);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(vboData), vboData, GL_DYNAMIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, vboData.size() * sizeof(float), vboData.data(), GL_DYNAMIC_DRAW);
 
         // BUILD BATCH EBO //
-        uint32_t eboData[spriteBatchCount * 6];
+        vector<uint32_t> eboData(spriteBatchCount * 6);
         int vertexOffset = 0;
         int eIndex = 0;
 
@@ -465,7 +465,7 @@ void _enemyManager::drawEnemies() {
         }
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboID);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(eboData), eboData, GL_DYNAMIC_DRAW);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, eboData.size() * sizeof(float), eboData.data(), GL_DYNAMIC_DRAW);
 
         glBindTexture(GL_TEXTURE_2D, textureID);
 
@@ -475,7 +475,6 @@ void _enemyManager::drawEnemies() {
     glBindVertexArray(0);
 
     glUseProgram(0);
-    
 
     particleManager->drawParticleManager();
 }
