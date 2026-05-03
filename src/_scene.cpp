@@ -81,6 +81,8 @@ void _scene::initScene(bool loadWorld)
     interactionTimer->reset();
     fireRateTimer.reset();
 
+    myWorld->initWorld(loadWorld,lightManager.get());         // Initialize the world
+
     // -- PLAYER -- //
     player->initPlayer();
     player->hasGun = true;
@@ -133,7 +135,6 @@ void _scene::initScene(bool loadWorld)
     hud->getHudSprite("PROGRESS_BAR")->getSprite()->setIdleFrame(0, 0);
 
     myLight->setLight(GL_LIGHT0); // The light onto the object from the pointer is set to be the instantiated light from before
-    myWorld->initWorld(loadWorld);         // Initialize the world
 
     debugTimer.reset();
 
@@ -275,8 +276,24 @@ void _scene::initScene(bool loadWorld)
         }
         player->spawnPos = spawnPos;
     }
-
     FOB->pos = player->spawnPos;
+    
+    // -- LIGHT CONFIGS -- //
+    player_light.ID = "PLAYER_LIGHT";
+    player_light.active = true;
+    player_light.pos = player->pos; 
+    player_light.radius = 400.0f;
+    player_light.intensity = 1.0f;
+    player_light.color = {1.0f, 1.0f, 0.8f};
+    lightManager->addLight(player_light);
+
+    fob_light.ID = "FOB_LIGHT";
+    fob_light.active = true;
+    fob_light.pos = FOB->pos; 
+    fob_light.radius = 400.0f;
+    fob_light.intensity = 1.0f;
+    fob_light.color = {0.8f, 0.8f, 1.0f};
+    lightManager->addLight(fob_light);
 
     const int number_default_turrets = 100;
     const int number_gatling_turrets = 100;
@@ -1019,11 +1036,8 @@ void _scene::updateScene(double dt, bool *keysArray)
             player->pos.x += playerSpeed * dt;
     }
 
-    // // Chunk generation only works during world setup (for now TODO)
-    // bool inLoadedChunk = myWorld->isChunkLoaded(playerChunkPos.x, playerChunkPos.y);
-    // if (!inLoadedChunk) {
-    //     //myWorld->generateChunk(playerChunkPos.x, playerChunkPos.y);
-    // }
+    lightManager->getLightPosition("PLAYER_LIGHT")->x = player->pos.x;
+    lightManager->getLightPosition("PLAYER_LIGHT")->y = player->pos.y;
 
     if (debugTimer.getMilliseconds() > debugPrintInterval)
     {

@@ -29,7 +29,7 @@ void main() {
     vec4 baseColor = texture(u_texture, v_atlasUV);
 
 
-    vec3 ambient = vec3(0.05); // Add an ambient light (can be changed)
+    vec3 ambient = vec3(0.10); // Add an ambient light (can be changed)
     vec3 lightAccum = ambient;
 
     for (int i = 0; i < u_lightCount; i++) {
@@ -37,6 +37,8 @@ void main() {
         float brightness = u_lightIntensity[i] - clamp(dist / u_lightRadius[i], 0.0, u_lightIntensity[i]); // Force X to stay within min, max value
         brightness = brightness * brightness; // Soften
         vec3 light = u_lightColor[i] * brightness * u_lightIntensity[i];
+
+        lightAccum += light;
     }
 
     lightAccum = clamp(lightAccum, 0.0, 1.0);

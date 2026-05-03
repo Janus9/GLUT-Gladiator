@@ -24,6 +24,7 @@
 #include<_player.h>
 #include<_enemyManager.h>
 #include<_fob.h>
+#include<_lightManager.h>
 
 // Matrix math for shaders //
 #include <glm/glm.hpp>                      // Core library
@@ -194,6 +195,11 @@ class _scene
         glm::mat4 sceneProjectionMatrix;
         glm::mat4 sceneViewMatix;
         glm::mat4 sceneViewProjectionMatrix;
+
+        // Lighting //
+        unique_ptr<_lightManager> lightManager = make_unique<_lightManager>();
+        light_config player_light;
+        light_config fob_light;
 };
 
 #endif // _SCENE_H

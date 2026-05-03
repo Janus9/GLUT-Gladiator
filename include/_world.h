@@ -24,6 +24,7 @@
 #include <_benchmark.h>
 #include <_particleManager.h>
 #include <_shader.h>
+#include <_lightManager.h>
 
 #include <glm/glm.hpp>                      // Core library
 #include <glm/gtc/matrix_transform.hpp>     // Matrix ops like transform, scale, ortho, etc
@@ -238,7 +239,7 @@ class _world
          * 
          * @param loadWorld If true world is loaded and NOT generated
          */
-        void initWorld(bool loadWorld);
+        void initWorld(bool loadWorld, _lightManager* lightManager);
 
         // Draw function for world
         void drawWorld(float left, float right, float top, float bottom);
@@ -446,7 +447,7 @@ class _world
         void mapCellNeighbors(_cell* cell, _cell* outNeighbors[9]);
 
         // -- SHADERS -- //
-        light testLight;
+        _lightManager* sceneLightManager = nullptr; // Pointer to scene lightManager (non-owning)
 
         static glm::mat4 viewProjectionMatrix;
         _shader shader;
@@ -454,13 +455,6 @@ class _world
         GLint u_texture = -1;
         GLint u_cameraPos = -1;
         GLint u_time = -1;
-
-        // Single for now
-        GLint u_lightCount = -1;
-        GLint u_lightPos = -1;
-        GLint u_lightRadius = -1;
-        GLint u_lightIntensity = -1;
-        GLint u_lightColor = -1;
 
         float time = 0.0f;
         static Vec2f cameraPosition; 
