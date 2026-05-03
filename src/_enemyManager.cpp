@@ -410,6 +410,8 @@ void _enemyManager::updateEnemies(double dt) {
 }
 
 void _enemyManager::drawEnemies() {
+    // cout << "textureMap size: " << textureMap.size() << endl;
+
     if (spriteCount <= 0) {
         // No enemies to draw
         particleManager->drawParticleManager();
@@ -465,7 +467,7 @@ void _enemyManager::drawEnemies() {
         }
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboID);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, eboData.size() * sizeof(float), eboData.data(), GL_DYNAMIC_DRAW);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, eboData.size() * sizeof(uint32_t), eboData.data(), GL_DYNAMIC_DRAW);
 
         glBindTexture(GL_TEXTURE_2D, textureID);
 
