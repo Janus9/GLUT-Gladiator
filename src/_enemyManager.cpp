@@ -292,9 +292,14 @@ void _enemyManager::updateEnemies(double dt) {
             for (const auto &sprite : enemySpriteList) {
                 // For each one, remove it from our texture map (remove from draw call)
                 GLuint textureID = sprite->getTextureID();
-                vector<_sprite*> &spriteVector = textureMap.at(textureID);      // Pull vector out of the map
-                auto it = find(spriteVector.begin(),spriteVector.end(),sprite);
-                spriteVector.erase(it);
+                auto mapIt = textureMap.find(textureID);
+                if (mapIt != textureMap.end()) {
+                    vector<_sprite*> &spriteVector = mapIt->second;      // Pull vector out of the map
+                    auto spriteIt = find(spriteVector.begin(),spriteVector.end(),sprite);
+                    if (spriteIt != spriteVector.end()) {
+                        spriteVector.erase(spriteIt);
+                    }
+                }
             }
 
             spriteCount -= enemy->getNumSprites();
