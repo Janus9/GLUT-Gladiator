@@ -80,6 +80,12 @@ void _unit::drawUnitSingular() {
     }
 }
 
+void _unit::updateUnit(double dt) {
+    for (auto& sprite : spriteList) {
+        sprite->updateSprite(dt);
+    }
+}
+
 void _unit::applyPhysics(double dt) {
     vel += acc * dt;
     pos += vel * dt;

@@ -96,6 +96,9 @@ class _sprite {
         
         // Sets a direction for the sprite to face
         void setDirection(const sprite_direction &direction);
+
+        /** Updates sprite animations and state from time (in seconds) */
+        void updateSprite(double dt);
         
         // Draws the current sprite for its given animation (if in animation)
         void drawSprite();

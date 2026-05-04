@@ -44,6 +44,9 @@ class _unit {
          */
         void drawUnitSingular();
 
+        /** Updates all sprites registered to the unit */
+        void updateUnit(double dt);
+
         /**
          * Applies physics calculations (acceleration/velocity/position) to unit
          * 

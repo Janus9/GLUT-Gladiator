@@ -219,6 +219,34 @@ void _sprite::drawSprite() {
     }
 }
 
+void _sprite::updateSprite(double dt) {
+    // Check for animation frame change
+    if (animationTimer->getSeconds() > fpsDelay && playingAnimation && currentAction != nullptr) {
+        animationTimer->reset();
+        if(reverseAnimation) {
+            currentFrameX--;
+            if (currentFrameX < currentAction->frame_column_start_index) {
+                currentFrameX = currentAction->frame_column_stop_index;
+            }
+        } else {
+            currentFrameX++;
+            if (currentFrameX > currentAction->frame_column_stop_index) {
+                currentFrameX = currentAction->frame_column_start_index;
+            }
+        }
+        if (singleActionInProgress && currentFrameX == currentAction->frame_column_start_index) {
+            // If single action and were at the beginning (after++) means we already looped. 
+            stopAnimation();
+        } 
+        if (debugging) {
+            cout << "DRAW for sprite ID: " << spriteID << "\n";
+            cout << "-------------------------------\n";
+            cout << "Frame Pos: (" << currentFrameX << ", " << currentFrameY << ")\n"; 
+            cout << "Pivot Point: (" << pivotPoint.x << "px, " << pivotPoint.y << "px)\n";
+        }
+    }
+}
+
 bool _sprite::startAnimation() {
     // If were already animating, preform early return to avoid reseting animation over and over
     if (playingAnimation) return false;
@@ -330,6 +358,12 @@ bool _sprite::operator==(const _sprite &other) const {
 }
 
 void _sprite::buildSpriteVBO(float* vboData, int &vIndex) const {
+    if (hidden || ocapacity == 0) return; // Skip draw due to hidden image
+    if (pixelsX <= 0 || pixelsY <= 0) {
+        // No need to handle drawing an image of 0 size
+        return;
+    }
+
     float frameWidth = 1.0f/framesX;
     float frameHeight = 1.0f/framesY;
 
@@ -378,7 +412,7 @@ void _sprite::buildSpriteVBO(float* vboData, int &vIndex) const {
     vboData[vIndex++] = v0;                
     vboData[vIndex++] = pos.x;              
     vboData[vIndex++] = pos.y;              
-    vboData[vIndex++] = rotRad;   
+    vboData[vIndex++] = rotRad;
 }
         
 GLuint _sprite::getTextureID() const {

@@ -283,7 +283,8 @@ void _enemyManager::updateEnemies(double dt) {
     for (int i = enemyList.size()-1; i >= 0; i--) {
         _enemy* enemy = enemyList[i].get();
         enemy->setPosition(enemy->pos);
-        
+        enemy->updateUnit(dt);
+
         // Kill enemy event //
         if (enemy->isDead()) {
             // Get a list of sprites registered to the enemy
