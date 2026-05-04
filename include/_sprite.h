@@ -174,7 +174,10 @@ class _sprite {
          */
         void buildSpriteVBO(float* vboData, int &vIndex) const;
 
-        // Retuns the sprite's current texture ID
+        /** Sets the sprite's current texture ID */
+        void setTextureID(GLuint _textureID);
+
+        /** Retuns the sprite's current texture ID */
         GLuint getTextureID() const;
 
         // -- Sprite Attributes -- //
@@ -206,6 +209,8 @@ class _sprite {
         bool operator==(const _sprite &other) const;
     protected:
     private:
+        GLuint textureID = 0;
+
         // These are indexes so they start at 0
         int pixelDrawStart = 0; // Which Y pixel we start drawing at (0 is top of image)
         int pixelDrawStop = 0; // Which Y pixel we stop drawing at (pixelsY is bottom of image)

@@ -20,6 +20,7 @@ _sprite::~_sprite() {
 
 void _sprite::initSprite(const string &fileName, int _framesX, int _framesY, const sprite_direction &direction, int _FPS) {
     texture->loadTexture(fileName);
+    textureID = texture->textID;
 
     framesX = _framesX;
     framesY = _framesY;
@@ -40,8 +41,6 @@ void _sprite::initSprite(const string &fileName, int _framesX, int _framesY, con
     defaultDirection = direction;
 
     setFPS(_FPS);
-
-    
 }
 
 void _sprite::createSpriteAction(const sprite_action &action) {
@@ -416,8 +415,9 @@ void _sprite::buildSpriteVBO(float* vboData, int &vIndex) const {
 }
         
 GLuint _sprite::getTextureID() const {
-    if (texture) {
-        return texture->textID;
-    }
-    return 0;
+    return textureID;
+}
+
+void _sprite::setTextureID(GLuint _textureID) {
+    textureID = _textureID;
 }
