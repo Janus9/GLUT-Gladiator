@@ -184,6 +184,12 @@ bool _unit::focusOn(const Vec2f &_pos, float speed, float degreeTolerance, _spri
 
 void _unit::setSingleSprite(_sprite* sprite) {
     singleSprite = sprite;
+    sprite->hidden = false;
+    for (auto& thisSprite : spriteList) {
+        if (thisSprite != sprite) {
+            thisSprite->hidden = true;
+        }
+    }
 }
 
 _sprite* _unit::getSingleSprite() const {

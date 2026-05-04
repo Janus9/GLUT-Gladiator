@@ -480,7 +480,9 @@ void _enemyManager::drawEnemies() {
             int vIndex = 0;
 
             for (auto &sprite : spriteVector) {
-                sprite->buildSpriteVBO(vboData.data(),vIndex);
+                if (!sprite->hidden && sprite->ocapacity > 0.0f) { // Ignore hidden sprites
+                    sprite->buildSpriteVBO(vboData.data(),vIndex);
+                }
             }
 
             glBindBuffer(GL_ARRAY_BUFFER, vboID);
@@ -531,7 +533,7 @@ void _enemyManager::addEnemy(const Vec2f &_pos, const enemy_config &config) {
     unique_ptr<_enemy> newEnemy;
     if (config.type == ENEMY_ORC) {
         unique_ptr<_orc> orc = make_unique<_orc>();
-        orc->initOrc();
+        orc->initOrc(sceneTextureManager);
         newEnemy = move(orc);
     } else {
         newEnemy = make_unique<_enemy>();

@@ -5,6 +5,7 @@
 #include <_enemyManager.h>
 #include <_player.h>
 #include <_sounds.h>
+#include <_textureManager.h>
 
 class _world;
 
@@ -34,7 +35,7 @@ class _orc : public _enemy {
         virtual ~_orc();
 
         // Sets stats, sprites, animation lookup table.
-        void initOrc();
+        void initOrc(const _textureManager* sceneTextureManager);
 
         // Per-frame AI + animation FSM. Manager handles dead/despawn timing.
         void updateOrc(double dt, _player* player, _world* world, _sounds* sounds);

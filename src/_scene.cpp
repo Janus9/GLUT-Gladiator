@@ -1284,8 +1284,16 @@ void _scene::applyCamera()
 }
 
 void _scene::setupTextures() {
+    // Regular Turret //
     textureManager->addTexture("images/enemy/turret.png");
+    // Gatling Turrets //
     textureManager->addTexture("images/enemy/gatling_gun/gatling_base.png");
     textureManager->addTexture("images/enemy/gatling_gun/gatling_turret.png");
+    // Orc //
+    textureManager->addTexture("images/enemy/orc/orc_walk.png");
+    textureManager->addTexture("images/enemy/orc/orc_attack.png");
+    textureManager->addTexture("images/enemy/orc/orc_hurt.png");
+    textureManager->addTexture("images/enemy/orc/orc_death.png");
+    
     textureManager->addTexture("images/enemy/enemy_particles.png");
 }
