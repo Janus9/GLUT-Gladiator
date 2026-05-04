@@ -84,11 +84,7 @@ void _scene::initScene(bool loadWorld)
     myWorld->initWorld(loadWorld,lightManager.get());         // Initialize the world
 
     // TEXTURE LOADER //
-
-    textureManager->addTexture("images/enemy/turret.png");
-    textureManager->addTexture("images/enemy/gatling_gun/gatling_base.png");
-    textureManager->addTexture("images/enemy/gatling_gun/gatling_turret.png");
-    textureManager->addTexture("images/enemy/enemy_particles.png");
+    if (!loadWorld) setupTextures();
 
     // -- PLAYER -- //
     player->initPlayer();
@@ -147,7 +143,7 @@ void _scene::initScene(bool loadWorld)
 
     drawWorldBenchmark->startBenchmark();
 
-    enemyManager->initEnemyManager(player.get(), myWorld, bulletManager.get(), soundManager, lightManager.get(), textureManager.get());
+    if(!loadWorld) enemyManager->initEnemyManager(player.get(), myWorld, bulletManager.get(), soundManager, lightManager.get(), textureManager.get());
     enemyManager->bullet_1 = &turret_bullet;
     enemyManager->bullet_2 = &gatling_bullet;
 
@@ -302,9 +298,9 @@ void _scene::initScene(bool loadWorld)
     fob_light.color = {0.8f, 0.8f, 1.0f};
     lightManager->addLight(fob_light);
 
-    const int number_default_turrets = 0;
-    const int number_gatling_turrets = 0;
-    const int number_orcs = 0;
+    const int number_default_turrets = 500;
+    const int number_gatling_turrets = 75;
+    const int number_orcs = 600;
 
     // Dont spawn enemies when world is loaded
     if (!loadWorld) {
@@ -347,7 +343,7 @@ void _scene::initScene(bool loadWorld)
         }
 
         // Spawn Orcs //
-        uniform_real_distribution<float> orc_pos_dist(-8000, 8000);
+        uniform_real_distribution<float> orc_pos_dist(-12000, 12000);
         for (int i = 0; i < number_orcs; i++)
         {
             bool lookingForOrcSpawn = true;
@@ -561,6 +557,10 @@ bool _scene::loadSceneFromFile(const string &fileName) {
     if (enemy_count == 0) {
         cout << "WARNING: Enemy count is 0\n";
     }
+
+    // Setup enemy manager before adding enemies
+    setupTextures();
+    enemyManager->initEnemyManager(player.get(), myWorld, bulletManager.get(), soundManager, lightManager.get(), textureManager.get());
 
     vector<enemy_serial_data> enemy_data;
     enemy_data.resize(enemy_count);
@@ -1281,4 +1281,11 @@ void _scene::applyCamera()
 
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
+}
+
+void _scene::setupTextures() {
+    textureManager->addTexture("images/enemy/turret.png");
+    textureManager->addTexture("images/enemy/gatling_gun/gatling_base.png");
+    textureManager->addTexture("images/enemy/gatling_gun/gatling_turret.png");
+    textureManager->addTexture("images/enemy/enemy_particles.png");
 }

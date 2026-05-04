@@ -119,6 +119,7 @@ class _scene
         _sounds* soundManager = nullptr; // Non-owning; set via setSounds() before initScene()
 
         // Texture Manager //
+        void setupTextures();
         unique_ptr<_textureManager> textureManager = make_unique<_textureManager>();
 
         _lightSettings *myLight = new _lightSettings();     
