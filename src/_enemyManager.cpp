@@ -282,6 +282,7 @@ void _enemyManager::updateEnemies(double dt) {
     if (!player || player->isDead()) return; // No player, or player is dead
     for (int i = enemyList.size()-1; i >= 0; i--) {
         _enemy* enemy = enemyList[i].get();
+        enemy->setPosition(enemy->pos);
         
         // Kill enemy event //
         if (enemy->isDead()) {
@@ -466,9 +467,16 @@ void _enemyManager::drawEnemies() {
             vertexOffset += 4;
         }
 
+        // cout << "-- VBO DATA OUT FOR TEXTURE ID " << textureID << " -- \n";
+        // for (int i = 0; i < vboData.size(); i++) {
+        //     cout << "vboData[" << i << "] = " << vboData[i] << "\n";
+        // }
+        // cout << "-- VBO DATA FINISH -- \n";
+
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboID);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, eboData.size() * sizeof(uint32_t), eboData.data(), GL_DYNAMIC_DRAW);
 
+        glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, textureID);
 
         glDrawElements(GL_TRIANGLES, spriteBatchCount * 6, GL_UNSIGNED_INT, 0);

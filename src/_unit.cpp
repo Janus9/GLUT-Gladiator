@@ -237,8 +237,16 @@ void _unit::resetHealth() {
     currentHealth = maxHealth;
 }
 
+void _unit::setPosition(const Vec2f &_pos) {
+    pos = _pos;
+    for (auto &sprite : spriteList) {
+        sprite->pos = _pos;
+    }
+}
 
 bool _unit::operator==(const _unit &other) const {
     return unitID == other.unitID;
 }
+
+
 

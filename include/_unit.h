@@ -164,6 +164,9 @@ class _unit {
         /** Returns the number of sprites registered to the unit */
         int getNumSprites() const;
 
+        /** Sets the position of the unit and all it's sprites */
+        void setPosition(const Vec2f &_pos);
+
         // OPEARTOR OVERLOADS  //
         bool operator==(const _unit &other) const;
 

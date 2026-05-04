@@ -295,9 +295,9 @@ void _scene::initScene(bool loadWorld)
     fob_light.color = {0.8f, 0.8f, 1.0f};
     lightManager->addLight(fob_light);
 
-    const int number_default_turrets = 100;
-    const int number_gatling_turrets = 100;
-    const int number_orcs = 100;
+    const int number_default_turrets = 0;
+    const int number_gatling_turrets = 0;
+    const int number_orcs = 0;
 
     // Dont spawn enemies when world is loaded
     if (!loadWorld) {
@@ -1251,6 +1251,7 @@ void _scene::applyCamera()
 
     _bulletManager::setViewProjectionMatrix(sceneViewProjectionMatrix);
     _particleManager::setViewProjectionMatrix(sceneViewProjectionMatrix);
+    _enemyManager::setViewProjectionMatrix(sceneViewProjectionMatrix);
     _world::setViewProjectionMatrix(sceneViewProjectionMatrix);
     _world::setCameraPosition({cameraX,cameraY});
 
