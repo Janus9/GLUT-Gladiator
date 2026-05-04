@@ -286,7 +286,7 @@ void _enemyManager::updateEnemies(double dt) {
         enemy->updateUnit(dt);
 
         // Kill enemy event //
-        if (enemy->isDead()) {
+        if (enemy->isDead() && enemy->deathTime > enemy->timeInDeathAnimation) {
             // Get a list of sprites registered to the enemy
             const vector<_sprite*>& enemySpriteList = enemy->getSpriteList();
             for (const auto &sprite : enemySpriteList) {
@@ -317,7 +317,7 @@ void _enemyManager::updateEnemies(double dt) {
                     particleManager->spawnEffect(enemy->pos,turret_death_effect);
                     if (sounds) sounds->playSfx("ENEMY_DEATH");
                     continue;
-                } else if (enemy->isDead() && enemy->deathTime > 5.0f) {
+                } else if (enemy->isDead() && enemy->deathTime > enemy->timeInDeathAnimation) {
                     enemyList.erase(enemyList.begin() + i);
                     continue;
                 }
@@ -355,7 +355,7 @@ void _enemyManager::updateEnemies(double dt) {
                 if (enemy->isDead() && !enemy->inDeathAnimation) {
                     orc->triggerDeath(sounds);
                     continue;
-                } else if (enemy->isDead() && enemy->deathTime > 5.0f) {
+                } else if (enemy->isDead() && enemy->deathTime > enemy->timeInDeathAnimation) {
                     enemyList.erase(enemyList.begin() + i);
                     continue;
                 }
@@ -380,7 +380,7 @@ void _enemyManager::updateEnemies(double dt) {
                     particleManager->spawnEffect(enemy->pos,gatling_death_effect);
                     particleManager->spawnEffect(enemy->pos,gatling_death_effect_smoke);
                     continue;
-                } else if (enemy->isDead() && enemy->deathTime > 6.0f) {
+                } else if (enemy->isDead() && enemy->deathTime > enemy->timeInDeathAnimation) {
                     enemyList.erase(enemyList.begin() + i);
                     continue;
                 }

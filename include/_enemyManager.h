@@ -94,6 +94,8 @@ class _enemy : public _unit {
 
         bool inDeathAnimation = false; // Whether enemy is in its death animation
         enemy_type eType;
+
+        float timeInDeathAnimation = 6.0f;  // Seconds spent in the death animation
     protected:
     private:
         int enemyID;
