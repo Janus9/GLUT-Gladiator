@@ -87,9 +87,11 @@ class _sprite {
          * @param texture Texture entry for image   
          * @param _framesX Number of columns in the sheet
          * @param _framesY Number of rows in the sheet
+         * @param _layer Layer to draw sprite on (higher value means higher draw order) (ex/ layer 3 draws OVER layer 2)
+         * Lowest layer is 0
          * @param _FPS Animation rate (frames per second, default = 24)
          */
-        void initSprite(const texture_entry &texture, int _framesX, int _framesY, int _FPS = 24);
+        void initSprite(const texture_entry &texture, int _framesX, int _framesY, int _layer,  int _FPS = 24);
         
         // Creates or overwrites a sprite action
         void createSpriteAction(const sprite_action &action);
@@ -201,6 +203,12 @@ class _sprite {
         /** Retuns the sprite's current texture ID */
         GLuint getTextureID() const;
 
+        /** Set the sprite's layer */
+        void setLayer(int _layer);
+
+        /** Get the sprite's layer */
+        int getLayer() const;
+
         // -- Sprite Attributes -- //
         Vec2f scale = {1.0f, 1.0f};         // Scale of a sprite in multiplier (so 2,2 is a sprite 2x width by 2x height). Default sprite width/height is # of pixels
         Vec2f pos = {0.0f, 0.0f};           // Position of a sprite in world space 
@@ -230,7 +238,8 @@ class _sprite {
         bool operator==(const _sprite &other) const;
     protected:
     private:
-        GLuint textureID = 0;
+        GLuint textureID = 0;   // Texture ID for drawing
+        int layer = 0;          // Layer of drawing (0 is back, accending is more priority)
 
         // These are indexes so they start at 0
         int pixelDrawStart = 0; // Which Y pixel we start drawing at (0 is top of image)

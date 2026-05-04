@@ -170,7 +170,7 @@ class _enemyManager {
         particle_effect gatling_death_effect_smoke;
 
         // -- SHADERS -- //
-        unordered_map<GLuint, vector<_sprite*>> textureMap; // Maps a textureID to a batch of sprites using the same texture
+        map<int, unordered_map<GLuint, vector<_sprite*>>> layerMap;
 
         uint32_t spriteCount = 0;   // TODO DOES NOTHING
 

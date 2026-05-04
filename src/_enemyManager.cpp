@@ -44,7 +44,7 @@ void _enemy::initEnemy(const enemy_config &config, const _textureManager* textur
             _sprite* main_sprite = getSprite("MAIN");
             if (main_sprite) {
                 const texture_entry &tex = textureManager->getTextureEntry("images/enemy/turret.png");
-                main_sprite->initSprite(tex,4,2,12);
+                main_sprite->initSprite(tex,4,2,0,12);
                 main_sprite->createSpriteAction(sprite_action("SHOOT",0,0,3));
                 main_sprite->createSpriteAction(sprite_action("DEATH",1,0,3));
                 main_sprite->loadSpriteAction("SHOOT");
@@ -76,7 +76,7 @@ void _enemy::initEnemy(const enemy_config &config, const _textureManager* textur
             _sprite* base_sprite = getSprite("BASE");
             if (base_sprite) {
                 const texture_entry &tex = textureManager->getTextureEntry("images/enemy/gatling_gun/gatling_base.png");
-                base_sprite->initSprite(tex,1,1,12);
+                base_sprite->initSprite(tex,1,1,0,12);
                 base_sprite->setIdleFrame(0,0);
                 base_sprite->stopAnimation();
             }
@@ -85,7 +85,7 @@ void _enemy::initEnemy(const enemy_config &config, const _textureManager* textur
             _sprite* turret_sprite = getSprite("TURRET");
             if (turret_sprite) {
                 const texture_entry &tex = textureManager->getTextureEntry("images/enemy/gatling_gun/gatling_turret.png");
-                turret_sprite->initSprite(tex,9,2,12);
+                turret_sprite->initSprite(tex,9,2,1,12);
                 turret_sprite->createSpriteAction(sprite_action("SHOOT",0,0,3));
                 turret_sprite->createSpriteAction(sprite_action("DEATH",1,0,8));
                 turret_sprite->loadSpriteAction("SHOOT");
@@ -294,18 +294,34 @@ void _enemyManager::updateEnemies(double dt) {
             // Get a list of sprites registered to the enemy
             const vector<_sprite*>& enemySpriteList = enemy->getSpriteList();
             for (const auto &sprite : enemySpriteList) {
-                // For each one, remove it from our texture map (remove from draw call)
-                GLuint textureID = sprite->getTextureID();
-                auto mapIt = textureMap.find(textureID);
-                if (mapIt != textureMap.end()) {
-                    vector<_sprite*> &spriteVector = mapIt->second;      // Pull vector out of the map
-                    auto spriteIt = find(spriteVector.begin(),spriteVector.end(),sprite);
-                    if (spriteIt != spriteVector.end()) {
-                        spriteVector.erase(spriteIt);
+                // For each sprite we remove it from the map
+
+                const GLuint textureID = sprite->getTextureID();
+                const int layer = sprite->getLayer();
+                
+                auto layerIt = layerMap.find(layer);
+                if (layerIt != layerMap.end()) {
+                    // Layer map not empty -- check texture map
+                    auto& textureMap = layerIt->second; 
+                    auto mapIt = textureMap.find(textureID);
+                    if (mapIt != textureMap.end()) {
+                        // Texture map not empty -- remove
+                        vector<_sprite*> &spriteVector = mapIt->second;      // Pull vector out of the map
+                        auto spriteIt = find(spriteVector.begin(),spriteVector.end(),sprite);
+                        if (spriteIt != spriteVector.end()) {
+                            spriteVector.erase(spriteIt);
+                        }
+                        if (spriteVector.empty()) {
+                            // Vector empty? remove it from map
+                            textureMap.erase(mapIt);
+                        }
+                        if (textureMap.empty()) {
+                            // Texture empty? remove it from map
+                            layerMap.erase(layerIt);
+                        }
                     }
                 }
             }
-
             spriteCount -= enemy->getNumSprites();
         }
 
@@ -438,62 +454,67 @@ void _enemyManager::drawEnemies() {
 
     glBindVertexArray(vaoID);
 
-    for (auto it = textureMap.begin(); it != textureMap.end(); it++) {
-        const GLuint textureID = it->first;                   // Texture ID
-        const vector<_sprite*> &spriteVector = it->second;    // List of sprites mapped to texture ID
+    // This iterates layer by layer so that some sprites draw on top of another
+    for (auto it = layerMap.begin(); it != layerMap.end(); it++) {
+        auto& textureMap = it->second;
+        for (auto it = textureMap.begin(); it != textureMap.end(); it++) {
 
-        cout << "Texture ID: " << textureID << "\n";
-        cout << " - Num Sprites: " << spriteVector.size() << "\n";
+            const GLuint textureID = it->first;                   // Texture ID
+            const vector<_sprite*> &spriteVector = it->second;    // List of sprites mapped to texture ID
 
-        if (spriteVector.size() <= 0) {
-            // Texture ID is empty, skip
-            continue;
+            // cout << "Texture ID: " << textureID << "\n";
+            // cout << " - Num Sprites: " << spriteVector.size() << "\n";
+
+            if (spriteVector.size() <= 0) {
+                // Texture ID is empty, skip
+                continue;
+            } 
+
+            // BUILD BATCH VBO //
+            const int spriteBatchCount = spriteVector.size();
+            vector<float> vboData(spriteBatchCount * 7 * 4);
+            int vIndex = 0;
+
+            for (auto &sprite : spriteVector) {
+                sprite->buildSpriteVBO(vboData.data(),vIndex);
+            }
+
+            glBindBuffer(GL_ARRAY_BUFFER, vboID);
+            glBufferData(GL_ARRAY_BUFFER, vboData.size() * sizeof(float), vboData.data(), GL_DYNAMIC_DRAW);
+
+            // BUILD BATCH EBO //
+            vector<uint32_t> eboData(spriteBatchCount * 6);
+            int vertexOffset = 0;
+            int eIndex = 0;
+
+            for (int i = 0; i < spriteBatchCount; i++) {
+                // Triangle 1
+                eboData[eIndex++] = vertexOffset + 0; // BL   
+                eboData[eIndex++] = vertexOffset + 1; // BR
+                eboData[eIndex++] = vertexOffset + 2; // TR
+                // Triangle 2
+                eboData[eIndex++] = vertexOffset + 0; // BL
+                eboData[eIndex++] = vertexOffset + 2; // TR
+                eboData[eIndex++] = vertexOffset + 3; // TL
+
+                vertexOffset += 4;
+            }
+
+            // cout << "-- VBO DATA OUT FOR TEXTURE ID " << textureID << " -- \n";
+            // for (int i = 0; i < vboData.size(); i++) {
+            //     cout << "vboData[" << i << "] = " << vboData[i] << "\n";
+            // }
+            // cout << "-- VBO DATA FINISH -- \n";
+
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboID);
+            glBufferData(GL_ELEMENT_ARRAY_BUFFER, eboData.size() * sizeof(uint32_t), eboData.data(), GL_DYNAMIC_DRAW);
+
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, textureID);
+
+            glDrawElements(GL_TRIANGLES, spriteBatchCount * 6, GL_UNSIGNED_INT, 0);
         } 
-
-        // BUILD BATCH VBO //
-        const int spriteBatchCount = spriteVector.size();
-        vector<float> vboData(spriteBatchCount * 7 * 4);
-        int vIndex = 0;
-
-        for (auto &sprite : spriteVector) {
-            sprite->buildSpriteVBO(vboData.data(),vIndex);
-        }
-
-        glBindBuffer(GL_ARRAY_BUFFER, vboID);
-        glBufferData(GL_ARRAY_BUFFER, vboData.size() * sizeof(float), vboData.data(), GL_DYNAMIC_DRAW);
-
-        // BUILD BATCH EBO //
-        vector<uint32_t> eboData(spriteBatchCount * 6);
-        int vertexOffset = 0;
-        int eIndex = 0;
-
-        for (int i = 0; i < spriteBatchCount; i++) {
-            // Triangle 1
-            eboData[eIndex++] = vertexOffset + 0; // BL   
-            eboData[eIndex++] = vertexOffset + 1; // BR
-            eboData[eIndex++] = vertexOffset + 2; // TR
-            // Triangle 2
-            eboData[eIndex++] = vertexOffset + 0; // BL
-            eboData[eIndex++] = vertexOffset + 2; // TR
-            eboData[eIndex++] = vertexOffset + 3; // TL
-
-            vertexOffset += 4;
-        }
-
-        // cout << "-- VBO DATA OUT FOR TEXTURE ID " << textureID << " -- \n";
-        // for (int i = 0; i < vboData.size(); i++) {
-        //     cout << "vboData[" << i << "] = " << vboData[i] << "\n";
-        // }
-        // cout << "-- VBO DATA FINISH -- \n";
-
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboID);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, eboData.size() * sizeof(uint32_t), eboData.data(), GL_DYNAMIC_DRAW);
-
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, textureID);
-
-        glDrawElements(GL_TRIANGLES, spriteBatchCount * 6, GL_UNSIGNED_INT, 0);
-    } 
+    }
 
     glBindVertexArray(0);
 
@@ -516,8 +537,10 @@ void _enemyManager::addEnemy(const Vec2f &_pos, const enemy_config &config) {
 
     const vector<_sprite*>& enemySpriteList = newEnemy->getSpriteList();
     for (const auto &sprite : enemySpriteList) {
-        GLuint textureID = sprite->getTextureID();
-        textureMap[textureID].push_back(sprite);    // Creates an entry if one doesnt exist (or updates if it does)
+        const GLuint textureID = sprite->getTextureID();
+        const int layer = sprite->getLayer(); 
+
+        layerMap[layer][textureID].push_back(sprite);
     }
 
     spriteCount += newEnemy->getNumSprites();   // Increase sprite count

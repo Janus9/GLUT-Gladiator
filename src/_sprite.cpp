@@ -43,10 +43,11 @@ void _sprite::initSprite(const string &fileName, int _framesX, int _framesY, con
     setFPS(_FPS);
 }
 
-void _sprite::initSprite(const texture_entry &texture, int _framesX, int _framesY, int _FPS) {
+void _sprite::initSprite(const texture_entry &texture, int _framesX, int _framesY, int _layer, int _FPS) {
     framesX = _framesX;
     framesY = _framesY;
 
+    setLayer(_layer);
     setTexture(texture);
 
      if (framesX == 0 || framesY == 0) {
@@ -56,7 +57,6 @@ void _sprite::initSprite(const texture_entry &texture, int _framesX, int _frames
 
     setFPS(_FPS);
 }
-
 
 void _sprite::createSpriteAction(const sprite_action &action) {
     spriteActions[action.action_name] = action;
@@ -442,4 +442,15 @@ void _sprite::setTexture(const texture_entry &texture) {
 
     pixelsX = texture.width / framesX; 
     pixelsY = texture.height / framesY; 
+}
+
+void _sprite::setLayer(int _layer) {
+    if (_layer < 0) {
+        _layer = 0;
+    }
+    layer = _layer;
+}
+
+int _sprite::getLayer() const {
+    return layer;
 }
