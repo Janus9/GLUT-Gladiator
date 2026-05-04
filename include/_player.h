@@ -4,6 +4,7 @@
 #include <_common.h>
 #include <_unit.h>
 #include <_particleManager.h>
+#include <_lightManager.h>
 
 struct player_serial_data {
     uint8_t team;
@@ -70,7 +71,7 @@ class _player : public _unit {
         /**
          * Sets up player sprites, animations, etc.
          */
-        void initPlayer();
+        void initPlayer(_lightManager* lightManager);
 
         /**
          * Update loop for player including inputs/animations/movement/etc
@@ -132,6 +133,8 @@ class _player : public _unit {
         bool playerShootEvent = false;
     protected:
     private:
+        _lightManager* sceneLightManager = nullptr; // Pointer to light manager instantiated in scne (non-owning)
+
         int FPS = 12;
 
         bool reloading = false;

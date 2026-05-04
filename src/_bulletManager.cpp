@@ -65,7 +65,7 @@ void _bulletManager::initBulletManager(const string &fileName, _world* currentWo
     u_viewProjectionMatrix = glGetUniformLocation(program,"u_viewProjectionMatrix");
     u_texture = glGetUniformLocation(program,"u_texture");
 
-    bulletDrops->initParticleManager("images/bullet_casing.png", 1, 1000);
+    bulletDrops->initParticleManager("images/bullet_casing.png", 1, sceneLightManager, 1000);
     bullet_shell_effect.amount = 1;
 
     bullet_shell_effect.minVelX = 5.5f;

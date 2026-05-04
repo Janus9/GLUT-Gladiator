@@ -21,6 +21,7 @@ uniform float u_t; // Time for equations
 
 // Output to fragment shader (textures not modified here)
 out vec2 v_texCoord;
+out vec2 v_modelPos;
 
 const float PI = 3.14159;
 
@@ -38,6 +39,8 @@ void main() {
     // Oscillating motion of the particle, we use 2 * PI to normalize a frequency of 1 to mean 1 cycle every 1 second
     worldPos.x = worldPos.x + (a_amplitude * sin(2 * PI * a_frequency * u_t + a_offset));
     
-    gl_Position = u_viewProjectionMatrix * vec4(worldPos, 0.0, 1.0);
     v_texCoord = a_texCoord;
+    v_modelPos = worldPos;
+
+    gl_Position = u_viewProjectionMatrix * vec4(worldPos, 0.0, 1.0);
 }

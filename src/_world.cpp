@@ -267,7 +267,7 @@ void _world::initWorld(bool loadWorld, _lightManager* lightManager)
 
     // PARTICLE EFFECTS //
 
-    cellParticles->initParticleManager("images/particle.png",1,10000); // Particles for cell usage
+    cellParticles->initParticleManager("images/particle.png",1, sceneLightManager, 10000); // Particles for cell usage
     // wall_break_effect
     wall_break_effect.amount = 100;
 

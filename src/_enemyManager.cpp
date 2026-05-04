@@ -172,7 +172,7 @@ void _enemyManager::initEnemyManager(_player* currentPlayer, _world* currentWorl
 
     buildVAO();
 
-    particleManager->initParticleManager("images/enemy/enemy_particles.png",4,10000);
+    particleManager->initParticleManager("images/enemy/enemy_particles.png",4, sceneLightManager, 10000);
     // Turret Hit Effect //
     turret_hit_effect.amount = 15;
     turret_hit_effect.imageIndex = 3;

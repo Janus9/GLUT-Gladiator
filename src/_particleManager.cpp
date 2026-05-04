@@ -35,15 +35,18 @@ _particleManager::~_particleManager() {
     timer = nullptr;
 }
 
-void _particleManager::initParticleManager(const string& fileName, int _numImages, int _maxParticles) {
+void _particleManager::initParticleManager(const string& fileName, int _numImages, _lightManager* lightManager, int _maxParticles) {
     maxParticles = _maxParticles;
     numImages = _numImages;
+    sceneLightManager = lightManager;
 
     texture->loadTexture(fileName);
 
     // -- SHADER SETUP -- //
     particleShader.initShader("shaders/particle_manager/vertex.vs","shaders/particle_manager/fragment.fs");
     uint32_t program = particleShader.getProgram();
+
+    sceneLightManager->addProgram(program);
 
     // Uniforms
     u_viewProjectionMatrix = glGetUniformLocation(program,"u_viewProjectionMatrix");
@@ -80,6 +83,8 @@ void _particleManager::drawParticleManager() {
     glUniformMatrix4fv(u_viewProjectionMatrix, 1, GL_FALSE, glm::value_ptr(viewProjectionMatrix));
     glUniform1i(u_texture, 0); // Uses texture slot not ID thus its 0
     glUniform1f(u_t,t_value);
+
+    sceneLightManager->applyLights(particleShader.getProgram());
 
     glBindVertexArray(vaoID);
     glDrawElements(GL_TRIANGLES, aliveParticles * 6, GL_UNSIGNED_INT, 0);

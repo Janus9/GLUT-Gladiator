@@ -8,13 +8,14 @@ _player::~_player() {
     // dtor
 }
 
-void _player::initPlayer() {
+void _player::initPlayer(_lightManager* lightManager) {
+    sceneLightManager = lightManager;
     scale = {0.8f, 0.8f};
 
     // AABB used by enemies (e.g. _orc) to prevent overlap and decide melee contact.
     setCollisionBox({18.0f, 24.0f});
 
-    bloodParticles->initParticleManager("images/player/blood_particle.png",1,1000);
+    bloodParticles->initParticleManager("images/player/blood_particle.png",1, sceneLightManager, 1000);
     player_hit_effect.amount = 15;
 
     player_hit_effect.minVelX = -8.0f;

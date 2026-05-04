@@ -87,7 +87,7 @@ void _scene::initScene(bool loadWorld)
     if (!loadWorld) setupTextures();
 
     // -- PLAYER -- //
-    player->initPlayer();
+    player->initPlayer(lightManager.get());
     player->hasGun = true;
 
     // -- FOB -- //

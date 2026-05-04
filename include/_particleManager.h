@@ -5,6 +5,7 @@
 #include <_texture.h>
 #include <_timerPlusPlus.h>
 #include <_shader.h>
+#include <_lightManager.h>
 
 #include <glm/glm.hpp>                      // Core library
 #include <glm/gtc/matrix_transform.hpp>     // Matrix ops like transform, scale, ortho, etc
@@ -92,7 +93,7 @@ class _particleManager {
          * @param _numImages How many images are in the atlas file
          * @param _maxParticles Number of particles the system holds (defaults to 1,000)
          */
-        void initParticleManager(const string& fileName, int _numImages, int _maxParticles = 1000);
+        void initParticleManager(const string& fileName, int _numImages, _lightManager* lightManager, int _maxParticles = 1000);
 
         // Draw function
         void drawParticleManager();
@@ -136,6 +137,7 @@ class _particleManager {
         vector<particle> particles;
 
         // Shaders //
+        _lightManager* sceneLightManager = nullptr; // Pointer to light manager instantiated in scne (non-owning)
         _shader particleShader;
         GLint u_viewProjectionMatrix = -1;
         GLint u_texture = -1;
