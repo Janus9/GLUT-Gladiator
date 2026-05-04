@@ -65,6 +65,10 @@ class _sprite {
         // -- Functions -- //
 
         /**
+         * - DEPRICATED - 
+         * 
+         * Use the other overload for future use
+         * 
          * Initialize sprite from a texture atlas.
          * 
          * If the sprite is top-down or has no natural "direction" then the input does not matter
@@ -76,6 +80,16 @@ class _sprite {
          * @param _FPS Animation rate (frames per second, default = 24)
          */
         void initSprite(const string &fileName, int _framesX, int _framesY, const sprite_direction &direction, int _FPS = 24);
+
+        /**
+         * Initialize sprite from a loaded texture atlas.
+         * 
+         * @param texture Texture entry for image   
+         * @param _framesX Number of columns in the sheet
+         * @param _framesY Number of rows in the sheet
+         * @param _FPS Animation rate (frames per second, default = 24)
+         */
+        void initSprite(const texture_entry &texture, int _framesX, int _framesY, int _FPS = 24);
         
         // Creates or overwrites a sprite action
         void createSpriteAction(const sprite_action &action);

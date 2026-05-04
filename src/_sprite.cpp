@@ -43,6 +43,21 @@ void _sprite::initSprite(const string &fileName, int _framesX, int _framesY, con
     setFPS(_FPS);
 }
 
+void _sprite::initSprite(const texture_entry &texture, int _framesX, int _framesY, int _FPS) {
+    framesX = _framesX;
+    framesY = _framesY;
+
+    setTexture(texture);
+
+     if (framesX == 0 || framesY == 0) {
+        cerr << "ERROR: Sprite frames X/Y cannot be 0\n";
+        return;
+    }
+
+    setFPS(_FPS);
+}
+
+
 void _sprite::createSpriteAction(const sprite_action &action) {
     spriteActions[action.action_name] = action;
 }
@@ -420,6 +435,10 @@ GLuint _sprite::getTextureID() const {
 
 void _sprite::setTexture(const texture_entry &texture) {
     textureID = texture.ID;
+
+    if (framesX == 0 || framesY == 0) {
+        cerr << "ERROR: Sprite frames X/Y cannot be 0\n";
+    }
 
     pixelsX = texture.width / framesX; 
     pixelsY = texture.height / framesY; 

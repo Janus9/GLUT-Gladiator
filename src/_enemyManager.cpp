@@ -44,9 +44,7 @@ void _enemy::initEnemy(const enemy_config &config, const _textureManager* textur
             _sprite* main_sprite = getSprite("MAIN");
             if (main_sprite) {
                 const texture_entry &tex = textureManager->getTextureEntry("images/enemy/turret.png");
-                // cout << "Turret texture ID: " << texID << "\n";
-                main_sprite->initSprite("",4,2,sprite_direction::LEFT,12);
-                main_sprite->setTexture(tex);
+                main_sprite->initSprite(tex,4,2,12);
                 main_sprite->createSpriteAction(sprite_action("SHOOT",0,0,3));
                 main_sprite->createSpriteAction(sprite_action("DEATH",1,0,3));
                 main_sprite->loadSpriteAction("SHOOT");
@@ -77,7 +75,8 @@ void _enemy::initEnemy(const enemy_config &config, const _textureManager* textur
             setupSprite("BASE");
             _sprite* base_sprite = getSprite("BASE");
             if (base_sprite) {
-                base_sprite->initSprite("images/enemy/gatling_gun/gatling_base.png",1,1,sprite_direction::LEFT,12);
+                const texture_entry &tex = textureManager->getTextureEntry("images/enemy/gatling_gun/gatling_base.png");
+                base_sprite->initSprite(tex,1,1,12);
                 base_sprite->setIdleFrame(0,0);
                 base_sprite->stopAnimation();
             }
@@ -85,7 +84,8 @@ void _enemy::initEnemy(const enemy_config &config, const _textureManager* textur
             setupSprite("TURRET");
             _sprite* turret_sprite = getSprite("TURRET");
             if (turret_sprite) {
-                turret_sprite->initSprite("images/enemy/gatling_gun/gatling_turret.png",9,2,sprite_direction::LEFT,12);
+                const texture_entry &tex = textureManager->getTextureEntry("images/enemy/gatling_gun/gatling_turret.png");
+                turret_sprite->initSprite(tex,9,2,12);
                 turret_sprite->createSpriteAction(sprite_action("SHOOT",0,0,3));
                 turret_sprite->createSpriteAction(sprite_action("DEATH",1,0,8));
                 turret_sprite->loadSpriteAction("SHOOT");
@@ -439,8 +439,11 @@ void _enemyManager::drawEnemies() {
     glBindVertexArray(vaoID);
 
     for (auto it = textureMap.begin(); it != textureMap.end(); it++) {
-        GLuint textureID = it->first;                   // Texture ID
-        vector<_sprite*> &spriteVector = it->second;    // List of sprites mapped to texture ID
+        const GLuint textureID = it->first;                   // Texture ID
+        const vector<_sprite*> &spriteVector = it->second;    // List of sprites mapped to texture ID
+
+        cout << "Texture ID: " << textureID << "\n";
+        cout << " - Num Sprites: " << spriteVector.size() << "\n";
 
         if (spriteVector.size() <= 0) {
             // Texture ID is empty, skip
@@ -448,7 +451,7 @@ void _enemyManager::drawEnemies() {
         } 
 
         // BUILD BATCH VBO //
-        int spriteBatchCount = spriteVector.size();
+        const int spriteBatchCount = spriteVector.size();
         vector<float> vboData(spriteBatchCount * 7 * 4);
         int vIndex = 0;
 
