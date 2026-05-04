@@ -22,7 +22,7 @@ void _enemy::updateEnemy(double dt) {
 
 }
 
-void _enemy::initEnemy(const enemy_config &config) {
+void _enemy::initEnemy(const enemy_config &config, const _textureManager* textureManager) {
 
     switch (config.type) {
         // -- DEFAULT TURRET -- //
@@ -43,7 +43,10 @@ void _enemy::initEnemy(const enemy_config &config) {
             setupSprite("MAIN");
             _sprite* main_sprite = getSprite("MAIN");
             if (main_sprite) {
-                main_sprite->initSprite("images/enemy/turret.png",4,2,sprite_direction::LEFT,12);
+                const texture_entry &tex = textureManager->getTextureEntry("images/enemy/turret.png");
+                // cout << "Turret texture ID: " << texID << "\n";
+                main_sprite->initSprite("",4,2,sprite_direction::LEFT,12);
+                main_sprite->setTexture(tex);
                 main_sprite->createSpriteAction(sprite_action("SHOOT",0,0,3));
                 main_sprite->createSpriteAction(sprite_action("DEATH",1,0,3));
                 main_sprite->loadSpriteAction("SHOOT");
@@ -144,12 +147,13 @@ _enemyManager::~_enemyManager() {
     }
 }
 
-void _enemyManager::initEnemyManager(_player* currentPlayer, _world* currentWorld, _bulletManager* currentBulletManager, _sounds* currentSounds, _lightManager* lightManager) {
+void _enemyManager::initEnemyManager(_player* currentPlayer, _world* currentWorld, _bulletManager* currentBulletManager, _sounds* currentSounds, _lightManager* lightManager, _textureManager* textureManager) {
     player = currentPlayer;
     world = currentWorld;
     bulletManager = currentBulletManager;
     sounds = currentSounds;
     sceneLightManager = lightManager;
+    sceneTextureManager = textureManager;
 
     // -- SHADER SETUP -- //
     shader.initShader("shaders/enemy_manager/vertex.vs","shaders/enemy_manager/fragment.fs");
@@ -503,7 +507,7 @@ void _enemyManager::addEnemy(const Vec2f &_pos, const enemy_config &config) {
         newEnemy = move(orc);
     } else {
         newEnemy = make_unique<_enemy>();
-        newEnemy->initEnemy(config);
+        newEnemy->initEnemy(config, sceneTextureManager);
     }
     newEnemy->pos = _pos;
 

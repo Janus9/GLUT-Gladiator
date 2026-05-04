@@ -418,6 +418,9 @@ GLuint _sprite::getTextureID() const {
     return textureID;
 }
 
-void _sprite::setTextureID(GLuint _textureID) {
-    textureID = _textureID;
+void _sprite::setTexture(const texture_entry &texture) {
+    textureID = texture.ID;
+
+    pixelsX = texture.width / framesX; 
+    pixelsY = texture.height / framesY; 
 }

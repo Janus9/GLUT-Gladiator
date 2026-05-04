@@ -59,20 +59,18 @@ bool _textureManager::removeTexture(const string &fileName) {
     return true;
 }
 
-GLuint _textureManager::getTexture(const string &fileName) const {
+texture_entry _textureManager::getTextureEntry(const string &fileName) const {
+    texture_entry entry;
+    
     auto it = textureMap.find(fileName);
     if (it == textureMap.end()) {
         cout << "ERROR: Unable to retrieve texture: " << fileName << "\n";
-        return 0;
+        return entry;
     }
-    return it->second.ID;
+    entry.ID = it->second.ID;
+    entry.width = it->second.width;
+    entry.height = it->second.height;
+
+    return entry;
 }
 
-Vec2f _textureManager::getTextureDimensions(const string &fileName) const {
-    auto it = textureMap.find(fileName);
-    if (it == textureMap.end()) {
-        cout << "WARNING: Unable to retrieve dimensions of texture: " << fileName << "\n";
-        return Vec2f(0.0f,0.0);
-    }
-    return Vec2f(static_cast<float>(it->second.width),static_cast<float>(it->second.height));
-}

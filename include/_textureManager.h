@@ -4,6 +4,12 @@
 #include <_common.h>
 #include<SOIL2.h>
 
+struct texture_entry {
+    GLuint ID = 0;          // Unique ID
+    int width = 0;          // Image Width (in pixels)
+    int height = 0;         // Image Height (in pixels)
+};
+
 class _textureManager {
     public:
         _textureManager();
@@ -28,31 +34,16 @@ class _textureManager {
         bool removeTexture(const string &fileName);
         
         /**
-         * Gets a textureID from the manager
+         * Gets a texture entry from the manager
+         * 
+         * TextureID and dimensions will all be 0 if entry was not found
          * 
          * @param fileName Image file to get ID from
-         * @return Texture ID (0 if texture was not found)
+         * @return Texture entry containing texture ID, and dimensions
          */
-        GLuint getTexture(const string &fileName) const;
-
-        /**
-         * Get the image dimensions in pixels
-         * 
-         * If image does not exist returned vector is {0.0, 0.0}
-         * 
-         * @param fileName Image file to get dimensions from
-         * @return Vec2f of the image size (w/h in pixels)
-         */
-        Vec2f getTextureDimensions(const string &fileName) const;
-
+        texture_entry getTextureEntry(const string &fileName) const;
     protected:
     private:
-        struct texture_entry {
-            GLuint ID;      // Unique ID
-            int width;      // Image Width (in pixels)
-            int height;     // Image Height (in pixels)
-        };
-
         unordered_map<string, texture_entry> textureMap;   // Map of all the unique IDs (string is the file directory)
 };
 

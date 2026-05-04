@@ -6,6 +6,7 @@
 #include <_timerPlusPlus.h>
 #include <_shader.h>
 #include <_lightManager.h>
+#include <_textureManager.h>
 
 // Enum for a sprite's direction
 enum class sprite_direction {
@@ -174,8 +175,8 @@ class _sprite {
          */
         void buildSpriteVBO(float* vboData, int &vIndex) const;
 
-        /** Sets the sprite's current texture ID */
-        void setTextureID(GLuint _textureID);
+        /** Sets the sprite's current texture */
+        void setTexture(const texture_entry &texture);
 
         /** Retuns the sprite's current texture ID */
         GLuint getTextureID() const;

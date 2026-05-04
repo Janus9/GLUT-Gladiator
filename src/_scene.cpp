@@ -83,6 +83,13 @@ void _scene::initScene(bool loadWorld)
 
     myWorld->initWorld(loadWorld,lightManager.get());         // Initialize the world
 
+    // TEXTURE LOADER //
+
+    textureManager->addTexture("images/enemy/turret.png");
+    textureManager->addTexture("images/enemy/gatling_gun/gatling_base.png");
+    textureManager->addTexture("images/enemy/gatling_gun/gatling_turret.png");
+    textureManager->addTexture("images/enemy/enemy_particles.png");
+
     // -- PLAYER -- //
     player->initPlayer();
     player->hasGun = true;
@@ -140,7 +147,7 @@ void _scene::initScene(bool loadWorld)
 
     drawWorldBenchmark->startBenchmark();
 
-    enemyManager->initEnemyManager(player.get(), myWorld, bulletManager.get(), soundManager, lightManager.get());
+    enemyManager->initEnemyManager(player.get(), myWorld, bulletManager.get(), soundManager, lightManager.get(), textureManager.get());
     enemyManager->bullet_1 = &turret_bullet;
     enemyManager->bullet_2 = &gatling_bullet;
 

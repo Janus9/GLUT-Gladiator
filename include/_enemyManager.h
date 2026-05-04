@@ -9,6 +9,7 @@
 #include <_sounds.h>
 #include <_shader.h>
 #include <_lightManager.h>
+#include <_textureManager.h>
 
 // Matrix math for shaders //
 #include <glm/glm.hpp>                      // Core library
@@ -74,7 +75,7 @@ class _enemy : public _unit {
         void updateEnemy(double dt);
 
         // Initialization function for animations/sprites/textures etc
-        void initEnemy(const enemy_config &config);
+        void initEnemy(const enemy_config &config, const _textureManager* textureManager);
 
         // Hook fired by _bulletManager after impulseDamage. Subclasses override
         // to react (e.g. _orc plays HURT animation). Default is no-op.
@@ -107,7 +108,7 @@ class _enemyManager {
         _enemyManager();
         virtual ~_enemyManager();
 
-        void initEnemyManager(_player* currentPlayer, _world* currentWorld, _bulletManager* currentBulletManager, _sounds* currentSounds, _lightManager* lightManager);
+        void initEnemyManager(_player* currentPlayer, _world* currentWorld, _bulletManager* currentBulletManager, _sounds* currentSounds, _lightManager* lightManager, _textureManager* textureManager);
 
         /**
          * Update function for enemies
@@ -153,10 +154,11 @@ class _enemyManager {
         _bullet_config* bullet_2 = nullptr;
     protected:
     private:
-        _player* player = nullptr;                  // Pointer to player instance instantiated in scene (non-owning)
-        _world* world = nullptr;                    // Pointer to world instance instantiated in scene (non-owning)
-        _bulletManager* bulletManager = nullptr;    // Pointer to bulletManager instance instantiated in scene (non-owning)
-        
+        _player* player = nullptr;                      // Pointer to player instance instantiated in scene (non-owning)
+        _world* world = nullptr;                        // Pointer to world instance instantiated in scene (non-owning)
+        _bulletManager* bulletManager = nullptr;        // Pointer to bulletManager instance instantiated in scene (non-owning)
+        _textureManager* sceneTextureManager = nullptr; // Pointer to the texture manager instance instantiated in scene (non-owning)
+
         _sounds* sounds = nullptr;                  // Pointer to sounds instance instantiated in scene (non-owning)
 
         vector<unique_ptr<_enemy>> enemyList;   // List of enemy instances

@@ -25,6 +25,7 @@
 #include<_enemyManager.h>
 #include<_fob.h>
 #include<_lightManager.h>
+#include<_textureManager.h>
 
 // Matrix math for shaders //
 #include <glm/glm.hpp>                      // Core library
@@ -116,6 +117,9 @@ class _scene
         _bullet_config gatling_bullet;
 
         _sounds* soundManager = nullptr; // Non-owning; set via setSounds() before initScene()
+
+        // Texture Manager //
+        unique_ptr<_textureManager> textureManager = make_unique<_textureManager>();
 
         _lightSettings *myLight = new _lightSettings();     
         _model* myModel = new _model();
