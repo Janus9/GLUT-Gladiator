@@ -159,6 +159,8 @@ void _enemyManager::initEnemyManager(_player* currentPlayer, _world* currentWorl
     shader.initShader("shaders/enemy_manager/vertex.vs","shaders/enemy_manager/fragment.fs");
     uint32_t program = shader.getProgram();
 
+    sceneLightManager->addProgram(program);
+
     // Uniforms
     u_viewProjectionMatrix = glGetUniformLocation(program,"u_viewProjectionMatrix");
     u_texture = glGetUniformLocation(program,"u_texture");
@@ -451,6 +453,8 @@ void _enemyManager::drawEnemies() {
     glUniformMatrix4fv(u_viewProjectionMatrix, 1, GL_FALSE, glm::value_ptr(viewProjectionMatrix));
     glUniform1i(u_texture, 0); // Uses texture slot not ID thus its 0
     glUniform1f(u_time,time);
+
+    sceneLightManager->applyLights(shader.getProgram());
 
     glBindVertexArray(vaoID);
 
