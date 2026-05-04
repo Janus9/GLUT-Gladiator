@@ -40,7 +40,7 @@ _bulletManager::~_bulletManager() {
     // no timers
 }
 
-void _bulletManager::initBulletManager(const string &fileName, _world* currentWorld, _player* currentPlayer, _enemyManager* currentEnemyManager, _sounds* currentSounds) {
+void _bulletManager::initBulletManager(const string &fileName, _world* currentWorld, _player* currentPlayer, _enemyManager* currentEnemyManager, _sounds* currentSounds, _lightManager* lightManager) {
     // Generate new buffers
     glGenBuffers(1,&vboID);
     glGenBuffers(1,&eboID);
@@ -52,11 +52,14 @@ void _bulletManager::initBulletManager(const string &fileName, _world* currentWo
     player = currentPlayer;
     enemyManager = currentEnemyManager;
     sounds = currentSounds;
+    sceneLightManager = lightManager;
     
     // -- SHADER SETUP -- //
     bulletShader.initShader("shaders/bullet_manager/vertex.vs","shaders/bullet_manager/fragment.fs");
 
     uint32_t program = bulletShader.getProgram();
+
+    sceneLightManager->addProgram(program);
     
     // Uniforms
     u_viewProjectionMatrix = glGetUniformLocation(program,"u_viewProjectionMatrix");
@@ -113,6 +116,8 @@ void _bulletManager::drawBulletManager() {
     // Setup uniforms
     glUniformMatrix4fv(u_viewProjectionMatrix, 1, GL_FALSE, glm::value_ptr(viewProjectionMatrix));
     glUniform1i(u_texture, 0); // Uses texture slot not ID thus its 0
+
+    sceneLightManager->applyLights(bulletShader.getProgram());
 
     glBindVertexArray(vaoID);
     glDrawElements(GL_TRIANGLES, aliveBullets * 6, GL_UNSIGNED_INT, 0);

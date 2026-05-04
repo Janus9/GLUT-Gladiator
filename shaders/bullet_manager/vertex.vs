@@ -17,6 +17,7 @@ uniform mat4 u_viewProjectionMatrix;
 
 // Output to fragment shader (textures not modified here)
 out vec2 v_texCoord;
+out vec2 v_modelPos;
 
 void main() {
     float c = cos(a_angle);
@@ -30,6 +31,8 @@ void main() {
     // Translate mesh to its position
     vec2 worldPos = a_center + rotatedPos;
     
-    gl_Position = u_viewProjectionMatrix * vec4(worldPos, 0.0, 1.0);
     v_texCoord = a_texCoord;
+    v_modelPos = worldPos;
+
+    gl_Position = u_viewProjectionMatrix * vec4(worldPos, 0.0, 1.0);
 }

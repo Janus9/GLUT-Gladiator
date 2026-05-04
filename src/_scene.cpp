@@ -170,7 +170,7 @@ void _scene::initScene(bool loadWorld)
 
 
     // -- BULLETS -- //
-    bulletManager->initBulletManager("images/test_bullet.png", myWorld, player.get(), enemyManager.get(), soundManager);
+    bulletManager->initBulletManager("images/test_bullet.png", myWorld, player.get(), enemyManager.get(), soundManager, lightManager.get());
     
     // Player //
     player_bullet.amount = 1;

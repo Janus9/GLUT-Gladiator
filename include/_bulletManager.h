@@ -9,6 +9,8 @@
 #include <_shader.h>
 #include <_player.h>
 #include <_sounds.h>
+#include <_lightManager.h>
+
 
 #include <glm/glm.hpp>                      // Core library
 #include <glm/gtc/matrix_transform.hpp>     // Matrix ops like transform, scale, ortho, etc
@@ -59,7 +61,7 @@ class _bulletManager {
          * @param fileName Name of file for bullet image
          * @param world Pointer to world where manager operates
          */
-        void initBulletManager(const string &fileName, _world* currentWorld, _player* currentPlayer, _enemyManager* currentEnemyManager, _sounds* currentSounds);
+        void initBulletManager(const string &fileName, _world* currentWorld, _player* currentPlayer, _enemyManager* currentEnemyManager, _sounds* currentSounds, _lightManager* lightManager);
 
         /**
          * Draw function
@@ -89,6 +91,7 @@ class _bulletManager {
         _world* world = nullptr;                    // Pointer to world instance instantiated in scene (non-owning)
         _enemyManager* enemyManager = nullptr;      // Pointer to enemyManager instance instantiated in scene (non-owning)
         _sounds* sounds = nullptr;                  // Pointer to sounds instance instantiated in scene (non-owning)
+        _lightManager* sceneLightManager = nullptr; // Pointer to light manager instantiated in scne (non-owning)
 
         _texture* texture = new _texture();
         _particleManager* bulletDrops = new _particleManager();
