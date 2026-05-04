@@ -27,6 +27,11 @@ class _unit {
         void setupSprite(const string &spriteName);
 
         /**
+         * 
+         *  * DEPRICATED *  
+         * 
+         * NOT HOOKED UP TO SHADER PIPELINE -- DEPRICATE SOON
+         * 
          * Draws a unit
          * 
          * If setup with a sprite then overwrites pos/scale/color before drawing sprite. Rotation exists only on sprite level.
@@ -36,6 +41,11 @@ class _unit {
         void drawUnit();
 
         /**
+         * 
+         *  * DEPRICATED *  
+         * 
+         * NOT HOOKED UP TO SHADER PIPELINE -- DEPRICATE SOON
+         * 
          * Draws a unit
          * 
          * If setup with a sprite then overwrites pos/scale/color before drawing sprite. Rotation exists only on sprite level.

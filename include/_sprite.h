@@ -101,7 +101,13 @@ class _sprite {
         /** Updates sprite animations and state from time (in seconds) */
         void updateSprite(double dt);
         
-        // Draws the current sprite for its given animation (if in animation)
+        /**
+         *  * DEPRICATED *  
+         * 
+         * NOT HOOKED UP TO SHADER PIPELINE -- DEPRICATE SOON
+         * 
+         * Draws the current sprite for its given animation (if in animation)
+         */
         void drawSprite();
         
         // Begins the animation loop on the current sprite (loop safe if ran while sprite is already animating it does nothing)
