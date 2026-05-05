@@ -364,6 +364,19 @@ void _world::initTiles() {
     world_tiles[TILE_FLOOR_INNER_DEFAULT_2].hasCollision = false;
     world_tiles[TILE_FLOOR_INNER_DEFAULT_2].name = "default_floor_inner_2";
 
+    // Floor Broken //
+    setTileInAtlas(24,8, world_tiles[TILE_FLOOR_BROKEN_INNER]);       
+    world_tiles[TILE_FLOOR_BROKEN_INNER].hasCollision = false;
+    world_tiles[TILE_FLOOR_BROKEN_INNER].name = "broken_floor_inner";
+    
+    setTileInAtlas(23,8, world_tiles[TILE_FLOOR_BROKEN_MIDDLE]);       
+    world_tiles[TILE_FLOOR_BROKEN_MIDDLE].hasCollision = false;
+    world_tiles[TILE_FLOOR_BROKEN_MIDDLE].name = "broken_floor_middle";
+
+    setTileInAtlas(22,8, world_tiles[TILE_FLOOR_BROKEN_OUTER]);       
+    world_tiles[TILE_FLOOR_BROKEN_OUTER].hasCollision = false;
+    world_tiles[TILE_FLOOR_BROKEN_OUTER].name = "broken_floor_outer";
+
     // Outer Wall //
     setTileInAtlas(22,16, world_tiles[TILE_WALL_OUTER_CENTER]);       
     world_tiles[TILE_WALL_OUTER_CENTER].name = "wall_outer_center";
@@ -903,9 +916,6 @@ TileId _world::determineTileType(level_pos level, const bool neighborTiles[9]) c
             if (N && E && S && W) return TILE_WALL_INNER_CENTER;
             break;
     }
-
-    
-
     return TILE_NULL;
 }
 
@@ -1075,7 +1085,18 @@ bool _world::damageCell(_cell* cell, float amount) {
     cell->impluseHealth(-amount); // Reverse sign since function expects healing
     cellParticles->spawnEffect(cell->pos, wall_damage_effect);
     if (!cell->isAlive()) {
-        setCellTile(cell,TILE_NULL);
+        level_pos level = getLevelFromPos(cell->pos);
+        switch (level) {
+            case LEVEL_INNER:
+                setCellTile(cell,TILE_FLOOR_BROKEN_INNER);
+                break;
+            case LEVEL_MIDDLE:
+                setCellTile(cell,TILE_FLOOR_BROKEN_MIDDLE);
+                break;
+            case LEVEL_OUTER:
+                setCellTile(cell,TILE_FLOOR_BROKEN_OUTER);
+                break;
+        }
         cellParticles->spawnEffect(cell->pos,wall_break_effect);
     }
 }
