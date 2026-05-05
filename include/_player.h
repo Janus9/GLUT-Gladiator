@@ -101,6 +101,13 @@ class _player : public _unit {
         // Imports a serialized data package of the player for import
         void importSerializedPlayer(const player_serial_data &player_data);
 
+        /** 
+         * Resupplies the player with health/ammo.
+         * 
+         * Prevents overflow and spawns effect
+         */
+        void resupply(float health, int ammo);
+
         // Applies reload event to the player, safe to apply constantly as the state doesnt change
         void procReload();
 
@@ -160,8 +167,10 @@ class _player : public _unit {
         // Gets animation with error checking + NULL handling
         PlayerAnimationResult getAnimationResult(player_action action, player_face face);
 
-        unique_ptr<_particleManager> bloodParticles = make_unique<_particleManager>();
+        unique_ptr<_particleManager> particleManger = make_unique<_particleManager>();
         particle_effect player_hit_effect;
+        particle_effect resupply_health_effect;
+        particle_effect resupply_ammo_effect;
 };
 
 #endif // _PLAYER_H

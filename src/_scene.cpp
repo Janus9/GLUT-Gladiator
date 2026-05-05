@@ -88,7 +88,7 @@ void _scene::initScene(bool loadWorld)
     player->hasGun = true;
 
     // -- FOB -- //
-    FOB->initFob(player.get());
+    FOB->initFob(player.get(),lightManager.get());
     // -- HUD -- //
 
     hud->addHudText("FPS");
@@ -693,7 +693,7 @@ void _scene::drawScene()
     enemyManager->drawEnemies();
     drawEnemiesBenchmark.clickBenchmark();
 
-    FOB->drawUnit();
+    FOB->drawFob();
     
     player->drawPlayer();
 
@@ -745,6 +745,7 @@ void _scene::updateScene(double dt, bool *keysArray)
     bulletManager->updateBulletManager(dt);
     myWorld->updateWorld(dt);
     player->updatePlayer(dt);
+    FOB->updateFob(dt);
 
     // Check for mouse events
     if (LMB && hoveredCell && hoveredChunk && myWorld->isCellWall(hoveredCell))

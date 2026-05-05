@@ -151,7 +151,7 @@ class _unit {
         // Applies damage
         void impulseDamage(float amount);
         
-        // Applies healing
+        // Applies healing (prevents health overflow)
         void impulseHealing(float amount);
 
         // Sets current health to max health

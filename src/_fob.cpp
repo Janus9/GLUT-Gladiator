@@ -8,8 +8,14 @@ _fob::~_fob() {
 
 }
 
-void _fob::initFob(_player* currentPlayer) {
+void _fob::initFob(_player* currentPlayer, _lightManager* currentLightManager) {
     player = currentPlayer;
+    sceneLightManager = currentLightManager;
+
+    // PARTICLES //
+    particleManager->initParticleManager("images/fob/particles.png",2,sceneLightManager);
+
+    // SPRITES //
     setCollisionBox({32.0f,32.0f});
     setupSprite("MAIN");
     _sprite* fob_sprite = getSprite("MAIN");
@@ -19,4 +25,25 @@ void _fob::initFob(_player* currentPlayer) {
         fob_sprite->loadSpriteAction("IDLE");
         fob_sprite->startAnimation();
     }
+}
+
+void _fob::updateFob(double dt) {
+    particleManager->updateParticleManger(dt);
+
+    float distanceToPlayer = pos.distance(player->pos);
+    if (distanceToPlayer < 128.0f) {
+        if (resupplyDt > resupplyTime) {
+            player->resupply(10,15);
+            resupplyDt = 0;
+        } else {
+            resupplyDt += dt;
+        }
+    } else {
+        resupplyDt = 0;            
+    }
+}
+
+void _fob::drawFob() {
+    drawUnit();
+    particleManager->drawParticleManager();
 }
