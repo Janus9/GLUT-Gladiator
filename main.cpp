@@ -282,6 +282,7 @@ BOOL CreateGLWindow(char* title, int width, int height, int bits, bool fullscree
 
 	sharedSounds->registerSfx("MENU_HOVER", "sounds/menu_hover.wav", 0.4f);
 	sharedSounds->registerSfx("MENU_CLICK", "sounds/menu_click.ogg", 0.6f);
+	sharedSounds->registerSfx("GAME_START", "sounds/level_start.ogg", 0.6f);
 
 	menuManager->initMenuManager(sharedSounds, myScene);
 	menuManager->loadMenu(MENU_LANDING); // CHANGE LATER
