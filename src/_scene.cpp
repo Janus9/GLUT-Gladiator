@@ -161,7 +161,8 @@ void _scene::initScene(bool loadWorld)
     soundManager->registerSfx("ORC_DEATH", "sounds/orc_death.mp3", 0.5f);
     soundManager->registerSfx("GATLING_SHOOT","sounds/MinigunLoop.wav", 0.2f);
 
-    soundManager->playBackgroundMusic("sounds/test_music.wav");
+    // Background music is started by _menuManager when the user clicks Start (transition to MENU_GAME),
+    // not here, so the fade-in lines up with gameplay starting rather than world generation.
 
     // -- SHADERS -- //
     // sh->initShader("shaders/V.vs","shaders/F.fs");
