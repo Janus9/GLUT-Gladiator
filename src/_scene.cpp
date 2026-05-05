@@ -148,7 +148,7 @@ void _scene::initScene(bool loadWorld)
     // -- SOUND EFFECTS -- //
     // Register all SFX up front so first-play decoder stalls are avoided. Tune per-SFX volumes here.
     soundManager->registerSfx("PLAYER_SHOOT", "sounds/player_shoot.mp3", 0.1f); // Done
-    soundManager->registerSfx("ENEMY_SHOOT", "sounds/22LR Single Isolated WAV.wav", 0.2f);  // Done
+    soundManager->registerSfx("ENEMY_SHOOT", "sounds/22LR Single Isolated WAV.wav", 0.3f);  // Done
     soundManager->registerSfx("BULLET_HIT_WALL", "sounds/bullet_hit_wall.wav", 0.07f);
     soundManager->registerSfx("BULLET_HIT_UNIT", "sounds/test.m4a", 0.8f);        // This is a clown horn because I don't know when this triggers yet and want to be surprised
     soundManager->registerSfx("ENEMY_DEATH", "sounds/enemy_death.wav", 0.1f);     // Done
@@ -1219,9 +1219,11 @@ int _scene::winMsg(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         else if ((short)HIWORD(wParam) < 0)
         {
             // Scroll down
-            if (cameraZoom > 1.0f)
+            if (cameraZoom > 3.0f)
                 cameraZoom--; // Zoom out by decreasing the zoom factor
         }
+
+        // cout << "Camera Level: " << cameraZoom << "\n";
         break;
     }
     return 0;
