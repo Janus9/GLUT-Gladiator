@@ -16,6 +16,10 @@ _sounds::~_sounds()
         currentMusic->drop();
         currentMusic = nullptr;
     }
+    if (fadingOutMusic) {
+        fadingOutMusic->drop();
+        fadingOutMusic = nullptr;
+    }
     if (engine) engine->drop();
 }
 
@@ -23,9 +27,19 @@ void _sounds::playBackgroundMusic(const std::string& fileName, float volume) {
     // Preload so first-play decode doesn't stall the audio thread
     engine->addSoundSourceFromFile(fileName.c_str(), ESM_AUTO_DETECT, true);
 
+    // If a previous crossfade is still running, stop the older outgoing track immediately —
+    // we only support one outgoing track at a time.
+    if (fadingOutMusic) {
+        fadingOutMusic->stop();
+        fadingOutMusic->drop();
+        fadingOutMusic = nullptr;
+    }
+
+    // Demote the currently-playing track to the outgoing slot so it can fade out
+    // in sync with the new track fading in.
     if (currentMusic) {
-        currentMusic->stop();
-        currentMusic->drop();
+        fadingOutMusic = currentMusic;
+        fadeOutStartVolume = fadingOutMusic->getVolume();
         currentMusic = nullptr;
     }
 
@@ -140,7 +154,7 @@ void _sounds::setSfxMasterVolume(float v) {
 }
 
 void _sounds::updateFadeIn(double dt) {
-    if (!fading || !currentMusic) return;
+    if (!fading) return;
 
     fadeElapsed += static_cast<float>(dt);
     float t = fadeElapsed / fadeDuration;
@@ -148,5 +162,15 @@ void _sounds::updateFadeIn(double dt) {
         t = 1.0f;
         fading = false;
     }
-    currentMusic->setVolume(targetVolume * t);
+
+    if (currentMusic) currentMusic->setVolume(targetVolume * t);
+
+    if (fadingOutMusic) {
+        fadingOutMusic->setVolume(fadeOutStartVolume * (1.0f - t));
+        if (!fading) {
+            fadingOutMusic->stop();
+            fadingOutMusic->drop();
+            fadingOutMusic = nullptr;
+        }
+    }
 }

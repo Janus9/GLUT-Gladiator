@@ -78,6 +78,11 @@ class _sounds
         float fadeElapsed = 0.0f;
         bool  fading = false;
 
+        // Outgoing track during a crossfade. Ramped from fadeOutStartVolume → 0 over fadeDuration,
+        // then stopped/dropped. Null when no crossfade is in progress.
+        ISound* fadingOutMusic = nullptr;
+        float fadeOutStartVolume = 0.0f;
+
         // SFX registry
         std::unordered_map<std::string, SfxEntry> sfxRegistry;
         float sfxMasterVolume = 1.0f;

@@ -285,6 +285,7 @@ BOOL CreateGLWindow(char* title, int width, int height, int bits, bool fullscree
 
 	menuManager->initMenuManager(sharedSounds, myScene);
 	menuManager->loadMenu(MENU_LANDING); // CHANGE LATER
+	sharedSounds->playBackgroundMusic("sounds/menu_music.wav", 0.3f);
 	return TRUE;									// Success
 }
 
