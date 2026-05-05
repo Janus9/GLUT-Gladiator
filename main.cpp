@@ -281,11 +281,11 @@ BOOL CreateGLWindow(char* title, int width, int height, int bits, bool fullscree
 	timer->reset();
 
 	sharedSounds->registerSfx("MENU_HOVER", "sounds/menu_hover.wav", 0.4f);
-	sharedSounds->registerSfx("MENU_CLICK", "sounds/menu_click.wav", 0.6f);
+	sharedSounds->registerSfx("MENU_CLICK", "sounds/menu_click.ogg", 0.6f);
 
 	menuManager->initMenuManager(sharedSounds, myScene);
 	menuManager->loadMenu(MENU_LANDING); // CHANGE LATER
-	sharedSounds->playBackgroundMusic("sounds/menu_music.wav", 0.3f);
+	sharedSounds->playBackgroundMusic("sounds/main_menu_music.ogg", 0.3f);
 	return TRUE;									// Success
 }
 
