@@ -1,5 +1,6 @@
 #include <_enemyManager.h>
 #include <_orc.h>
+#include <_vampire.h>
 
 // -- -- ENEMY -- -- //
 
@@ -389,6 +390,24 @@ void _enemyManager::updateEnemies(double dt) {
                 break;
             }
 
+            // -- VAMPIRE -- //
+            case ENEMY_VAMPIRE: {
+                _vampire* vampire = static_cast<_vampire*>(enemy);
+                if (enemy->isDead() && !enemy->inDeathAnimation) {
+                    vampire->triggerDeath(sounds);
+                    continue;
+                } else if (enemy->isDead() && enemy->deathTime > enemy->timeInDeathAnimation) {
+                    enemyList.erase(enemyList.begin() + i);
+                    continue;
+                }
+                if (enemy->isDead()) {
+                    enemy->deathTime += dt;
+                    continue;
+                }
+                vampire->updateVampire(dt, player, world, sounds);
+                break;
+            }
+
             // -- GATLING TURRET -- //
             case ENEMY_GATLING: {
                 _sprite* sprite = enemy->getSprite("TURRET");
@@ -537,6 +556,10 @@ void _enemyManager::addEnemy(const Vec2f &_pos, const enemy_config &config) {
         unique_ptr<_orc> orc = make_unique<_orc>();
         orc->initOrc(sceneTextureManager);
         newEnemy = move(orc);
+    } else if (config.type == ENEMY_VAMPIRE) {
+        unique_ptr<_vampire> vampire = make_unique<_vampire>();
+        vampire->initVampire(sceneTextureManager);
+        newEnemy = move(vampire);
     } else {
         newEnemy = make_unique<_enemy>();
         newEnemy->initEnemy(config, sceneTextureManager);

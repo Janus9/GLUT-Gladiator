@@ -19,7 +19,8 @@
 enum enemy_type : uint8_t {
     ENEMY_TURRET,
     ENEMY_GATLING,
-    ENEMY_ORC
+    ENEMY_ORC,
+    ENEMY_VAMPIRE
 };
 
 /**

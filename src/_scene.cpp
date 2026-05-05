@@ -159,6 +159,9 @@ void _scene::initScene(bool loadWorld)
     soundManager->registerSfx("ORC_ATTACK", "sounds/orc_attack.mp3", 0.1f);
     soundManager->registerSfx("ORC_HURT", "sounds/orc_hurt.mp3", 0.05f);
     soundManager->registerSfx("ORC_DEATH", "sounds/orc_death.mp3", 0.5f);
+    soundManager->registerSfx("VAMPIRE_ATTACK", "sounds/Vampire_Attack.mp3", 0.3f);
+    soundManager->registerSfx("VAMPIRE_HURT", "sounds/Vampire_Hurt.mp3", 0.2f);
+    soundManager->registerSfx("VAMPIRE_DEATH", "sounds/Vampire_Death.mp3", 0.6f);
     soundManager->registerSfx("GATLING_SHOOT","sounds/MinigunLoop.wav", 0.2f);
     soundManager->registerSfx("FOB_AMBIENT","sounds/machine_mx_2_loop.ogg", 0.3f);
 
@@ -227,6 +230,14 @@ void _scene::initScene(bool loadWorld)
     orc_config.fireRate = 0.0f; // Not needed
     orc_config.slewRate = 0.0f; // Not needed
     orc_config.detectionRadius = 200.0f;
+
+    // Vampire (boss) //
+    vampire_config.type = ENEMY_VAMPIRE;
+    vampire_config.team = _team::ENEMY;
+    vampire_config.maxHP = 500.0f;
+    vampire_config.fireRate = 0.0f; // Not needed
+    vampire_config.slewRate = 0.0f; // Not needed
+    vampire_config.detectionRadius = 300.0f;
 
     if(!loadWorld) {
         player->fireRate = 400.0f;
@@ -1131,6 +1142,9 @@ void _scene::keyboardHandler(WPARAM wParam)
         case 51: // "3"
             enemyManager->addEnemy(mouseWorldPos, orc_config);
             break;
+        case 52: // "4"
+            enemyManager->addEnemy(mouseWorldPos, vampire_config);
+            break;
         case ' ': // SPACE
             break;
         case 82: // R
@@ -1302,6 +1316,12 @@ void _scene::setupTextures() {
     textureManager->addTexture("images/enemy/orc/orc_attack.png");
     textureManager->addTexture("images/enemy/orc/orc_hurt.png");
     textureManager->addTexture("images/enemy/orc/orc_death.png");
+    // Vampire (boss) //
+    textureManager->addTexture("images/enemy/vampire/Vampire_Idle.png");
+    textureManager->addTexture("images/enemy/vampire/Vampire_Walk.png");
+    textureManager->addTexture("images/enemy/vampire/Vampire_Attack.png");
+    textureManager->addTexture("images/enemy/vampire/Vampire_Hurt.png");
+    textureManager->addTexture("images/enemy/vampire/Vampire_Death.png");
 
     textureManager->addTexture("images/enemy/enemy_particles.png");
 }
