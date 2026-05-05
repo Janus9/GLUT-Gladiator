@@ -1022,9 +1022,9 @@ const _tile* _world::getTileFromChunkIndex(const _chunk* chunk, const int index)
 
 // https://www.desmos.com/calculator/x5cyeg8q8s
 const _tile* _world::getTileAtWorld(const Vec2f &pos) const {
-    // Convert floats to ints by truncation
-    int posX = pos.x;
-    int posY = pos.y;
+    // Floor (not truncate) so negative coords land in the correct chunk-local cell.
+    int posX = (int)floor(pos.x);
+    int posY = (int)floor(pos.y);
 
     // The adjust pos is 0-255 for x/y (pos within the chunk). This works with negatives as well.
     Vec2i adjustedPos(modFloor(posX,256),modFloor(posY,256));
@@ -1045,9 +1045,9 @@ _cell* _world::getCellAtWorld(const Vec2f &pos) const {
         return nullptr;
     }
 
-     // Convert floats to ints by truncation
-    int posX = pos.x;
-    int posY = pos.y;
+    // Floor (not truncate) so negative coords land in the correct chunk-local cell.
+    int posX = (int)floor(pos.x);
+    int posY = (int)floor(pos.y);
 
     // The adjust pos is 0-255 for x/y (pos within the chunk). This works with negatives as well.
     Vec2i adjustedPos(modFloor(posX,256),modFloor(posY,256));
