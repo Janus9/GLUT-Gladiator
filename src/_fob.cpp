@@ -8,9 +8,10 @@ _fob::~_fob() {
 
 }
 
-void _fob::initFob(_player* currentPlayer, _lightManager* currentLightManager) {
+void _fob::initFob(_player* currentPlayer, _lightManager* currentLightManager,_sounds* currentSoundManager) {
     player = currentPlayer;
     sceneLightManager = currentLightManager;
+    sceneSoundManager = currentSoundManager;
 
     // PARTICLES //
     particleManager->initParticleManager("images/fob/particles.png",2,sceneLightManager);
@@ -29,6 +30,7 @@ void _fob::initFob(_player* currentPlayer, _lightManager* currentLightManager) {
 
 void _fob::updateFob(double dt) {
     particleManager->updateParticleManger(dt);
+    sceneSoundManager->playSfx3DLooped("FOB_AMBIENT",0,pos);
 
     float distanceToPlayer = pos.distance(player->pos);
     if (distanceToPlayer < 128.0f) {

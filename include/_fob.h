@@ -6,6 +6,7 @@
 #include <_player.h>
 #include <_particleManager.h>
 #include <_lightManager.h>
+#include <_sounds.h>
 
 class _fob : public _unit {
     public:
@@ -13,7 +14,7 @@ class _fob : public _unit {
         virtual ~_fob();
 
         // Initializes the given FOB
-        void initFob(_player* currentPlayer, _lightManager* currentLightManager);
+        void initFob(_player* currentPlayer, _lightManager* currentLightManager, _sounds* currentSoundManager);
 
         /** Update loop */
         void updateFob(double dt);
@@ -27,6 +28,7 @@ class _fob : public _unit {
 
         _player* player = nullptr;                  // Pointer to existing player instance (non-owning)
         _lightManager* sceneLightManager = nullptr; // Pointer to existing light manager instance (non-owning)
+        _sounds* sceneSoundManager = nullptr;            // Pointer to existing sound maanger instance (non-owning)
 
         unique_ptr<_particleManager> particleManager = make_unique<_particleManager>();
 };

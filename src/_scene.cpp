@@ -88,7 +88,7 @@ void _scene::initScene(bool loadWorld)
     player->hasGun = true;
 
     // -- FOB -- //
-    FOB->initFob(player.get(),lightManager.get());
+    FOB->initFob(player.get(),lightManager.get(),soundManager);
     // -- HUD -- //
 
     hud->addHudText("FPS");
@@ -160,6 +160,7 @@ void _scene::initScene(bool loadWorld)
     soundManager->registerSfx("ORC_HURT", "sounds/orc_hurt.mp3", 0.05f);
     soundManager->registerSfx("ORC_DEATH", "sounds/orc_death.mp3", 0.5f);
     soundManager->registerSfx("GATLING_SHOOT","sounds/MinigunLoop.wav", 0.2f);
+    soundManager->registerSfx("FOB_AMBIENT","sounds/machine_mx_2_loop.ogg", 0.3f);
 
     // Background music is started by _menuManager when the user clicks Start (transition to MENU_GAME),
     // not here, so the fade-in lines up with gameplay starting rather than world generation.
