@@ -32,6 +32,17 @@
 
 class _chunk; // Forward declaration for cell
 
+
+/**
+ * This is for detailing where we are in the world (level wise as 3 levels)
+ */
+enum level_pos {
+    LEVEL_OUTER,
+    LEVEL_MIDDLE,
+    LEVEL_INNER
+};
+
+
 /**
  * This is for serializing data for world saving. It stores cell/tile data of a chunk.
  */
@@ -72,23 +83,59 @@ enum TileId : uint8_t {
     TILE_FLOOR_INNER_DEFAULT_1,
     TILE_FLOOR_INNER_DEFAULT_2,
 
-    // Wall //
-    TILE_WALL_CENTER,
-    TILE_WALL_LEFT,
-    TILE_WALL_RIGHT,
-    TILE_WALL_UP,
-    TILE_WALL_DOWN,
-    TILE_WALL_CORNER_TOPLEFT,
-    TILE_WALL_CORNER_TOPRIGHT,
-    TILE_WALL_CORNER_BOTTOMLEFT,
-    TILE_WALL_CORNER_BOTTOMRIGHT,
-    TILE_WALL_ISLAND,
-    TILE_WALL_PENINSULA_TOP,
-    TILE_WALL_PENINSULA_DOWN,
-    TILE_WALL_PENINSULA_LEFT,
-    TILE_WALL_PENINSULA_RIGHT,
-    TILE_WALL_COLUMN_UP,
-    TILE_WALL_COLUMN_SIDE,
+    // Outer Wall //
+    TILE_WALL_OUTER_CENTER,
+    TILE_WALL_OUTER_LEFT,
+    TILE_WALL_OUTER_RIGHT,
+    TILE_WALL_OUTER_UP,
+    TILE_WALL_OUTER_DOWN,
+    TILE_WALL_OUTER_CORNER_TOPLEFT,
+    TILE_WALL_OUTER_CORNER_TOPRIGHT,
+    TILE_WALL_OUTER_CORNER_BOTTOMLEFT,
+    TILE_WALL_OUTER_CORNER_BOTTOMRIGHT,
+    TILE_WALL_OUTER_ISLAND,
+    TILE_WALL_OUTER_PENINSULA_TOP,
+    TILE_WALL_OUTER_PENINSULA_DOWN,
+    TILE_WALL_OUTER_PENINSULA_LEFT,
+    TILE_WALL_OUTER_PENINSULA_RIGHT,
+    TILE_WALL_OUTER_COLUMN_UP,
+    TILE_WALL_OUTER_COLUMN_SIDE,
+
+    // Middle Wall
+    TILE_WALL_MIDDLE_CENTER,
+    TILE_WALL_MIDDLE_LEFT,
+    TILE_WALL_MIDDLE_RIGHT,
+    TILE_WALL_MIDDLE_UP,
+    TILE_WALL_MIDDLE_DOWN,
+    TILE_WALL_MIDDLE_CORNER_TOPLEFT,
+    TILE_WALL_MIDDLE_CORNER_TOPRIGHT,
+    TILE_WALL_MIDDLE_CORNER_BOTTOMLEFT,
+    TILE_WALL_MIDDLE_CORNER_BOTTOMRIGHT,
+    TILE_WALL_MIDDLE_ISLAND,
+    TILE_WALL_MIDDLE_PENINSULA_TOP,
+    TILE_WALL_MIDDLE_PENINSULA_DOWN,
+    TILE_WALL_MIDDLE_PENINSULA_LEFT,
+    TILE_WALL_MIDDLE_PENINSULA_RIGHT,
+    TILE_WALL_MIDDLE_COLUMN_UP,
+    TILE_WALL_MIDDLE_COLUMN_SIDE,
+
+    // Inner Wall
+    TILE_WALL_INNER_CENTER,
+    TILE_WALL_INNER_LEFT,
+    TILE_WALL_INNER_RIGHT,
+    TILE_WALL_INNER_UP,
+    TILE_WALL_INNER_DOWN,
+    TILE_WALL_INNER_CORNER_TOPLEFT,
+    TILE_WALL_INNER_CORNER_TOPRIGHT,
+    TILE_WALL_INNER_CORNER_BOTTOMLEFT,
+    TILE_WALL_INNER_CORNER_BOTTOMRIGHT,
+    TILE_WALL_INNER_ISLAND,
+    TILE_WALL_INNER_PENINSULA_TOP,
+    TILE_WALL_INNER_PENINSULA_DOWN,
+    TILE_WALL_INNER_PENINSULA_LEFT,
+    TILE_WALL_INNER_PENINSULA_RIGHT,
+    TILE_WALL_INNER_COLUMN_UP,
+    TILE_WALL_INNER_COLUMN_SIDE,
 
     // Special //
     TILE_NULL, // Special undefined tile
@@ -370,11 +417,14 @@ class _world
         // Sets the seed for the world generation
         void setSeed(uint32_t _seed);
 
+        level_pos getLevelFromPos(const Vec2f &pos) const;
+
         // Sets the view projection matrix
         static void setViewProjectionMatrix(const glm::mat4 &_viewProjectionMatrix);
 
         // Sets the camera position
         static void setCameraPosition(const Vec2f &_cameraPosition);
+        
 
         bool DEBUG_displayChunkBorders = false; // When enabled puts a red border around chunks
     protected:
@@ -435,8 +485,8 @@ class _world
         // Puts the world through post processing converting bools to tile IDs for texturing
         void postProcessWorld();
 
-        // Determines the tile type for wall connections
-        TileId determineTileType(const bool neighborTiles[9]) const;
+        // Determines the tile type for wall connections. Pos of 0 is inner and 2 is outer, 1 is middle
+        TileId determineTileType(level_pos pos, const bool neighborTiles[9]) const;
 
         // Finalizes the world generation binding the vector -> unordered map for rendering
         void finalizeWorld();
