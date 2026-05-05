@@ -316,31 +316,44 @@ void _world::initWorld(bool loadWorld, _lightManager* lightManager)
 }
 
 void _world::initTiles() {
-    // FLOOR //
+    // NULL //
     setTileInAtlas(0,0, world_tiles[TILE_NULL]);       // Undefined Tile
-    
-    setTileInAtlas(22,11, world_tiles[TILE_FLOOR_BLANK_1]);       // Blank Floor
-    setTileInAtlas(23,10, world_tiles[TILE_FLOOR_CRACKED_1]);       // Slightly Cracked Floor
-    setTileInAtlas(24,11, world_tiles[TILE_FLOOR_CRACKED_2]);      // Medium Cracked Floor
-    setTileInAtlas(22,10, world_tiles[TILE_FLOOR_SQUARE_1]);       // Square outlined floor 1
-    setTileInAtlas(24,10, world_tiles[TILE_FLOOR_SQUARE_2]);       // Square outlined floor 2
-    setTileInAtlas(23,11, world_tiles[TILE_FLOOR_BLANK_2]);       // Blank Floor 2
-
     world_tiles[TILE_NULL].hasCollision = false;
-    world_tiles[TILE_FLOOR_BLANK_1].hasCollision = false;
-    world_tiles[TILE_FLOOR_CRACKED_1].hasCollision = false;
-    world_tiles[TILE_FLOOR_CRACKED_2].hasCollision = false;
-    world_tiles[TILE_FLOOR_SQUARE_1].hasCollision = false;
-    world_tiles[TILE_FLOOR_SQUARE_2].hasCollision = false;
-    world_tiles[TILE_FLOOR_BLANK_2].hasCollision = false;
-
     world_tiles[TILE_NULL].name = "null";
-    world_tiles[TILE_FLOOR_BLANK_1].name = "blank_floor";
-    world_tiles[TILE_FLOOR_CRACKED_1].name = "slightly_cracked_floor";
-    world_tiles[TILE_FLOOR_CRACKED_2].name = "medium_cracked_floor";
-    world_tiles[TILE_FLOOR_SQUARE_1].name = "square_outlined_floor_1";
-    world_tiles[TILE_FLOOR_SQUARE_2].name = "square_outlined_floor_2";
-    world_tiles[TILE_FLOOR_BLANK_2].name = "blank_floor_2";
+    
+    // Outer Floor //
+    setTileInAtlas(22,11, world_tiles[TILE_FLOOR_OUTER_BLANK_1]);      
+    world_tiles[TILE_FLOOR_OUTER_BLANK_1].hasCollision = false;
+    world_tiles[TILE_FLOOR_OUTER_BLANK_1].name = "blank_floor";
+
+    setTileInAtlas(23,10, world_tiles[TILE_FLOOR_OUTER_CRACKED_1]);       
+    world_tiles[TILE_FLOOR_OUTER_CRACKED_1].hasCollision = false;
+    world_tiles[TILE_FLOOR_OUTER_CRACKED_1].name = "slightly_cracked_floor";
+
+    setTileInAtlas(24,11, world_tiles[TILE_FLOOR_OUTER_CRACKED_2]);      
+    world_tiles[TILE_FLOOR_OUTER_CRACKED_2].hasCollision = false;
+    world_tiles[TILE_FLOOR_OUTER_CRACKED_2].name = "medium_cracked_floor";
+
+    setTileInAtlas(22,10, world_tiles[TILE_FLOOR_OUTER_SQUARE_1]);       
+    world_tiles[TILE_FLOOR_OUTER_SQUARE_1].hasCollision = false;
+    world_tiles[TILE_FLOOR_OUTER_SQUARE_1].name = "square_outlined_floor_1";
+
+    setTileInAtlas(24,10, world_tiles[TILE_FLOOR_OUTER_SQUARE_2]);       
+    world_tiles[TILE_FLOOR_OUTER_SQUARE_2].hasCollision = false;
+    world_tiles[TILE_FLOOR_OUTER_SQUARE_2].name = "square_outlined_floor_2";
+
+    setTileInAtlas(23,11, world_tiles[TILE_FLOOR_OUTER_BLANK_2]);       
+    world_tiles[TILE_FLOOR_OUTER_BLANK_2].hasCollision = false;
+    world_tiles[TILE_FLOOR_OUTER_BLANK_2].name = "blank_floor_2";
+
+    // Middle Floor //
+    setTileInAtlas(22,13, world_tiles[TILE_FLOOR_OUTER_DEFAULT_1]);       
+    world_tiles[TILE_FLOOR_OUTER_DEFAULT_1].hasCollision = false;
+    world_tiles[TILE_FLOOR_OUTER_DEFAULT_1].name = "default_floor_middle_1";
+    
+    setTileInAtlas(23,13, world_tiles[TILE_FLOOR_OUTER_DEFAULT_2]);       
+    world_tiles[TILE_FLOOR_OUTER_DEFAULT_2].hasCollision = false;
+    world_tiles[TILE_FLOOR_OUTER_DEFAULT_2].name = "default_floor_middle_2";
 
     // WALL //
     setTileInAtlas(22,16, world_tiles[TILE_WALL_CENTER]);        // Wall Center
@@ -568,7 +581,9 @@ void _world::postProcessWorld() {
     const int worldWidth = (int)sqrt(numStartingChunks)*16;
 
     vector<uint8_t> world_noise_copy(world_noise);
-    uniform_int_distribution<uint8_t> dist(0, 5); 
+    uniform_int_distribution<uint8_t> outer_dist(TILE_FLOOR_OUTER_BLANK_1, TILE_FLOOR_OUTER_BLANK_2); 
+    uniform_int_distribution<uint8_t> middle_dist(TILE_FLOOR_OUTER_DEFAULT_1, TILE_FLOOR_OUTER_DEFAULT_2); 
+    uniform_int_distribution<uint8_t> inner_dist(TILE_NULL, TILE_NULL); 
 
     for (int i = 0; i < world_noise.size(); i++) {
         if (!world_noise_copy[i]) {
@@ -582,13 +597,16 @@ void _world::postProcessWorld() {
             Vec2f tilePos = {tilePosX, tilePosY};
             const float distance = tilePos.distance({0.0f,0.0f});           // How far from center?
 
-            if (distance > 8000.0f) {
-                world_noise[i] = TILE_FLOOR_BLANK_1;
+            if (distance > 0.0f && distance < 4000.0f) {
+                // Inner
+                world_noise[i] = inner_dist(rng);
+            } else if (distance >= 4000.0f && distance < 8000.0f) {
+                // Middle
+                world_noise[i] = middle_dist(rng);
             } else {
-                world_noise[i] = TILE_FLOOR_SQUARE_1;
+                // Outer
+                world_noise[i] = outer_dist(rng);
             }
-
-            // world_noise[i] = dist(rng);
             continue;
         }
         /*
@@ -880,7 +898,7 @@ bool _world::damageCell(_cell* cell, float amount) {
     cell->impluseHealth(-amount); // Reverse sign since function expects healing
     cellParticles->spawnEffect(cell->pos, wall_damage_effect);
     if (!cell->isAlive()) {
-        setCellTile(cell,TILE_FLOOR_BLANK_1);
+        setCellTile(cell,TILE_NULL);
         cellParticles->spawnEffect(cell->pos,wall_break_effect);
     }
 }

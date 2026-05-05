@@ -56,13 +56,17 @@ struct chunk_serial_data {
  * Naming goes: TILE_[TYPE]_[SUBTYPE]_[VARIANT]
  */
 enum TileId : uint8_t {
-    // Floor //
-    TILE_FLOOR_BLANK_1,
-    TILE_FLOOR_CRACKED_1,
-    TILE_FLOOR_CRACKED_2,
-    TILE_FLOOR_SQUARE_1,
-    TILE_FLOOR_SQUARE_2,
-    TILE_FLOOR_BLANK_2,
+    // Floor Outer //
+    TILE_FLOOR_OUTER_BLANK_1,
+    TILE_FLOOR_OUTER_CRACKED_1,
+    TILE_FLOOR_OUTER_CRACKED_2,
+    TILE_FLOOR_OUTER_SQUARE_1,
+    TILE_FLOOR_OUTER_SQUARE_2,
+    TILE_FLOOR_OUTER_BLANK_2,
+
+    // Floor Middle //
+    TILE_FLOOR_OUTER_DEFAULT_1,
+    TILE_FLOOR_OUTER_DEFAULT_2,
 
     // Wall //
     TILE_WALL_CENTER,
