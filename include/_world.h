@@ -68,6 +68,10 @@ enum TileId : uint8_t {
     TILE_FLOOR_OUTER_DEFAULT_1,
     TILE_FLOOR_OUTER_DEFAULT_2,
 
+    // Floor Inner //
+    TILE_FLOOR_INNER_DEFAULT_1,
+    TILE_FLOOR_INNER_DEFAULT_2,
+
     // Wall //
     TILE_WALL_CENTER,
     TILE_WALL_LEFT,

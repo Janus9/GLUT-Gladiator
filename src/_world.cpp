@@ -355,6 +355,15 @@ void _world::initTiles() {
     world_tiles[TILE_FLOOR_OUTER_DEFAULT_2].hasCollision = false;
     world_tiles[TILE_FLOOR_OUTER_DEFAULT_2].name = "default_floor_middle_2";
 
+    // Inner Floor //
+    setTileInAtlas(25,13, world_tiles[TILE_FLOOR_INNER_DEFAULT_1]);       
+    world_tiles[TILE_FLOOR_INNER_DEFAULT_1].hasCollision = false;
+    world_tiles[TILE_FLOOR_INNER_DEFAULT_1].name = "default_floor_inner_1";
+    
+    setTileInAtlas(26,13, world_tiles[TILE_FLOOR_INNER_DEFAULT_2]);       
+    world_tiles[TILE_FLOOR_INNER_DEFAULT_2].hasCollision = false;
+    world_tiles[TILE_FLOOR_INNER_DEFAULT_2].name = "default_floor_inner_2";
+
     // WALL //
     setTileInAtlas(22,16, world_tiles[TILE_WALL_CENTER]);        // Wall Center
 
@@ -583,7 +592,7 @@ void _world::postProcessWorld() {
     vector<uint8_t> world_noise_copy(world_noise);
     uniform_int_distribution<uint8_t> outer_dist(TILE_FLOOR_OUTER_BLANK_1, TILE_FLOOR_OUTER_BLANK_2); 
     uniform_int_distribution<uint8_t> middle_dist(TILE_FLOOR_OUTER_DEFAULT_1, TILE_FLOOR_OUTER_DEFAULT_2); 
-    uniform_int_distribution<uint8_t> inner_dist(TILE_NULL, TILE_NULL); 
+    uniform_int_distribution<uint8_t> inner_dist(TILE_FLOOR_INNER_DEFAULT_1, TILE_FLOOR_INNER_DEFAULT_2); 
 
     for (int i = 0; i < world_noise.size(); i++) {
         if (!world_noise_copy[i]) {
