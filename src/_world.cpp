@@ -565,7 +565,7 @@ Vec2i _world::convertIndexToPos(int index, int width, int height) {
 void _world::postProcessWorld() {
     Logger.LogInfo("Starting post processing of world");
 
-    int worldWidth = (int)sqrt(numStartingChunks)*16;
+    const int worldWidth = (int)sqrt(numStartingChunks)*16;
 
     vector<uint8_t> world_noise_copy(world_noise);
     uniform_int_distribution<uint8_t> dist(0, 5); 
@@ -573,7 +573,22 @@ void _world::postProcessWorld() {
     for (int i = 0; i < world_noise.size(); i++) {
         if (!world_noise_copy[i]) {
             // Empty Tile applys random floor tile 
-            world_noise[i] = dist(rng);
+            const int col = i % worldWidth;                                 // Which column
+            const int row = i / worldWidth;                                 // Which row
+            
+            const float tilePosX = (-worldWidth * 0.5f + col) * 16.0f;      // Get world pos X
+            const float tilePosY = (worldWidth * 0.5f - row) * 16.0f;       // Get world pos Y
+
+            Vec2f tilePos = {tilePosX, tilePosY};
+            const float distance = tilePos.distance({0.0f,0.0f});           // How far from center?
+
+            if (distance > 8000.0f) {
+                world_noise[i] = TILE_FLOOR_BLANK_1;
+            } else {
+                world_noise[i] = TILE_FLOOR_SQUARE_1;
+            }
+
+            // world_noise[i] = dist(rng);
             continue;
         }
         /*

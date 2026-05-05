@@ -1045,8 +1045,9 @@ void _scene::updateScene(double dt, bool *keysArray)
             player->pos.x += playerSpeed * dt;
     }
 
-    lightManager->getLightPosition("PLAYER_LIGHT")->x = player->pos.x;
-    lightManager->getLightPosition("PLAYER_LIGHT")->y = player->pos.y;
+    // Set it to camera pos so free-cam has light for testing
+    lightManager->getLightPosition("PLAYER_LIGHT")->x = cameraX;
+    lightManager->getLightPosition("PLAYER_LIGHT")->y = cameraY;
 
     if (debugTimer.getMilliseconds() > debugPrintInterval)
     {
