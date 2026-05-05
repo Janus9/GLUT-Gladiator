@@ -161,7 +161,7 @@ void _scene::initScene(bool loadWorld)
     soundManager->registerSfx("ORC_DEATH", "sounds/orc_death.mp3", 0.5f);
     soundManager->registerSfx("GATLING_SHOOT","sounds/MinigunLoop.wav", 0.2f);
 
-    // soundManager->playBackgroundMusic("sounds/test_music.mp3");
+    soundManager->playBackgroundMusic("sounds/test_music.wav");
 
     // -- SHADERS -- //
     // sh->initShader("shaders/V.vs","shaders/F.fs");
