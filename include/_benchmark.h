@@ -19,7 +19,7 @@ class _benchmark
         double getAverageResult();
     protected:
     private:
-        chrono::high_resolution_clock::time_point startTime;
+        chrono::steady_clock::time_point startTime;
 
         double totalTime = 0.0;    // Total time (in ms) ellapsed
         int64_t clicks = 0;         // Number of checkpoint clicks. Used for finding the average.

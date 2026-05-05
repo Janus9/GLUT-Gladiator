@@ -153,7 +153,7 @@ void _bulletManager::updateBulletManager(double dt) {
             if (world->isTileWall(occupyingCell->tileId)) {
                 // Collision event
                 world->damageCell(occupyingCell,b->damage);
-                if (sounds) sounds->playSfx("BULLET_HIT_WALL");
+                if (sounds) sounds->playSfx3D("BULLET_HIT_WALL",occupyingCell->pos);
                 b->health -= 50;
             }
         }
@@ -164,7 +164,7 @@ void _bulletManager::updateBulletManager(double dt) {
             if (enemy) {
                 enemy->impulseDamage(b->damage);
                 enemy->notifyDamaged(sounds);
-                if (sounds) sounds->playSfx("BULLET_HIT_UNIT");
+                if (sounds) sounds->playSfx3D("BULLET_HIT_UNIT",occupyingCell->pos);
                 b->health -= 25;
             }
         } else {

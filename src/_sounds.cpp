@@ -76,16 +76,57 @@ void _sounds::playSfx3D(const std::string& name, const Vec2f& pos) {
         std::cerr << "playSfx: unknown SFX '" << name << "'\n";
         return;
     }
-    engine->setListenerPosition(vec3df(listenerPos.x,listenerPos.y,0.0f),
-                                vec3df(0,0,1),  // Look direction (constant to forward)
-                                vec3df(0,0,0),  // Velocity (not used so 0)
-                                vec3df(0,1,0)); // Up vector (y is up)
-
     engine->play3D(it->second.path.c_str(),vec3df(pos.x,pos.y,0.0f),false,false,false);
+}
+
+void _sounds::playSfx3DLooped(const std::string &name, int ID, const Vec2f& pos) {
+    auto idIt = loopedSfxActive.find(ID);
+    if (idIt != loopedSfxActive.end()) {
+        // ID already registed, skip
+        return;
+    }
+
+    auto it = sfxRegistry.find(name);
+    if (it == sfxRegistry.end()) {
+        std::cerr << "playSfx: unknown SFX '" << name << "'\n";
+        return;
+    }
+    ISound* sound = engine->play3D(
+        it->second.path.c_str(),
+        vec3df(pos.x,pos.y,0.0f),
+        true,   // looped
+        false,  // start paused
+        true    // track sound
+    );
+    if (!sound) {
+        cout << "ERROR: Cannot play sfx: " << name << "\n";
+        return;
+    }
+    loopedSfxActive[ID] = sound;
+}
+
+void _sounds::removeSfx3DLooped(int ID) {
+    auto idIt = loopedSfxActive.find(ID);
+    if (idIt == loopedSfxActive.end()) {
+        // No sound active, skip
+        return;
+    }
+
+    ISound* sound = idIt->second;
+    if (sound) {
+        sound->stop();
+        sound->drop();
+    }
+
+    loopedSfxActive.erase(idIt);
 }
 
 void _sounds::setListenerPos(const Vec2f &pos) {
     listenerPos = pos;
+    engine->setListenerPosition(vec3df(listenerPos.x,listenerPos.y,0.0f),
+                                vec3df(0,0,1),  // Look direction (constant to forward)
+                                vec3df(0,0,0),  // Velocity (not used so 0)
+                                vec3df(0,1,0)); // Up vector (y is up)
 }
 
 void _sounds::setSfxMasterVolume(float v) {

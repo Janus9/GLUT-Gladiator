@@ -355,7 +355,7 @@ void _enemyManager::updateEnemies(double dt) {
                         enemy->firingTime += dt;
                         if (enemy->firingTime > 1.0f/(enemy->fireRate/60.0f)) {
                             bulletManager->spawnBulletEffect(enemy->pos,player->pos,_team::ENEMY,*bullet_1);
-                            if (sounds) sounds->playSfx("ENEMY_SHOOT");
+                            if (sounds) sounds->playSfx3D("ENEMY_SHOOT", enemy->pos);
                             enemy->getSingleSprite()->setFPS(enemy->fireRate / 60.0f);
                             enemy->firingTime = 0;
                         }
@@ -413,13 +413,13 @@ void _enemyManager::updateEnemies(double dt) {
                 float distance = enemy->pos.distance(player->pos);
                 if (distance < enemy->detectionRadius) {
                     // Enemy in range
-                    bool focused = enemy->focusOn(player->pos,enemy->slewRate,5.0f,sprite);
+                    const bool focused = enemy->focusOn(player->pos,enemy->slewRate,5.0f,sprite);
                     if (focused) {
                         // Focused on player -- ready to fire
                         enemy->firingTime += dt;
                         if (enemy->firingTime > 1.0f/(enemy->fireRate/60.0f)) {
                             bulletManager->spawnBulletEffect(enemy->pos,player->pos,_team::ENEMY,*bullet_2);
-                            if (sounds) sounds->playSfx("ENEMY_SHOOT");
+                            if (sounds) sounds->playSfx3DLooped("GATLING_SHOOT", enemy->getID(), enemy->pos);
                             sprite->setFPS(enemy->fireRate / 60.0f);
                             enemy->firingTime = 0;
                         }
@@ -427,10 +427,12 @@ void _enemyManager::updateEnemies(double dt) {
                     } else {
                         sprite->setFPS(12);
                         sprite->stopAnimation();
+                        sounds->removeSfx3DLooped(enemy->getID());
                     }
                 }  else {
                     sprite->setFPS(12);
                     sprite->stopAnimation();
+                    sounds->removeSfx3DLooped(enemy->getID());
                 }
                 break;
             }

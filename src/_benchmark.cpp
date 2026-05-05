@@ -12,12 +12,12 @@ _benchmark::~_benchmark()
 
 void _benchmark::startBenchmark() 
 {
-    startTime = chrono::high_resolution_clock::now();
+    startTime = chrono::steady_clock::now();
 }
 
 void _benchmark::clickBenchmark()
 {
-    auto currentTime = chrono::high_resolution_clock::now();
+    auto currentTime = chrono::steady_clock::now();
     double dt = chrono::duration_cast<chrono::milliseconds>(currentTime-startTime).count();
     totalTime += dt;
     clicks++;  
@@ -25,7 +25,7 @@ void _benchmark::clickBenchmark()
 
 void _benchmark::resetBenchmark()
 {
-    startTime = chrono::high_resolution_clock::now();
+    startTime = chrono::steady_clock::now();
     totalTime = 0.0;
     clicks = 0;
     averageTime = 0.0;

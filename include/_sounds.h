@@ -24,10 +24,34 @@ class _sounds
         // Safe to call rapidly; overlapping plays are mixed by irrKlang.
         void playSfx(const std::string& name);
 
-        // Fires a one-shot 3D SFX previously registered under `name`. Does not affect background music.
-        // 3D Audio allows for panning, attenuation, and directionality (z axis is ignored since game is 2D)
-        // Safe to call rapidly; overlapping plays are mixed by irrKlang.
+        /**
+         * Fires a one-shot 3D SFX previously registered under `name`. Does not affect background music.
+         * 3D Audio allows for panning, attenuation, and directionality (z axis is ignored since game is 2D)
+         * Safe to call rapidly; overlapping plays are mixed by irrKlang.
+         * 
+         * @param name Name of sound to load
+         * @param pos Position to play sound at
+         */
         void playSfx3D(const std::string& name, const Vec2f& pos);
+
+        /**
+         * Adds a SFX to the "looped" registery, these looped sounds play looped until "removeSfx3DLooped" is called.
+         * 
+         * Once an ID is registered, it cannot be changed or edited, only removed. This means its safe to call this in a loop
+         * as after the 1st call, it does nothing
+         * 
+         * @param name Name of the sound to play
+         * @param ID Unique ID tied to the sound (ex/ unit ID)
+         * @param pos Position to play the sound at
+         */
+        void playSfx3DLooped(const std::string &name, int ID, const Vec2f& pos);
+
+        /**
+         * Removes a registered loop SFX to stop playing
+         * 
+         * @param ID Unique ID tied to the sound
+         */
+        void removeSfx3DLooped(int ID);
 
         // Sets the listener position for playSfx3D
         void setListenerPos(const Vec2f& pos);
@@ -57,6 +81,8 @@ class _sounds
         // SFX registry
         std::unordered_map<std::string, SfxEntry> sfxRegistry;
         float sfxMasterVolume = 1.0f;
+
+        std::unordered_map<int, ISound*> loopedSfxActive;
 
         // 3D Audio Listener Position
         Vec2f listenerPos = {0.0f, 0.0f};

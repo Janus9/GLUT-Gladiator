@@ -23,9 +23,6 @@ _scene::~_scene()
     delete interactionTimer;
     interactionTimer = nullptr;
 
-    delete drawWorldBenchmark;
-    drawWorldBenchmark = nullptr;
-
     delete testUnit;
     testUnit = nullptr;
 
@@ -141,7 +138,8 @@ void _scene::initScene(bool loadWorld)
 
     debugTimer.reset();
 
-    drawWorldBenchmark->startBenchmark();
+    drawWorldBenchmark.startBenchmark();
+    drawEnemiesBenchmark.startBenchmark();
 
     if(!loadWorld) enemyManager->initEnemyManager(player.get(), myWorld, bulletManager.get(), soundManager, lightManager.get(), textureManager.get());
     enemyManager->bullet_1 = &turret_bullet;
@@ -150,8 +148,8 @@ void _scene::initScene(bool loadWorld)
     // -- SOUND EFFECTS -- //
     // Register all SFX up front so first-play decoder stalls are avoided. Tune per-SFX volumes here.
     soundManager->registerSfx("PLAYER_SHOOT", "sounds/player_shoot.mp3", 0.1f); // Done
-    soundManager->registerSfx("ENEMY_SHOOT", "sounds/enemy_shoot.mp3", 0.05f);  // Done
-    soundManager->registerSfx("BULLET_HIT_WALL", "sounds/hit_wall.wav", 0.5f);
+    soundManager->registerSfx("ENEMY_SHOOT", "sounds/22LR Single Isolated WAV.wav", 0.2f);  // Done
+    soundManager->registerSfx("BULLET_HIT_WALL", "sounds/bullet_hit_wall.wav", 0.07f);
     soundManager->registerSfx("BULLET_HIT_UNIT", "sounds/test.m4a", 0.8f);        // This is a clown horn because I don't know when this triggers yet and want to be surprised
     soundManager->registerSfx("ENEMY_DEATH", "sounds/enemy_death.wav", 0.1f);     // Done
     soundManager->registerSfx("PLAYER_HURT", "sounds/player_hurt.mp3", 0.3f);     // Done
@@ -161,8 +159,9 @@ void _scene::initScene(bool loadWorld)
     soundManager->registerSfx("ORC_ATTACK", "sounds/orc_attack.mp3", 0.1f);
     soundManager->registerSfx("ORC_HURT", "sounds/orc_hurt.mp3", 0.05f);
     soundManager->registerSfx("ORC_DEATH", "sounds/orc_death.mp3", 0.5f);
+    soundManager->registerSfx("GATLING_SHOOT","sounds/MinigunLoop.wav", 0.2f);
 
-    soundManager->playBackgroundMusic("sounds/test_music.mp3");
+    // soundManager->playBackgroundMusic("sounds/test_music.mp3");
 
     // -- SHADERS -- //
     // sh->initShader("shaders/V.vs","shaders/F.fs");
@@ -684,13 +683,15 @@ void _scene::drawScene()
     glLoadIdentity(); // Whichever state the scene is in it will stay there
     applyCamera();    // Apply camera transformations
 
-    drawWorldBenchmark->startBenchmark();
+    drawWorldBenchmark.startBenchmark();
     myWorld->drawWorld(left, right, top, bottom); // Draw the world
-    drawWorldBenchmark->clickBenchmark();
+    drawWorldBenchmark.clickBenchmark();
 
     bulletManager->drawBulletManager();
 
+    drawEnemiesBenchmark.startBenchmark();
     enemyManager->drawEnemies();
+    drawEnemiesBenchmark.clickBenchmark();
 
     FOB->drawUnit();
     
@@ -1096,8 +1097,9 @@ void _scene::updateScene(double dt, bool *keysArray)
 
 void _scene::debugPrint()
 {
-    Logger.LogDebug("World drawing took: " + to_string(drawWorldBenchmark->getAverageResult()) + "ms");
-    myWorld->debugPrint();
+    Logger.LogDebug("World drawing took: " + to_string(drawWorldBenchmark.getAverageResult()) + "ms");
+    Logger.LogDebug("Enemy drawing took: " + to_string(drawEnemiesBenchmark.getAverageResult()) + "ms");
+    // myWorld->debugPrint();
 }
 
 void _scene::debugPrintFPS()
@@ -1294,6 +1296,6 @@ void _scene::setupTextures() {
     textureManager->addTexture("images/enemy/orc/orc_attack.png");
     textureManager->addTexture("images/enemy/orc/orc_hurt.png");
     textureManager->addTexture("images/enemy/orc/orc_death.png");
-    
+
     textureManager->addTexture("images/enemy/enemy_particles.png");
 }

@@ -181,7 +181,8 @@ class _scene
         _timerPlusPlus debugTimer;          // Timer to track time between updates for the scene
         _timerPlusPlus* fpsTimer = new _timerPlusPlus(); // Timer to track time between frames for FPS calculation
 
-        _benchmark* drawWorldBenchmark = new _benchmark();
+        _benchmark drawWorldBenchmark;
+        _benchmark drawEnemiesBenchmark;
 
         bool debugEnabled = true;           // Enables specific debugging information for the scene
         bool inputDebugEnabled = false;     // Enables debug info for inputs (keyboard keys + mouse inputs)
