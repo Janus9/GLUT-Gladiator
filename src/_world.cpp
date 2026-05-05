@@ -319,24 +319,27 @@ void _world::initTiles() {
     // FLOOR //
     setTileInAtlas(0,0, world_tiles[TILE_NULL]);       // Undefined Tile
     
-    setTileInAtlas(8,13, world_tiles[TILE_FLOOR_BLANK_1]);       // Blank Floor
-    setTileInAtlas(9,12, world_tiles[TILE_FLOOR_CRACKED_1]);       // Slightly Cracked Floor
-    setTileInAtlas(10,13, world_tiles[TILE_FLOOR_CRACKED_2]);      // Medium Cracked Floor
-    setTileInAtlas(8,12, world_tiles[TILE_FLOOR_SQUARE]);       // Square outlined floor
-    setTileInAtlas(9,13, world_tiles[TILE_FLOOR_BLANK_2]);       // Blank Floor 2
+    setTileInAtlas(22,11, world_tiles[TILE_FLOOR_BLANK_1]);       // Blank Floor
+    setTileInAtlas(23,10, world_tiles[TILE_FLOOR_CRACKED_1]);       // Slightly Cracked Floor
+    setTileInAtlas(24,11, world_tiles[TILE_FLOOR_CRACKED_2]);      // Medium Cracked Floor
+    setTileInAtlas(22,10, world_tiles[TILE_FLOOR_SQUARE_1]);       // Square outlined floor 1
+    setTileInAtlas(24,10, world_tiles[TILE_FLOOR_SQUARE_2]);       // Square outlined floor 2
+    setTileInAtlas(23,11, world_tiles[TILE_FLOOR_BLANK_2]);       // Blank Floor 2
 
     world_tiles[TILE_NULL].hasCollision = false;
     world_tiles[TILE_FLOOR_BLANK_1].hasCollision = false;
     world_tiles[TILE_FLOOR_CRACKED_1].hasCollision = false;
     world_tiles[TILE_FLOOR_CRACKED_2].hasCollision = false;
-    world_tiles[TILE_FLOOR_SQUARE].hasCollision = false;
+    world_tiles[TILE_FLOOR_SQUARE_1].hasCollision = false;
+    world_tiles[TILE_FLOOR_SQUARE_2].hasCollision = false;
     world_tiles[TILE_FLOOR_BLANK_2].hasCollision = false;
 
     world_tiles[TILE_NULL].name = "null";
     world_tiles[TILE_FLOOR_BLANK_1].name = "blank_floor";
     world_tiles[TILE_FLOOR_CRACKED_1].name = "slightly_cracked_floor";
     world_tiles[TILE_FLOOR_CRACKED_2].name = "medium_cracked_floor";
-    world_tiles[TILE_FLOOR_SQUARE].name = "square_outlined_floor";
+    world_tiles[TILE_FLOOR_SQUARE_1].name = "square_outlined_floor_1";
+    world_tiles[TILE_FLOOR_SQUARE_2].name = "square_outlined_floor_2";
     world_tiles[TILE_FLOOR_BLANK_2].name = "blank_floor_2";
 
     // WALL //
@@ -565,13 +568,13 @@ void _world::postProcessWorld() {
     int worldWidth = (int)sqrt(numStartingChunks)*16;
 
     vector<uint8_t> world_noise_copy(world_noise);
-    uniform_int_distribution<uint8_t> dist(0, 4); 
+    uniform_int_distribution<uint8_t> dist(0, 5); 
 
     for (int i = 0; i < world_noise.size(); i++) {
         if (!world_noise_copy[i]) {
             // Empty Tile applys random floor tile 
             world_noise[i] = dist(rng);
-            continue;;
+            continue;
         }
         /*
         8 7 6
