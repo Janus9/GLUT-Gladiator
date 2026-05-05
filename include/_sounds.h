@@ -13,8 +13,8 @@ class _sounds
         _sounds();
         virtual ~_sounds();
 
-        // Plays a looped background track, fading in from silence. Replaces any prior music.
-        void playBackgroundMusic(const std::string& fileName);
+        // Plays a looped background track, fading in from silence to `volume` (0.0 - 1.0). Replaces any prior music.
+        void playBackgroundMusic(const std::string& fileName, float volume = 1.0f);
 
         // Preloads a sound effect and stores it under `name`. Later looked up by playSfx.
         // `volume` is the per-SFX gain (0.0 - 1.0) applied when played.

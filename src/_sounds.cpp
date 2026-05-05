@@ -19,7 +19,7 @@ _sounds::~_sounds()
     if (engine) engine->drop();
 }
 
-void _sounds::playBackgroundMusic(const std::string& fileName) {
+void _sounds::playBackgroundMusic(const std::string& fileName, float volume) {
     // Preload so first-play decode doesn't stall the audio thread
     engine->addSoundSourceFromFile(fileName.c_str(), ESM_AUTO_DETECT, true);
 
@@ -43,6 +43,7 @@ void _sounds::playBackgroundMusic(const std::string& fileName) {
     snd->setIsPaused(false);
 
     currentMusic = snd;
+    targetVolume = volume;
     fadeElapsed = 0.0f;
     fading = true;
 }
