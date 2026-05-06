@@ -95,11 +95,14 @@ class _enemy : public _unit {
 
         double firingTime = 0.0;    // Elapsed time for shooting
         double deathTime = 0.0;     // Elapsed time for death
+        double revTime = 0.0;       // Elapsed time for reving the gun
 
-        bool inDeathAnimation = false; // Whether enemy is in its death animation
+        bool inDeathAnimation = false;  // Wether enemy is in its death animation
+        bool inRevAnimation = false;    // Wether enemy is reving the gun up
         enemy_type eType;
 
-        float timeInDeathAnimation = 6.0f;  // Seconds spent in the death animation
+        const float timeInRevAnimation = 1.25f;     // Seconds spent in the rev animation
+        const float timeInDeathAnimation = 6.0f;    // Seconds spent in the death animation
     protected:
     private:
         int enemyID;

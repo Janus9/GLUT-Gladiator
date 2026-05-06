@@ -86,12 +86,14 @@ void _enemy::initEnemy(const enemy_config &config, const _textureManager* textur
             _sprite* turret_sprite = getSprite("TURRET");
             if (turret_sprite) {
                 const texture_entry &tex = textureManager->getTextureEntry("images/enemy/gatling_gun/gatling_turret.png");
-                turret_sprite->initSprite(tex,9,2,1,12);
-                turret_sprite->createSpriteAction(sprite_action("SHOOT",0,0,3));
-                turret_sprite->createSpriteAction(sprite_action("DEATH",1,0,8));
+                turret_sprite->initSprite(tex,9,4,1,12);
+                turret_sprite->createSpriteAction(sprite_action("REV",0,0,3));
+                turret_sprite->createSpriteAction(sprite_action("IDLE",1,0,5));
+                turret_sprite->createSpriteAction(sprite_action("SHOOT",2,0,3));
+                turret_sprite->createSpriteAction(sprite_action("DEATH",3,0,8));
                 turret_sprite->loadSpriteAction("SHOOT");
                 turret_sprite->setIdleFrame(0,0);
-                turret_sprite->stopAnimation();
+                turret_sprite->startAnimation();
                 Vec2f size = turret_sprite->getSize();
                 turret_sprite->pivotPoint = {size.x/2.0f, size.y/2.0f};
             }
@@ -475,24 +477,27 @@ void _enemyManager::updateEnemies(double dt) {
                 if (distance < enemy->detectionRadius) {
                     // Enemy in range
                     const bool focused = enemy->focusOn(player->pos,enemy->slewRate,5.0f,sprite);
-                    if (focused) {
+                    const bool reved = enemy->revTime > enemy->timeInRevAnimation;
+                    if (focused && reved) {
                         // Focused on player -- ready to fire
                         enemy->firingTime += dt;
                         if (enemy->firingTime > 1.0f/(enemy->fireRate/60.0f)) {
                             bulletManager->spawnBulletEffect(enemy->pos,player->pos,_team::ENEMY,*bullet_2);
-                            if (sounds) sounds->playSfx3DLooped("GATLING_SHOOT", enemy->getID(), enemy->pos);
-                            sprite->setFPS(enemy->fireRate / 60.0f);
                             enemy->firingTime = 0;
                         }
-                        sprite->startAnimation();
+                        sounds->playSfx3DLooped("GATLING_SHOOT", enemy->getID(), enemy->pos);
+                        sprite->setFPS(enemy->fireRate / 60.0f);
+                        sprite->loadSpriteAction("SHOOT");
                     } else {
-                        sprite->setFPS(12);
-                        sprite->stopAnimation();
-                        sounds->removeSfx3DLooped(enemy->getID());
+                        enemy->revTime += dt;
+                        sprite->loadSpriteAction("REV");
+                        sprite->setFPS(enemy->fireRate / 60.0f);
+                        sounds->playSfx3DLooped("GATLING_REV", enemy->getID(), enemy->pos);
                     }
                 }  else {
+                    enemy->revTime = 0.0;
+                    sprite->loadSpriteAction("IDLE");
                     sprite->setFPS(12);
-                    sprite->stopAnimation();
                     sounds->removeSfx3DLooped(enemy->getID());
                 }
                 break;

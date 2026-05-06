@@ -112,12 +112,26 @@ void _sounds::playSfx3D(const std::string& name, const Vec2f& pos) {
 
 void _sounds::playSfx3DLooped(const std::string &name, int ID, const Vec2f& pos) {
     auto idIt = loopedSfxActive.find(ID);
+    auto it = sfxRegistry.find(name);
+    
     if (idIt != loopedSfxActive.end()) {
-        // ID already registed, skip
-        return;
+        // ID already registed, check for new sound file
+        ISound* sound = idIt->second;
+
+        // This is a bad approach -- string comparisons are expensive in loops
+        const string& loadedSoundSrc = sound->getSoundSource()->getName();
+        const string& currentSoundSrc = it->second.path;
+
+        if (loadedSoundSrc == currentSoundSrc) {
+            // Same sound -- skip
+            sound->setPosition(vec3df(pos.x, pos.y, 0.0f));
+            return;
+        } else {
+            // Remove the sound prior to overwriting to a new one
+            removeSfx3DLooped(ID);
+        }
     }
 
-    auto it = sfxRegistry.find(name);
     if (it == sfxRegistry.end()) {
         std::cerr << "playSfx: unknown SFX '" << name << "'\n";
         return;

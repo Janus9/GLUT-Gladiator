@@ -38,7 +38,7 @@ class _sounds
         /**
          * Adds a SFX to the "looped" registery, these looped sounds play looped until "removeSfx3DLooped" is called.
          * 
-         * Once an ID is registered, it cannot be changed or edited, only removed. This means its safe to call this in a loop
+         * Once an ID is registered, it can be overwritten but repeated calls on same file do nothing. This means its safe to call this in a loop
          * as after the 1st call, it does nothing
          * 
          * @param name Name of the sound to play
