@@ -26,7 +26,8 @@ HWND		hWnd=NULL;		// Holds Our Window Handle
 HINSTANCE	hInstance;		// Holds The Instance Of The Application
 
 bool	keys[256];			// Array Used For The Keyboard Routine
-bool	active=TRUE;		// Window Active Flag Set To TRUE By Default. Active environment or not (game will pause based on these settings)
+bool	active=TRUE;		// Foreground-focus flag. False while the window is not the user's active window.
+bool	minimized=FALSE;	// True while the window is minimized. Combined with !active to drive the suspended state.
 bool	fullscreen=TRUE;	// Fullscreen Flag Set To Fullscreen Mode By Default (is the screen full-screen or not)
 
 LRESULT	CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);	// Declaration For WndProc. Passing parameters into system
@@ -328,15 +329,8 @@ LRESULT CALLBACK WndProc(	HWND	hWnd,			// Handle For This Window
 	    //Is Window Currently Active?
 		case WM_ACTIVATE:							// Watch For Window Activate Message
 		{
-			if (!HIWORD(wParam))					// Check Minimization State
-			{
-				active=TRUE;						// Program Is Active
-			}
-			else
-			{
-				active=FALSE;						// Program Is No Longer Active
-			}
-
+			active    = (LOWORD(wParam) != WA_INACTIVE);
+			minimized = (HIWORD(wParam) != 0);
 			return 0;								// Return To The Message Loop
 		}
 
@@ -384,12 +378,23 @@ LRESULT CALLBACK WndProc(	HWND	hWnd,			// Handle For This Window
 		//All includes and prototype allocation starts a program and then goes to main
 		case WM_SIZE:								// Resize The OpenGL Window
 		{
-			wWidth = LOWORD(lParam);
-			wHeight = HIWORD(lParam);
+			if (wParam == SIZE_MINIMIZED) {
+				// Skip reSize on minimize — width/height arrive as 0 and would
+				// produce a degenerate viewport. Suspension handles the pause.
+				minimized = TRUE;
+				return 0;
+			}
 
-            myScene->reSize(wWidth, wHeight);   
+			minimized = FALSE;
+			int newW = LOWORD(lParam);
+			int newH = HIWORD(lParam);
+			if (newW <= 0 || newH <= 0) return 0;	// Defensive: ignore zero-sized restores.
+
+			wWidth = newW;
+			wHeight = newH;
+            myScene->reSize(wWidth, wHeight);
 			_menuManager::setWindowDimensions({wWidth,wHeight});
-			
+
 			return 0;								// Jump Back
 		}
 	}
@@ -411,6 +416,7 @@ int WINAPI WinMain(	HINSTANCE	hInstance,			// Instance
 {
 	MSG		msg;									// Windows Message Structure
 	BOOL	done=FALSE;								// Bool Variable To Exit Loop
+	bool	wasSuspended = false;					// Tracks suspended-state transitions across iterations
 
 	//If a message arrives it will arrive in this manner
 
@@ -448,6 +454,19 @@ int WINAPI WinMain(	HINSTANCE	hInstance,			// Instance
 		}
 		else										// If There Are No Messages
 		{
+			bool suspended = !active || minimized;
+
+			if (suspended != wasSuspended) {
+				if (sharedSounds) sharedSounds->setEnginePaused(suspended);
+				if (!suspended) timer->reset();		// Avoid a giant dt spike on resume
+				wasSuspended = suspended;
+			}
+
+			if (suspended) {
+				WaitMessage();						// Block until the OS posts another message — keeps CPU at ~0% while away
+				continue;
+			}
+
 			// Draw The Scene.  Watch For ESC Key And Quit Messages From DrawGLScene()
 			if (menuManager->getLoadedMenu() == MENU_GAME) {
 				if (menuManager->loadGame) {
