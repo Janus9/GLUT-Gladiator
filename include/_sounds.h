@@ -22,7 +22,8 @@ class _sounds
 
         // Fires a one-shot SFX previously registered under `name`. Does not affect background music.
         // Safe to call rapidly; overlapping plays are mixed by irrKlang.
-        void playSfx(const std::string& name);
+        // `pitch` shifts both pitch and tempo via irrKlang's setPlaybackSpeed (1.0 = unchanged).
+        void playSfx(const std::string& name, float pitch = 1.0f);
 
         /**
          * Fires a one-shot 3D SFX previously registered under `name`. Does not affect background music.

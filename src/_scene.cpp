@@ -239,6 +239,21 @@ void _scene::initScene(bool loadWorld)
     vampire_config.slewRate = 0.0f; // Not needed
     vampire_config.detectionRadius = 300.0f;
 
+    // Vampire minions //
+    vampire_minion1_config.type = ENEMY_VAMPIRE_MINION1;
+    vampire_minion1_config.team = _team::ENEMY;
+    vampire_minion1_config.maxHP = 80.0f;
+    vampire_minion1_config.fireRate = 0.0f;
+    vampire_minion1_config.slewRate = 0.0f;
+    vampire_minion1_config.detectionRadius = 300.0f;
+
+    vampire_minion2_config.type = ENEMY_VAMPIRE_MINION2;
+    vampire_minion2_config.team = _team::ENEMY;
+    vampire_minion2_config.maxHP = 80.0f;
+    vampire_minion2_config.fireRate = 0.0f;
+    vampire_minion2_config.slewRate = 0.0f;
+    vampire_minion2_config.detectionRadius = 300.0f;
+
     if(!loadWorld) {
         player->fireRate = 400.0f;
         player->magCapacity = 30;
@@ -1145,6 +1160,12 @@ void _scene::keyboardHandler(WPARAM wParam)
         case 52: // "4"
             enemyManager->addEnemy(mouseWorldPos, vampire_config);
             break;
+        case 53: // "5"
+            enemyManager->addEnemy(mouseWorldPos, vampire_minion1_config);
+            break;
+        case 54: // "6"
+            enemyManager->addEnemy(mouseWorldPos, vampire_minion2_config);
+            break;
         case ' ': // SPACE
             break;
         case 82: // R
@@ -1322,6 +1343,17 @@ void _scene::setupTextures() {
     textureManager->addTexture("images/enemy/vampire/Vampire_Attack.png");
     textureManager->addTexture("images/enemy/vampire/Vampire_Hurt.png");
     textureManager->addTexture("images/enemy/vampire/Vampire_Death.png");
+    // Vampire minions //
+    textureManager->addTexture("images/enemy/vampire/minion/Minion1_Idle.png");
+    textureManager->addTexture("images/enemy/vampire/minion/Minion1_Walk.png");
+    textureManager->addTexture("images/enemy/vampire/minion/Minion1_Attack.png");
+    textureManager->addTexture("images/enemy/vampire/minion/Minion1_Hurt.png");
+    textureManager->addTexture("images/enemy/vampire/minion/Minion1_Death.png");
+    textureManager->addTexture("images/enemy/vampire/minion/Minion2_Idle.png");
+    textureManager->addTexture("images/enemy/vampire/minion/Minion2_Walk.png");
+    textureManager->addTexture("images/enemy/vampire/minion/Minion2_Attack.png");
+    textureManager->addTexture("images/enemy/vampire/minion/Minion2_Hurt.png");
+    textureManager->addTexture("images/enemy/vampire/minion/Minion2_Death.png");
 
     textureManager->addTexture("images/enemy/enemy_particles.png");
 }

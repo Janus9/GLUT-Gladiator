@@ -390,7 +390,9 @@ void _enemyManager::updateEnemies(double dt) {
                 break;
             }
 
-            // -- VAMPIRE -- //
+            // -- VAMPIRE (boss + minions) -- //
+            case ENEMY_VAMPIRE_MINION1:
+            case ENEMY_VAMPIRE_MINION2:
             case ENEMY_VAMPIRE: {
                 _vampire* vampire = static_cast<_vampire*>(enemy);
                 if (enemy->isDead() && !enemy->inDeathAnimation) {
@@ -558,7 +560,15 @@ void _enemyManager::addEnemy(const Vec2f &_pos, const enemy_config &config) {
         newEnemy = move(orc);
     } else if (config.type == ENEMY_VAMPIRE) {
         unique_ptr<_vampire> vampire = make_unique<_vampire>();
-        vampire->initVampire(sceneTextureManager);
+        vampire->initVampire(sceneTextureManager, VAMPIRE_BOSS);
+        newEnemy = move(vampire);
+    } else if (config.type == ENEMY_VAMPIRE_MINION1) {
+        unique_ptr<_vampire> vampire = make_unique<_vampire>();
+        vampire->initVampire(sceneTextureManager, VAMPIRE_MINION1);
+        newEnemy = move(vampire);
+    } else if (config.type == ENEMY_VAMPIRE_MINION2) {
+        unique_ptr<_vampire> vampire = make_unique<_vampire>();
+        vampire->initVampire(sceneTextureManager, VAMPIRE_MINION2);
         newEnemy = move(vampire);
     } else {
         newEnemy = make_unique<_enemy>();

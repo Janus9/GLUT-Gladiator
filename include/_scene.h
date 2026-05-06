@@ -110,6 +110,8 @@ class _scene
         enemy_config gatling_turret_config;
         enemy_config orc_config;
         enemy_config vampire_config;
+        enemy_config vampire_minion1_config;
+        enemy_config vampire_minion2_config;
         
         // Bullets (Projectiles)
         unique_ptr<_bulletManager> bulletManager = make_unique<_bulletManager>();

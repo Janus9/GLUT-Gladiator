@@ -27,26 +27,51 @@ namespace {
 _vampire::_vampire() {}
 _vampire::~_vampire() {}
 
-void _vampire::initVampire(const _textureManager* sceneTextureManager) {
+void _vampire::initVampire(const _textureManager* sceneTextureManager, vampire_variant variant) {
     if (!sceneTextureManager) {
         cout << "ERROR: Cannot initialize the vampire enemy as the texture is missing\n";
         return;
     }
 
-    // -- Stats / type tag (boss-tier) -- //
-    setMaxHealth(500.0f);
+    // -- Per-variant config -- //
+    string spritePrefix;
+    float  vScale, vBox, vMaxHP, vDamage, vPitch;
+    enemy_type vType;
+    switch (variant) {
+        case VAMPIRE_MINION1:
+            spritePrefix = "images/enemy/vampire/minion/Minion1_";
+            vScale = 0.7f; vBox = 11.0f; vMaxHP = 80.0f; vDamage = 10.0f; vPitch = 1.4f;
+            vType = ENEMY_VAMPIRE_MINION1;
+            break;
+        case VAMPIRE_MINION2:
+            spritePrefix = "images/enemy/vampire/minion/Minion2_";
+            vScale = 0.7f; vBox = 11.0f; vMaxHP = 80.0f; vDamage = 10.0f; vPitch = 1.35f;
+            vType = ENEMY_VAMPIRE_MINION2;
+            break;
+        case VAMPIRE_BOSS:
+        default:
+            spritePrefix = "images/enemy/vampire/Vampire_";
+            vScale = 1.5f; vBox = 24.0f; vMaxHP = 500.0f; vDamage = 30.0f; vPitch = 1.0f;
+            vType = ENEMY_VAMPIRE;
+            break;
+    }
+
+    // -- Stats / type tag -- //
+    setMaxHealth(vMaxHP);
     resetHealth();
-    eType = ENEMY_VAMPIRE;
+    eType = vType;
     detectionRadius = 300.0f;
     team = _team::ENEMY;
-    scale = {1.5f, 1.5f};
-    setCollisionBox({24.0f, 24.0f});
+    scale = {vScale, vScale};
+    setCollisionBox({vBox, vBox});
     timeInDeathAnimation = 8.0f;
+    attackDamage = vDamage;
+    soundPitch = vPitch;
 
     // -- IDLE -- //
     setupSprite("IDLE");
     if (_sprite* s = getSprite("IDLE")) {
-        const texture_entry &tex = sceneTextureManager->getTextureEntry("images/enemy/vampire/Vampire_Idle.png");
+        const texture_entry &tex = sceneTextureManager->getTextureEntry(spritePrefix + "Idle.png");
         s->initSprite(tex, IDLE_FRAMES, 4, 0, VAMPIRE_IDLE_FPS);
         s->createSpriteAction(sprite_action("IDLE_DOWN",  ROW_DOWN,  0, IDLE_FRAMES - 1));
         s->createSpriteAction(sprite_action("IDLE_UP",    ROW_UP,    0, IDLE_FRAMES - 1));
@@ -59,7 +84,7 @@ void _vampire::initVampire(const _textureManager* sceneTextureManager) {
     // -- WALK -- //
     setupSprite("WALK");
     if (_sprite* s = getSprite("WALK")) {
-        const texture_entry &tex = sceneTextureManager->getTextureEntry("images/enemy/vampire/Vampire_Walk.png");
+        const texture_entry &tex = sceneTextureManager->getTextureEntry(spritePrefix + "Walk.png");
         s->initSprite(tex, WALK_FRAMES, 4, 0, VAMPIRE_WALK_FPS);
         s->createSpriteAction(sprite_action("WALK_DOWN",  ROW_DOWN,  0, WALK_FRAMES - 1));
         s->createSpriteAction(sprite_action("WALK_UP",    ROW_UP,    0, WALK_FRAMES - 1));
@@ -72,7 +97,7 @@ void _vampire::initVampire(const _textureManager* sceneTextureManager) {
     // -- ATTACK -- //
     setupSprite("ATTACK");
     if (_sprite* s = getSprite("ATTACK")) {
-        const texture_entry &tex = sceneTextureManager->getTextureEntry("images/enemy/vampire/Vampire_Attack.png");
+        const texture_entry &tex = sceneTextureManager->getTextureEntry(spritePrefix + "Attack.png");
         s->initSprite(tex, ATTACK_FRAMES, 4, 0, VAMPIRE_ATTACK_FPS);
         s->createSpriteAction(sprite_action("ATTACK_DOWN",  ROW_DOWN,  0, ATTACK_FRAMES - 1));
         s->createSpriteAction(sprite_action("ATTACK_UP",    ROW_UP,    0, ATTACK_FRAMES - 1));
@@ -85,7 +110,7 @@ void _vampire::initVampire(const _textureManager* sceneTextureManager) {
     // -- HURT -- //
     setupSprite("HURT");
     if (_sprite* s = getSprite("HURT")) {
-        const texture_entry &tex = sceneTextureManager->getTextureEntry("images/enemy/vampire/Vampire_Hurt.png");
+        const texture_entry &tex = sceneTextureManager->getTextureEntry(spritePrefix + "Hurt.png");
         s->initSprite(tex, HURT_FRAMES, 4, 0, VAMPIRE_HURT_FPS);
         s->createSpriteAction(sprite_action("HURT_DOWN",  ROW_DOWN,  0, HURT_FRAMES - 1));
         s->createSpriteAction(sprite_action("HURT_UP",    ROW_UP,    0, HURT_FRAMES - 1));
@@ -98,7 +123,7 @@ void _vampire::initVampire(const _textureManager* sceneTextureManager) {
     // -- DEATH -- //
     setupSprite("DEATH");
     if (_sprite* s = getSprite("DEATH")) {
-        const texture_entry &tex = sceneTextureManager->getTextureEntry("images/enemy/vampire/Vampire_Death.png");
+        const texture_entry &tex = sceneTextureManager->getTextureEntry(spritePrefix + "Death.png");
         s->initSprite(tex, DEATH_FRAMES, 4, 0, VAMPIRE_DEATH_FPS);
         s->createSpriteAction(sprite_action("DEATH_DOWN",  ROW_DOWN,  0, DEATH_FRAMES - 1));
         s->createSpriteAction(sprite_action("DEATH_UP",    ROW_UP,    0, DEATH_FRAMES - 1));
@@ -263,7 +288,7 @@ void _vampire::updateVampire(double dt, _player* player, _world* world, _sounds*
                 s->setFPS(VAMPIRE_ATTACK_FPS);
                 s->startAnimation();
             }
-            if (sounds) sounds->playSfx("VAMPIRE_ATTACK");
+            if (sounds) sounds->playSfx("VAMPIRE_ATTACK", soundPitch);
         }
     }
 }
@@ -285,7 +310,7 @@ void _vampire::triggerDeath(_sounds* sounds) {
         s->setIdleFrame(animationTable[deathAct].idleFrame.x, animationTable[deathAct].idleFrame.y);
         s->playAction(animationTable[deathAct].action);
     }
-    if (sounds) sounds->playSfx("VAMPIRE_DEATH");
+    if (sounds) sounds->playSfx("VAMPIRE_DEATH", soundPitch);
     deathTime = 0.0;
 }
 
@@ -301,7 +326,7 @@ void _vampire::notifyDamaged(_sounds* sounds) {
         s->setFPS(VAMPIRE_HURT_FPS);
         s->startAnimation();
     }
-    if (sounds) sounds->playSfx("VAMPIRE_HURT");
+    if (sounds) sounds->playSfx("VAMPIRE_HURT", soundPitch);
 }
 
 // -- PRIVATE -- //

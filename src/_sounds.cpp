@@ -72,17 +72,29 @@ void _sounds::registerSfx(const std::string& name, const std::string& fileName, 
     sfxRegistry[name] = SfxEntry{ fileName, volume };
 }
 
-void _sounds::playSfx(const std::string& name) {
+void _sounds::playSfx(const std::string& name, float pitch) {
     auto it = sfxRegistry.find(name);
     if (it == sfxRegistry.end()) {
         std::cerr << "playSfx: unknown SFX '" << name << "'\n";
         return;
     }
-    // Fire-and-forget: not looped, not paused, not tracked. Uses the source's default volume.
-    engine->play2D(it->second.path.c_str(),
-                   false /*looped*/,
-                   false /*startPaused*/,
-                   false /*track*/);
+    if (pitch == 1.0f) {
+        // Fire-and-forget: not looped, not paused, not tracked. Uses the source's default volume.
+        engine->play2D(it->second.path.c_str(),
+                       false /*looped*/,
+                       false /*startPaused*/,
+                       false /*track*/);
+        return;
+    }
+    // Pitched: must track to set playback speed before unpausing.
+    ISound* snd = engine->play2D(it->second.path.c_str(),
+                                 false /*looped*/,
+                                 true  /*startPaused*/,
+                                 true  /*track*/);
+    if (!snd) return;
+    snd->setPlaybackSpeed(pitch);
+    snd->setIsPaused(false);
+    snd->drop();
 }
 
 void _sounds::playSfx3D(const std::string& name, const Vec2f& pos) {

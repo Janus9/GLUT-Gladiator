@@ -9,6 +9,12 @@
 
 class _world;
 
+enum vampire_variant : uint8_t {
+    VAMPIRE_BOSS,
+    VAMPIRE_MINION1,
+    VAMPIRE_MINION2,
+};
+
 enum vampire_action {
     VAMPIRE_ACTION_NULL,
     VAMPIRE_IDLE_DOWN,   VAMPIRE_IDLE_UP,   VAMPIRE_IDLE_LEFT,   VAMPIRE_IDLE_RIGHT,
@@ -35,18 +41,19 @@ class _vampire : public _enemy {
         _vampire();
         virtual ~_vampire();
 
-        void initVampire(const _textureManager* sceneTextureManager);
+        void initVampire(const _textureManager* sceneTextureManager, vampire_variant variant = VAMPIRE_BOSS);
         void updateVampire(double dt, _player* player, _world* world, _sounds* sounds);
         void drawVampire();
 
         void notifyDamaged(_sounds* sounds) override;
         void triggerDeath(_sounds* sounds);
 
-        // -- Stats (boss-tier) -- //
+        // -- Stats (defaults are boss-tier; initVampire overrides per variant) -- //
         float moveSpeed      = 40.0f;
         float attackRange    = 28.0f;
         float attackDamage   = 30.0f;
         float attackCooldown = 1.5f;
+        float soundPitch     = 1.0f;
 
         // -- FSM state -- //
         vampire_face   face   = VAMPIRE_FACE_DOWN;
