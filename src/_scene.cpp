@@ -234,7 +234,7 @@ void _scene::initScene(bool loadWorld)
     // Vampire (boss) //
     vampire_config.type = ENEMY_VAMPIRE;
     vampire_config.team = _team::ENEMY;
-    vampire_config.maxHP = 500.0f;
+    vampire_config.maxHP = 600.0f;
     vampire_config.fireRate = 0.0f; // Not needed
     vampire_config.slewRate = 0.0f; // Not needed
     vampire_config.detectionRadius = 300.0f;
@@ -328,6 +328,8 @@ void _scene::initScene(bool loadWorld)
     const int number_default_turrets = 500;
     const int number_gatling_turrets = 75;
     const int number_orcs = 600;
+    const int number_vampire_minions = 200;  // Spawn naturally in world
+    const int number_vampire_boss_minions = 25;  // Spawn near the boss
 
     // Dont spawn enemies when world is loaded
     if (!loadWorld) {
@@ -385,6 +387,48 @@ void _scene::initScene(bool loadWorld)
                 }
                 enemyManager->addEnemy(spawnOrcPos,orc_config);
                 lookingForOrcSpawn = false;
+            }
+        }
+
+        // Spawn Vampire Minions //
+        uniform_real_distribution<float> vamp_mini_pos_dist(-6000, 6000);
+        uniform_real_distribution<float> vamp_type_dist(0.0f, 1.0f);
+
+        for (int i = 0; i < number_vampire_minions; i++)
+        {
+            bool lookingForVampMiniSpawn = true;
+            while (lookingForVampMiniSpawn)
+            {
+                Vec2f spawnVampMiniPos = {vamp_mini_pos_dist(rng), vamp_mini_pos_dist(rng)};
+                _cell *spawnVampMiniCell = myWorld->getCellAtWorld(spawnVampMiniPos);
+                if (spawnVampMiniCell && myWorld->isCellWall(spawnVampMiniCell))
+                {
+                    // Is a wall, retry
+                    continue;
+                }
+
+                // Two vampire types, randomly spreads both
+                if (vamp_type_dist(rng) > 0.5f) {
+                    enemyManager->addEnemy(spawnVampMiniPos,vampire_minion1_config);
+                } else {
+                    enemyManager->addEnemy(spawnVampMiniPos,vampire_minion2_config);
+                }
+
+                lookingForVampMiniSpawn = false;
+            }
+        }
+
+        // Spawn Boss //
+        enemyManager->addEnemy({0.0f,0.0f},vampire_config);
+        
+        // Spawn Boss Minions //
+        uniform_real_distribution<float> vamp_mini_boss_pos_dist(-300, 300);
+        for (int i = 0; i < number_vampire_boss_minions; i++) {
+            Vec2f spawnVampMiniPos = {vamp_mini_boss_pos_dist(rng), vamp_mini_boss_pos_dist(rng)};
+            if (vamp_type_dist(rng) > 0.5f) {
+                enemyManager->addEnemy(spawnVampMiniPos,vampire_minion1_config);
+            } else {
+                enemyManager->addEnemy(spawnVampMiniPos,vampire_minion2_config);
             }
         }
     }    

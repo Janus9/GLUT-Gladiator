@@ -320,6 +320,31 @@ void _world::initTiles() {
     setTileInAtlas(0,0, world_tiles[TILE_NULL]);       // Undefined Tile
     world_tiles[TILE_NULL].hasCollision = false;
     world_tiles[TILE_NULL].name = "null";
+
+    // Boss Floor //
+    setTileInAtlas(8,13, world_tiles[TILE_FLOOR_BOSS_BLANK_1]);      
+    world_tiles[TILE_FLOOR_BOSS_BLANK_1].hasCollision = false;
+    world_tiles[TILE_FLOOR_BOSS_BLANK_1].name = "blank_floor_boss";
+
+    setTileInAtlas(9,12, world_tiles[TILE_FLOOR_BOSS_CRACKED_1]);       
+    world_tiles[TILE_FLOOR_BOSS_CRACKED_1].hasCollision = false;
+    world_tiles[TILE_FLOOR_BOSS_CRACKED_1].name = "slightly_cracked_floor_boss";
+
+    setTileInAtlas(10,13, world_tiles[TILE_FLOOR_BOSS_CRACKED_2]);      
+    world_tiles[TILE_FLOOR_BOSS_CRACKED_2].hasCollision = false;
+    world_tiles[TILE_FLOOR_BOSS_CRACKED_2].name = "medium_cracked_floor_boss";
+
+    setTileInAtlas(8,12, world_tiles[TILE_FLOOR_BOSS_SQUARE_1]);       
+    world_tiles[TILE_FLOOR_BOSS_SQUARE_1].hasCollision = false;
+    world_tiles[TILE_FLOOR_BOSS_SQUARE_1].name = "square_outlined_floor_1_boss";
+
+    setTileInAtlas(10,12, world_tiles[TILE_FLOOR_BOSS_SQUARE_2]);       
+    world_tiles[TILE_FLOOR_BOSS_SQUARE_2].hasCollision = false;
+    world_tiles[TILE_FLOOR_BOSS_SQUARE_2].name = "square_outlined_floor_2_boss";
+
+    setTileInAtlas(9,13, world_tiles[TILE_FLOOR_BOSS_BLANK_2]);       
+    world_tiles[TILE_FLOOR_BOSS_BLANK_2].hasCollision = false;
+    world_tiles[TILE_FLOOR_BOSS_BLANK_2].name = "blank_floor_2_boss";
     
     // Outer Floor //
     setTileInAtlas(22,11, world_tiles[TILE_FLOOR_OUTER_BLANK_1]);      
@@ -754,6 +779,7 @@ void _world::postProcessWorld() {
     const int worldWidth = (int)sqrt(numStartingChunks)*16;
 
     vector<uint8_t> world_noise_copy(world_noise);
+    uniform_int_distribution<uint8_t> boss_dist(TILE_FLOOR_BOSS_BLANK_1, TILE_FLOOR_BOSS_BLANK_2); 
     uniform_int_distribution<uint8_t> outer_dist(TILE_FLOOR_OUTER_BLANK_1, TILE_FLOOR_OUTER_BLANK_2); 
     uniform_int_distribution<uint8_t> middle_dist(TILE_FLOOR_OUTER_DEFAULT_1, TILE_FLOOR_OUTER_DEFAULT_2); 
     uniform_int_distribution<uint8_t> inner_dist(TILE_FLOOR_INNER_DEFAULT_1, TILE_FLOOR_INNER_DEFAULT_2); 
@@ -774,7 +800,19 @@ void _world::postProcessWorld() {
         if (!world_noise_copy[i]) {
             switch (level) {
                 case LEVEL_INNER:
-                    world_noise[i] = inner_dist(rng);
+                    if (distance < 800.0f) {
+                        // Boss Room //
+                        float transitionProgress = (distance - 300.0f) / 500.0f; // 0.0 at 300, 1.0 at 800
+                        transitionProgress = glm::clamp(transitionProgress, 0.0f, 1.0f);
+
+                        if (dist(rng) > transitionProgress) {
+                            world_noise[i] = boss_dist(rng);
+                        } else {
+                            world_noise[i] = inner_dist(rng);
+                        }
+                    } else {
+                        world_noise[i] = inner_dist(rng);
+                    }
                     break;
                 case LEVEL_MIDDLE:
                     if (distance < 5000.0f) {
@@ -1202,7 +1240,7 @@ void _world::runWorldGeneration(int iterations) {
 
     Logger.LogInfo("Starting cellular automata algorithm for a world of Width: " + to_string(worldWidth) + "and Height: " + to_string(worldHeight) + " tiles");
     
-    // Run cellular automata algorithm
+    // Run cellular automata algorithm //
     for (int iteration = 0; iteration < iterations; iteration++) {
         vector<uint8_t> world_noise_copy(world_noise);
         for (int i = 0; i < world_noise.size(); i++) {
@@ -1234,6 +1272,25 @@ void _world::runWorldGeneration(int iterations) {
             }
         }
         Logger.LogDebug(" -- Iteration: " + to_string(iteration) + " completed!");
+    }
+
+    // World modifications -- clear space in center for the boss //
+    vector<uint8_t> world_noise_copy(world_noise);
+    for (int i = 0; i < world_noise.size(); i++) {
+        const int col = i % worldWidth;                                 // Which column
+        const int row = i / worldWidth;                                 // Which row
+        
+        const float tilePosX = (-worldWidth * 0.5f + col) * 16.0f;      // Get world pos X
+        const float tilePosY = (worldWidth * 0.5f - row) * 16.0f;       // Get world pos Y
+
+        Vec2f tilePos = {tilePosX, tilePosY};
+        const float distance = tilePos.distance({0.0f,0.0f});
+
+        // Wall tile
+        if (world_noise_copy[i] && distance < 400.0f) {
+            // Clear out all tiles of distance from center
+            world_noise[i] = static_cast<uint8_t>(false);
+        }
     }
 
     Logger.LogDebug("World generation completed! Post processing now ...");

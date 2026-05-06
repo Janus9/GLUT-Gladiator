@@ -67,6 +67,14 @@ struct chunk_serial_data {
  * Naming goes: TILE_[TYPE]_[SUBTYPE]_[VARIANT]
  */
 enum TileId : uint8_t {
+    // Floor Boss //
+    TILE_FLOOR_BOSS_BLANK_1,
+    TILE_FLOOR_BOSS_CRACKED_1,
+    TILE_FLOOR_BOSS_CRACKED_2,
+    TILE_FLOOR_BOSS_SQUARE_1,
+    TILE_FLOOR_BOSS_SQUARE_2,
+    TILE_FLOOR_BOSS_BLANK_2,
+
     // Floor Outer //
     TILE_FLOOR_OUTER_BLANK_1,
     TILE_FLOOR_OUTER_CRACKED_1,
