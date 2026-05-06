@@ -286,7 +286,7 @@ void _enemyManager::updateEnemies(double dt) {
     // Iterate backwards to removal safety
     particleManager->updateParticleManger(dt);
     if (enemyList.size() <= 0) return; // Empty list - no need to run loop
-    if (!player || player->isDead() || player->isRealDead) return; // No player, or player is dead
+    if (!player) return; 
     for (int i = enemyList.size()-1; i >= 0; i--) {
         _enemy* enemy = enemyList[i].get();
         enemy->setPosition(enemy->pos);
@@ -331,11 +331,20 @@ void _enemyManager::updateEnemies(double dt) {
         switch(enemy->eType) {            
             // -- DEFAULT TURRET -- //
             case ENEMY_TURRET: {
+                _sprite* sprite = enemy->getSingleSprite();
+
+                // Handle player being dead
+                if (player->isDead() || player->isRealDead) {
+                    sprite->stopAnimation();
+                    sounds->removeSfx3DLooped(enemy->getID());
+                    continue;
+                }
+
                 if (enemy->isDead() && !enemy->inDeathAnimation) {
                     enemy->inDeathAnimation = true;
-                    enemy->getSingleSprite()->setFPS(4);
-                    enemy->getSingleSprite()->setIdleFrame(3,1);
-                    enemy->getSingleSprite()->playAction("DEATH");
+                    sprite->setFPS(4);
+                    sprite->setIdleFrame(3,1);
+                    sprite->playAction("DEATH");
                     enemy->deathTime = 0.0;
                     particleManager->spawnEffect(enemy->pos,turret_death_effect);
                     if (sounds) sounds->playSfx("ENEMY_DEATH");
@@ -357,17 +366,17 @@ void _enemyManager::updateEnemies(double dt) {
                         if (enemy->firingTime > 1.0f/(enemy->fireRate/60.0f)) {
                             bulletManager->spawnBulletEffect(enemy->pos,player->pos,_team::ENEMY,*bullet_1);
                             if (sounds) sounds->playSfx3D("ENEMY_SHOOT", enemy->pos);
-                            enemy->getSingleSprite()->setFPS(enemy->fireRate / 60.0f);
+                            sprite->setFPS(enemy->fireRate / 60.0f);
                             enemy->firingTime = 0;
                         }
-                        enemy->getSingleSprite()->startAnimation();
+                        sprite->startAnimation();
                     } else {
-                        enemy->getSingleSprite()->setFPS(12);
-                        enemy->getSingleSprite()->stopAnimation();
+                        sprite->setFPS(12);
+                        sprite->stopAnimation();
                     }
                 }  else {
-                    enemy->getSingleSprite()->setFPS(12);
-                    enemy->getSingleSprite()->stopAnimation();
+                    sprite->setFPS(12);
+                    sprite->stopAnimation();
                 }
                 break;
             }
@@ -375,6 +384,15 @@ void _enemyManager::updateEnemies(double dt) {
             // -- ORC -- //
             case ENEMY_ORC: {
                 _orc* orc = static_cast<_orc*>(enemy);
+                _sprite* sprite = orc->getSingleSprite();
+
+                // Handle player being dead
+                if (player->isDead() || player->isRealDead) {
+                    sprite->stopAnimation();
+                    sounds->removeSfx3DLooped(enemy->getID());
+                    continue;
+                }
+
                 if (enemy->isDead() && !enemy->inDeathAnimation) {
                     orc->triggerDeath(sounds);
                     continue;
@@ -395,6 +413,15 @@ void _enemyManager::updateEnemies(double dt) {
             case ENEMY_VAMPIRE_MINION2:
             case ENEMY_VAMPIRE: {
                 _vampire* vampire = static_cast<_vampire*>(enemy);
+                _sprite* sprite = vampire->getSingleSprite();
+
+                // Handle player being dead
+                if (player->isDead() || player->isRealDead) {
+                    sprite->stopAnimation();
+                    sounds->removeSfx3DLooped(enemy->getID());
+                    continue;
+                }
+
                 if (enemy->isDead() && !enemy->inDeathAnimation) {
                     vampire->triggerDeath(sounds);
                     continue;
@@ -413,6 +440,15 @@ void _enemyManager::updateEnemies(double dt) {
             // -- GATLING TURRET -- //
             case ENEMY_GATLING: {
                 _sprite* sprite = enemy->getSprite("TURRET");
+                
+                // Handle player being dead
+                if (player->isDead() || player->isRealDead) {
+                    sprite->stopAnimation();
+                    sounds->removeSfx3DLooped(enemy->getID());
+                    continue;
+                }
+
+                // Initial death event
                 if (enemy->isDead() && !enemy->inDeathAnimation) {
                     enemy->inDeathAnimation = true;
                     sprite->setFPS(12);
@@ -423,15 +459,19 @@ void _enemyManager::updateEnemies(double dt) {
                     particleManager->spawnEffect(enemy->pos,gatling_death_effect);
                     particleManager->spawnEffect(enemy->pos,gatling_death_effect_smoke);
                     continue;
+                // Final death event (removes enemy)
                 } else if (enemy->isDead() && enemy->deathTime > enemy->timeInDeathAnimation) {
                     enemyList.erase(enemyList.begin() + i);
                     continue;
                 }
+
+                // If dead update death time to final death event
                 if (enemy->isDead()) {
                     enemy->deathTime += dt;
                     continue;
                 }
-                float distance = enemy->pos.distance(player->pos);
+
+                const float distance = enemy->pos.distance(player->pos);
                 if (distance < enemy->detectionRadius) {
                     // Enemy in range
                     const bool focused = enemy->focusOn(player->pos,enemy->slewRate,5.0f,sprite);
