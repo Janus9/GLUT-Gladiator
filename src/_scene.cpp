@@ -325,6 +325,15 @@ void _scene::initScene(bool loadWorld)
     fob_light.color = {0.8f, 0.8f, 1.0f};
     lightManager->addLight(fob_light);
 
+    boss_light.ID = "BOSS_LIGHT";
+    boss_light.active = true;
+    boss_light.pos = {0.0f,0.0f}; 
+    boss_light.radius = 600.0f;
+    boss_light.intensity = 1.0f;
+    boss_light.color = {0.8f, 1.0f, 1.0f};
+    lightManager->addLight(boss_light);
+
+
     const int number_default_turrets = 500;
     const int number_gatling_turrets = 75;
     const int number_orcs = 600;

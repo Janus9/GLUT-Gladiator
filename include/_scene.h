@@ -208,6 +208,7 @@ class _scene
         // Lighting //
         unique_ptr<_lightManager> lightManager = make_unique<_lightManager>();
         light_config player_light;
+        light_config boss_light;
         light_config fob_light;
 };
 
