@@ -175,7 +175,7 @@ void _enemyManager::initEnemyManager(_player* currentPlayer, _world* currentWorl
 
     buildVAO();
 
-    particleManager->initParticleManager("images/enemy/enemy_particles.png",4, sceneLightManager, 10000);
+    particleManager->initParticleManager("images/enemy/enemy_particles.png",6, sceneLightManager, 10000);
     // Turret Hit Effect //
     turret_hit_effect.amount = 15;
     turret_hit_effect.imageIndex = 3;
@@ -280,6 +280,46 @@ void _enemyManager::initEnemyManager(_player* currentPlayer, _world* currentWorl
     gatling_death_effect_smoke.waveAmplitudeMax = 3.0f;
     gatling_death_effect_smoke.waveFrequencyMin = 0.5f;
     gatling_death_effect_smoke.waveFrequencyMax = 1.2f;
+
+    // Turret Bullet Casing Effect //
+    turret_bullet_casing.amount = 1;
+    turret_bullet_casing.imageIndex = 5;
+
+    turret_bullet_casing.minVelX = 5.5f;
+    turret_bullet_casing.maxVelX = 10.5f;
+    turret_bullet_casing.minVelY = 15.0f;
+    turret_bullet_casing.maxVelY = 28.0f;
+    turret_bullet_casing.minRotation = 240.0f;
+    turret_bullet_casing.maxRotation = 280.0f;
+
+    turret_bullet_casing.minRadius = 2.0f;
+    turret_bullet_casing.maxRadius = 2.0f;
+
+    turret_bullet_casing.minLifeTime = 5.0f;
+    turret_bullet_casing.maxLifeTime = 5.0f;
+
+    turret_bullet_casing.hasFloor = true;
+    turret_bullet_casing.floorOffset = -24.0f;
+
+    // Gatling Bullet Casing Effect //
+    gatling_bullet_casing.amount = 1;
+    gatling_bullet_casing.imageIndex = 4;
+
+    gatling_bullet_casing.minVelX = 5.5f;
+    gatling_bullet_casing.maxVelX = 10.5f;
+    gatling_bullet_casing.minVelY = 15.0f;
+    gatling_bullet_casing.maxVelY = 28.0f;
+    gatling_bullet_casing.minRotation = 240.0f;
+    gatling_bullet_casing.maxRotation = 280.0f;
+
+    gatling_bullet_casing.minRadius = 3.0f;
+    gatling_bullet_casing.maxRadius = 3.0f;
+
+    gatling_bullet_casing.minLifeTime = 5.0f;
+    gatling_bullet_casing.maxLifeTime = 5.0f;
+
+    gatling_bullet_casing.hasFloor = true;
+    gatling_bullet_casing.floorOffset = -24.0f;
 }
 
 void _enemyManager::updateEnemies(double dt) {
@@ -367,6 +407,7 @@ void _enemyManager::updateEnemies(double dt) {
                         enemy->firingTime += dt;
                         if (enemy->firingTime > 1.0f/(enemy->fireRate/60.0f)) {
                             bulletManager->spawnBulletEffect(enemy->pos,player->pos,_team::ENEMY,*bullet_1);
+                            particleManager->spawnEffect(enemy->pos,turret_bullet_casing);
                             if (sounds) sounds->playSfx3D("ENEMY_SHOOT", enemy->pos);
                             sprite->setFPS(enemy->fireRate / 60.0f);
                             enemy->firingTime = 0;
@@ -483,13 +524,19 @@ void _enemyManager::updateEnemies(double dt) {
                         enemy->firingTime += dt;
                         if (enemy->firingTime > 1.0f/(enemy->fireRate/60.0f)) {
                             bulletManager->spawnBulletEffect(enemy->pos,player->pos,_team::ENEMY,*bullet_2);
+                            particleManager->spawnEffect(enemy->pos,gatling_bullet_casing);
                             enemy->firingTime = 0;
                         }
                         sounds->playSfx3DLooped("GATLING_SHOOT", enemy->getID(), enemy->pos);
                         sprite->setFPS(enemy->fireRate / 60.0f);
                         sprite->loadSpriteAction("SHOOT");
                     } else {
-                        enemy->revTime += dt;
+                        if (focused && !reved) {
+                            enemy->revTime += dt;
+                        }
+                        if (!focused) {
+                            enemy->revTime = 0;
+                        }
                         sprite->loadSpriteAction("REV");
                         sprite->setFPS(enemy->fireRate / 60.0f);
                         sounds->playSfx3DLooped("GATLING_REV", enemy->getID(), enemy->pos);

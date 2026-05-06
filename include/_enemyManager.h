@@ -101,8 +101,8 @@ class _enemy : public _unit {
         bool inRevAnimation = false;    // Wether enemy is reving the gun up
         enemy_type eType;
 
-        const float timeInRevAnimation = 1.25f;     // Seconds spent in the rev animation
-        const float timeInDeathAnimation = 6.0f;    // Seconds spent in the death animation
+        float timeInRevAnimation = 0.15f;     // Seconds spent in the rev animation
+        float timeInDeathAnimation = 6.0f;    // Seconds spent in the death animation
     protected:
     private:
         int enemyID;
@@ -174,6 +174,9 @@ class _enemyManager {
         particle_effect turret_death_effect;
         particle_effect gatling_death_effect;
         particle_effect gatling_death_effect_smoke;
+
+        particle_effect turret_bullet_casing;
+        particle_effect gatling_bullet_casing;
 
         // -- SHADERS -- //
         map<int, unordered_map<GLuint, vector<_sprite*>>> layerMap;

@@ -160,7 +160,7 @@ void _bulletManager::updateBulletManager(double dt) {
 
         if (b->team == _team::FRIENDLY || b->team == _team::NEUTRAL) {
             // Enemy Collision Check
-            _enemy* enemy = enemyManager->isColliding(b->pos,5.0f);
+            _enemy* enemy = enemyManager->isColliding(b->pos,7.0f);
             if (enemy) {
                 enemy->impulseDamage(b->damage);
                 enemy->notifyDamaged(sounds);
@@ -169,7 +169,7 @@ void _bulletManager::updateBulletManager(double dt) {
             }
         } else {
             // Friendly Collision Check
-            if (b->pos.distance(player->pos) < 5.0f) {
+            if (b->pos.distance(player->pos) < 6.0f) {
                 player->impulseDamage(10);
                 player->playerTookDamage = true;
                 if (sounds) sounds->playSfx("PLAYER_HURT");
@@ -223,7 +223,7 @@ void _bulletManager::spawnBulletEffect(const Vec2f &pos, const Vec2f &dest, _tea
         currentBullets++;
     }
 
-    bulletDrops->spawnEffect(pos,bullet_shell_effect);
+    // bulletDrops->spawnEffect(pos,bullet_shell_effect);
 }
 
 // -- PRIVATE -- //

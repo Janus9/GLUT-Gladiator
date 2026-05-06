@@ -189,11 +189,11 @@ void _scene::initScene(bool loadWorld)
 
     // Default Turret //
     turret_bullet.amount = 1;
-    turret_bullet.speed = 400.0f;
-    turret_bullet.width = 20.0f;
+    turret_bullet.speed = 650.0f;
+    turret_bullet.width = 23.0f;
     turret_bullet.height = 4.0f;
     turret_bullet.lifespan = 3.0f;
-    turret_bullet.angleOffset = 4.0f;
+    turret_bullet.angleOffset = 3.0f;
     turret_bullet.penetration = 50;
     turret_bullet.damage = 20.0f;
 
@@ -203,9 +203,9 @@ void _scene::initScene(bool loadWorld)
     gatling_bullet.width = 12.0f;
     gatling_bullet.height = 3.0f;
     gatling_bullet.lifespan = 3.0f;
-    gatling_bullet.angleOffset = 10.0f;
+    gatling_bullet.angleOffset = 7.0f;
     gatling_bullet.penetration = 0;
-    gatling_bullet.damage = 5.0f;
+    gatling_bullet.damage = 7.5f;
 
     // -- ENEMY CONFIGS -- //
     // Default Turret //
@@ -221,8 +221,8 @@ void _scene::initScene(bool loadWorld)
     gatling_turret_config.team = _team::ENEMY;
     gatling_turret_config.maxHP = 400.0f;
     gatling_turret_config.fireRate = 1500.0f;
-    gatling_turret_config.slewRate = 50.0f;
-    gatling_turret_config.detectionRadius = 400.0f;
+    gatling_turret_config.slewRate = 55.0f;
+    gatling_turret_config.detectionRadius = 350.0f;
 
     // Orc //
     orc_config.type = ENEMY_ORC;
