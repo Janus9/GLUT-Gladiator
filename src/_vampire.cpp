@@ -35,23 +35,26 @@ void _vampire::initVampire(const _textureManager* sceneTextureManager, vampire_v
 
     // -- Per-variant config -- //
     string spritePrefix;
-    float  vScale, vBox, vMaxHP, vDamage, vPitch;
+    float  vScale, vBox, vMaxHP, vDamage, vReach, vSpeed, vPitch;
     enemy_type vType;
     switch (variant) {
         case VAMPIRE_MINION1:
             spritePrefix = "images/enemy/vampire/minion/Minion1_";
-            vScale = 0.7f; vBox = 11.0f; vMaxHP = 80.0f; vDamage = 10.0f; vPitch = 1.4f;
+            vScale = 0.35f; vBox = 6.0f; vMaxHP = 40.0f; vDamage = 6.0f;
+            vReach = 10.0f; vSpeed = 55.0f; vPitch = 1.6f;
             vType = ENEMY_VAMPIRE_MINION1;
             break;
         case VAMPIRE_MINION2:
             spritePrefix = "images/enemy/vampire/minion/Minion2_";
-            vScale = 0.7f; vBox = 11.0f; vMaxHP = 80.0f; vDamage = 10.0f; vPitch = 1.35f;
+            vScale = 0.35f; vBox = 6.0f; vMaxHP = 40.0f; vDamage = 6.0f;
+            vReach = 10.0f; vSpeed = 55.0f; vPitch = 1.55f;
             vType = ENEMY_VAMPIRE_MINION2;
             break;
         case VAMPIRE_BOSS:
         default:
             spritePrefix = "images/enemy/vampire/Vampire_";
-            vScale = 1.5f; vBox = 24.0f; vMaxHP = 500.0f; vDamage = 30.0f; vPitch = 1.0f;
+            vScale = 1.5f; vBox = 24.0f; vMaxHP = 500.0f; vDamage = 30.0f;
+            vReach = 32.0f; vSpeed = 40.0f; vPitch = 1.0f;
             vType = ENEMY_VAMPIRE;
             break;
     }
@@ -66,6 +69,8 @@ void _vampire::initVampire(const _textureManager* sceneTextureManager, vampire_v
     setCollisionBox({vBox, vBox});
     timeInDeathAnimation = 8.0f;
     attackDamage = vDamage;
+    hitReach = vReach;
+    moveSpeed = vSpeed;
     soundPitch = vPitch;
 
     // -- IDLE -- //
@@ -133,6 +138,12 @@ void _vampire::initVampire(const _textureManager* sceneTextureManager, vampire_v
         s->pivotPoint = {sz.x / 2.0f, sz.y / 2.0f};
     }
 
+    // _enemyManager renders sprites via a batched path that reads each sprite's
+    // own scale (it never calls drawUnitSingular), so push the unit scale down once.
+    for (_sprite* s : getSpriteList()) {
+        if (s) s->scale = scale;
+    }
+
     // Animation lookup table.
     animationTable[VAMPIRE_IDLE_DOWN]    = {"IDLE",   "IDLE_DOWN",    {0, ROW_DOWN}};
     animationTable[VAMPIRE_IDLE_UP]      = {"IDLE",   "IDLE_UP",      {0, ROW_UP}};
@@ -193,9 +204,8 @@ void _vampire::updateVampire(double dt, _player* player, _world* world, _sounds*
         const double swingEnd = double(ATTACK_FRAMES)    / double(VAMPIRE_ATTACK_FPS);
 
         if (!damageDealtThisSwing && cooldownTimer >= hitTime) {
-            constexpr float HIT_REACH = 32.0f; // slightly longer reach than orc for boss feel
             float dist = pos.distance(player->pos);
-            if (dist <= HIT_REACH && !player->isDead()) {
+            if (dist <= hitReach && !player->isDead()) {
                 player->impulseDamage(attackDamage);
                 player->playerTookDamage = true;
                 if (sounds) sounds->playSfx("PLAYER_HURT");

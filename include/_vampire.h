@@ -53,6 +53,7 @@ class _vampire : public _enemy {
         float attackRange    = 28.0f;
         float attackDamage   = 30.0f;
         float attackCooldown = 1.5f;
+        float hitReach       = 32.0f;
         float soundPitch     = 1.0f;
 
         // -- FSM state -- //
