@@ -19,6 +19,9 @@ class _fob : public _unit {
         /** Update loop */
         void updateFob(double dt);
 
+        /** Tells the fob to check the player class for changes such as lives lost or death  */
+        void evaluatePlayer();
+
         /** Draw function */
         void drawFob();
     protected:
@@ -31,6 +34,10 @@ class _fob : public _unit {
         _sounds* sceneSoundManager = nullptr;            // Pointer to existing sound maanger instance (non-owning)
 
         unique_ptr<_particleManager> particleManager = make_unique<_particleManager>();
+        particle_effect death_1_effect;
+        particle_effect death_2_effect;
+        particle_effect death_3_effect;
+        particle_effect death_4_effect;
 };
 
 #endif // _FOB_H

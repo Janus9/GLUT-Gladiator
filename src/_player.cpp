@@ -348,6 +348,8 @@ void _player::initPlayer(_lightManager* lightManager) {
 
 void _player::updatePlayer(double dt) {
 
+    if (isRealDead) return; // Player is really dead -- game over
+
     // Damage Event //
     if (playerTookDamage) {
         particleManger->spawnEffect(pos,player_hit_effect);
@@ -405,6 +407,7 @@ void _player::updatePlayer(double dt) {
 }
 
 void _player::drawPlayer() {
+    if (isRealDead) return; // Player dead skip drawing
     drawUnitSingular();
     particleManger->drawParticleManager();
 }
@@ -452,7 +455,12 @@ void _player::handlePlayerDeath(player_face face) {
         deathTimeElapsed = 0.0;
         resetHealth();
         pos = spawnPos;
+        lives--;
+        if (lives <= -1) {
+            isRealDead = true;
+        }
         setAction(PLAYER_ACTION_IDLE_GUN,PLAYER_FACE_N);
+        playerRespawnedEvent = true;
         return;
     }
     if (inDeathAnimation) return; // Already in player death action -- skip
@@ -486,7 +494,7 @@ player_serial_data _player::exportSerializedPlayer() const {
     player_data.spawnPosX = spawnPos.x;
     player_data.spawnPosY = spawnPos.y;
     player_data.movementSpeed = movementSpeed;
-    player_data.numDeaths = numDeaths;
+    player_data.numDeaths = abs(lives - 3);
     player_data.magCapacity = magCapacity;
     player_data.magLevel = magLevel;
     player_data.reserveCapacity = reserveCapacity;
@@ -510,7 +518,7 @@ void _player::importSerializedPlayer(const player_serial_data &player_data) {
     spawnPos.x = player_data.spawnPosX;
     spawnPos.y = player_data.spawnPosY;
     movementSpeed = player_data.movementSpeed;
-    numDeaths = player_data.numDeaths;
+    lives = 3 - player_data.numDeaths;
     magCapacity = player_data.magCapacity;
     magLevel = player_data.magLevel;
     reserveCapacity = player_data.reserveCapacity;

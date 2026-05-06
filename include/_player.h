@@ -115,9 +115,9 @@ class _player : public _unit {
         bool isReloading() const;
 
         // Player Variables //
+        int lives = 3;
         float respawnTime = 5.0f; // Seconds to respawn.
         float movementSpeed = 120.0f; // World units / second
-        int numDeaths = 0;  // Number of times player has died
         Vec2f spawnPos = {0.0f, 0.0f};
         
         // Weapon Variables //
@@ -131,6 +131,7 @@ class _player : public _unit {
         bool isMoving = false;      // Is player actively moving
         bool hasGun = false;        // Does player have gun equipped
         bool isShooting = false;    // Is the player actively shooting
+        bool isRealDead = false;    // If true, game ends
 
         double deathTimeElapsed = 0.0;  // Time elapsed since death occured
         bool inDeathAnimation = false;  // Is player in the animation 
@@ -138,6 +139,7 @@ class _player : public _unit {
         // Procedure Events (Fire when true) //
         bool playerTookDamage = false;
         bool playerShootEvent = false;
+        bool playerRespawnedEvent = false;
     protected:
     private:
         _lightManager* sceneLightManager = nullptr; // Pointer to light manager instantiated in scne (non-owning)

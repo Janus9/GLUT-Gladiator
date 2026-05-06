@@ -81,7 +81,7 @@ class _scene
         // Window dimensions
         int width, height; 
 
-        Vec2f spawnPos = {0.0f, 0.0f};
+        Vec2f spawnPos = {0.0f, 0.0f}; 
         
         // (x,y) position of the mouse in world coordinates (adjusted to camera position)
         Vec2f mouseWorldPos;

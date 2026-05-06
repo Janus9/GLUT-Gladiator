@@ -1114,7 +1114,7 @@ void _scene::updateScene(double dt, bool *keysArray)
         if (D)
             cameraX += cameraSpeed * dt;
     }
-    else if (!player->isDead())
+    else if (!player->isDead() && !player->isRealDead)
     {
         if (W && !collisionTable[0])
             player->pos.y += playerSpeed * dt;
@@ -1127,8 +1127,13 @@ void _scene::updateScene(double dt, bool *keysArray)
     }
 
     // Set it to camera pos so free-cam has light for testing
-    lightManager->getLightPosition("PLAYER_LIGHT")->x = cameraX;
-    lightManager->getLightPosition("PLAYER_LIGHT")->y = cameraY;
+    
+    if (!player->isRealDead) {
+        lightManager->getLightPosition("PLAYER_LIGHT")->x = cameraX;
+        lightManager->getLightPosition("PLAYER_LIGHT")->y = cameraY;
+    } else {
+        player_light.intensity = 0.0;   // Disable player light
+    }
 
     if (debugTimer.getMilliseconds() > debugPrintInterval)
     {
