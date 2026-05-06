@@ -831,18 +831,22 @@ void _scene::updateScene(double dt, bool *keysArray)
     switch (player->playerLevelEvent) {
         case PLAYER_EVENT_LEVEL_OUTER:
             cout << "Player entered level: OUTER\n";
+            soundManager->playBackgroundMusic("sounds/level_outer.wav",0.3f);
             player->playerLevelEvent = PLAYER_EVENT_LEVEL_NONE;
             break;
         case PLAYER_EVENT_LEVEL_MIDDLE:
             cout << "Player entered level: MIDDLE\n";
+            soundManager->playBackgroundMusic("sounds/level_middle.wav",0.3f);
             player->playerLevelEvent = PLAYER_EVENT_LEVEL_NONE;
             break;
         case PLAYER_EVENT_LEVEL_CENTER:
             cout << "Player entered level: CENTER\n";
+            soundManager->playBackgroundMusic("sounds/level_center.ogg",0.3f);
             player->playerLevelEvent = PLAYER_EVENT_LEVEL_NONE;
             break;
         case PLAYER_EVENT_LEVEL_BOSS:
             cout << "Player entered level: BOSS\n";
+            soundManager->playBackgroundMusic("sounds/level_boss.wav",0.3f);
             player->playerLevelEvent = PLAYER_EVENT_LEVEL_NONE;
             break;
     }

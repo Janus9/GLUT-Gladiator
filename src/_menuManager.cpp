@@ -200,7 +200,7 @@ void _menuManager::updateMenuManager(double dt, const Vec2f &mousePos, bool mous
             if (!scene->isInitialized()) return; // Scene must be initialized if were trying to load the game
             loadGame = true;
             if (sounds) sounds->playSfx("GAME_START");
-            if (sounds) sounds->playBackgroundMusic("sounds/gameplay_music.wav", 0.2f);
+            // if (sounds) sounds->playBackgroundMusic("sounds/gameplay_music.wav", 0.2f);
         }
         loadMenu(menu->redirectTo);     // Load menu
         menu->redirectTo = MENU_NULL;   // Reset menu redirection state

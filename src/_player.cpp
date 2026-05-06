@@ -417,10 +417,10 @@ void _player::updatePlayer(double dt) {
         playerLevelEvent = PLAYER_EVENT_LEVEL_OUTER;
     } else if (prevDistance > 3000.0f && distance < 3000.0f) {
         // Entered the center from middle
-        playerLevelEvent = PLAYER_EVENT_LEVEL_MIDDLE;
+        playerLevelEvent = PLAYER_EVENT_LEVEL_CENTER;
     } else if (prevDistance < 3000.0f && distance > 3000.0f) {
         // Entered the middle from center
-        playerLevelEvent = PLAYER_EVENT_LEVEL_CENTER;
+        playerLevelEvent = PLAYER_EVENT_LEVEL_MIDDLE;
     } else if (prevDistance > 400.0f && distance < 400.0f) {
         // Entered the boss from center
         playerLevelEvent = PLAYER_EVENT_LEVEL_BOSS;
