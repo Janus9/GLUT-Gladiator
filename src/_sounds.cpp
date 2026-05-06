@@ -10,6 +10,10 @@ _sounds::_sounds()
     engine->setDefault3DSoundMaxDistance(512.0f);   // Distance greater than this plays at 0% volume
 }
 
+void _sounds::setEnginePaused(bool paused) {
+    if (engine) engine->setAllSoundsPaused(paused);
+}
+
 _sounds::~_sounds()
 {
     if (currentMusic) {

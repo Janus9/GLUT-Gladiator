@@ -63,6 +63,10 @@ class _sounds
         // Ramps currentMusic volume from 0 to targetVolume over fadeDuration seconds.
         // Call once per frame with dt in seconds.
         void updateFadeIn(double dt);
+
+        // Pauses or resumes every sound owned by the engine in-place. Used by the main
+        // loop to silence audio while the window is suspended (inactive/minimized).
+        void setEnginePaused(bool paused);
     protected:
     private:
         struct SfxEntry {
