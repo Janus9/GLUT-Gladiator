@@ -14,18 +14,18 @@ void _fob::initFob(_player* currentPlayer, _lightManager* currentLightManager,_s
     sceneSoundManager = currentSoundManager;
 
     // PARTICLES //
-    particleManager->initParticleManager("images/fob/particles.png",2,sceneLightManager);
+    particleManager->initParticleManager("images/fob/particles.png",4,sceneLightManager);
     // Death 1 effect //
-    death_1_effect.amount = 0;
+    death_1_effect.amount = 45;
     death_1_effect.imageIndex = 0;
 
     death_1_effect.minVelX = -16.0f;
     death_1_effect.maxVelX = 16.0f;
-    death_1_effect.minVelY = 30.0f;
-    death_1_effect.maxVelY = 55.0f;
+    death_1_effect.minVelY = 50.0f;
+    death_1_effect.maxVelY = 85.0f;
 
-    death_1_effect.minRadius = 1.5f;
-    death_1_effect.maxRadius = 3.5f;
+    death_1_effect.minRadius = 4.0f;
+    death_1_effect.maxRadius = 6.5f;
     
     death_1_effect.minLifeTime = 7.0f;
     death_1_effect.maxLifeTime = 7.0f;
@@ -41,7 +41,63 @@ void _fob::initFob(_player* currentPlayer, _lightManager* currentLightManager,_s
     death_1_effect.hasGravity = true;
     death_1_effect.hasFloor = true;
     
-    death_1_effect.floorOffset = 0.0f;
+    death_1_effect.floorOffset = -4.0f;
+
+    // Death 2 effect //
+    death_2_effect.amount = 45;
+    death_2_effect.imageIndex = 1;
+
+    death_2_effect.minVelX = -16.0f;
+    death_2_effect.maxVelX = 16.0f;
+    death_2_effect.minVelY = 50.0f;
+    death_2_effect.maxVelY = 85.0f;
+
+    death_2_effect.minRadius = 4.0f;
+    death_2_effect.maxRadius = 6.5f;
+    
+    death_2_effect.minLifeTime = 7.0f;
+    death_2_effect.maxLifeTime = 7.0f;
+    
+    death_2_effect.minSpawnOffsetX = -12.0f;
+    death_2_effect.maxSpawnOffsetX = 12.0f;
+    death_2_effect.minSpawnOffsetY = -12.0f;
+    death_2_effect.maxSpawnOffsetY = 12.0f;
+    
+    death_2_effect.minRotation = 30.0f;
+    death_2_effect.maxRotation = 200.0f;
+    
+    death_2_effect.hasGravity = true;
+    death_2_effect.hasFloor = true;
+    
+    death_2_effect.floorOffset = -4.0f;
+
+    // Death 4 effect //
+    death_4_effect.amount = 18;
+    death_4_effect.imageIndex = 3;
+
+    death_4_effect.minVelX = -16.0f;
+    death_4_effect.maxVelX = 16.0f;
+    death_4_effect.minVelY = 40.0f;
+    death_4_effect.maxVelY = 75.0f;
+
+    death_4_effect.minRadius = 7.0f;
+    death_4_effect.maxRadius = 10.5f;
+    
+    death_4_effect.minLifeTime = 7.0f;
+    death_4_effect.maxLifeTime = 7.0f;
+    
+    death_4_effect.minSpawnOffsetX = -12.0f;
+    death_4_effect.maxSpawnOffsetX = 12.0f;
+    death_4_effect.minSpawnOffsetY = -12.0f;
+    death_4_effect.maxSpawnOffsetY = 12.0f;
+    
+    death_4_effect.minRotation = 15.0f;
+    death_4_effect.maxRotation = 30.0f;
+    
+    death_4_effect.hasGravity = true;
+    death_4_effect.hasFloor = true;
+    
+    death_4_effect.floorOffset = -4.0f;
 
     // SPRITES //
     setCollisionBox({32.0f,32.0f});
@@ -90,9 +146,11 @@ void _fob::evaluatePlayer() {
 
     if (player->lives <= -1) {
         // Death Event //
+        particleManager->spawnEffect(pos,death_1_effect);
+        particleManager->spawnEffect(pos,death_2_effect);
+        particleManager->spawnEffect(pos,death_4_effect);
         fob_sprite->setIdleFrame(14,4);
         fob_sprite->playAction("DEATH");
-        particleManager->spawnEffect(pos,death_1_effect);
         return;
     }
 

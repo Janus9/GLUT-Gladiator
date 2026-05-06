@@ -187,7 +187,7 @@ void _particleManager::buildVBO() {
         particle* p = &particles[i];
         if (!p->alive) continue; // Skips particles that are dead
 
-        float angle = p->angle;
+        float angle = degreeToRad(p->angle);
 
         float centerX = p->pos.x;
         float centerY = p->pos.y;
