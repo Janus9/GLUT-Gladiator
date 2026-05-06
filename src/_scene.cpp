@@ -828,6 +828,25 @@ void _scene::updateScene(double dt, bool *keysArray)
     player->updatePlayer(dt);
     FOB->updateFob(dt);
 
+    switch (player->playerLevelEvent) {
+        case PLAYER_EVENT_LEVEL_OUTER:
+            cout << "Player entered level: OUTER\n";
+            player->playerLevelEvent = PLAYER_EVENT_LEVEL_NONE;
+            break;
+        case PLAYER_EVENT_LEVEL_MIDDLE:
+            cout << "Player entered level: MIDDLE\n";
+            player->playerLevelEvent = PLAYER_EVENT_LEVEL_NONE;
+            break;
+        case PLAYER_EVENT_LEVEL_CENTER:
+            cout << "Player entered level: CENTER\n";
+            player->playerLevelEvent = PLAYER_EVENT_LEVEL_NONE;
+            break;
+        case PLAYER_EVENT_LEVEL_BOSS:
+            cout << "Player entered level: BOSS\n";
+            player->playerLevelEvent = PLAYER_EVENT_LEVEL_NONE;
+            break;
+    }
+
     // Check for mouse events
     if (LMB && hoveredCell && hoveredChunk && myWorld->isCellWall(hoveredCell))
     {

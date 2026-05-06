@@ -63,6 +63,14 @@ enum player_action {
     PLAYER_ACTION_COUNT 
 };
 
+enum player_enterered_level_event {
+    PLAYER_EVENT_LEVEL_OUTER,
+    PLAYER_EVENT_LEVEL_MIDDLE,
+    PLAYER_EVENT_LEVEL_CENTER,
+    PLAYER_EVENT_LEVEL_BOSS,
+    PLAYER_EVENT_LEVEL_NONE
+};
+
 class _player : public _unit {
     public:
         _player();
@@ -140,8 +148,11 @@ class _player : public _unit {
         bool playerTookDamage = false;
         bool playerShootEvent = false;
         bool playerRespawnedEvent = false;
+
+        player_enterered_level_event playerLevelEvent = PLAYER_EVENT_LEVEL_NONE;
     protected:
     private:
+        Vec2f previousPos = {0.0f, 0.0f};
         _lightManager* sceneLightManager = nullptr; // Pointer to light manager instantiated in scne (non-owning)
 
         int FPS = 12;
