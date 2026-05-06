@@ -36,7 +36,7 @@ void _fob::initFob(_player* currentPlayer, _lightManager* currentLightManager,_s
     death_1_effect.maxSpawnOffsetY = 12.0f;
     
     death_1_effect.minRotation = 30.0f;
-    death_1_effect.maxRotation = 200.0f;
+    death_1_effect.maxRotation = 720.0f;
     
     death_1_effect.hasGravity = true;
     death_1_effect.hasFloor = true;
@@ -64,12 +64,40 @@ void _fob::initFob(_player* currentPlayer, _lightManager* currentLightManager,_s
     death_2_effect.maxSpawnOffsetY = 12.0f;
     
     death_2_effect.minRotation = 30.0f;
-    death_2_effect.maxRotation = 200.0f;
+    death_2_effect.maxRotation = 720.0f;
     
     death_2_effect.hasGravity = true;
     death_2_effect.hasFloor = true;
     
     death_2_effect.floorOffset = -4.0f;
+
+    // Death 3 effect //
+    death_3_effect.amount = 45;
+    death_3_effect.imageIndex = 2;
+
+    death_3_effect.minVelX = -16.0f;
+    death_3_effect.maxVelX = 16.0f;
+    death_3_effect.minVelY = 50.0f;
+    death_3_effect.maxVelY = 85.0f;
+
+    death_3_effect.minRadius = 5.0f;
+    death_3_effect.maxRadius = 7.5f;
+    
+    death_3_effect.minLifeTime = 7.0f;
+    death_3_effect.maxLifeTime = 7.0f;
+    
+    death_3_effect.minSpawnOffsetX = -12.0f;
+    death_3_effect.maxSpawnOffsetX = 12.0f;
+    death_3_effect.minSpawnOffsetY = -12.0f;
+    death_3_effect.maxSpawnOffsetY = 12.0f;
+    
+    death_3_effect.minRotation = 30.0f;
+    death_3_effect.maxRotation = 720.0f;
+    
+    death_3_effect.hasGravity = true;
+    death_3_effect.hasFloor = true;
+    
+    death_3_effect.floorOffset = -4.0f;
 
     // Death 4 effect //
     death_4_effect.amount = 18;
@@ -92,7 +120,7 @@ void _fob::initFob(_player* currentPlayer, _lightManager* currentLightManager,_s
     death_4_effect.maxSpawnOffsetY = 12.0f;
     
     death_4_effect.minRotation = 15.0f;
-    death_4_effect.maxRotation = 30.0f;
+    death_4_effect.maxRotation = 90.0f;
     
     death_4_effect.hasGravity = true;
     death_4_effect.hasFloor = true;
@@ -148,6 +176,7 @@ void _fob::evaluatePlayer() {
         // Death Event //
         particleManager->spawnEffect(pos,death_1_effect);
         particleManager->spawnEffect(pos,death_2_effect);
+        particleManager->spawnEffect(pos,death_3_effect);
         particleManager->spawnEffect(pos,death_4_effect);
         fob_sprite->setIdleFrame(14,4);
         fob_sprite->playAction("DEATH");

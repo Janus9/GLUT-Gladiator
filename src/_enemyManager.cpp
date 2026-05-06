@@ -286,7 +286,7 @@ void _enemyManager::updateEnemies(double dt) {
     // Iterate backwards to removal safety
     particleManager->updateParticleManger(dt);
     if (enemyList.size() <= 0) return; // Empty list - no need to run loop
-    if (!player || player->isDead()) return; // No player, or player is dead
+    if (!player || player->isDead() || player->isRealDead) return; // No player, or player is dead
     for (int i = enemyList.size()-1; i >= 0; i--) {
         _enemy* enemy = enemyList[i].get();
         enemy->setPosition(enemy->pos);
