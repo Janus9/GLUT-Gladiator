@@ -159,9 +159,9 @@ void _scene::initScene(bool loadWorld)
     soundManager->registerSfx("ORC_ATTACK", "sounds/orc_attack.mp3", 0.1f);
     soundManager->registerSfx("ORC_HURT", "sounds/orc_hurt.mp3", 0.05f);
     soundManager->registerSfx("ORC_DEATH", "sounds/orc_death.mp3", 0.5f);
-    soundManager->registerSfx("VAMPIRE_ATTACK", "sounds/Vampire_Attack.mp3", 0.3f);
-    soundManager->registerSfx("VAMPIRE_HURT", "sounds/Vampire_Hurt.mp3", 0.2f);
-    soundManager->registerSfx("VAMPIRE_DEATH", "sounds/Vampire_Death.mp3", 0.6f);
+    soundManager->registerSfx("VAMPIRE_ATTACK", "sounds/Vampire_Attack.wav", 0.3f);
+    soundManager->registerSfx("VAMPIRE_HURT", "sounds/Vampire_Hurt.wav", 0.2f);
+    soundManager->registerSfx("VAMPIRE_DEATH", "sounds/Vampire_Death.wav", 0.6f);
     soundManager->registerSfx("GATLING_SHOOT","sounds/MinigunLoop.wav", 0.2f);
     soundManager->registerSfx("FOB_AMBIENT","sounds/machine_mx_2_loop.ogg", 0.3f);
 
