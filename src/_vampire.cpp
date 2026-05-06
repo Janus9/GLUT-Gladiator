@@ -39,8 +39,8 @@ void _vampire::initVampire(const _textureManager* sceneTextureManager) {
     eType = ENEMY_VAMPIRE;
     detectionRadius = 300.0f;
     team = _team::ENEMY;
-    scale = {1.0f, 1.0f};
-    setCollisionBox({16.0f, 16.0f});
+    scale = {1.5f, 1.5f};
+    setCollisionBox({24.0f, 24.0f});
     timeInDeathAnimation = 8.0f;
 
     // -- IDLE -- //

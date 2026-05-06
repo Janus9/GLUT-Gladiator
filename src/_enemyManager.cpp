@@ -614,8 +614,18 @@ bool _enemyManager::importSerializedEnemies(const vector<enemy_serial_data> &ene
 _enemy* _enemyManager::isColliding(const Vec2f &pos, float registerDistance) const {
     for (int i = 0; i < enemyList.size(); i++) {
         _enemy* enemy = enemyList[i].get();
-        float distance = enemy->pos.distance(pos);
-        if (distance <= registerDistance) {
+        bool hit = false;
+        if (_collisionBound* cb = enemy->getCollisionBound()) {
+            Vec2f boxPos = cb->getPos();
+            Vec2f size = cb->getSize();
+            float dx = std::fabs(pos.x - boxPos.x);
+            float dy = std::fabs(pos.y - boxPos.y);
+            hit = (dx <= size.x * 0.5f + registerDistance) &&
+                  (dy <= size.y * 0.5f + registerDistance);
+        } else {
+            hit = enemy->pos.distance(pos) <= registerDistance;
+        }
+        if (hit) {
             particleManager->spawnEffect(enemy->pos,turret_hit_effect);
             return enemy;
         }
