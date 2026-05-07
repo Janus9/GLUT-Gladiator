@@ -10,6 +10,7 @@
 #include <_shader.h>
 #include <_lightManager.h>
 #include <_textureManager.h>
+#include <_pickupManager.h>
 
 // Matrix math for shaders //
 #include <glm/glm.hpp>                      // Core library
@@ -114,7 +115,7 @@ class _enemyManager {
         _enemyManager();
         virtual ~_enemyManager();
 
-        void initEnemyManager(_player* currentPlayer, _world* currentWorld, _bulletManager* currentBulletManager, _sounds* currentSounds, _lightManager* lightManager, _textureManager* textureManager);
+        void initEnemyManager(_player* currentPlayer, _world* currentWorld, _bulletManager* currentBulletManager, _sounds* currentSounds, _lightManager* lightManager, _textureManager* textureManager, _pickupManager* pickupManager);
 
         /**
          * Update function for enemies
@@ -158,12 +159,21 @@ class _enemyManager {
 
         _bullet_config* bullet_1 = nullptr;
         _bullet_config* bullet_2 = nullptr;
+
+        // Set by scene but changed for enemy deaths
+        pickup_config health_pickup;
+        pickup_config ammo_pickup;
+        pickup_config speed_pickup;
+        pickup_config max_health_pickup;
+        pickup_config fire_rate_pickup;
+        pickup_config xp_pickup;
     protected:
     private:
         _player* player = nullptr;                      // Pointer to player instance instantiated in scene (non-owning)
         _world* world = nullptr;                        // Pointer to world instance instantiated in scene (non-owning)
         _bulletManager* bulletManager = nullptr;        // Pointer to bulletManager instance instantiated in scene (non-owning)
         _textureManager* sceneTextureManager = nullptr; // Pointer to the texture manager instance instantiated in scene (non-owning)
+        _pickupManager* scenePickupManager = nullptr;   // Pointer to the pickup manager instance instantiated in scene (non-owning)
 
         _sounds* sounds = nullptr;                  // Pointer to sounds instance instantiated in scene (non-owning)
 
@@ -197,6 +207,9 @@ class _enemyManager {
         GLint u_time = -1;
 
         float time = 0.0f;
+
+        // Rng machine
+        mt19937 rng;   
 };
 
 #endif // _ENEMY_MANAGER_H

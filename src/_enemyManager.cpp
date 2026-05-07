@@ -131,7 +131,7 @@ void _enemyManager::setViewProjectionMatrix(const glm::mat4 &_viewProjectionMatr
 
 // -- PUBLIC -- //
 
-_enemyManager::_enemyManager() {
+_enemyManager::_enemyManager() : rng(random_device{}()) {
     
 }
 
@@ -150,13 +150,14 @@ _enemyManager::~_enemyManager() {
     }
 }
 
-void _enemyManager::initEnemyManager(_player* currentPlayer, _world* currentWorld, _bulletManager* currentBulletManager, _sounds* currentSounds, _lightManager* lightManager, _textureManager* textureManager) {
+void _enemyManager::initEnemyManager(_player* currentPlayer, _world* currentWorld, _bulletManager* currentBulletManager, _sounds* currentSounds, _lightManager* lightManager, _textureManager* textureManager, _pickupManager* pickupManager) {
     player = currentPlayer;
     world = currentWorld;
     bulletManager = currentBulletManager;
     sounds = currentSounds;
     sceneLightManager = lightManager;
     sceneTextureManager = textureManager;
+    scenePickupManager = pickupManager;
 
     // -- SHADER SETUP -- //
     shader.initShader("shaders/enemy_manager/vertex.vs","shaders/enemy_manager/fragment.fs");
@@ -325,6 +326,9 @@ void _enemyManager::initEnemyManager(_player* currentPlayer, _world* currentWorl
 void _enemyManager::updateEnemies(double dt) {
     time += dt;
 
+    uniform_real_distribution<float> roll(0.0f,1.0f);
+    uniform_real_distribution<float> pos_dist(-8.0f,8.0f);
+
     // Iterate backwards to removal safety
     particleManager->updateParticleManger(dt);
     if (enemyList.size() <= 0) return; // Empty list - no need to run loop
@@ -392,6 +396,17 @@ void _enemyManager::updateEnemies(double dt) {
                     if (sounds) sounds->playSfx("ENEMY_DEATH");
                     continue;
                 } else if (enemy->isDead() && enemy->deathTime > enemy->timeInDeathAnimation) {
+                    Vec2f offset_pos = {pos_dist(rng), pos_dist(rng)};
+                    
+                    xp_pickup.xp = 5.0f;
+                    ammo_pickup.ammo = 20.0f;
+                    scenePickupManager->addPickup(enemy->pos + offset_pos, xp_pickup);
+                    
+                    if (roll(rng) > 0.5) {
+                        offset_pos = {pos_dist(rng), pos_dist(rng)};
+                        scenePickupManager->addPickup(enemy->pos + offset_pos, ammo_pickup);
+                    }
+                    
                     enemyList.erase(enemyList.begin() + i);
                     continue;
                 }
@@ -440,6 +455,20 @@ void _enemyManager::updateEnemies(double dt) {
                     orc->triggerDeath(sounds);
                     continue;
                 } else if (enemy->isDead() && enemy->deathTime > enemy->timeInDeathAnimation) {
+                    Vec2f offset_pos = {pos_dist(rng), pos_dist(rng)};
+
+                    xp_pickup.xp = 4.0f;
+
+                    for (int i = 0; i < 2; i++) {
+                        offset_pos = {pos_dist(rng), pos_dist(rng)};
+                        scenePickupManager->addPickup(enemy->pos + offset_pos, xp_pickup);
+                    }
+
+                    if (roll(rng) > 0.7f) {
+                        offset_pos = {pos_dist(rng), pos_dist(rng)};
+                        scenePickupManager->addPickup(enemy->pos + offset_pos, health_pickup);
+                    }
+
                     enemyList.erase(enemyList.begin() + i);
                     continue;
                 }
@@ -504,6 +533,31 @@ void _enemyManager::updateEnemies(double dt) {
                     continue;
                 // Final death event (removes enemy)
                 } else if (enemy->isDead() && enemy->deathTime > enemy->timeInDeathAnimation) {
+                    xp_pickup.xp = 6.0f;
+                    ammo_pickup.ammo = 40;
+
+                    Vec2f offset_pos = {pos_dist(rng), pos_dist(rng)};
+                    
+                    for (int i = 0; i < 4; i++) {
+                        offset_pos = {pos_dist(rng), pos_dist(rng)};
+                        scenePickupManager->addPickup(offset_pos + enemy->pos, xp_pickup);
+                    }
+
+                    if (roll(rng) > 0.8f) {
+                        offset_pos = {pos_dist(rng), pos_dist(rng)};
+                        scenePickupManager->addPickup(offset_pos + enemy->pos, fire_rate_pickup);
+                    }
+
+                    if (roll(rng) > 0.2f) {
+                        offset_pos = {pos_dist(rng), pos_dist(rng)};
+                        scenePickupManager->addPickup(offset_pos + enemy->pos, ammo_pickup);
+                    }
+
+                    if (roll(rng) > 0.2f) {
+                        offset_pos = {pos_dist(rng), pos_dist(rng)};
+                        scenePickupManager->addPickup(offset_pos + enemy->pos, health_pickup);
+                    }
+
                     enemyList.erase(enemyList.begin() + i);
                     continue;
                 }

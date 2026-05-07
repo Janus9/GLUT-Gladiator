@@ -209,9 +209,16 @@ void _scene::initScene(bool loadWorld)
     drawWorldBenchmark.startBenchmark();
     drawEnemiesBenchmark.startBenchmark();
 
-    if(!loadWorld) enemyManager->initEnemyManager(player.get(), myWorld, bulletManager.get(), soundManager, lightManager.get(), textureManager.get());
+    if(!loadWorld) enemyManager->initEnemyManager(player.get(), myWorld, bulletManager.get(), soundManager, lightManager.get(), textureManager.get(),pickupManager.get());
     enemyManager->bullet_1 = &turret_bullet;
     enemyManager->bullet_2 = &gatling_bullet;
+
+    enemyManager->health_pickup = health_pickup;
+    enemyManager->ammo_pickup = ammo_pickup;
+    enemyManager->speed_pickup = speed_pickup;
+    enemyManager->max_health_pickup = max_health_pickup;
+    enemyManager->fire_rate_pickup = fire_rate_pickup;
+    enemyManager->xp_pickup = xp_pickup;
 
     // -- SOUND EFFECTS -- //
     // Register all SFX up front so first-play decoder stalls are avoided. Tune per-SFX volumes here.
@@ -792,7 +799,7 @@ bool _scene::loadSceneFromFile(const string &fileName) {
 
     // Setup enemy manager before adding enemies
     setupTextures();
-    enemyManager->initEnemyManager(player.get(), myWorld, bulletManager.get(), soundManager, lightManager.get(), textureManager.get());
+    enemyManager->initEnemyManager(player.get(), myWorld, bulletManager.get(), soundManager, lightManager.get(), textureManager.get(), pickupManager.get());
 
     vector<enemy_serial_data> enemy_data;
     enemy_data.resize(enemy_count);
