@@ -1,6 +1,7 @@
 #version 330 core
 
 #define MAX_LIGHTS 16 
+#define PI 3.14159
 
 // From the vertex shader
 in vec2 v_texCoord;  
@@ -41,6 +42,13 @@ void main() {
     lightAccum = clamp(lightAccum, 0.0, 1.0);
 
     baseColor.rgb *= lightAccum;
+
+    float shimmer_intensity = 0.25;
+    shimmer_intensity *= 0.5;
+    shimmer_intensity = clamp(shimmer_intensity, 0.0, 1.0); 
+
+    float shimmer_brightness = shimmer_intensity* sin(2 * PI * u_time) + (1 - shimmer_intensity);
+    baseColor.rgb *= shimmer_brightness; // Applies a shimmer effect
 
     FragColor = baseColor;
 }

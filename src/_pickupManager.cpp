@@ -51,7 +51,7 @@ void _pickupManager::initPickupManager(const string& fileName, int imageWidth, _
     // Uniforms
     u_viewProjectionMatrix = glGetUniformLocation(program,"u_viewProjectionMatrix");
     u_texture = glGetUniformLocation(program,"u_texture");
-    u_t = glGetUniformLocation(program,"u_t");
+    u_t = glGetUniformLocation(program,"u_time");
 
     glGenBuffers(1, &vboID); 
     glGenBuffers(1, &eboID); 

@@ -81,7 +81,7 @@ void _scene::initScene(bool loadWorld)
     myWorld->initWorld(loadWorld,lightManager.get());         // Initialize the world
 
     // PICKUPS //
-    pickupManager->initPickupManager("images/pickups/pickup_sheet.png",1,player.get(),lightManager.get());
+    pickupManager->initPickupManager("images/pickups/pickup_sheet.png",5,player.get(),lightManager.get());
     test_pickup_config.imageIndex = 0;
     test_pickup_config.size = 5.0f;
 
