@@ -82,15 +82,71 @@ void _scene::initScene(bool loadWorld)
 
     // PICKUPS //
     pickupManager->initPickupManager("images/pickups/pickup_sheet.png",6,player.get(),lightManager.get());
-    test_pickup_config.imageIndex = 0;
-    test_pickup_config.size = 5.0f;
+    // HP 
+    health_pickup.imageIndex = 0;
+    health_pickup.size = 8.0f;
 
-    test_pickup_config.health = 25.0f;
-    test_pickup_config.maxHealth = 0.0f;
-    test_pickup_config.ammo = 25.0f;
-    test_pickup_config.speed = 0.0f;
-    test_pickup_config.fireRate = 0.0f;
-    test_pickup_config.xp = 0.0f;
+    health_pickup.health = 15.0f;
+    health_pickup.maxHealth = 0.0f;
+    health_pickup.ammo = 0.0f;
+    health_pickup.speed = 0.0f;
+    health_pickup.fireRate = 0.0f;
+    health_pickup.xp = 0.0f;
+
+    // Ammo 
+    ammo_pickup.imageIndex = 1;
+    ammo_pickup.size = 12.0f;
+
+    ammo_pickup.health = 0.0f;
+    ammo_pickup.maxHealth = 0.0f;
+    ammo_pickup.ammo = 15.0f;
+    ammo_pickup.speed = 0.0f;
+    ammo_pickup.fireRate = 0.0f;
+    ammo_pickup.xp = 0.0f;
+
+    // Speed 
+    speed_pickup.imageIndex = 2;
+    speed_pickup.size = 8.0f;
+
+    speed_pickup.health = 0.0f;
+    speed_pickup.maxHealth = 0.0f;
+    speed_pickup.ammo = 0.0f;
+    speed_pickup.speed = 5.0f;
+    speed_pickup.fireRate = 0.0f;
+    speed_pickup.xp = 0.0f;
+
+    // Max HP 
+    max_health_pickup.imageIndex = 3;
+    max_health_pickup.size = 12.0f;
+
+    max_health_pickup.health = 0.0f;
+    max_health_pickup.maxHealth = 5.0f;
+    max_health_pickup.ammo = 0.0f;
+    max_health_pickup.speed = 0.0f;
+    max_health_pickup.fireRate = 0.0f;
+    max_health_pickup.xp = 0.0f;
+
+    // XP 
+    xp_pickup.imageIndex = 4;
+    xp_pickup.size = 5.5f;
+
+    xp_pickup.health = 0.0f;
+    xp_pickup.maxHealth = 0.0f;
+    xp_pickup.ammo = 0.0f;
+    xp_pickup.speed = 0.0f;
+    xp_pickup.fireRate = 0.0f;
+    xp_pickup.xp = 5.0f;
+
+    // Fire Rate 
+    fire_rate_pickup.imageIndex = 5;
+    fire_rate_pickup.size = 12.0f;
+
+    fire_rate_pickup.health = 0.0f;
+    fire_rate_pickup.maxHealth = 0.0f;
+    fire_rate_pickup.ammo = 0.0f;
+    fire_rate_pickup.speed = 0.0f;
+    fire_rate_pickup.fireRate = 5.0f;
+    fire_rate_pickup.xp = 0.0f;
 
     // TEXTURE LOADER //
     if (!loadWorld) setupTextures();
@@ -455,11 +511,87 @@ void _scene::initScene(bool loadWorld)
         }
 
         // Spawn Pickups //
-        const int num_hp_pickups = 50;
-        const int num_ammo_pickups = 50;
-        const int num_speed_pickups = 50;
-        const int num_hp_pickups = 50;
-        const int num_hp_pickups = 50;
+        const int num_hp_pickups = 150;
+        const int num_ammo_pickups = 150;
+        const int num_speed_pickups = 35;
+        const int num_max_hp_pickups = 40;
+        const int num_fire_rate_pickups = 30;
+
+        uniform_real_distribution<float> hp_pos_dist(-10000, 10000);
+        uniform_real_distribution<float> ammo_pos_dist(-10000, 10000);
+        uniform_real_distribution<float> speed_pos_dist(-6500, 6500);
+        uniform_real_distribution<float> max_hp_pos_dist(-5000, 5000);
+        uniform_real_distribution<float> fire_rate_pos_dist(-2000, 2000);
+
+        // Hp Pickup Distribution //
+        for (int i = 0; i < num_hp_pickups; i++)
+        {
+            bool lookingSpawn = true;
+            while (lookingSpawn)
+            {
+                Vec2f pos = {hp_pos_dist(rng), hp_pos_dist(rng)};
+                _cell *cell = myWorld->getCellAtWorld(pos);
+                if (cell && myWorld->isCellWall(cell)) continue;
+                pickupManager->addPickup(pos,health_pickup);
+                lookingSpawn = false;
+            }
+        }
+
+        // Ammo Pickup Distribution //
+        for (int i = 0; i < num_ammo_pickups; i++)
+        {
+            bool lookingSpawn = true;
+            while (lookingSpawn)
+            {
+                Vec2f pos = {ammo_pos_dist(rng), ammo_pos_dist(rng)};
+                _cell *cell = myWorld->getCellAtWorld(pos);
+                if (cell && myWorld->isCellWall(cell)) continue;
+                pickupManager->addPickup(pos,ammo_pickup);
+                lookingSpawn = false;
+            }
+        }
+
+        // Speed Pickup Distribution //
+        for (int i = 0; i < num_speed_pickups; i++)
+        {
+            bool lookingSpawn = true;
+            while (lookingSpawn)
+            {
+                Vec2f pos = {speed_pos_dist(rng), speed_pos_dist(rng)};
+                _cell *cell = myWorld->getCellAtWorld(pos);
+                if (cell && myWorld->isCellWall(cell)) continue;
+                pickupManager->addPickup(pos,speed_pickup);
+                lookingSpawn = false;
+            }
+        }
+
+        // Max HP Pickup Distribution //
+        for (int i = 0; i < num_max_hp_pickups; i++)
+        {
+            bool lookingSpawn = true;
+            while (lookingSpawn)
+            {
+                Vec2f pos = {max_hp_pos_dist(rng), max_hp_pos_dist(rng)};
+                _cell *cell = myWorld->getCellAtWorld(pos);
+                if (cell && myWorld->isCellWall(cell)) continue;
+                pickupManager->addPickup(pos,max_health_pickup);
+                lookingSpawn = false;
+            }
+        }
+
+        // Fire Rate Pickup Distribution //
+        for (int i = 0; i < num_fire_rate_pickups; i++)
+        {
+            bool lookingSpawn = true;
+            while (lookingSpawn)
+            {
+                Vec2f pos = {fire_rate_pos_dist(rng), fire_rate_pos_dist(rng)};
+                _cell *cell = myWorld->getCellAtWorld(pos);
+                if (cell && myWorld->isCellWall(cell)) continue;
+                pickupManager->addPickup(pos,fire_rate_pickup);
+                lookingSpawn = false;
+            }
+        }
     }    
 
     sceneInitialized = true;
@@ -851,6 +983,8 @@ void _scene::updateScene(double dt, bool *keysArray)
     player->updatePlayer(dt);
     FOB->updateFob(dt);
     pickupManager->updatePickups(dt);
+
+    const float playerSpeed = player->movementSpeed;
 
     switch (player->playerLevelEvent) {
         case PLAYER_EVENT_LEVEL_OUTER:
@@ -1272,8 +1406,21 @@ void _scene::keyboardHandler(WPARAM wParam)
             enemyManager->addEnemy(mouseWorldPos, vampire_minion2_config);
             break;
         case 55: // "7"
-            pickupManager->addPickup(mouseWorldPos,test_pickup_config);
+            pickupManager->addPickup(mouseWorldPos, speed_pickup);
             break;
+        case 56: // "8"
+            pickupManager->addPickup(mouseWorldPos, max_health_pickup);
+            break;
+        case 57: // "9"
+            pickupManager->addPickup(mouseWorldPos, fire_rate_pickup);
+            break;
+        case 58: // "0"
+            pickupManager->addPickup(mouseWorldPos, xp_pickup);
+            break;
+
+        case 97: // "NUM 1"
+            break;
+
         case ' ': // SPACE
             break;
         case 82: // R

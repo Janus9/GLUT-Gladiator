@@ -148,7 +148,12 @@ class _scene
 
         // Pickups //
         unique_ptr<_pickupManager> pickupManager = make_unique<_pickupManager>();
-        pickup_config test_pickup_config;
+        pickup_config health_pickup;
+        pickup_config ammo_pickup;
+        pickup_config speed_pickup;
+        pickup_config max_health_pickup;
+        pickup_config fire_rate_pickup;
+        pickup_config xp_pickup;
 
         _cell* hoveredCell = nullptr;
         _chunk* hoveredChunk = nullptr;
@@ -162,7 +167,6 @@ class _scene
 
         float cameraX = 0.0f;
         float cameraY = 0.0f;
-        float playerSpeed = 128.0f; // Units per second
         float cameraSpeed = 1024.0f; // Units per second
         float cameraZoom = 1.0f;
 
