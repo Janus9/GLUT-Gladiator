@@ -54,7 +54,7 @@ class _pickupManager {
         static void setViewProjectionMatrix(const glm::mat4& _viewProjectionMatrix); 
     protected:
     private:
-        const int maxPickups = 1000;    // Maxmimum pickups world allows
+        const int maxPickups = 5000;    // Maxmimum pickups world allows
         int alivePickups;
         int numImages;
 

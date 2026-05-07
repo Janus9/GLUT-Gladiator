@@ -230,8 +230,8 @@ void _scene::initScene(bool loadWorld)
     soundManager->registerSfx("ENEMY_DEATH", "sounds/enemy_death.wav", 0.1f);     // Done
     soundManager->registerSfx("PLAYER_HURT", "sounds/player_hurt.mp3", 0.3f);     // Done
     soundManager->registerSfx("PLAYER_DEATH", "sounds/player_death.wav", 0.5f);   // Done
-    soundManager->registerSfx("MINE_COMPLETE", "sounds/mine_complete.wav", 0.2f); // Done
-    soundManager->registerSfx("MINE_TICK", "sounds/mine_tick.wav", 0.2f);         // Done
+    soundManager->registerSfx("MINE_COMPLETE", "sounds/mine_complete.wav", 0.05f); // Done
+    soundManager->registerSfx("MINE_TICK", "sounds/mine_tick.wav", 0.15f);         // Done
     soundManager->registerSfx("ORC_ATTACK", "sounds/orc_attack.mp3", 0.1f);
     soundManager->registerSfx("ORC_HURT", "sounds/orc_hurt.mp3", 0.05f);
     soundManager->registerSfx("ORC_DEATH", "sounds/orc_death.mp3", 0.5f);
@@ -519,11 +519,11 @@ void _scene::initScene(bool loadWorld)
         }
 
         // Spawn Pickups //
-        const int num_hp_pickups = 150;
-        const int num_ammo_pickups = 150;
-        const int num_speed_pickups = 35;
-        const int num_max_hp_pickups = 40;
-        const int num_fire_rate_pickups = 30;
+        const int num_hp_pickups = 350;
+        const int num_ammo_pickups = 350;
+        const int num_speed_pickups = 80;
+        const int num_max_hp_pickups = 80;
+        const int num_fire_rate_pickups = 80;
 
         uniform_real_distribution<float> hp_pos_dist(-10000, 10000);
         uniform_real_distribution<float> ammo_pos_dist(-10000, 10000);
@@ -1070,7 +1070,7 @@ void _scene::updateScene(double dt, bool *keysArray)
             break;
         case PLAYER_EVENT_LEVEL_BOSS:
             cout << "Player entered level: BOSS\n";
-            soundManager->playBackgroundMusic("sounds/level_boss.wav",0.3f);
+            soundManager->playBackgroundMusic("sounds/level_boss.wav",0.15f);
             player->playerLevelEvent = PLAYER_EVENT_LEVEL_NONE;
             break;
     }
