@@ -77,8 +77,20 @@ void _scene::initScene(bool loadWorld)
     fpsTimer->reset();
     interactionTimer->reset();
     fireRateTimer.reset();
-
+    
     myWorld->initWorld(loadWorld,lightManager.get());         // Initialize the world
+
+    // PICKUPS //
+    pickupManager->initPickupManager("images/pickups/pickup_sheet.png",1,player.get(),lightManager.get());
+    test_pickup_config.imageIndex = 0;
+    test_pickup_config.size = 5.0f;
+
+    test_pickup_config.health = 25.0f;
+    test_pickup_config.maxHealth = 0.0f;
+    test_pickup_config.ammo = 25.0f;
+    test_pickup_config.speed = 0.0f;
+    test_pickup_config.fireRate = 0.0f;
+    test_pickup_config.xp = 0.0f;
 
     // TEXTURE LOADER //
     if (!loadWorld) setupTextures();
@@ -769,11 +781,14 @@ void _scene::drawScene()
     myWorld->drawWorld(left, right, top, bottom); // Draw the world
     drawWorldBenchmark.clickBenchmark();
 
-    bulletManager->drawBulletManager();
-
+    
     drawEnemiesBenchmark.startBenchmark();
     enemyManager->drawEnemies();
     drawEnemiesBenchmark.clickBenchmark();
+    
+    bulletManager->drawBulletManager();
+    
+    pickupManager->drawPickups();
 
     FOB->drawFob();
     
@@ -828,6 +843,7 @@ void _scene::updateScene(double dt, bool *keysArray)
     myWorld->updateWorld(dt);
     player->updatePlayer(dt);
     FOB->updateFob(dt);
+    pickupManager->updatePickups(dt);
 
     switch (player->playerLevelEvent) {
         case PLAYER_EVENT_LEVEL_OUTER:
@@ -1248,6 +1264,9 @@ void _scene::keyboardHandler(WPARAM wParam)
         case 54: // "6"
             enemyManager->addEnemy(mouseWorldPos, vampire_minion2_config);
             break;
+        case 55: // "7"
+            pickupManager->addPickup(mouseWorldPos,test_pickup_config);
+            break;
         case ' ': // SPACE
             break;
         case 82: // R
@@ -1383,6 +1402,7 @@ void _scene::applyCamera()
 
     _bulletManager::setViewProjectionMatrix(sceneViewProjectionMatrix);
     _particleManager::setViewProjectionMatrix(sceneViewProjectionMatrix);
+    _pickupManager::setViewProjectionMatrix(sceneViewProjectionMatrix);
     _enemyManager::setViewProjectionMatrix(sceneViewProjectionMatrix);
     _world::setViewProjectionMatrix(sceneViewProjectionMatrix);
     _world::setCameraPosition({cameraX,cameraY});

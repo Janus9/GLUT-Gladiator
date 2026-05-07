@@ -26,6 +26,7 @@
 #include<_fob.h>
 #include<_lightManager.h>
 #include<_textureManager.h>
+#include<_pickupManager.h>
 
 // Matrix math for shaders //
 #include <glm/glm.hpp>                      // Core library
@@ -144,6 +145,10 @@ class _scene
         _timerPlusPlus fireRateTimer;
 
         _shader* sh = new _shader();
+
+        // Pickups //
+        unique_ptr<_pickupManager> pickupManager = make_unique<_pickupManager>();
+        pickup_config test_pickup_config;
 
         _cell* hoveredCell = nullptr;
         _chunk* hoveredChunk = nullptr;
