@@ -112,8 +112,7 @@ void _player::initPlayer(_lightManager* lightManager) {
     }
 
     animationTable[PLAYER_ACTION_NULL][PLAYER_FACE_NULL] = {"NULL","NULL_NULL",{0,0},false};
-    currentResult = animationTable[PLAYER_ACTION_NULL][PLAYER_FACE_NULL];
-    setSingleSprite(null_sprite);
+    currentResult = animationTable[PLAYER_ACTION_IDLE][PLAYER_FACE_S];
 
     // Walk Animation //
     setupSprite("WALK");
@@ -218,6 +217,8 @@ void _player::initPlayer(_lightManager* lightManager) {
     animationTable[PLAYER_ACTION_IDLE][PLAYER_FACE_SW] = {"IDLE","IDLE_SW",{0,1}};
     animationTable[PLAYER_ACTION_IDLE][PLAYER_FACE_W] = {"IDLE","IDLE_W",{0,2}};
     animationTable[PLAYER_ACTION_IDLE][PLAYER_FACE_NW] = {"IDLE","IDLE_NW",{0,2}};
+    
+    // setSingleSprite(idle_sprite);
 
     // Idle Gun Animation //
     setupSprite("IDLE_GUN");

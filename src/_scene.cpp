@@ -602,6 +602,8 @@ void _scene::initScene(bool loadWorld)
         }
     }    
 
+    // player->setAction(PLAYER_ACTION_IDLE_GUN, PLAYER_FACE_S);
+
     sceneInitialized = true;
 }
 

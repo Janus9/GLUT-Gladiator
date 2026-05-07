@@ -185,6 +185,16 @@ void _menuManager::initMenuManager(_sounds* sharedSounds, _scene* _scene) {
         MENU_NULL
     });
 
+    menuList[MENU_PAUSE].addMenuObject({
+        "images/menu/info_button.png",
+        {0.2f, 0.2f},
+        {0.5f, 0.8f},
+        true,
+        "pause_info_button",
+        MENU_PAUSE,
+        MENU_INFO
+    });
+
     // -- WIN -- //
     menuList[MENU_WIN].initMenu(MENU_WIN);
     menuList[MENU_WIN].addMenuObject({
