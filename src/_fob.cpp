@@ -180,6 +180,7 @@ void _fob::evaluatePlayer() {
         particleManager->spawnEffect(pos,death_4_effect);
         fob_sprite->setIdleFrame(14,4);
         fob_sprite->playAction("DEATH");
+        sceneSoundManager->playSfx("ENEMY_DEATH");
         return;
     }
 

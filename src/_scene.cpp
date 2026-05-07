@@ -201,6 +201,7 @@ void _scene::initScene(bool loadWorld)
     hud->getHudSprite("PROGRESS_BAR")->getSprite()->createSpriteAction(sprite_action("DEFAULT", 0, 0, 4));
     hud->getHudSprite("PROGRESS_BAR")->getSprite()->loadSpriteAction("DEFAULT");
     hud->getHudSprite("PROGRESS_BAR")->getSprite()->setIdleFrame(0, 0);
+    hud->getHudSprite("PROGRESS_BAR")->visible = false;
 
     myLight->setLight(GL_LIGHT0); // The light onto the object from the pointer is set to be the instantiated light from before
 
