@@ -20,6 +20,7 @@ enum menu_type {
     MENU_HELP,
     MENU_PAUSE,
     MENU_SAVES,
+    MENU_WIN,
     MENU_COUNT // DO NOT MOVE -- KEEP AT BACK
 };
 
@@ -80,6 +81,8 @@ class _menuManager {
 
         // Sets window dimensions for menu drawing
         static void setWindowDimensions(const Vec2i &dim);
+
+        bool closeGameEvent = false;
     protected:
     private:
         /**
@@ -191,6 +194,7 @@ class _menuManager {
                 bool generateWorldEvent = false;
                 bool loadWorldEvent = false;
                 bool saveGameEvent = false;
+                bool endGameEvent = false;
             protected:
             private:
                 vector<unique_ptr<_menuObject>> menuObjects;

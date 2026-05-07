@@ -997,20 +997,48 @@ void _scene::updateScene(double dt, bool *keysArray)
         enemyManager->bossKilledEvent = false;
         gameEnded = true;
         gameWon = true;
-        cout << "GAME FINISHED!\n";
+        cout << "GAME WON!\n";
+    }
+
+    if (player->isRealDead) {
+        gameEnded = true;
+        gameWon = false;
+        cout << "GAME LOST\n";
     }
 
     if (gameEnded) {
-        player_light.intensity -= 0.3 * dt;
-        boss_light.intensity -= 0.3 * dt;
+        player_light.intensity -= 0.15 * dt;
+        boss_light.intensity -= 0.15 * dt;
+        fob_light.intensity = 0.0f;
 
         *lightManager->getLightIntensity("PLAYER_LIGHT") = player_light.intensity;
         *lightManager->getLightIntensity("BOSS_LIGHT") = boss_light.intensity;
+        *lightManager->getLightIntensity("FOB_LIGHT") = fob_light.intensity;
 
         gameEndedTimeElapsed += dt;
     }
 
+    if (gameEnded && gameEndedTimeElapsed > 3.0) {
+        soundManager->playBackgroundMusic("sounds/win_music.wav",0.075f);
+    }
+
     const float playerSpeed = player->movementSpeed;
+
+    if (gameUnPausedEvent) {
+        cout << "Game un-paused!\n";
+        gameUnPausedEvent = false;
+
+        const float distance = player->pos.distance({0.0f,0.0f});
+        if (distance > 8000.0f) {
+            player->playerLevelEvent = PLAYER_EVENT_LEVEL_OUTER;
+        } else if (distance < 8000.0f && distance > 3000.0f) {
+            player->playerLevelEvent = PLAYER_EVENT_LEVEL_MIDDLE;
+        } else if (distance < 3000.0f && distance > 400.0f) {
+            player->playerLevelEvent = PLAYER_EVENT_LEVEL_CENTER;
+        } else {
+            player->playerLevelEvent = PLAYER_EVENT_LEVEL_BOSS;
+        }
+    }
 
     switch (player->playerLevelEvent) {
         case PLAYER_EVENT_LEVEL_OUTER:

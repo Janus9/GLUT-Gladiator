@@ -357,8 +357,9 @@ LRESULT CALLBACK WndProc(	HWND	hWnd,			// Handle For This Window
 		case WM_KEYDOWN:							// Is A Key Being Held Down?
 		{
 			keys[wParam] = TRUE;					// If So, Mark It As TRUE
-			if (wParam == VK_ESCAPE) {
+			if (wParam == VK_ESCAPE && menuManager->getLoadedMenu() == MENU_GAME) {
 				cout << "Escape key pressed -- pausing game!\n";
+				sharedSounds->playBackgroundMusic("sounds/main_menu_music.ogg", 0.3f);
 				menuManager->loadMenu(MENU_PAUSE);
 			}
 			return 0;								// Jump Back
@@ -477,6 +478,11 @@ int WINAPI WinMain(	HINSTANCE	hInstance,			// Instance
 					menuManager->loadGame = false;
 				}
 
+				// Loads up the menu on game completion
+				if (myScene->gameWon && myScene->gameEndedTimeElapsed > 4.0) {
+					menuManager->loadMenu(MENU_WIN);
+				}
+
 				// Show Scene //
 				glViewport(0,0,wWidth,wHeight);
 				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -496,7 +502,13 @@ int WINAPI WinMain(	HINSTANCE	hInstance,			// Instance
 				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 				if (timer->getMilliseconds() > UPDATE_DELAY) // If the time since the last update is greater than 16.67ms (60fps), update the scene
 				{
-					double dt = timer->getSeconds();
+					const double dt = timer->getSeconds();
+					
+					if (menuManager->closeGameEvent) {
+						// Closes the game
+						PostMessage(hWnd, WM_CLOSE, 0, 0);
+					}
+					
 					menuManager->updateMenuManager(dt,mouseScreenClipPos,LMB); //Update the scene with the time since the last update
 					myScene->updateAudio(dt); // Tick audio fades while on the main menu so music ramps up before entering game
 					timer->reset(); // Reset the timer for the next update

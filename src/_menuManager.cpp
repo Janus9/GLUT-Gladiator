@@ -150,7 +150,7 @@ void _menuManager::initMenuManager(_sounds* sharedSounds, _scene* _scene) {
     menuList[MENU_PAUSE].addMenuObject({
         "images/menu/continue_button.png",
         {0.2f, 0.2f},
-        {0.50f, 0.2f},
+        {0.60f, 0.2f},
         true,
         "pause_continue_button",
         MENU_PAUSE,
@@ -168,10 +168,41 @@ void _menuManager::initMenuManager(_sounds* sharedSounds, _scene* _scene) {
     menuList[MENU_PAUSE].addMenuObject({
         "images/menu/save_button.png",
         {0.2f, 0.2f},
-        {0.5f, 0.5f},
+        {0.6f, 0.5f},
         true,
         "pause_save_button",
         MENU_PAUSE,
+        MENU_NULL
+    });
+
+    menuList[MENU_PAUSE].addMenuObject({
+        "images/menu/exit_game_button.png",
+        {0.2f, 0.2f},
+        {0.8f, 0.5f},
+        true,
+        "exit_game_button",
+        MENU_PAUSE,
+        MENU_NULL
+    });
+
+    // -- WIN -- //
+    menuList[MENU_WIN].initMenu(MENU_WIN);
+    menuList[MENU_WIN].addMenuObject({
+        "images/menu/win_page.png",
+        {1.0f, 1.0f},
+        {0.5f, 0.5f},
+        false,
+        "win_bg",
+        MENU_WIN,
+        MENU_NULL
+    });
+    menuList[MENU_WIN].addMenuObject({
+        "images/menu/exit_game_button.png",
+        {0.2f, 0.2f},
+        {0.6f, 0.1f},
+        true,
+        "exit_game_button",
+        MENU_WIN,
         MENU_NULL
     });
 }
@@ -212,11 +243,18 @@ void _menuManager::updateMenuManager(double dt, const Vec2f &mousePos, bool mous
         }
     }
 
+    if (menu->endGameEvent) {
+        cout << "Exit Game Event!\n";
+        menu->endGameEvent = false;
+        closeGameEvent = true;
+    }
+
     if (menu->redirectTo != MENU_NULL) {
         if (menu->redirectTo == MENU_GAME) {
             if (!scene->isInitialized()) return; // Scene must be initialized if were trying to load the game
             loadGame = true;
             if (sounds) sounds->playSfx("GAME_START");
+            scene->gameUnPausedEvent = true;
             // if (sounds) sounds->playBackgroundMusic("sounds/gameplay_music.wav", 0.2f);
         }
         loadMenu(menu->redirectTo);     // Load menu
@@ -497,6 +535,8 @@ void _menuManager::_menu::updateMenu(double dt, const Vec2f &mousePos, bool mous
                 loadWorldEvent = true;
             } else if (menuObject->getID() == "pause_save_button") {
                 saveGameEvent = true;
+            } else if (menuObject->getID() == "exit_game_button") {
+                endGameEvent = true;
             }
             if (sounds) sounds->playSfx("MENU_CLICK");
             redirectTo = menuObject->getDestination();
