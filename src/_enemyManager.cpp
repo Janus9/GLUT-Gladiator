@@ -510,6 +510,7 @@ void _enemyManager::updateEnemies(double dt) {
 
                 // If dead update death time to final death event
                 if (enemy->isDead()) {
+                    sounds->removeSfx3DLooped(enemy->getID());
                     enemy->deathTime += dt;
                     continue;
                 }
