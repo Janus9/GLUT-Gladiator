@@ -184,6 +184,8 @@ class _player : public _unit {
         particle_effect player_hit_effect;
         particle_effect resupply_health_effect;
         particle_effect resupply_ammo_effect;
+
+        unique_ptr<_sprite> navSprite = make_unique<_sprite>();
 };
 
 #endif // _PLAYER_H

@@ -99,6 +99,10 @@ void _player::initPlayer(_lightManager* lightManager) {
 
     // -- ANIMATIONS -- //
 
+    navSprite->initSprite("images/player/nav.png",1,1, sprite_direction::LEFT,24);
+    navSprite->scale = {0.8f, 0.8f};
+    navSprite->offsetPoint = {8.0f, 7.0f};
+
     setupSprite("NULL");
     _sprite* null_sprite = getSprite("NULL");
     if (null_sprite) {
@@ -350,6 +354,11 @@ void _player::updatePlayer(double dt) {
 
     if (isRealDead) return; // Player is really dead -- game over
 
+    float speed = 90.0f;
+    const float rotNeeded = GetRotationAngle(pos,{0.0f,0.0f});
+    navSprite->rot = rotNeeded;
+    navSprite->pos = pos;
+
     // Damage Event //
     if (playerTookDamage) {
         particleManger->spawnEffect(pos,player_hit_effect);
@@ -435,6 +444,7 @@ void _player::updatePlayer(double dt) {
 void _player::drawPlayer() {
     if (isRealDead) return; // Player dead skip drawing
     drawUnitSingular();
+    navSprite->drawSprite();
     particleManger->drawParticleManager();
 }
 
