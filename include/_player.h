@@ -123,7 +123,7 @@ class _player : public _unit {
         bool isReloading() const;
 
         // Player Variables //
-        int lives = 3;
+        int lives = 0;
         float respawnTime = 5.0f; // Seconds to respawn.
         float movementSpeed = 120.0f; // World units / second
         Vec2f spawnPos = {0.0f, 0.0f};
@@ -148,6 +148,7 @@ class _player : public _unit {
         bool playerTookDamage = false;
         bool playerShootEvent = false;
         bool playerRespawnedEvent = false;
+        bool playerLoseEvent = false;
 
         player_enterered_level_event playerLevelEvent = PLAYER_EVENT_LEVEL_NONE;
     protected:

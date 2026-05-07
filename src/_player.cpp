@@ -493,6 +493,7 @@ void _player::handlePlayerDeath(player_face face) {
         pos = spawnPos;
         lives--;
         if (lives <= -1) {
+            playerLoseEvent = true;
             isRealDead = true;
         }
         setAction(PLAYER_ACTION_IDLE_GUN,PLAYER_FACE_N);

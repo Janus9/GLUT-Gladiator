@@ -937,8 +937,9 @@ void _scene::drawScene()
     
     pickupManager->drawPickups();
 
+    FOB->drawFob();
+    
     if (!gameEnded) {
-        FOB->drawFob();
         
         player->drawPlayer();
         hud->drawHud();
@@ -1000,7 +1001,8 @@ void _scene::updateScene(double dt, bool *keysArray)
         cout << "GAME WON!\n";
     }
 
-    if (player->isRealDead) {
+    if (player->playerLoseEvent) {
+        player->playerLoseEvent = false;
         gameEnded = true;
         gameWon = false;
         cout << "GAME LOST\n";
@@ -1013,13 +1015,21 @@ void _scene::updateScene(double dt, bool *keysArray)
 
         *lightManager->getLightIntensity("PLAYER_LIGHT") = player_light.intensity;
         *lightManager->getLightIntensity("BOSS_LIGHT") = boss_light.intensity;
-        *lightManager->getLightIntensity("FOB_LIGHT") = fob_light.intensity;
+
+        if (!player->isRealDead) {
+            *lightManager->getLightIntensity("FOB_LIGHT") = fob_light.intensity;
+        }
 
         gameEndedTimeElapsed += dt;
     }
 
-    if (gameEnded && gameEndedTimeElapsed > 3.0) {
-        soundManager->playBackgroundMusic("sounds/win_music.wav",0.075f);
+    if (gameEnded && !playEndSongEvent) {
+        playEndSongEvent = true;
+        if (gameWon) {
+            soundManager->playBackgroundMusic("sounds/win_music.wav",0.075f);
+        } else {
+            soundManager->playBackgroundMusic("sounds/loose_music.ogg",0.075f);
+        }
     }
 
     const float playerSpeed = player->movementSpeed;

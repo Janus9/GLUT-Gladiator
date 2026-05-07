@@ -205,6 +205,27 @@ void _menuManager::initMenuManager(_sounds* sharedSounds, _scene* _scene) {
         MENU_WIN,
         MENU_NULL
     });
+
+    // -- LOOSE -- //
+    menuList[MENU_WIN].initMenu(MENU_LOOSE);
+    menuList[MENU_LOOSE].addMenuObject({
+        "images/menu/loose_page.png",
+        {1.0f, 1.0f},
+        {0.5f, 0.5f},
+        false,
+        "loose_bg",
+        MENU_LOOSE,
+        MENU_NULL
+    });
+    menuList[MENU_LOOSE].addMenuObject({
+        "images/menu/loose_game_button.png",
+        {0.2f, 0.2f},
+        {0.65f, 0.1f},
+        true,
+        "exit_game_button",
+        MENU_LOOSE,
+        MENU_NULL
+    });
 }
 
 void _menuManager::drawMenuManager() {

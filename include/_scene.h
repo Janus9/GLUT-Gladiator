@@ -80,6 +80,7 @@ class _scene
         bool gameEnded = false;
         bool gameWon = false;
         bool gameUnPausedEvent = false;
+        bool playEndSongEvent = false;
     protected:
     private:
     

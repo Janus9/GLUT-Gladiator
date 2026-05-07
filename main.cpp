@@ -483,6 +483,11 @@ int WINAPI WinMain(	HINSTANCE	hInstance,			// Instance
 					menuManager->loadMenu(MENU_WIN);
 				}
 
+				// Loads up the menu on game completion
+				if (!myScene->gameWon && myScene->gameEndedTimeElapsed > 4.0) {
+					menuManager->loadMenu(MENU_LOOSE);
+				}
+
 				// Show Scene //
 				glViewport(0,0,wWidth,wHeight);
 				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

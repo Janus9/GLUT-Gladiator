@@ -21,6 +21,7 @@ enum menu_type {
     MENU_PAUSE,
     MENU_SAVES,
     MENU_WIN,
+    MENU_LOOSE,
     MENU_COUNT // DO NOT MOVE -- KEEP AT BACK
 };
 
