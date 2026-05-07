@@ -60,7 +60,7 @@ void _menuManager::initMenuManager(_sounds* sharedSounds, _scene* _scene) {
     menuList[MENU_HOME].addMenuObject({
         "images/menu/play_button.png",
         {0.2f, 0.2f},
-        {0.5f, 0.2f},
+        {0.75f, 0.2f},
         true,
         "home_start_button",
         MENU_HOME,
@@ -69,21 +69,21 @@ void _menuManager::initMenuManager(_sounds* sharedSounds, _scene* _scene) {
     menuList[MENU_HOME].addMenuObject({
         "images/menu/help_button.png",
         {0.2f, 0.2f},
-        {0.15f, 0.2f},
+        {0.25f, 0.2f},
         true,
         "home_help_button",
         MENU_HOME,
         MENU_HELP
     });
-    menuList[MENU_HOME].addMenuObject({
-        "images/menu/landing_button.png",
-        {0.2f, 0.2f},
-        {0.85f, 0.2f},
-        true,
-        "home_landing_button",
-        MENU_HOME,
-        MENU_LANDING
-    });
+    // menuList[MENU_HOME].addMenuObject({
+    //     "images/menu/landing_button.png",
+    //     {0.2f, 0.2f},
+    //     {0.85f, 0.2f},
+    //     true,
+    //     "home_landing_button",
+    //     MENU_HOME,
+    //     MENU_LANDING
+    // });
 
     // -- Saves -- //
     menuList[MENU_SAVES].initMenu(MENU_SAVES);
@@ -99,16 +99,16 @@ void _menuManager::initMenuManager(_sounds* sharedSounds, _scene* _scene) {
     menuList[MENU_SAVES].addMenuObject({
         "images/menu/new_game_button.png",
         {0.2f, 0.2f},
-        {0.35f, 0.2f},
+        {0.15f, 0.2f},
         true,
         "saves_generate_button",
         MENU_SAVES,
-        MENU_GAME
+        MENU_INFO
     });
     menuList[MENU_SAVES].addMenuObject({
         "images/menu/load_game_button.png",
         {0.2f, 0.2f},
-        {0.65f, 0.2f},
+        {0.85f, 0.2f},
         true,
         "saves_load_button",
         MENU_SAVES,
@@ -207,7 +207,7 @@ void _menuManager::initMenuManager(_sounds* sharedSounds, _scene* _scene) {
     });
 
     // -- LOOSE -- //
-    menuList[MENU_WIN].initMenu(MENU_LOOSE);
+    menuList[MENU_LOOSE].initMenu(MENU_LOOSE);
     menuList[MENU_LOOSE].addMenuObject({
         "images/menu/loose_page.png",
         {1.0f, 1.0f},
@@ -225,6 +225,27 @@ void _menuManager::initMenuManager(_sounds* sharedSounds, _scene* _scene) {
         "exit_game_button",
         MENU_LOOSE,
         MENU_NULL
+    });
+
+    // -- INFO -- //
+    menuList[MENU_INFO].initMenu(MENU_INFO);
+    menuList[MENU_INFO].addMenuObject({
+        "images/menu/intro_page.png",
+        {1.0f, 1.0f},
+        {0.5f, 0.5f},
+        false,
+        "info_bg",
+        MENU_INFO,
+        MENU_NULL
+    });
+    menuList[MENU_INFO].addMenuObject({
+        "images/menu/continue_button.png",
+        {0.15f, 0.10f},
+        {0.5f, 0.09f},
+        true,
+        "info_continue_button",
+        MENU_INFO,
+        MENU_GAME
     });
 }
 

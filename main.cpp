@@ -286,7 +286,7 @@ BOOL CreateGLWindow(char* title, int width, int height, int bits, bool fullscree
 	sharedSounds->registerSfx("GAME_START", "sounds/level_start.ogg", 0.6f);
 
 	menuManager->initMenuManager(sharedSounds, myScene);
-	menuManager->loadMenu(MENU_LANDING); // CHANGE LATER
+	menuManager->loadMenu(MENU_HOME); 
 	sharedSounds->playBackgroundMusic("sounds/main_menu_music.ogg", 0.3f);
 	return TRUE;									// Success
 }
