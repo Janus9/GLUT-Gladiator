@@ -81,7 +81,7 @@ void _scene::initScene(bool loadWorld)
     myWorld->initWorld(loadWorld,lightManager.get());         // Initialize the world
 
     // PICKUPS //
-    pickupManager->initPickupManager("images/pickups/pickup_sheet.png",5,player.get(),lightManager.get());
+    pickupManager->initPickupManager("images/pickups/pickup_sheet.png",6,player.get(),lightManager.get());
     test_pickup_config.imageIndex = 0;
     test_pickup_config.size = 5.0f;
 
@@ -453,6 +453,13 @@ void _scene::initScene(bool loadWorld)
                 enemyManager->addEnemy(spawnVampMiniPos,vampire_minion2_config);
             }
         }
+
+        // Spawn Pickups //
+        const int num_hp_pickups = 50;
+        const int num_ammo_pickups = 50;
+        const int num_speed_pickups = 50;
+        const int num_hp_pickups = 50;
+        const int num_hp_pickups = 50;
     }    
 
     sceneInitialized = true;
