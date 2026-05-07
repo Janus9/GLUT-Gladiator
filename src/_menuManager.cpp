@@ -97,30 +97,20 @@ void _menuManager::initMenuManager(_sounds* sharedSounds, _scene* _scene) {
         MENU_NULL
     });
     menuList[MENU_SAVES].addMenuObject({
-        "images/menu/generate_button.png",
+        "images/menu/new_game_button.png",
         {0.2f, 0.2f},
         {0.35f, 0.2f},
         true,
         "saves_generate_button",
         MENU_SAVES,
-        MENU_NULL
+        MENU_GAME
     });
     menuList[MENU_SAVES].addMenuObject({
-        "images/menu/load_button.png",
+        "images/menu/load_game_button.png",
         {0.2f, 0.2f},
         {0.65f, 0.2f},
         true,
         "saves_load_button",
-        MENU_SAVES,
-        MENU_NULL
-    });
-
-    menuList[MENU_SAVES].addMenuObject({
-        "images/menu/start_button.png",
-        {0.2f, 0.2f},
-        {0.5f, 0.5f},
-        true,
-        "saves_start_button",
         MENU_SAVES,
         MENU_GAME
     });
@@ -195,16 +185,6 @@ void _menuManager::updateMenuManager(double dt, const Vec2f &mousePos, bool mous
     mouseScreenClipPosition = mousePos;
 
     menu->updateMenu(dt,mousePos,mouseClicked,sounds);
-    if (menu->redirectTo != MENU_NULL) {
-        if (menu->redirectTo == MENU_GAME) {
-            if (!scene->isInitialized()) return; // Scene must be initialized if were trying to load the game
-            loadGame = true;
-            if (sounds) sounds->playSfx("GAME_START");
-            // if (sounds) sounds->playBackgroundMusic("sounds/gameplay_music.wav", 0.2f);
-        }
-        loadMenu(menu->redirectTo);     // Load menu
-        menu->redirectTo = MENU_NULL;   // Reset menu redirection state
-    }
 
     if (menu->generateWorldEvent) {
         cout << "Generate World Event!\n";
@@ -230,6 +210,17 @@ void _menuManager::updateMenuManager(double dt, const Vec2f &mousePos, bool mous
             cout << "ERROR: Failed to save game correctly\n";
             return;
         }
+    }
+
+    if (menu->redirectTo != MENU_NULL) {
+        if (menu->redirectTo == MENU_GAME) {
+            if (!scene->isInitialized()) return; // Scene must be initialized if were trying to load the game
+            loadGame = true;
+            if (sounds) sounds->playSfx("GAME_START");
+            // if (sounds) sounds->playBackgroundMusic("sounds/gameplay_music.wav", 0.2f);
+        }
+        loadMenu(menu->redirectTo);     // Load menu
+        menu->redirectTo = MENU_NULL;   // Reset menu redirection state
     }
 }
 
