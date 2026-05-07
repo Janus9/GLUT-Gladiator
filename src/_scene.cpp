@@ -937,11 +937,12 @@ void _scene::drawScene()
     
     pickupManager->drawPickups();
 
-    FOB->drawFob();
-    
-    player->drawPlayer();
-
-    hud->drawHud();
+    if (!gameEnded) {
+        FOB->drawFob();
+        
+        player->drawPlayer();
+        hud->drawHud();
+    }
 
     // For FPS measuring
     frameCount++;
@@ -991,6 +992,23 @@ void _scene::updateScene(double dt, bool *keysArray)
     player->updatePlayer(dt);
     FOB->updateFob(dt);
     pickupManager->updatePickups(dt);
+
+    if (enemyManager->bossKilledEvent) {
+        enemyManager->bossKilledEvent = false;
+        gameEnded = true;
+        gameWon = true;
+        cout << "GAME FINISHED!\n";
+    }
+
+    if (gameEnded) {
+        player_light.intensity -= 0.3 * dt;
+        boss_light.intensity -= 0.3 * dt;
+
+        *lightManager->getLightIntensity("PLAYER_LIGHT") = player_light.intensity;
+        *lightManager->getLightIntensity("BOSS_LIGHT") = boss_light.intensity;
+
+        gameEndedTimeElapsed += dt;
+    }
 
     const float playerSpeed = player->movementSpeed;
 
@@ -1303,7 +1321,7 @@ void _scene::updateScene(double dt, bool *keysArray)
         if (D)
             cameraX += cameraSpeed * dt;
     }
-    else if (!player->isDead() && !player->isRealDead)
+    else if (!player->isDead() && !player->isRealDead && !gameEnded)
     {
         if (W && !collisionTable[0])
             player->pos.y += playerSpeed * dt;

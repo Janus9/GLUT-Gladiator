@@ -75,9 +75,14 @@ class _scene
 
         // Returns true if the scene is initialized and ready
         bool isInitialized() const;
-    protected:
+
+        protected:
     private:
+        double gameEndedTimeElapsed = 0.0;
+    
         bool sceneInitialized = false;
+        bool gameEnded = false;
+        bool gameWon = false;
 
         // Window dimensions
         int width, height; 

@@ -498,6 +498,9 @@ void _enemyManager::updateEnemies(double dt) {
                     vampire->triggerDeath(sounds);
                     continue;
                 } else if (enemy->isDead() && enemy->deathTime > enemy->timeInDeathAnimation) {
+                    if (vampire->isBoss) {
+                        bossKilledEvent = true;
+                    }
                     enemyList.erase(enemyList.begin() + i);
                     continue;
                 }

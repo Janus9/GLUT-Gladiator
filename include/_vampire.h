@@ -65,6 +65,7 @@ class _vampire : public _enemy {
         bool   damageDealtThisSwing = false;
         bool   inHurt               = false;
         double hurtTimer            = 0.0;
+        bool isBoss = false;
 
     private:
         struct VampireAnim {

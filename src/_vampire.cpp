@@ -51,6 +51,7 @@ void _vampire::initVampire(const _textureManager* sceneTextureManager, vampire_v
             vType = ENEMY_VAMPIRE_MINION2;
             break;
         case VAMPIRE_BOSS:
+            isBoss = true;
         default:
             spritePrefix = "images/enemy/vampire/Vampire_";
             vScale = 1.5f; vBox = 24.0f; vMaxHP = 500.0f; vDamage = 30.0f;

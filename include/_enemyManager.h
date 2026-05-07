@@ -167,6 +167,9 @@ class _enemyManager {
         pickup_config max_health_pickup;
         pickup_config fire_rate_pickup;
         pickup_config xp_pickup;
+
+        // EVENTS //
+        bool bossKilledEvent = false;
     protected:
     private:
         _player* player = nullptr;                      // Pointer to player instance instantiated in scene (non-owning)
