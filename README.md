@@ -20,3 +20,9 @@ make debug
 
 How to run in powershell
 .\build\debug\main.exe
+
+**Contributions**
+
+- **Frank Bernal**: TODO
+- **Joshua Bayt**: TODO
+- **Daniel Remington**: TODO
