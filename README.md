@@ -24,5 +24,10 @@ How to run in powershell
 **Contributions**
 
 - **Frank Bernal**: TODO
-- **Joshua Bayt**: TODO
+- **Joshua Bayt**: (Lead Software Engineer and Project Lead) 
+  - World generation algorithm and world structure
+  - Save/Load functionality
+  - Artwork for tiles and turret sprites
+  - Shader implemenation + lighting
+  - Particle engine + Bullet system
 - **Daniel Remington**: TODO
