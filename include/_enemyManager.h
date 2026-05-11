@@ -130,6 +130,9 @@ class _enemyManager {
         // Adds a single enemy (only 1 type for now)
         void addEnemy(const Vec2f &_pos, const enemy_config &config);
 
+        // Intended to remove enemies and reset map
+        void clearEnemies() { enemyList.clear(); layerMap.clear(); spriteCount = 0; }
+
         // Returns a vector of all the serialized enemies for saving
         vector<enemy_serial_data> exportSerializedEnemies() const;
         

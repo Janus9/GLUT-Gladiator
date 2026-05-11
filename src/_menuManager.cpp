@@ -1,8 +1,7 @@
 #include <_menuManager.h>
 
-// ============ Menu Manager ============ //
 
-// -- STATIC -- //
+// STATIC
 
 Vec2i _menuManager::windowDimensions = {0,0};
 
@@ -11,7 +10,7 @@ void _menuManager::setWindowDimensions(const Vec2i &dim) {
     windowDimensions = dim;
 }
 
-// -- PUBLIC -- //
+// PUBLIC
 
 _menuManager::_menuManager() {
 }
@@ -21,242 +20,55 @@ _menuManager::~_menuManager() {
 
 void _menuManager::initMenuManager(_sounds* sharedSounds, _scene* _scene) {
     cout << "Initializing the menu manager ...\n";
-
     sounds = sharedSounds;
     scene = _scene;
 
-    //  -- Landing --  //
+    //Landing Page
     menuList[MENU_LANDING].initMenu(MENU_LANDING);
-    menuList[MENU_LANDING].addMenuObject({
-        "images/menu/landing_page.png",
-        {1.0f, 1.0f},
-        {0.5f, 0.5f},
-        false,
-        "landing_bg",
-        MENU_LANDING,
-        MENU_NULL
-    });
-    menuList[MENU_LANDING].addMenuObject({
-        "images/menu/continue_button.png",
-        {0.2f, 0.2f},
-        {0.5f, 0.2f},
-        true,
-        "landing_continue_button",
-        MENU_LANDING,
-        MENU_HOME
-    });
+    menuList[MENU_LANDING].addMenuObject({"images/menu/landing_page.png",{1.0f,1.0f},{0.5f,0.5f},false,"landing_bg",MENU_LANDING,MENU_NULL});
+    menuList[MENU_LANDING].addMenuObject({"images/menu/continue_button.png",{0.09f,0.07f},{0.5f,0.15f},true,"landing_continue_button",MENU_LANDING,MENU_HOME});
 
-    // -- Home -- //
+    //Home Page
     menuList[MENU_HOME].initMenu(MENU_HOME);
-    menuList[MENU_HOME].addMenuObject({
-        "images/menu/home_page.png",
-        {1.0f, 1.0f},
-        {0.5f, 0.5f},
-        false,
-        "home_bg",
-        MENU_HOME,
-        MENU_NULL
-    });
-    menuList[MENU_HOME].addMenuObject({
-        "images/menu/play_button.png",
-        {0.2f, 0.2f},
-        {0.75f, 0.2f},
-        true,
-        "home_start_button",
-        MENU_HOME,
-        MENU_SAVES
-    });
-    menuList[MENU_HOME].addMenuObject({
-        "images/menu/help_button.png",
-        {0.2f, 0.2f},
-        {0.25f, 0.2f},
-        true,
-        "home_help_button",
-        MENU_HOME,
-        MENU_HELP
-    });
-    // menuList[MENU_HOME].addMenuObject({
-    //     "images/menu/landing_button.png",
-    //     {0.2f, 0.2f},
-    //     {0.85f, 0.2f},
-    //     true,
-    //     "home_landing_button",
-    //     MENU_HOME,
-    //     MENU_LANDING
-    // });
+    menuList[MENU_HOME].addMenuObject({"images/menu/home_page.png",{1.0f,1.0f},{0.5f,0.5f},false,"home_bg",MENU_HOME,MENU_NULL});
+    menuList[MENU_HOME].addMenuObject({"images/menu/play_button.png",    {0.09f,0.07f},{0.5f,0.65f},true,"home_start_button",MENU_HOME,MENU_SAVES});
+    menuList[MENU_HOME].addMenuObject({"images/menu/help_button.png",    {0.09f,0.07f},{0.5f,0.52f},true,"home_help_button",  MENU_HOME,MENU_HELP});
 
-    // -- Saves -- //
+    //Saves Page
     menuList[MENU_SAVES].initMenu(MENU_SAVES);
-    menuList[MENU_SAVES].addMenuObject({
-        "images/menu/landing_page.png",
-        {1.0f, 1.0f},
-        {0.5f, 0.5f},
-        false,
-        "saves_bg",
-        MENU_SAVES,
-        MENU_NULL
-    });
-    menuList[MENU_SAVES].addMenuObject({
-        "images/menu/new_game_button.png",
-        {0.2f, 0.2f},
-        {0.15f, 0.2f},
-        true,
-        "saves_generate_button",
-        MENU_SAVES,
-        MENU_INFO
-    });
-    menuList[MENU_SAVES].addMenuObject({
-        "images/menu/load_game_button.png",
-        {0.2f, 0.2f},
-        {0.85f, 0.2f},
-        true,
-        "saves_load_button",
-        MENU_SAVES,
-        MENU_GAME
-    });
+    menuList[MENU_SAVES].addMenuObject({"images/menu/landing_page.png",{1.0f,1.0f},{0.5f,0.5f},false,"saves_bg",MENU_SAVES,MENU_NULL});
+    menuList[MENU_SAVES].addMenuObject({"images/menu/new_game_button.png", {0.09f,0.07f},{0.5f,0.62f},true,"saves_generate_button",MENU_SAVES,MENU_INFO});
+    menuList[MENU_SAVES].addMenuObject({"images/menu/load_game_button.png",{0.09f,0.07f},{0.5f,0.49f},true,"saves_load_button",    MENU_SAVES,MENU_GAME});
 
-    // -- Help -- //
+    //Help Page
     menuList[MENU_HELP].initMenu(MENU_HELP);
-    menuList[MENU_HELP].addMenuObject({
-        "images/menu/help_page.png",
-        {1.0f, 1.0f},
-        {0.5f, 0.5f},
-        false,
-        "help_bg",
-        MENU_HELP,
-        MENU_NULL
-    });
-    menuList[MENU_HELP].addMenuObject({
-        "images/menu/back_button.png",
-        {0.2f, 0.2f},
-        {0.5f, 0.2f},
-        true,
-        "help_back_button",
-        MENU_HELP,
-        MENU_HOME
-    });
+    menuList[MENU_HELP].addMenuObject({"images/menu/help_page.png",{1.0f,1.0f},{0.5f,0.5f},false,"help_bg",MENU_HELP,MENU_NULL});
+    menuList[MENU_HELP].addMenuObject({"images/menu/back_button.png",{0.09f,0.07f},{0.5f,0.10f},true,"help_back_button",MENU_HELP,MENU_HOME});
 
-    // -- Pause -- //
+    //Pause Page
     menuList[MENU_PAUSE].initMenu(MENU_PAUSE);
-    menuList[MENU_PAUSE].addMenuObject({
-        "images/menu/help_page.png",
-        {1.0f, 1.0f},
-        {0.5f, 0.5f},
-        false,
-        "help_bg",
-        MENU_PAUSE,
-        MENU_NULL
-    });
-    menuList[MENU_PAUSE].addMenuObject({
-        "images/menu/continue_button.png",
-        {0.2f, 0.2f},
-        {0.60f, 0.2f},
-        true,
-        "pause_continue_button",
-        MENU_PAUSE,
-        MENU_GAME
-    });
-    menuList[MENU_PAUSE].addMenuObject({
-        "images/menu/menu_button.png",
-        {0.2f, 0.2f},
-        {0.8f, 0.2f},
-        true,
-        "pause_menu_button",
-        MENU_PAUSE,
-        MENU_HOME
-    });
-    menuList[MENU_PAUSE].addMenuObject({
-        "images/menu/save_button.png",
-        {0.2f, 0.2f},
-        {0.6f, 0.5f},
-        true,
-        "pause_save_button",
-        MENU_PAUSE,
-        MENU_NULL
-    });
+    menuList[MENU_PAUSE].addMenuObject({"images/menu/pause_page.png",{1.0f,1.0f},{0.5f,0.5f},false,"help_bg",MENU_PAUSE,MENU_NULL});
+    menuList[MENU_PAUSE].addMenuObject({"images/menu/continue_button.png",  {0.09f,0.07f},{0.5f,0.62f},true,"pause_continue_button",MENU_PAUSE,MENU_GAME});
+    menuList[MENU_PAUSE].addMenuObject({"images/menu/menu_button.png",      {0.09f,0.07f},{0.5f,0.50f},true,"pause_menu_button",    MENU_PAUSE,MENU_HOME});
+    menuList[MENU_PAUSE].addMenuObject({"images/menu/save_button.png",      {0.09f,0.07f},{0.5f,0.38f},true,"pause_save_button",    MENU_PAUSE,MENU_NULL});
+    menuList[MENU_PAUSE].addMenuObject({"images/menu/exit_game_button.png", {0.09f,0.07f},{0.5f,0.26f},true,"exit_game_button",     MENU_PAUSE,MENU_NULL});
+    menuList[MENU_PAUSE].addMenuObject({"images/menu/info_button.png",      {0.09f,0.07f},{0.5f,0.74f},true,"pause_info_button",    MENU_PAUSE,MENU_INFO});
 
-    menuList[MENU_PAUSE].addMenuObject({
-        "images/menu/exit_game_button.png",
-        {0.2f, 0.2f},
-        {0.8f, 0.5f},
-        true,
-        "exit_game_button",
-        MENU_PAUSE,
-        MENU_NULL
-    });
-
-    menuList[MENU_PAUSE].addMenuObject({
-        "images/menu/info_button.png",
-        {0.2f, 0.2f},
-        {0.5f, 0.8f},
-        true,
-        "pause_info_button",
-        MENU_PAUSE,
-        MENU_INFO
-    });
-
-    // -- WIN -- //
+    //WIN Page
     menuList[MENU_WIN].initMenu(MENU_WIN);
-    menuList[MENU_WIN].addMenuObject({
-        "images/menu/win_page.png",
-        {1.0f, 1.0f},
-        {0.5f, 0.5f},
-        false,
-        "win_bg",
-        MENU_WIN,
-        MENU_NULL
-    });
-    menuList[MENU_WIN].addMenuObject({
-        "images/menu/exit_game_button.png",
-        {0.2f, 0.2f},
-        {0.6f, 0.1f},
-        true,
-        "exit_game_button",
-        MENU_WIN,
-        MENU_NULL
-    });
+    menuList[MENU_WIN].addMenuObject({"images/menu/win_page.png",{1.0f,1.0f},{0.5f,0.5f},false,"win_bg",MENU_WIN,MENU_NULL});
+    menuList[MENU_WIN].addMenuObject({"images/menu/exit_game_button.png",{0.09f,0.07f},{0.5f,0.12f},true,"exit_game_button",MENU_WIN,MENU_NULL});
 
-    // -- LOOSE -- //
+    //LOOSE Page
     menuList[MENU_LOOSE].initMenu(MENU_LOOSE);
-    menuList[MENU_LOOSE].addMenuObject({
-        "images/menu/loose_page.png",
-        {1.0f, 1.0f},
-        {0.5f, 0.5f},
-        false,
-        "loose_bg",
-        MENU_LOOSE,
-        MENU_NULL
-    });
-    menuList[MENU_LOOSE].addMenuObject({
-        "images/menu/loose_game_button.png",
-        {0.2f, 0.2f},
-        {0.65f, 0.1f},
-        true,
-        "exit_game_button",
-        MENU_LOOSE,
-        MENU_NULL
-    });
+    menuList[MENU_LOOSE].addMenuObject({"images/menu/loose_page.png",{1.0f,1.0f},{0.5f,0.5f},false,"loose_bg",MENU_LOOSE,MENU_NULL});
+    menuList[MENU_LOOSE].addMenuObject({"images/menu/loose_game_button.png",{0.09f,0.07f},{0.5f,0.12f},true,"exit_game_button",MENU_LOOSE,MENU_NULL});
 
-    // -- INFO -- //
+    //INFO Page
     menuList[MENU_INFO].initMenu(MENU_INFO);
-    menuList[MENU_INFO].addMenuObject({
-        "images/menu/intro_page.png",
-        {1.0f, 1.0f},
-        {0.5f, 0.5f},
-        false,
-        "info_bg",
-        MENU_INFO,
-        MENU_NULL
-    });
-    menuList[MENU_INFO].addMenuObject({
-        "images/menu/continue_button.png",
-        {0.15f, 0.10f},
-        {0.5f, 0.09f},
-        true,
-        "info_continue_button",
-        MENU_INFO,
-        MENU_GAME
-    });
+    menuList[MENU_INFO].addMenuObject({"images/menu/intro_page.png",{1.0f,1.0f},{0.5f,0.5f},false,"info_bg",MENU_INFO,MENU_NULL});
+    menuList[MENU_INFO].addMenuObject({"images/menu/continue_button.png",{0.09f,0.07f},{0.5f,0.09f},true,"info_continue_button",MENU_INFO,MENU_GAME});
+
 }
 
 void _menuManager::drawMenuManager() {
@@ -307,7 +119,6 @@ void _menuManager::updateMenuManager(double dt, const Vec2f &mousePos, bool mous
             loadGame = true;
             if (sounds) sounds->playSfx("GAME_START");
             scene->gameUnPausedEvent = true;
-            // if (sounds) sounds->playBackgroundMusic("sounds/gameplay_music.wav", 0.2f);
         }
         loadMenu(menu->redirectTo);     // Load menu
         menu->redirectTo = MENU_NULL;   // Reset menu redirection state
@@ -327,9 +138,7 @@ menu_type _menuManager::getLoadedMenu() const {
 }
 
 
-// ============ Menu Object ============ //
-
-// -- PUBLIC -- //
+// PUBLIC
 
 _menuManager::_menuObject::_menuObject() {
 }
@@ -449,12 +258,10 @@ bool _menuManager::_menuObject::justEnteredHover() const {
     return mouseHovering && !prevMouseHovering;
 }
 
-// -- PRIVATE -- //
+//PRIVATE
 
 void _menuManager::_menuObject::buildVBO() {
-    /**
-     * primitives * vertices * 
-     */
+    // primitives * vertices * 
     float vboData[16];
     int vIndex = 0;
 
@@ -542,10 +349,8 @@ bool _menuManager::_menuObject::operator==(const _menuObject &other) const {
     return menuObjectID == other.menuObjectID;
 }
 
-// ============ MENU ============ //
 
-
-// -- PUBLIC -- //
+// PUBLIC
 
 _menuManager::_menu::_menu() {
     // ctor

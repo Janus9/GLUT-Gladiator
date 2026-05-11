@@ -104,6 +104,10 @@ void _sprite::drawSprite() {
         return;
     }
     
+    // Discard nearly-transparent pixels so they don't write to the depth buffer
+    glEnable(GL_ALPHA_TEST);
+    glAlphaFunc(GL_GREATER, 0.1f);
+
     glPushMatrix();
         texture->bindTexture();
         glColor4f(color.r, color.g, color.b, ocapacity);
@@ -205,6 +209,7 @@ void _sprite::drawSprite() {
             glEnable(GL_DEPTH_TEST);
         }
     glPopMatrix();
+    glDisable(GL_ALPHA_TEST);
 
     // Check for animation frame change
     if (animationTimer->getSeconds() > fpsDelay && playingAnimation && currentAction != nullptr) {

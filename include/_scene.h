@@ -76,6 +76,13 @@ class _scene
         // Returns true if the scene is initialized and ready
         bool isInitialized() const;
 
+        // Use for editor?
+        _world*        getWorld()         { return myWorld; }
+        _enemyManager* getEnemyManager()  { return enemyManager.get(); }
+
+        // Do we see the editor?
+        bool editorHUDVisible = false;
+
         double gameEndedTimeElapsed = 0.0;
         bool gameEnded = false;
         bool gameWon = false;
@@ -85,6 +92,8 @@ class _scene
     private:
     
         bool sceneInitialized = false;
+
+        void drawEditorHUD(); // Draws editor controls overlay when true
 
         // Window dimensions
         int width, height; 

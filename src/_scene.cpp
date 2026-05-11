@@ -947,6 +947,11 @@ void _scene::drawScene()
         hud->drawHud();
     }
 
+    // If tab is pressed, put editor on screen
+    if (editorHUDVisible) {
+        drawEditorHUD();
+    }
+
     // For FPS measuring
     frameCount++;
 
@@ -1504,6 +1509,10 @@ void _scene::keyboardHandler(WPARAM wParam)
             cameraFree = !cameraFree;
             Logger.LogInfo("Toggled camera free mode: " + std::string(cameraFree ? "ON" : "OFF"), LOG_CONSOLE);
             break;
+        case 9: // Toggle whether or not editer is there
+            editorHUDVisible = !editorHUDVisible;
+            Logger.LogInfo("Toggled editor HUD", LOG_CONSOLE);
+            break;
         case 122: // "F11"
             myWorld->DEBUG_displayChunkBorders = !myWorld->DEBUG_displayChunkBorders;
             Logger.LogInfo("Toggled chunk border display: " + std::string(myWorld->DEBUG_displayChunkBorders ? "ON" : "OFF"), LOG_CONSOLE);
@@ -1548,7 +1557,11 @@ int _scene::winMsg(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     // Right Mouse button down
     case WM_RBUTTONDOWN:
         if (inputDebugEnabled)
-            Logger.LogDebug("Right Mouse Button Down at (" + std::to_string(LOWORD(lParam)) + ", " + std::to_string(HIWORD(lParam)) + ")", LOG_CONSOLE); // Log the position of the mouse when right button is pressed
+            Logger.LogDebug("Right Mouse Button Down at (" + std::to_string(LOWORD(lParam)) + ", " + std::to_string(HIWORD(lParam)) + ")", LOG_CONSOLE);
+        // RMB: place a wall tile at mouse position (editor feature)
+        if (hoveredCell) {
+            myWorld->setCellTile(hoveredCell, TILE_WALL_OUTER_CENTER);
+        }
         break;
     // Left Mouse button up
     case WM_LBUTTONUP:
@@ -1678,4 +1691,80 @@ void _scene::setupTextures() {
     textureManager->addTexture("images/enemy/vampire/minion/Minion2_Death.png");
 
     textureManager->addTexture("images/enemy/enemy_particles.png");
+}
+void _scene::drawEditorHUD() {
+    int w = width;
+    int h = height;
+
+    glMatrixMode(GL_PROJECTION); 
+    glPushMatrix(); 
+    glLoadIdentity();
+    glOrtho(0, w, 0, h, -1, 1);
+    glMatrixMode(GL_MODELVIEW); 
+    glPushMatrix(); 
+    glLoadIdentity();
+    glDisable(GL_DEPTH_TEST); 
+    glDisable(GL_TEXTURE_2D);
+    // glEnable(GL_BLEND); 
+    // glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    float px = (float)w - 340.f, py = (float)h - 440.f;
+    glColor4f(0.04f, 0.03f, 0.08f, 0.88f);
+    glBegin(GL_QUADS);
+    glVertex2f(px, py); 
+    glVertex2f((float)w-4, py);
+    glVertex2f((float)w-4, (float)h-4); 
+    glVertex2f(px, (float)h-4);
+    glEnd();
+
+    glLineWidth(2.f); 
+    glColor4f(0.83f,0.69f,0.22f,1.f);
+    glBegin(GL_LINE_LOOP);
+    glVertex2f(px, py); 
+    glVertex2f((float)w-4, py);
+    glVertex2f((float)w-4, (float)h-4); 
+    glVertex2f(px, (float)h-4);
+    glEnd(); 
+    glLineWidth(1.f);
+
+    
+    struct Line { const char* text; float r,g,b; };
+    static const Line LINES[] = {
+        {"CONTROLS", 0.83f,0.69f,0.22f},
+        {"",                        1,1,1},
+        {"TAB    Toggle this panel",0.87f,0.82f,0.75f},
+        {"\\      Free camera",     0.87f,0.82f,0.75f},
+        {"LMB    Mine wall",        0.87f,0.82f,0.75f},
+        {"RMB    Place wall",       0.87f,0.82f,0.75f},
+        {"",                        1,1,1},
+        {"WHAT TO SPAWN", 0.83f,0.69f,0.22f},
+        {"",                        1,1,1},
+        {"1      Turret",           0.9f,0.6f,0.1f},
+        {"2      Gatling Turret",   0.9f,0.3f,0.1f},
+        {"3      Orc",              0.2f,0.8f,0.2f},
+        {"4      Vampire",          0.6f,0.1f,0.8f},
+        {"5      Vamp Minion 1",    0.5f,0.1f,0.6f},
+        {"6      Vamp Minion 2",    0.4f,0.1f,0.5f},
+        {"7      Speed Pickup",     0.2f,0.8f,0.8f},
+        {"8      Max HP Pickup",    0.2f,0.8f,0.4f},
+        {"9      Fire Rate Pickup", 0.8f,0.8f,0.2f},
+        {"0      XP Pickup",        0.8f,0.4f,0.2f},
+    };
+    static const int LINE_COUNT = sizeof(LINES)/sizeof(LINES[0]);
+
+    float ty = (float)h - 30.f; //Starts 30 pixels from top of screen
+    for (int i = 0; i < LINE_COUNT; i++) { //Iterates for each line
+        glColor3f(LINES[i].r, LINES[i].g, LINES[i].b); //Sets Color for each line
+        glRasterPos2f(px + 12.f, ty); //Positions the text relative to vertical pos
+        for (const char* p = LINES[i].text; *p; ++p) //Each character in line
+            glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, *p); //Sets font type
+        ty -= 20.f; //Moves down to the next line
+    }
+
+    // glDisable(GL_BLEND); 
+    glEnable(GL_DEPTH_TEST); 
+    glEnable(GL_TEXTURE_2D);
+    glMatrixMode(GL_PROJECTION); 
+    glPopMatrix();
+    glMatrixMode(GL_MODELVIEW); 
+    glPopMatrix();
 }
