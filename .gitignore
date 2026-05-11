@@ -13,7 +13,7 @@ bin/
 build/
 logs/
 obj/
-saves/
+
 
 # FILE TYPES #
 *.log

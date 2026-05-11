@@ -20,3 +20,22 @@ make debug
 
 How to run in powershell
 .\build\debug\main.exe
+
+**Contributions**
+
+- **Frank Bernal**: (Audio and Characters, Windows features) 
+  - Sourcing audio and enemy sprites. 
+  - Character, Music, and menu sound effects. 
+  - Traveling enemies. 
+  - Seamless fullscreen/windowed mode transition. 
+  - Active/Inactive state when window is minimized or not active.
+  - Debugging
+  
+- **Joshua Bayt**: (Lead Software Engineer and Project Lead) 
+  - World generation algorithm and world structure
+  - Save/Load functionality
+  - Artwork for tiles and turret sprites
+  - Shader implemenation + lighting
+  - Particle engine + Bullet system
+  
+- **Daniel Remington**: TODO
