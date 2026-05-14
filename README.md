@@ -38,4 +38,11 @@ How to run in powershell
   - Shader implemenation + lighting
   - Particle engine + Bullet system
   
-- **Daniel Remington**: TODO
+- **Daniel Remington**: (Assistant Programmer and Menu Designer)
+  - Helped to design menu system
+  - Helped with the scene manager
+  - Created the menu artwork and structure
+  - Expanded on In-Game Level Editor
+  - Made a HUD display for Editor
+  - Assisted with image clarity for level editor
+
