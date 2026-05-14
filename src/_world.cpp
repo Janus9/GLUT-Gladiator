@@ -185,6 +185,72 @@ void _chunk::loadSerializedChunk(const chunk_serial_data &chunk_data) {
     }
 }
 
+void _chunk::buildVBO(vector<float> &vboData, int &vIndex) {
+    // For each tile of the chunk //
+    for (int y = 0; y < 16; y++) {
+        for (int x = 0; x < 16; x++) {
+            int tileIndex = y * 16 + x;
+
+            const TileId tileId = tileData[tileIndex];
+            _cell& cell = cellData[tileIndex];
+            const _tile* tile = &world_tiles[tileId];
+            
+            cell->tileId = tileId;
+            cell->index = tileIndex; // Match every draw cycle
+            cell->parentChunk = chunk;
+
+            float halfWidth = TILE_W * 0.5f;
+            float halfHeight = TILE_H * 0.5f;
+
+            float worldXCenter = (chunk->chunkX * 16 + x) * TILE_W + halfWidth;
+            float worldYCenter = (chunk->chunkY * 16 + y) * TILE_H + halfHeight;
+
+            cell->pos = {worldXCenter, worldYCenter};
+
+            float cellOutlined = cell->isOutlined() ? 1.0f : 0.0f;  // <= 0.0 is false > 0.0 is true
+
+            // Tile VBO Setup //
+            // The VBO is set up identical to how we would do glVertex2f and glTexCoord2f
+            
+            // Bottom-left
+            vboData[vIndex++] = -halfWidth;
+            vboData[vIndex++] = -halfHeight;
+            vboData[vIndex++] = tile->u0;
+            vboData[vIndex++] = tile->v1;
+            vboData[vIndex++] = worldXCenter;
+            vboData[vIndex++] = worldYCenter;
+            vboData[vIndex++] = cellOutlined;
+            
+            // Bottom-right
+            vboData[vIndex++] = halfWidth;
+            vboData[vIndex++] = -halfHeight;
+            vboData[vIndex++] = tile->u1;
+            vboData[vIndex++] = tile->v1;
+            vboData[vIndex++] = worldXCenter;
+            vboData[vIndex++] = worldYCenter;
+            vboData[vIndex++] = cellOutlined;
+            
+            // Top-right
+            vboData[vIndex++] = halfWidth;
+            vboData[vIndex++] = halfHeight;
+            vboData[vIndex++] = tile->u1;
+            vboData[vIndex++] = tile->v0;
+            vboData[vIndex++] = worldXCenter;
+            vboData[vIndex++] = worldYCenter;
+            vboData[vIndex++] = cellOutlined;
+            
+            // Top-left
+            vboData[vIndex++] = -halfWidth;
+            vboData[vIndex++] = halfHeight;
+            vboData[vIndex++] = tile->u0;
+            vboData[vIndex++] = tile->v0;  
+            vboData[vIndex++] = worldXCenter;
+            vboData[vIndex++] = worldYCenter;
+            vboData[vIndex++] = cellOutlined;
+        }
+    }
+}
+
 // -- WORLD -- //
 
 // STATIC MEMBERS //
@@ -1302,6 +1368,31 @@ level_pos _world::getLevelFromPos(const Vec2f &pos) const {
 
 
 // -- PRIVATE -- //
+
+void _world::buildWorldVBO(float left, float right, float top, float bottom) {
+    // Calculate which chunks are visible
+    const int minChunkX = (int)floor(left / (16 * TILE_W));
+    const int maxChunkX = (int)ceil(right / (16 * TILE_W));
+    const int minChunkY = (int)floor(bottom / (16 * TILE_H));
+    const int maxChunkY = (int)ceil(top / (16 * TILE_H));
+
+    const int numChunksToRender = (maxChunkX - minChunkX) * (maxChunkY - minChunkY);    // Total chunks in visible range
+    // Chunks to render * Tiles per chunk (256) * 4 verticies * 7 floats per vertex
+    vector<float> worldVboData(numChunksToRender * NUM_TILES_CHUNK * 4 * 7);
+    int vIndex = 0;
+
+    for (int chunkY = minChunkY; chunkY < maxChunkY; chunkY++) {
+        for (int chunkX = minChunkX; chunkX < maxChunkX; chunkX++) {
+            const Vec2i chunkPos(chunkX,chunkY);
+            _chunk* chunk = getChunkAt(chunkPos);
+            if (!chunk) {
+                cout << "ERROR: Could not find chunk at (" << chunkX << ", " << chunkY << ")\n";
+                return;
+            }
+
+        }
+    }
+}
 
 void _world::runWorldGeneration(int iterations) {
     worldChunks.reserve(numStartingChunks); // Resize the vector to hold numStartingChunks chunks

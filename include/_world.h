@@ -292,6 +292,14 @@ class _chunk
         chunk_serial_data serializeChunk() const;
 
         void loadSerializedChunk(const chunk_serial_data &chunk_data);
+
+        /**
+         * Adds the chunks data to an existing VBO buffer for world drawing
+         * 
+         * @param vboData Array of existing world VBO data to add to
+         * @param vIndex Index to start adding data at
+         */
+        void buildVBO(vector<float> &vboData, int &vIndex);
     protected:
     private:
         TileId tileData[256];  // 16x16 chunk
@@ -485,6 +493,9 @@ class _world
 
         // Builds a VBO for each chunk of all 256 tiles
         void buildChunkVBO(_chunk* chunk);
+
+        /** Builds the world VBO based on culling entries */
+        void buildWorldVBO(float left, float right, float top, float bottom);
 
         /*
             Main storage of world data. The world is made up of chunks (16x16 tiles) thus holding 256 tiles each.
