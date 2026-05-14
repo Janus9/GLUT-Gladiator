@@ -6,7 +6,6 @@
 *.depend
 *.layout
 .idea/
-common/
 
 # BUILD ARTIFACTS #
 bin/    
@@ -14,7 +13,6 @@ build/
 logs/
 obj/
 publish/
-
 
 # FILE TYPES #
 *.log
@@ -25,9 +23,6 @@ publish/
 
 # Ignore Mr. Claude
 CLAUDE.md
-
-# LIBRARY FOLDERS #
-common/
 
 # DOXYGEN #
 html/
