@@ -1434,6 +1434,10 @@ void _scene::debugPrint()
 {
     Logger.LogDebug("World drawing took: " + to_string(drawWorldBenchmark.getAverageResult()) + "ms");
     Logger.LogDebug("Enemy drawing took: " + to_string(drawEnemiesBenchmark.getAverageResult()) + "ms");
+    cout << "-- LEFT: " << left << "\n"
+         << "-- RIGHT: " << right << "\n"
+         << "-- TOP: " << top << "\n"
+         << "-- BOTTOM: " << bottom << "\n";
     // myWorld->debugPrint();
 }
 

@@ -192,6 +192,30 @@ void _chunk::loadSerializedChunk(const chunk_serial_data &chunk_data) {
 glm::mat4 _world::viewProjectionMatrix;
 Vec2f _world::cameraPosition = {0.0f, 0.0f};
 
+// -- PUBLIC -- //
+
+void _world::debugPrint() {
+
+    size_t ChunkBytes = sizeof(_chunk) * worldChunks.size();
+    size_t TileBytes = sizeof(uint8_t) * worldChunks.size() * 256;
+
+    Logger.LogInfo(" -- World Debug Print -- ", LOG_CONSOLE);
+    Logger.LogInfo(
+        "Chunks Loaded: " 
+        + std::to_string(worldChunks.size()) 
+        + " (" + std::to_string(ChunkBytes) + " B)" 
+        + " (" + std::to_string(ChunkBytes/1000000) + "MB)", 
+        LOG_CONSOLE
+    );
+    Logger.LogInfo(
+        "Tiles Loaded: " 
+        + std::to_string(worldChunks.size() * 256) 
+        + " (" + std::to_string(TileBytes) + " B)" 
+        + " (" + std::to_string(TileBytes/1000000) + "MB)", 
+        LOG_CONSOLE);
+    Logger.LogInfo("------------------------", LOG_CONSOLE);
+}
+
 void _world::setViewProjectionMatrix(const glm::mat4 &_viewProjectionMatrix) {
     viewProjectionMatrix = _viewProjectionMatrix;
 }
@@ -1321,28 +1345,4 @@ void _world::mapCellNeighbors(_cell* cell, _cell* outNeighbors[9]) {
     //  << outNeighbors[0]->tileId << ", " << outNeighbors[1]->tileId << ", " << outNeighbors[2]->tileId << "\n"
     //  << outNeighbors[3]->tileId << ", " << outNeighbors[4]->tileId << ", " << outNeighbors[5]->tileId << "\n"
     //  << outNeighbors[6]->tileId << ", " << outNeighbors[7]->tileId << ", " << outNeighbors[8]->tileId << "\n";
-}
-
-/* -- >> DEBUGING << -- */
-
-void _world::debugPrint() {
-
-    size_t ChunkBytes = sizeof(_chunk) * worldChunks.size();
-    size_t TileBytes = sizeof(uint8_t) * worldChunks.size() * 256;
-
-    Logger.LogInfo(" -- World Debug Print -- ", LOG_CONSOLE);
-    Logger.LogInfo(
-        "Chunks Loaded: " 
-        + std::to_string(worldChunks.size()) 
-        + " (" + std::to_string(ChunkBytes) + " B)" 
-        + " (" + std::to_string(ChunkBytes/1000000) + "MB)", 
-        LOG_CONSOLE
-    );
-    Logger.LogInfo(
-        "Tiles Loaded: " 
-        + std::to_string(worldChunks.size() * 256) 
-        + " (" + std::to_string(TileBytes) + " B)" 
-        + " (" + std::to_string(TileBytes/1000000) + "MB)", 
-        LOG_CONSOLE);
-    Logger.LogInfo("------------------------", LOG_CONSOLE);
 }
