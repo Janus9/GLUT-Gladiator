@@ -23,7 +23,7 @@ IMG_DIR := images
 SHD_DIR := shaders
 SND_DIR := sounds
 DLL_DIR := common\bin
-PUB_DIR := publish
+PUB_DIR ?= publish
 SAV_DIR := saves
 CUR_DIR := cursor
 
