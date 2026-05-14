@@ -20,12 +20,18 @@ BUILD_DIR := build
 BUILD_R_DIR := build\release
 BUILD_D_DIR := build\debug
 IMG_DIR := images
+SHD_DIR := shaders
+SND_DIR := sounds
 DLL_DIR := common\bin
+PUB_DIR := publish
+SAV_DIR := saves
+CUR_DIR := cursor
 
 # Files
 MAIN_SRC = main.cpp
 MAIN_BIN = main.o
 OUTPUT = main.exe
+PUBLISH_OUTPUT = Glut Gladiator.exe
 SRCS := $(wildcard $(SRC_DIR)/*.cpp)												# List of source files
 D_BINS := $(patsubst $(SRC_DIR)/%.cpp, $(BIN_D_DIR)/%.o, $(SRCS))					# List of binary files for debug
 D_BINS += $(BIN_D_DIR)/$(MAIN_BIN)													# Adds main to binary list for debug
@@ -34,10 +40,19 @@ R_BINS := $(patsubst $(SRC_DIR)/%.cpp, $(BIN_R_DIR)/%.o, $(SRCS))					# List of 
 R_BINS += $(BIN_R_DIR)/$(MAIN_BIN)													# Adds main to binary list for release
 
 
-.PHONY: debug release clean
+.PHONY: debug release clean publish
 
 debug: $(BUILD_D_DIR)/$(OUTPUT)	
-release: $(BUILD_R_DIR)/$(OUTPUT)												
+release: $(BUILD_R_DIR)/$(OUTPUT)
+publish: release | make_publish_dir
+	@Remove-Item -Path "$(PUB_DIR)\*" -Recurse -Force
+	@Copy-Item -Path "$(BUILD_R_DIR)\$(OUTPUT)" -Destination "$(PUB_DIR)\$(PUBLISH_OUTPUT)" 
+	@Copy-Item -Path "$(DLL_DIR)\*" -Destination "$(PUB_DIR)" 
+	@Copy-Item -Path "$(IMG_DIR)" -Destination "$(PUB_DIR)" -Recurse
+	@Copy-Item -Path "$(SHD_DIR)" -Destination "$(PUB_DIR)" -Recurse
+	@Copy-Item -Path "$(SND_DIR)" -Destination "$(PUB_DIR)" -Recurse
+	@Copy-Item -Path "$(CUR_DIR)" -Destination "$(PUB_DIR)" -Recurse
+	@New-Item -ItemType Directory -Path "$(PUB_DIR)\$(SAV_DIR)"
 
 # -- DEBUG -- #
 
@@ -110,10 +125,20 @@ $(IMG_DIR):
 	@echo "Missing $@ folder, creating a new one now . . . "
 	New-Item -ItemType Directory -Force -Path $@ | Out-Null
  
+# Makes shader directory
+$(SHD_DIR):
+	@echo "Missing $@ folder, creating a new one now . . . "
+	New-Item -ItemType Directory -Force -Path $@ | Out-Null
+
 # Makes build directory
 $(BUILD_DIR):
 	@echo "Missing $@ folder, creating a new one now . . . "
 	New-Item -ItemType Directory -Force -Path $@ | Out-Null
+
+# Makes publish directory
+make_publish_dir:
+	@echo "Missing publish folder, creating a new one now . . . "
+	New-Item -ItemType Directory -Force -Path $(PUB_DIR) | Out-Null
 
 # Makes debug directory inside of build
 $(BUILD_D_DIR): | $(BUILD_DIR)
