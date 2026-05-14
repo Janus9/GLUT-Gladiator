@@ -231,6 +231,19 @@ _world::_world()
 
 _world::~_world()
 {
+    if (vboID != 0) {
+        glDeleteBuffers(1,&vboID); // tell the GPU to delete the vertex buffer
+        vboID = 0;
+    }
+    if (eboID != 0) {
+        glDeleteBuffers(1,&eboID); // tell the GPU to delete the index buffer
+        eboID = 0;
+    }
+    if (vaoID != 0) {
+        glDeleteVertexArrays(1,&vaoID); // tell the GPU to delete the array buffer
+        vaoID = 0;
+    }
+
     //dtor
     delete tileAtlas;
     tileAtlas = nullptr;
@@ -329,6 +342,63 @@ void _world::initWorld(bool loadWorld, _lightManager* lightManager)
     wall_damage_effect.maxSpawnOffsetX = 4.0f;
     wall_damage_effect.minSpawnOffsetY = -4.0f;
     wall_damage_effect.maxSpawnOffsetY = 4.0f;
+
+    // -- BUFFER SETUP -- //
+    glGenBuffers(1, &vboID); 
+    glGenBuffers(1, &eboID); 
+    glGenVertexArrays(1, &vaoID);
+
+    // VBO //
+    // Number of total chunks * number of tiles per chunk * 4 vertices per tile * 7 floats per vertex * bytes per float 
+    const int maxSizeBytes = NUM_CHUNKS * NUM_TILES_CHUNK * 4 * 7 * sizeof(float);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vboID);
+    glBufferData(GL_ARRAY_BUFFER,maxSizeBytes,nullptr,GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    // EBO //
+    vector<uint32_t> particleEboData(NUM_CHUNKS * 6);
+    int vertexOffset = 0;
+    int eIndex = 0;
+    for (int i = 0; i < NUM_CHUNKS; i++) {
+        // Ebo (Two Triangles) //
+        // Triangle 1
+        particleEboData[eIndex++] = vertexOffset + 0; // BL   
+        particleEboData[eIndex++] = vertexOffset + 1; // BR
+        particleEboData[eIndex++] = vertexOffset + 2; // TR
+        // Triangle 2
+        particleEboData[eIndex++] = vertexOffset + 0; // BL
+        particleEboData[eIndex++] = vertexOffset + 2; // TR
+        particleEboData[eIndex++] = vertexOffset + 3; // TL
+
+        vertexOffset += 4;
+    }
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboID);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(particleEboData), particleEboData.data(), GL_STATIC_DRAW);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0);
+
+    // VAO //
+    glBindVertexArray(vaoID);
+    
+    glBindBuffer(GL_ARRAY_BUFFER,vboID);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,eboID);
+    
+    const GLsizei stride = 7 * sizeof(float);
+    
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0,2,GL_FLOAT,GL_FALSE,stride,(void*)(0 * sizeof(float)));     // Size (vec2)
+    
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1,2,GL_FLOAT,GL_FALSE,stride,(void*)(2 * sizeof(float)));     // Texture Position (vec2)
+    
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(2,2,GL_FLOAT,GL_FALSE,stride,(void*)(4 * sizeof(float)));     // Position (vec2)
+    
+    glEnableVertexAttribArray(3);
+    glVertexAttribPointer(3,1,GL_FLOAT,GL_FALSE,stride,(void*)(6 * sizeof(float)));     // Outlined (int)
+
+    glBindVertexArray(0);
 
     // BENCHMARK //
 

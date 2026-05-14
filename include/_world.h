@@ -17,7 +17,8 @@
 
 #define TILE_W 16.0f   // Tile width in world units is ALWAYS the same of 16
 #define TILE_H 16.0f   // Tile height in world units is ALWAYS the same of 16
-#define NUM_CHUNKS 16384;
+#define NUM_CHUNKS 16384       // Number of total world chunks
+#define NUM_TILES_CHUNK 256    // Number of tiles in a chunk
 
 #include <_common.h>
 #include <_texture.h>
@@ -539,6 +540,10 @@ class _world
 
         float time = 0.0f;
         static Vec2f cameraPosition; 
+
+        GLuint vboID;
+        GLuint eboID;
+        GLuint vaoID;
 
         // -- DEBUGGING -- //
         
