@@ -53,6 +53,11 @@ publish: release | make_publish_dir
 	@Copy-Item -Path "$(SND_DIR)" -Destination "$(PUB_DIR)" -Recurse
 	@Copy-Item -Path "$(CUR_DIR)" -Destination "$(PUB_DIR)" -Recurse
 	@New-Item -ItemType Directory -Path "$(PUB_DIR)\$(SAV_DIR)"
+	@Write-Host " >>--------------------- PUBLISH ------------------------<< "
+	@Write-Host " >>           GLUT Gladiator Published Successfully!     << "
+	@Write-Host " >>------------------------------------------------------<< "
+	@Write-Host " >> Executable built at >> $(PUB_DIR)\$(PUBLISH_OUTPUT) << "
+	@Write-Host " >>-----------------------------------------------------<< "
 
 # -- DEBUG -- #
 
