@@ -1,27 +1,51 @@
 # GLUT Gladiator
 
-GLUT Gladiator is a topdown survival 2D dungeon crawler. The objective of the game is simple, survive for as long as possible while every increasing waves of enemies decent on your location...
+## Game Info
 
-Search for weapons/tools and build structures to survive. But watch out, everything is destructable and enemies will not hesitate to take it down. 
+GLUT Gladiator is a procedurally generated top-down roguelike. 
 
-**Build Information**
+The objective of the game is simple, follow the navigation arrow to the center of the cave, and destroy the boss!
 
-Use "make debug" from the project directory to build. 
-Ensure that your common folder (TO ADD TO REPO) is setup properly. 
+Along the way, collect powerups, and fight ever increasing difficulty enemies. 
 
-Use code::blocks and add the files recursivley to build it there as well.
+The game can be saved/loaded and is fully destructible
 
-https://www.notion.so/32eb53cd383e800685e6f123c84c9a4a?v=32eb53cd383e8066a1bd000ccf9c0254&source=copy_link
+## Build Information
 
-List of tasks TODO above
+GLUT Gladiator is built on Windows using **MinGW**, **GNU Make**, and **PowerShell** as the Makefile shell.
 
-How to build in powershell
-make debug
+### Required Tools
 
-How to run in powershell
-.\build\debug\main.exe
+Before building, make sure the following are installed and available from your terminal:
 
-**Contributions**
+- MinGW / g++
+- GNU Make
+- PowerShell
+
+You can verify the tools with:
+
+```bash
+g++ --version
+make --version
+powershell --version
+```
+
+### How To
+
+To build, simply run:
+ - ```make``` - Build application in debugging mode
+ - ```make debug``` - Build application in debugging mode
+ - ```make release``` - Build application in release mode
+ - ```make clean``` - Clean application build files (recommended for odd build behaviors)
+ - ```make publish PUB_DIR="publish"``` - Builds the application in release mode and packages the application into the provided **PUB_DIR** folder
+
+# Download Information
+
+Precompiled versions of the game are available via the **Releases** tab on the right hand side. 
+
+To download, simply click on the version you wish to download, then download the top file (not the source code)
+
+# Contributions
 
 - **Frank Bernal**: (Audio and Characters, Windows features) 
   - Sourcing audio and enemy sprites. 
