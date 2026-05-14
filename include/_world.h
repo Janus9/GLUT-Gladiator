@@ -307,10 +307,19 @@ class _world
          * Initializes the world by loading tile textures and generating the initial chunks.
          * 
          * @param loadWorld If true world is loaded and NOT generated
+         * @param lightManager Pointer to the scene owned light manager (non-owning)
          */
         void initWorld(bool loadWorld, _lightManager* lightManager);
 
-        // Draw function for world
+        /**
+         * Draw function for the world. 
+         * The entries are required for chunk culling to keep draw count to only what is literally visible.
+         * 
+         * @param left World position min X value
+         * @param right World position max X value
+         * @param top World position max Y value
+         * @param bottom World position min Y value
+         */
         void drawWorld(float left, float right, float top, float bottom);
 
         /**
