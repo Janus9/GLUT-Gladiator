@@ -13,6 +13,7 @@ bin/
 build/
 logs/
 obj/
+publish/
 
 
 # FILE TYPES #
