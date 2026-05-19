@@ -1177,11 +1177,20 @@ void _world::setSeed(uint32_t _seed) {
 }
 
 level_pos _world::getLevelFromPos(const Vec2f &pos) const {
+    const float worldWidth = sqrt(NUM_CHUNKS) * 16 * 16;
+    const float worldRadius = worldWidth * 0.5f;
     const float distance = pos.distance({0.0f,0.0f});           // How far from center?
 
-    if (distance > 0.0f && distance < 3000.0f) {
+    // Config -- Use Percentages for dynamic world size //
+    const float innerPct = 0.2f;
+    const float middlePct = 0.6f;
+    // Outer isnt here since its just the remaining percentage
+
+    if (distance > 0.0f && distance < 800.0f) {
+        return LEVEL_BOSS;
+    } else if (distance >= 800.0f && distance < worldRadius * innerPct) {
         return LEVEL_INNER;
-    } else if (distance >= 3000.0f && distance < 8000.0f) {
+    } else if (distance >= worldRadius * innerPct && distance < worldRadius * middlePct) {
         return LEVEL_MIDDLE;
     } else {
         return LEVEL_OUTER;
@@ -1297,8 +1306,11 @@ void _world::runWorldGeneration(int iterations) {
     seed = std::chrono::system_clock::now().time_since_epoch().count(); 
     rng = mt19937(seed);
 
-    // Setup world_noise
-    world_noise[LAYER_PRIMARY].resize(numStartingChunks*256);  // 256 tiles per chunk
+    // Setup world_noise 
+    world_noise[LAYER_FLOOR].resize(numStartingChunks*256);         // Floor tiles
+    world_noise[LAYER_COSMETIC_1].resize(numStartingChunks*256);    // Cosmetic Tiles (1st layer)
+    world_noise[LAYER_COSMETIC_2].resize(numStartingChunks*256);    // Cosmetic Tiles (2nd layer)
+    world_noise[LAYER_PRIMARY].resize(numStartingChunks*256);       // Wall tiles (run cellular automata w/ moore neighborhood)
     
     Logger.LogInfo("Running world generation for parameters: ");
     Logger.LogInfo(" - Noise Density: " + to_string(noise_distribution*100.0f) + "%");

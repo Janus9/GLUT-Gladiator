@@ -41,7 +41,8 @@ class _chunk; // Forward declaration for cell
 enum level_pos {
     LEVEL_OUTER,
     LEVEL_MIDDLE,
-    LEVEL_INNER
+    LEVEL_INNER,
+    LEVEL_BOSS
 };
 
 
