@@ -947,12 +947,12 @@ a coordinate system for chunks
 void _world::finalizeWorld() {
     Logger.LogDebug("Mapping world noise into tiles");
     
-    int worldWidth = (int)sqrt(numStartingChunks) * 16;
-    int worldHeight = (int)sqrt(numStartingChunks) * 16;
+    const int worldWidth = (int)sqrt(numStartingChunks) * 16;
+    const int worldHeight = (int)sqrt(numStartingChunks) * 16;
 
     for (int i = 0; i < numStartingChunks; i++) {
-        int new_chunkX = i % (int)sqrt(numStartingChunks) - floor(sqrt(numStartingChunks) / 2);
-        int new_chunkY = i / (int)sqrt(numStartingChunks) - floor(sqrt(numStartingChunks) / 2);
+        const int new_chunkX = i % (int)sqrt(numStartingChunks) - floor(sqrt(numStartingChunks) / 2);
+        const int new_chunkY = i / (int)sqrt(numStartingChunks) - floor(sqrt(numStartingChunks) / 2);
 
         worldChunks.emplace_back();
 
@@ -962,21 +962,21 @@ void _world::finalizeWorld() {
         newChunk->vboIndex = i;
 
         // Calculate the starting position of this chunk in the world grid
-        int chunkStartX = (new_chunkX + (int)floor(sqrt(numStartingChunks) / 2)) * 16;
-        int chunkStartY = (new_chunkY + (int)floor(sqrt(numStartingChunks) / 2)) * 16;
+        const int chunkStartX = (new_chunkX + (int)floor(sqrt(numStartingChunks) / 2)) * 16;
+        const int chunkStartY = (new_chunkY + (int)floor(sqrt(numStartingChunks) / 2)) * 16;
 
         // Extract the 16x16 tile section for this chunk from world_noise
         for (int tileY = 0; tileY < 16; tileY++) {
             for (int tileX = 0; tileX < 16; tileX++) {
                 // Calculate position in world grid
-                int worldX = chunkStartX + tileX;
-                int worldY = chunkStartY + tileY;
+                const int worldX = chunkStartX + tileX;
+                const int worldY = chunkStartY + tileY;
                 
                 // Convert to flat array index
-                int world_noise_index = worldY * worldWidth + worldX;
+                const int world_noise_index = worldY * worldWidth + worldX;
                 
                 // Convert to chunk tile index (tileY * 16 + tileX gives position in chunk's 16x16 grid)
-                int chunk_tile_index = tileY * 16 + tileX;
+                const int chunk_tile_index = tileY * 16 + tileX;
                 
                 const float halfWidth = TILE_W * 0.5f;
                 const float halfHeight = TILE_H * 0.5f;
@@ -985,7 +985,7 @@ void _world::finalizeWorld() {
                 const float worldXCenter = (newChunk->chunkX * 16 + tileX) * TILE_W + halfWidth;
                 const float worldYCenter = (newChunk->chunkY * 16 + tileY) * TILE_H + halfHeight;
                 
-                TileId newId = static_cast<TileId>(world_noise[world_noise_index]);
+                const TileId newId = static_cast<TileId>(world_noise[world_noise_index]);
                 _cell* cell = newChunk->cellAt(chunk_tile_index);
 
                 newChunk->setTileIdAt(newId,chunk_tile_index);

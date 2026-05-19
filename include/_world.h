@@ -65,6 +65,17 @@ struct chunk_serial_data {
 };
 
 /**
+ * Enum type to help navigate the layer list of each cell.
+ * Details are below.
+ */
+enum TileLayer : uint8_t {
+    LAYER_FLOOR,            /// Floor Layer (No collision) 
+    LAYER_COSMETIC_1,       /// Cosmetic Layer (No collision)
+    LAYER_COSMETIC_2,       /// Costmetic Layer (No collision)
+    LAYER_PRIMARY           /// Primary object (Collision), reacts to damage events and lighting
+};
+
+/**
  * Enum mapped to TileId number as an unsigned 8 bit int. 
  * Naming goes: TILE_[TYPE]_[SUBTYPE]_[VARIANT]
  */
@@ -164,6 +175,9 @@ class _cell
 {
     public:
         TileId tileId = TILE_NULL; // Defaults to undefined tile
+
+        TileId tileIdLayers[4] = {TILE_NULL};   // Initialize all layers to NULL
+
         uint8_t index = 0; // Index cell lives in chunk data array
 
         Vec2f pos; // Position of the cell 
