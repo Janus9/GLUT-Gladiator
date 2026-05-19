@@ -248,6 +248,8 @@ class _chunk
         GLuint tileVaoID = 0;       // ID for the GPU array memory of the tiles
         bool vboDirty = true;       // If dirty then we update the chunk (when tiles change)
 
+        int vboIndex;               // Marker of where in VBO buffer the chunk data starts
+
         /**
          * Gets a tile at the given index
          * 
@@ -295,6 +297,7 @@ class _chunk
 
     protected:
     private:
+
         TileId tileData[256];  // 16x16 chunk
         _cell cellData[256];   // 16x16 chunk
 };
