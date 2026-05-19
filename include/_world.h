@@ -243,11 +243,7 @@ class _chunk
         int chunkY;
 
         // This should really be private info 
-        GLuint tileVboID = 0;       // ID for the GPU vertex memory of tiles
-        GLuint tileEboID = 0;       // ID for the GPU index memory of the tiles
-        GLuint tileVaoID = 0;       // ID for the GPU array memory of the tiles
         bool vboDirty = true;       // If dirty then we update the chunk (when tiles change)
-
         int vboIndex;               // Marker of where in VBO buffer the chunk data starts
 
         /**
@@ -486,9 +482,6 @@ class _world
 
         // Uses the tileNum to calculated the tex coords for each tile
         bool setTileInAtlas(int xIndex, int yIndex, _tile &tile);
-
-        // Builds a VBO for each chunk of all 256 tiles
-        void buildChunkVBO(_chunk* chunk);
 
         /** Builds the world VBO based on culling entries */
         void buildWorldVBO(float left, float right, float top, float bottom);

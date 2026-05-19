@@ -38,72 +38,9 @@ bool _cell::isAlive() const {
 // -- CHUNK -- //
 
 _chunk::_chunk() {
-    // Creates the buffers for the chunk
-    glGenBuffers(1, &tileVboID);
-    glGenBuffers(1, &tileEboID);
-    glGenVertexArrays(1, &tileVaoID);
-
-    // CHUNK EBO SETUP //
-
-    // 6 vertices * 6 floats * 256 tiles per chunk
-    uint32_t tileEboData[6 * 256];
-    int vertexOffset = 0;
-    int eIndex = 0;
-    for (int i = 0; i < 256; i++) {
-        // Ebo (Two Triangles) //
-        // Triangle 1
-        tileEboData[eIndex++] = vertexOffset + 0; // BL   
-        tileEboData[eIndex++] = vertexOffset + 1; // BR
-        tileEboData[eIndex++] = vertexOffset + 2; // TR
-        // Triangle 2
-        tileEboData[eIndex++] = vertexOffset + 0; // BL
-        tileEboData[eIndex++] = vertexOffset + 2; // TR
-        tileEboData[eIndex++] = vertexOffset + 3; // TL
-
-        vertexOffset += 4;
-    }
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, tileEboID);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(tileEboData), tileEboData, GL_STATIC_DRAW);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0);
-
-    // CHUNK VAO SETUP //
-
-    glBindVertexArray(tileVaoID);
-
-    // Setup buffers
-    glBindBuffer(GL_ARRAY_BUFFER,tileVboID);            // VBO
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,tileEboID);    // EBO
-    
-    // 6 floats per vertex 
-    GLsizei stride = 7 * sizeof(float);
-
-    // Setup attributes
-    glEnableVertexAttribArray(0);       // Size (vec2)
-    glVertexAttribPointer(0,2,GL_FLOAT,GL_FALSE,stride,(void*)(0 * sizeof(float)));
-    glEnableVertexAttribArray(1);       // Texture Coords (vec2)
-    glVertexAttribPointer(1,2,GL_FLOAT,GL_FALSE,stride,(void*)(2 * sizeof(float)));
-    glEnableVertexAttribArray(2);       // Position (vec2)
-    glVertexAttribPointer(2,2,GL_FLOAT,GL_FALSE,stride,(void*)(4 * sizeof(float)));
-    glEnableVertexAttribArray(3);       // Tile Outlined (float)
-    glVertexAttribPointer(3,1,GL_FLOAT,GL_FALSE,stride,(void*)(6 * sizeof(float)));
-
-    glBindVertexArray(0);
 }
 
 _chunk::~_chunk() {
-    if (tileVboID != 0) {
-        glDeleteBuffers(1,&tileVboID); 
-        tileVboID = 0;
-    }
-    if (tileEboID != 0) {
-        glDeleteBuffers(1,&tileEboID); 
-        tileEboID = 0;
-    }
-    if (tileVaoID != 0) {
-        glDeleteVertexArrays(1,&tileVaoID); 
-        tileVaoID = 0;
-    }
 }
 
 TileId _chunk::getTileIdAt(int index) const {
@@ -747,82 +684,6 @@ bool _world::setTileInAtlas(int xIndex, int yIndex, _tile &tile) {
     tile.v1 = v1;
 
     return true;
-}
-
-void _world::buildChunkVBO(_chunk* chunk) {
-    // 4 Verticies of 7 floats and 256 total
-    float tileVboData[4 * 7 * 256];
-    int vIndex = 0;
-
-    // For each tile of the chunk //
-    for (int y = 0; y < 16; y++) {
-        for (int x = 0; x < 16; x++) {
-            int tileIndex = y * 16 + x;
-
-            TileId tileId = chunk->getTileIdAt(tileIndex);
-            _cell* cell = chunk->cellAt(tileIndex);
-            const _tile* tile = &world_tiles[tileId];
-            
-            cell->tileId = tileId;
-            cell->index = tileIndex; // Match every draw cycle
-            cell->parentChunk = chunk;
-
-            float halfWidth = TILE_W * 0.5f;
-            float halfHeight = TILE_H * 0.5f;
-
-            float worldXCenter = (chunk->chunkX * 16 + x) * TILE_W + halfWidth;
-            float worldYCenter = (chunk->chunkY * 16 + y) * TILE_H + halfHeight;
-
-            cell->pos = {worldXCenter, worldYCenter};
-
-            float cellOutlined = cell->isOutlined() ? 1.0f : 0.0f;  // <= 0.0 is false > 0.0 is true
-
-            // Tile VBO Setup //
-            // The VBO is set up identical to how we would do glVertex2f and glTexCoord2f
-            
-            // Bottom-left
-            tileVboData[vIndex++] = -halfWidth;
-            tileVboData[vIndex++] = -halfHeight;
-            tileVboData[vIndex++] = tile->u0;
-            tileVboData[vIndex++] = tile->v1;
-            tileVboData[vIndex++] = worldXCenter;
-            tileVboData[vIndex++] = worldYCenter;
-            tileVboData[vIndex++] = cellOutlined;
-            
-            // Bottom-right
-            tileVboData[vIndex++] = halfWidth;
-            tileVboData[vIndex++] = -halfHeight;
-            tileVboData[vIndex++] = tile->u1;
-            tileVboData[vIndex++] = tile->v1;
-            tileVboData[vIndex++] = worldXCenter;
-            tileVboData[vIndex++] = worldYCenter;
-            tileVboData[vIndex++] = cellOutlined;
-            
-            // Top-right
-            tileVboData[vIndex++] = halfWidth;
-            tileVboData[vIndex++] = halfHeight;
-            tileVboData[vIndex++] = tile->u1;
-            tileVboData[vIndex++] = tile->v0;
-            tileVboData[vIndex++] = worldXCenter;
-            tileVboData[vIndex++] = worldYCenter;
-            tileVboData[vIndex++] = cellOutlined;
-            
-            // Top-left
-            tileVboData[vIndex++] = -halfWidth;
-            tileVboData[vIndex++] = halfHeight;
-            tileVboData[vIndex++] = tile->u0;
-            tileVboData[vIndex++] = tile->v0;  
-            tileVboData[vIndex++] = worldXCenter;
-            tileVboData[vIndex++] = worldYCenter;
-            tileVboData[vIndex++] = cellOutlined;
-        }
-    }
-    // Tile Data VBO //
-    glBindBuffer(GL_ARRAY_BUFFER, chunk->tileVboID); // Working with this specific buffer
-    glBufferData(GL_ARRAY_BUFFER, sizeof(tileVboData), tileVboData, GL_STATIC_DRAW); // Copy the system memory buffer (tileVboData) into a GPU memory buffer
-    glBindBuffer(GL_ARRAY_BUFFER, 0); // Make sure to set vbo to 0 (nothing) to signal we're done working with this tileVboID
-
-    chunk->vboDirty = false;
 }
 
 void _world::drawWorld(float left, float right, float top, float bottom)
