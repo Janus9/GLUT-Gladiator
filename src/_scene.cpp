@@ -1438,7 +1438,7 @@ void _scene::debugPrint()
          << "-- RIGHT: " << right << "\n"
          << "-- TOP: " << top << "\n"
          << "-- BOTTOM: " << bottom << "\n";
-    // myWorld->debugPrint();
+    myWorld->debugPrint();
 }
 
 void _scene::debugPrintFPS()

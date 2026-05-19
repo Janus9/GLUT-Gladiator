@@ -293,13 +293,6 @@ class _chunk
 
         void loadSerializedChunk(const chunk_serial_data &chunk_data);
 
-        /**
-         * Adds the chunks data to an existing VBO buffer for world drawing
-         * 
-         * @param vboData Array of existing world VBO data to add to
-         * @param vIndex Index to start adding data at
-         */
-        void buildVBO(vector<float> &vboData, int &vIndex);
     protected:
     private:
         TileId tileData[256];  // 16x16 chunk
@@ -555,6 +548,8 @@ class _world
         GLuint vboID;
         GLuint eboID;
         GLuint vaoID;
+
+        GLuint tilesToDraw;  
 
         // -- DEBUGGING -- //
         
