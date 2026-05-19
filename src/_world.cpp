@@ -46,7 +46,7 @@ _chunk::~_chunk() {
 TileId _chunk::getTileIdAt(int index) const {
     if (!this) return TILE_NULL;
     if (index < 0 || index > 255) return TILE_NULL;
-    return tileData[index];
+    return cellData[index].tileId;
 }
 
 _cell* _chunk::cellAt(int index) {
@@ -58,7 +58,6 @@ bool _chunk::setTileIdAt(TileId id, int index) {
     if (!this) return false;
     if (index < 0 || index > 255) return false;
     
-    tileData[index] = id;
     cellData[index].tileId = id;
     vboDirty = true;
 
@@ -69,26 +68,9 @@ const _cell* _chunk::getAllCells() const {
     return cellData;
 }
 
-const TileId* _chunk::getAllTileIds() const {
-    return tileData;
-}
-
 void _chunk::setAllCells(const _cell* cells) {
     if (!cells) return;
     memcpy(cellData,cells,256 * sizeof(_cell));
-    vboDirty = true;
-}
-
-void _chunk::setAllTiles(const TileId* tiles) {
-    if (!tiles) return;
-    memcpy(tileData,tiles,256 * sizeof(TileId));
-
-    // Set all cell IDs to match
-    _cell cellData[256];
-    for (int i = 0; i < 256; i++) {
-        cellData[i].tileId = tiles[i];
-    }
-    setAllCells(cellData);
     vboDirty = true;
 }
 
@@ -123,7 +105,6 @@ void _chunk::loadSerializedChunk(const chunk_serial_data &chunk_data) {
 
             // Serialized Data //
             const TileId tileId = static_cast<TileId>(chunk_data.cell_data[tileIndex].tileID);
-            tileData[tileIndex] = tileId;
             
             chunkCell.setHealth(chunk_data.cell_data[tileIndex].health);
             chunkCell.setOutline(static_cast<bool>(chunk_data.cell_data[tileIndex].outlined));

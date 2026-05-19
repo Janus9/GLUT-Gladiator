@@ -15,10 +15,11 @@
 #ifndef _WORLD_H
 #define _WORLD_H
 
-#define TILE_W 16.0f   // Tile width in world units is ALWAYS the same of 16
-#define TILE_H 16.0f   // Tile height in world units is ALWAYS the same of 16
+#define TILE_W 16.0f           // Tile width in world units is ALWAYS the same of 16
+#define TILE_H 16.0f           // Tile height in world units is ALWAYS the same of 16
 #define NUM_CHUNKS 16384       // Number of total world chunks
 #define NUM_TILES_CHUNK 256    // Number of tiles in a chunk
+#define NUM_LAYERS 4           // Number of layers per cell 
 
 #include <_common.h>
 #include <_texture.h>
@@ -278,14 +279,8 @@ class _chunk
         // Returns all 256 cells stored in the chunk as an array (readonly)
         const _cell* getAllCells() const;
 
-        // Returns all 256 tiles stored in the chunk as an array (readonly)
-        const TileId* getAllTileIds() const;
-
         // Sets all 256 cells to the array passed in
         void setAllCells(const _cell* cells);
-
-        // Sets all 256 tiles to the array passed in
-        void setAllTiles(const TileId* tiles);
 
         chunk_serial_data serializeChunk() const;
 
@@ -293,8 +288,6 @@ class _chunk
 
     protected:
     private:
-
-        TileId tileData[256];  // 16x16 chunk
         _cell cellData[256];   // 16x16 chunk
 };
 
