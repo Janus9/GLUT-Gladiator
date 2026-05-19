@@ -1358,9 +1358,9 @@ void _world::buildWorldVBO(float left, float right, float top, float bottom) {
     for (int chunkY = minChunkY; chunkY < maxChunkY; chunkY++) {
         for (int chunkX = minChunkX; chunkX < maxChunkX; chunkX++) {
             const Vec2i chunkPos(chunkX,chunkY);
-            const _chunk* chunk = getChunkAt(chunkPos);
+            _chunk* chunk = getChunkAt(chunkPos);
 
-            // if (!chunk->vboDirty) continue; // Skip chunks with unchanged data
+            if (!chunk->vboDirty) continue; // Skip chunks with unchanged data
 
             if (!chunk) {
                 cout << "ERROR: Could not find chunk at (" << chunkX << ", " << chunkY << ")\n";
@@ -1430,8 +1430,9 @@ void _world::buildWorldVBO(float left, float right, float top, float bottom) {
             }
 
             const GLsizei chunkStride = chunkVboData.size() * sizeof(float); 
-
             glBufferSubData(GL_ARRAY_BUFFER,chunk->vboIndex * chunkStride, chunkStride, chunkVboData.data()); 
+        
+            chunk->vboDirty = false;
         }
     }
     
