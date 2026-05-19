@@ -190,9 +190,9 @@ void _chunk::loadSerializedChunk(const chunk_serial_data &chunk_data) {
             
             chunkCell.setHealth(chunk_data.cell_data[tileIndex].health);
             chunkCell.setOutline(static_cast<bool>(chunk_data.cell_data[tileIndex].outlined));
-            chunkCell.tileId = static_cast<TileId>(chunk_data.cell_data[tileIndex].tileID);
             chunkCell.parentChunk = this;
             chunkCell.tileId = tileId;
+            chunkCell.index = tileIndex;
             chunkCell.pos = {worldXCenter, worldYCenter};
 
             // Non Serialized Data //
