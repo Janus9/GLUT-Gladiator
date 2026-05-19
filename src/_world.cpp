@@ -1004,6 +1004,12 @@ void _world::finalizeWorld() {
         loadedChunks[{new_chunkX, new_chunkY}] = true;
         chunkLookup[{new_chunkX, new_chunkY}] = newChunk;
     }
+
+    // Clear the world generation memory 
+    for (int layer = 0; layer < NUM_LAYERS; layer++) {
+        world_noise[layer].clear();
+    }
+
     Logger.LogDebug("World noise has been mapped to tiles and has been finalized!");
 }
 
