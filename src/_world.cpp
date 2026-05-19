@@ -735,14 +735,14 @@ void _world::postProcessWorld() {
 
     const int worldWidth = (int)sqrt(numStartingChunks)*16;
 
-    vector<uint8_t> world_noise_copy(world_noise);
+    vector<uint8_t> world_noise_copy(world_noise[LAYER_PRIMARY]);
     uniform_int_distribution<uint8_t> boss_dist(TILE_FLOOR_BOSS_BLANK_1, TILE_FLOOR_BOSS_BLANK_2); 
     uniform_int_distribution<uint8_t> outer_dist(TILE_FLOOR_OUTER_BLANK_1, TILE_FLOOR_OUTER_BLANK_2); 
     uniform_int_distribution<uint8_t> middle_dist(TILE_FLOOR_OUTER_DEFAULT_1, TILE_FLOOR_OUTER_DEFAULT_2); 
     uniform_int_distribution<uint8_t> inner_dist(TILE_FLOOR_INNER_DEFAULT_1, TILE_FLOOR_INNER_DEFAULT_2); 
     uniform_real_distribution<float> dist(0.0f,1.0f);
     
-    for (int i = 0; i < world_noise.size(); i++) {
+    for (int i = 0; i < world_noise[LAYER_PRIMARY].size(); i++) {
         const int col = i % worldWidth;                                 // Which column
         const int row = i / worldWidth;                                 // Which row
         
@@ -763,12 +763,12 @@ void _world::postProcessWorld() {
                         transitionProgress = glm::clamp(transitionProgress, 0.0f, 1.0f);
 
                         if (dist(rng) > transitionProgress) {
-                            world_noise[i] = boss_dist(rng);
+                            world_noise[LAYER_PRIMARY][i] = boss_dist(rng);
                         } else {
-                            world_noise[i] = inner_dist(rng);
+                            world_noise[LAYER_PRIMARY][i] = inner_dist(rng);
                         }
                     } else {
-                        world_noise[i] = inner_dist(rng);
+                        world_noise[LAYER_PRIMARY][i] = inner_dist(rng);
                     }
                     break;
                 case LEVEL_MIDDLE:
@@ -778,12 +778,12 @@ void _world::postProcessWorld() {
                         transitionProgress = glm::clamp(transitionProgress, 0.0f, 1.0f);
                         
                         if (dist(rng) > transitionProgress) {
-                            world_noise[i] = inner_dist(rng); // Blend toward middle tiles
+                            world_noise[LAYER_PRIMARY][i] = inner_dist(rng); // Blend toward middle tiles
                         } else {
-                            world_noise[i] = middle_dist(rng);
+                            world_noise[LAYER_PRIMARY][i] = middle_dist(rng);
                         }
                     } else {
-                        world_noise[i] = middle_dist(rng);
+                        world_noise[LAYER_PRIMARY][i] = middle_dist(rng);
                     }
                     break;
                 case LEVEL_OUTER:
@@ -793,12 +793,12 @@ void _world::postProcessWorld() {
                         transitionProgress = glm::clamp(transitionProgress, 0.0f, 1.0f);
                         
                         if (dist(rng) > transitionProgress) {
-                            world_noise[i] = middle_dist(rng); // Blend toward middle tiles
+                            world_noise[LAYER_PRIMARY][i] = middle_dist(rng); // Blend toward middle tiles
                         } else {
-                            world_noise[i] = outer_dist(rng);
+                            world_noise[LAYER_PRIMARY][i] = outer_dist(rng);
                         }
                     } else {
-                        world_noise[i] = outer_dist(rng);
+                        world_noise[LAYER_PRIMARY][i] = outer_dist(rng);
                     }
                     break;
             }
@@ -824,7 +824,7 @@ void _world::postProcessWorld() {
             int yOffset = (8-j) / 3 - 1;    // Gets yOffset for tiles [-1,1] -- Applies worldWidth later
             int index = i + xOffset + yOffset * worldWidth; // Gets the given index to check
             if (index == i) continue;   // Skip checking ourselves
-            if (index < 0 || index >= world_noise.size()) { // If index is out of bounds, treat as wall
+            if (index < 0 || index >= world_noise[LAYER_PRIMARY].size()) { // If index is out of bounds, treat as wall
                 neighborTiles[j] = true;
                 continue;
             }
@@ -832,7 +832,7 @@ void _world::postProcessWorld() {
                 neighborTiles[j] = true;
             }
         }
-        world_noise[i] = determineTileType(level, neighborTiles);
+        world_noise[LAYER_PRIMARY][i] = determineTileType(level, neighborTiles);
     }
     Logger.LogInfo("Finishing post processing of world");
 }
@@ -985,7 +985,7 @@ void _world::finalizeWorld() {
                 const float worldXCenter = (newChunk->chunkX * 16 + tileX) * TILE_W + halfWidth;
                 const float worldYCenter = (newChunk->chunkY * 16 + tileY) * TILE_H + halfHeight;
                 
-                const TileId newId = static_cast<TileId>(world_noise[world_noise_index]);
+                const TileId newId = static_cast<TileId>(world_noise[LAYER_PRIMARY][world_noise_index]);
                 _cell* cell = newChunk->cellAt(chunk_tile_index);
 
                 newChunk->setTileIdAt(newId,chunk_tile_index);
@@ -1292,7 +1292,7 @@ void _world::runWorldGeneration(int iterations) {
     rng = mt19937(seed);
 
     // Setup world_noise
-    world_noise.resize(numStartingChunks*256);  // 256 tiles per chunk
+    world_noise[LAYER_PRIMARY].resize(numStartingChunks*256);  // 256 tiles per chunk
     
     Logger.LogInfo("Running world generation for parameters: ");
     Logger.LogInfo(" - Noise Density: " + to_string(noise_distribution*100.0f) + "%");
@@ -1307,18 +1307,18 @@ void _world::runWorldGeneration(int iterations) {
     int worldWidth = (int)sqrt(numStartingChunks)*16;
     int worldHeight = (int)sqrt(numStartingChunks)*16;
 
-    for (int i = 0; i < world_noise.size(); i++) {
-        world_noise[i] = (dist(rng) < noise_distribution);    // Randomly assigns 0 or 1 based on noise_distribution
+    for (int i = 0; i < world_noise[LAYER_PRIMARY].size(); i++) {
+        world_noise[LAYER_PRIMARY][i] = (dist(rng) < noise_distribution);    // Randomly assigns 0 or 1 based on noise_distribution
     }
 
-    Logger.LogInfo("Finished generating noise of " + to_string(world_noise.size()) + "tiles");
+    Logger.LogInfo("Finished generating noise of " + to_string(world_noise[LAYER_PRIMARY].size()) + "tiles");
 
     Logger.LogInfo("Starting cellular automata algorithm for a world of Width: " + to_string(worldWidth) + "and Height: " + to_string(worldHeight) + " tiles");
     
     // Run cellular automata algorithm //
     for (int iteration = 0; iteration < iterations; iteration++) {
-        vector<uint8_t> world_noise_copy(world_noise);
-        for (int i = 0; i < world_noise.size(); i++) {
+        vector<uint8_t> world_noise_copy(world_noise[LAYER_PRIMARY]);
+        for (int i = 0; i < world_noise[LAYER_PRIMARY].size(); i++) {
             /*
             Each cell must check eight neighbors total (9 including itself). Each neighbor is checked to see if it is of type
             Wall = true or type Floor = false
@@ -1330,7 +1330,7 @@ void _world::runWorldGeneration(int iterations) {
                 int yOffset = j / 3 - 1;    // Gets yOffset for tiles [-1,1] -- Applies worldWidth later
                 int index = i + xOffset + yOffset * worldWidth; // Gets the given index to check
                 if (index == i) continue;   // Skip checking ourselves
-                if (index < 0 || index >= world_noise.size()) { // If index is out of bounds, treat as wall
+                if (index < 0 || index >= world_noise[LAYER_PRIMARY].size()) { // If index is out of bounds, treat as wall
                     num_neighbors++;
                     continue;
                 }
@@ -1341,17 +1341,17 @@ void _world::runWorldGeneration(int iterations) {
             
             // Moore Neighborhood //
             if (num_neighbors > 4) {
-                world_noise[i] = true;
+                world_noise[LAYER_PRIMARY][i] = true;
             } else {
-                world_noise[i] = false;
+                world_noise[LAYER_PRIMARY][i] = false;
             }
         }
         Logger.LogDebug(" -- Iteration: " + to_string(iteration) + " completed!");
     }
 
     // World modifications -- clear space in center for the boss //
-    vector<uint8_t> world_noise_copy(world_noise);
-    for (int i = 0; i < world_noise.size(); i++) {
+    vector<uint8_t> world_noise_copy(world_noise[LAYER_PRIMARY]);
+    for (int i = 0; i < world_noise[LAYER_PRIMARY].size(); i++) {
         const int col = i % worldWidth;                                 // Which column
         const int row = i / worldWidth;                                 // Which row
         
@@ -1364,7 +1364,7 @@ void _world::runWorldGeneration(int iterations) {
         // Wall tile
         if (world_noise_copy[i] && distance < 400.0f) {
             // Clear out all tiles of distance from center
-            world_noise[i] = static_cast<uint8_t>(false);
+            world_noise[LAYER_PRIMARY][i] = static_cast<uint8_t>(false);
         }
     }
 
@@ -1374,7 +1374,7 @@ void _world::runWorldGeneration(int iterations) {
     finalizeWorld();
 
     // Clean up data once world gen is done since no longer used
-    world_noise.clear();
+    world_noise[LAYER_PRIMARY].clear();
 }
 
 void _world::mapCellNeighbors(_cell* cell, _cell* outNeighbors[9]) {

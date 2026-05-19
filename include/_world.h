@@ -176,7 +176,7 @@ class _cell
     public:
         TileId tileId = TILE_NULL; // Defaults to undefined tile
 
-        TileId tileIdLayers[4] = {TILE_NULL};   // Initialize all layers to NULL
+        TileId tileIdLayers[NUM_LAYERS] = {TILE_NULL};   // Initialize all layers to NULL
 
         uint8_t index = 0; // Index cell lives in chunk data array
 
@@ -504,7 +504,7 @@ class _world
         unordered_map<pair<int,int>, bool, PairHash> loadedChunks;
 
         // -- World Generation -- //
-        vector<uint8_t> world_noise;
+        vector<uint8_t> world_noise[NUM_LAYERS];
 
         float noise_distribution = 0.60;  // 0-1 value for % of world that is walls as initial noise
         float generation_iterations = 7; // Number of iterations to run the algorithm
