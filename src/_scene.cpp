@@ -1425,7 +1425,7 @@ void _scene::updateScene(double dt, bool *keysArray)
     if (hoveredChunk)
     {
         string text_main = "Chunk Redraw: ";
-        string test_con = hoveredChunk->vboDirty ? "TRUE" : "FALSE";
+        string test_con = hoveredChunk->isChunkDirty() ? "TRUE" : "FALSE";
         hud->getHudText("CHUNK_REDRAW")->setText(text_main + test_con);
     }
 }
