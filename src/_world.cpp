@@ -1156,7 +1156,9 @@ bool _world::isTileWall(TileId tileId) const {
 bool _world::isCellWall(const _cell* cell) const {
     if (!cell) return false;
     // Any tile that contains a primary layer has collision and is thus a "wall"
-    return (cell->tileIDs[LAYER_PRIMARY] != TILE_NULL);
+    const _tile collisionTile = world_tiles[cell->tileIDs[LAYER_PRIMARY]];
+    if (cell->tileIDs[LAYER_PRIMARY] == TILE_NULL) return false;
+    return (collisionTile.hasCollision);
 }
 
 bool _world::damageCell(_cell* cell, float amount) {
