@@ -50,9 +50,10 @@ enum level_pos {
  * This is for serializing data for world saving. It stores cell/tile data of a chunk.
  */
 struct cell_serial_data {         // Offset 
-    uint8_t tileID;               // 1 byte
+    uint8_t tileIDs[NUM_LAYERS];   // NUM_LAYERS bytes 
     uint8_t outlined;             // 2 bytes
-    uint16_t padding;             // 4 bytes (Do not change)   
+    uint8_t padding1;             // 1 bytes (Do not change)   
+    uint16_t padding2;            // 2 bytes (Do not change)   
     float health;                 // 8 bytes
 };
 
@@ -175,9 +176,10 @@ enum TileId : uint8_t {
 class _cell
 {
     public:
-        TileId tileId = TILE_NULL; // Defaults to undefined tile
+        _cell();
+        virtual ~_cell();
 
-        TileId tileIdLayers[NUM_LAYERS] = {TILE_NULL};   // Initialize all layers to NULL
+        TileId tileIDs[NUM_LAYERS]; // Defaults to undefined tile
 
         uint8_t index = 0; // Index cell lives in chunk data array
 

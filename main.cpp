@@ -362,6 +362,9 @@ LRESULT CALLBACK WndProc(	HWND	hWnd,			// Handle For This Window
 				sharedSounds->playBackgroundMusic("sounds/main_menu_music.ogg", 0.3f);
 				menuManager->loadMenu(MENU_PAUSE);
 			}
+			if (wParam == VK_END) {
+				DebugBreak();	// Force breakpoint for debugging
+			}
 			return 0;								// Jump Back
 		}
 

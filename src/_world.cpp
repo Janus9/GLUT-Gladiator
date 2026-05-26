@@ -2,10 +2,20 @@
 
 // -- CELL -- // 
 
+_cell::_cell() {
+    for (int i = 0; i < NUM_LAYERS; i++) {
+        tileIDs[i] = TILE_NULL;
+    }
+}
+
+_cell::~_cell() {
+
+}
+
 bool _cell::setOutline(bool state) {
-if (!this || !parentChunk) return false;
-    outlined = state;
-    parentChunk->setChunkDirty();
+    if (!this || !parentChunk) return false;
+        outlined = state;
+        parentChunk->setChunkDirty();
     return true;
 }   
 
@@ -54,7 +64,7 @@ _chunk::~_chunk() {
 TileId _chunk::getTileIdAt(int index) const {
     if (!this) return TILE_NULL;
     if (index < 0 || index > 255) return TILE_NULL;
-    return cellData[index].tileId;
+    return cellData[index].tileIDs[LAYER_PRIMARY];       // Change later only returns "primary" tile
 }
 
 _cell* _chunk::cellAt(int index) {
@@ -66,7 +76,7 @@ bool _chunk::setTileIdAt(TileId id, int index) {
     if (!this) return false;
     if (index < 0 || index > 255) return false;
     
-    cellData[index].tileId = id;
+    cellData[index].tileIDs[LAYER_PRIMARY] = id;         // Change later only sets "primary" tile
     vboDirty = true;
 
     return true;
@@ -87,10 +97,11 @@ chunk_serial_data _chunk::serializeChunk() const {
     chunk_data.chunkX = chunkX;
     chunk_data.chunkY = chunkY;
     for (int i = 0; i < 256; i++) {
-        const _cell* cell = &cellData[i]; 
-        chunk_data.cell_data[i].tileID = cell->tileId;
+        const _cell* cell = &cellData[i];
+        memcpy(chunk_data.cell_data[i].tileIDs, cell->tileIDs, NUM_LAYERS * sizeof(TileId)); 
         chunk_data.cell_data[i].outlined = static_cast<uint8_t>(cell->isOutlined());
-        chunk_data.cell_data[i].padding = 0;   // Padding, does nothing.
+        chunk_data.cell_data[i].padding1 = 0;   // Padding, does nothing.
+        chunk_data.cell_data[i].padding2 = 0;   // Padding, does nothing.
         chunk_data.cell_data[i].health = cell->getHealth();
     }
     return chunk_data;
@@ -112,12 +123,10 @@ void _chunk::loadSerializedChunk(const chunk_serial_data &chunk_data) {
             _cell& chunkCell = cellData[tileIndex];
 
             // Serialized Data //
-            const TileId tileId = static_cast<TileId>(chunk_data.cell_data[tileIndex].tileID);
-            
             chunkCell.setHealth(chunk_data.cell_data[tileIndex].health);
             chunkCell.setOutline(static_cast<bool>(chunk_data.cell_data[tileIndex].outlined));
             chunkCell.parentChunk = this;
-            chunkCell.tileId = tileId;
+            memcpy(chunkCell.tileIDs, chunk_data.cell_data[tileIndex].tileIDs, NUM_LAYERS * sizeof(TileId));
             chunkCell.index = tileIndex;
             chunkCell.pos = {worldXCenter, worldYCenter};
 
@@ -311,7 +320,7 @@ void _world::initWorld(bool loadWorld, _lightManager* lightManager)
     glGenVertexArrays(1, &vaoID);
 
     // VBO //
-    // Number of total chunks * number of tiles per chunk * 4 vertices per tile * 7 floats per vertex * bytes per float 
+    // Number of total chunks * number of tiles per chunk * number of tile layers * 4 vertices per tile * 7 floats per vertex * bytes per float 
     const int maxSizeBytes = NUM_CHUNKS * NUM_TILES_CHUNK * 4 * 7 * sizeof(float);
 
     glBindBuffer(GL_ARRAY_BUFFER, vboID);
@@ -1016,7 +1025,7 @@ void _world::finalizeWorld() {
                 // Set Cell Data //
                 cell->setHealth(100.0f);
                 cell->setOutline(false);
-                cell->tileId = newId;
+                cell->tileIDs[LAYER_PRIMARY] = newId;   // TODO -- Only sets the primary tile
                 cell->index = chunk_tile_index; // Match every draw cycle
                 cell->parentChunk = newChunk;
 
@@ -1114,7 +1123,7 @@ bool _world::setCellTile(_cell* cell, TileId id) {
 
         // For each cell, rerun the post-processing tile type (requires checking all 8 around it)
         for (int i = 0; i < 9; i++) {
-            if (i == 4 || !isTileWall(neighborCells[i]->tileId)) continue; // Skip center cell and floors
+            if (i == 4 || !isCellWall(neighborCells[i])) continue; // Skip center cell and floors
             _cell* localCell = neighborCells[i];
             // We need all 9 cells around each cell we check
             _cell* localNeighborCells[9];
@@ -1124,7 +1133,7 @@ bool _world::setCellTile(_cell* cell, TileId id) {
             bool neighborTiles[9];
             for (int j = 0; j < 9; j++) {
                 if (neighborCells[j]) {
-                    neighborTiles[j] = isTileWall(localNeighborCells[j]->tileId);
+                    neighborTiles[j] = isCellWall(localNeighborCells[j]);
                 } else {
                     // nullptr (out of bounds treat as wall)
                     neighborTiles[j] = true;
@@ -1143,9 +1152,11 @@ bool _world::isTileWall(TileId tileId) const {
     return (tileId >= TILE_WALL_OUTER_CENTER && tileId <= TILE_WALL_INNER_COLUMN_SIDE);
 }
 
+// This name should be changed to be something like "cellHasCollision" for when we things beyond walls
 bool _world::isCellWall(const _cell* cell) const {
     if (!cell) return false;
-    return (cell->tileId >= TILE_WALL_OUTER_CENTER && cell->tileId <= TILE_WALL_INNER_COLUMN_SIDE);
+    // Any tile that contains a primary layer has collision and is thus a "wall"
+    return (cell->tileIDs[LAYER_PRIMARY] != TILE_NULL);
 }
 
 bool _world::damageCell(_cell* cell, float amount) {
@@ -1230,7 +1241,6 @@ void _world::buildWorldVBO(float left, float right, float top, float bottom) {
     const int maxChunkY = (int)ceil(top / (16 * TILE_H));
 
     const int numChunksToRender = (maxChunkX - minChunkX) * (maxChunkY - minChunkY);    // Total chunks in visible range
-    // Chunks to render * Tiles per chunk (256) * 4 verticies * 7 floats per vertex
 
     glBindBuffer(GL_ARRAY_BUFFER, vboID);
 
@@ -1239,12 +1249,13 @@ void _world::buildWorldVBO(float left, float right, float top, float bottom) {
             const Vec2i chunkPos(chunkX,chunkY);
             _chunk* chunk = getChunkAt(chunkPos);
 
-            if (!chunk->isChunkDirty()) continue; // Skip chunks with unchanged data
-
             if (!chunk) {
                 cout << "ERROR: Could not find chunk at (" << chunkX << ", " << chunkY << ")\n";
-                return;
+                continue;
             }
+            
+            if (!chunk->isChunkDirty()) continue; // Skip chunks with unchanged data
+
             const _cell* cellList = chunk->getAllCells();
 
             // 256 tiles * 4 verticies * 7 floats per vertex
@@ -1257,7 +1268,7 @@ void _world::buildWorldVBO(float left, float right, float top, float bottom) {
                     const int tileIndex = y * 16 + x;
 
                     const _cell& cell = cellList[tileIndex];
-                    const _tile& tile = world_tiles[cell.tileId];
+                    const _tile& tile = world_tiles[cell.tileIDs[LAYER_PRIMARY]];
                     
                     const float halfWidth = TILE_W * 0.5f;
                     const float halfHeight = TILE_H * 0.5f;
