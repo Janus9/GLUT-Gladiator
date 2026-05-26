@@ -5,7 +5,7 @@
 bool _cell::setOutline(bool state) {
 if (!this || !parentChunk) return false;
     outlined = state;
-    parentChunk->vboDirty = true;
+    parentChunk->setChunkDirty();
     return true;
 }   
 
@@ -37,7 +37,15 @@ bool _cell::isAlive() const {
 
 // -- CHUNK -- //
 
+// Static //
+
+int _chunk::nextIndex = 0;
+
+// Public //
+
 _chunk::_chunk() {
+    vboIndex = nextIndex;
+    nextIndex++;
 }
 
 _chunk::~_chunk() {
@@ -118,6 +126,22 @@ void _chunk::loadSerializedChunk(const chunk_serial_data &chunk_data) {
             vboDirty = true;
         }
     }
+}
+
+int _chunk::getVboIndex() const {
+    return vboIndex;
+}
+
+bool _chunk::isChunkDirty() const {
+    return vboDirty;
+}
+
+void _chunk::setChunkDirty() {
+    vboDirty = true;
+}
+
+void _chunk::setChunkClean() {
+    vboDirty = false;
 }
 
 // -- WORLD -- //
@@ -701,7 +725,7 @@ void _world::drawWorld(float left, float right, float top, float bottom)
             if (chunk == nullptr) { continue; }
             
             // Draw Tiles Per Chunk //
-            const GLsizei chunkIndexByteOffset = chunk->vboIndex * indiciesPerChunk * sizeof(uint32_t);   // Which byte index to start reading from
+            const GLsizei chunkIndexByteOffset = chunk->getVboIndex() * indiciesPerChunk * sizeof(uint32_t);   // Which byte index to start reading from
             glDrawElements(GL_TRIANGLES, indiciesPerChunk, GL_UNSIGNED_INT, (void*)(chunkIndexByteOffset));
         }
     }
@@ -959,7 +983,6 @@ void _world::finalizeWorld() {
         _chunk* newChunk = &worldChunks.back();
         newChunk->chunkX = new_chunkX;
         newChunk->chunkY = new_chunkY;
-        newChunk->vboIndex = i;
 
         // Calculate the starting position of this chunk in the world grid
         const int chunkStartX = (new_chunkX + (int)floor(sqrt(numStartingChunks) / 2)) * 16;
@@ -1111,7 +1134,7 @@ bool _world::setCellTile(_cell* cell, TileId id) {
             localCell->parentChunk->setTileIdAt(localTileId, localCell->index);
         }
         
-        cell->parentChunk->vboDirty = true;  // Mark chunk for rebuild
+        cell->parentChunk->isChunkDirty();  // Mark chunk for rebuild
     }
     return success;
 }
@@ -1162,7 +1185,6 @@ void _world::importSerializeWorld(vector<chunk_serial_data> world_data) {
         worldChunks.emplace_back();
         _chunk* chunk = &worldChunks.back();
         chunk->loadSerializedChunk(world_data[i]);
-        chunk->vboIndex = i;
 
         int chunkX = world_data[i].chunkX;
         int chunkY = world_data[i].chunkY;
@@ -1217,7 +1239,7 @@ void _world::buildWorldVBO(float left, float right, float top, float bottom) {
             const Vec2i chunkPos(chunkX,chunkY);
             _chunk* chunk = getChunkAt(chunkPos);
 
-            if (!chunk->vboDirty) continue; // Skip chunks with unchanged data
+            if (!chunk->isChunkDirty()) continue; // Skip chunks with unchanged data
 
             if (!chunk) {
                 cout << "ERROR: Could not find chunk at (" << chunkX << ", " << chunkY << ")\n";
@@ -1287,9 +1309,9 @@ void _world::buildWorldVBO(float left, float right, float top, float bottom) {
             }
 
             const GLsizei chunkStride = chunkVboData.size() * sizeof(float); 
-            glBufferSubData(GL_ARRAY_BUFFER,chunk->vboIndex * chunkStride, chunkStride, chunkVboData.data()); 
+            glBufferSubData(GL_ARRAY_BUFFER,chunk->getVboIndex() * chunkStride, chunkStride, chunkVboData.data()); 
         
-            chunk->vboDirty = false;
+            chunk->setChunkClean();
         }
     }
     

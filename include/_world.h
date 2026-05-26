@@ -258,10 +258,6 @@ class _chunk
         int chunkX;
         int chunkY;
 
-        // This should really be private info 
-        bool vboDirty = true;       // If dirty then we update the chunk (when tiles change)
-        int vboIndex;               // Marker of where in VBO buffer the chunk data starts
-
         /**
          * Gets a tile at the given index
          * 
@@ -301,9 +297,25 @@ class _chunk
 
         void loadSerializedChunk(const chunk_serial_data &chunk_data);
 
+        /** Returns the chunk's unique VBO index */
+        int getVboIndex() const;
+
+        /** Returns true if the chunk is dirty (marked for redraw) */
+        bool isChunkDirty() const;
+
+        /** Sets the chunk as dirty (for redraw) */
+        void setChunkDirty();
+        
+        /** Sets the chunk as clean (after redraw) */
+        void setChunkClean();
     protected:
     private:
         _cell cellData[256];   // 16x16 chunk
+
+        bool vboDirty = true;       // If dirty then we update the chunk (when tiles change)
+        int vboIndex;               // Marker of where in VBO buffer the chunk data starts
+
+        static int nextIndex;
 };
 
 class _world
