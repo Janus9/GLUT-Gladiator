@@ -723,7 +723,8 @@ void _world::drawWorld(float left, float right, float top, float bottom)
     const int minChunkY = (int)floor(bottom / (16 * TILE_H));
     const int maxChunkY = (int)ceil(top / (16 * TILE_H));
 
-    constexpr GLsizei indiciesPerChunk = NUM_TILES_CHUNK * 6;        // How many indicies a chunk takes up
+    constexpr GLsizei indiciesPerChunk = NUM_TILES_CHUNK * 6;           // How many indicies a chunk takes up
+    constexpr GLsizei indiciesPerLayer = indiciesPerChunk * NUM_CHUNKS; // How many indicies an entire layer takes up 
     
     glBindVertexArray(vaoID);
     
@@ -735,7 +736,14 @@ void _world::drawWorld(float left, float right, float top, float bottom)
             
             // Draw Tiles Per Chunk //
             const GLsizei chunkIndexByteOffset = chunk->getVboIndex() * indiciesPerChunk * sizeof(uint32_t);   // Which byte index to start reading from
-            glDrawElements(GL_TRIANGLES, indiciesPerChunk, GL_UNSIGNED_INT, (void*)(chunkIndexByteOffset));
+            
+            for (int layer = 0; layer < NUM_LAYERS; layer++) {
+                /**
+                 * Draw per layer, layer 0 is the LAYER_FLOOR and top layer is LAYER_PRIMARY
+                 * Each layer is in the same buffer, but just one length over
+                 */
+                glDrawElements(GL_TRIANGLES, indiciesPerChunk, GL_UNSIGNED_INT, (void*)(chunkIndexByteOffset + (indiciesPerLayer * layer)));
+            }
         }
     }
     
@@ -1143,7 +1151,7 @@ bool _world::setCellTile(_cell* cell, TileId id) {
             localCell->parentChunk->setTileIdAt(localTileId, localCell->index);
         }
         
-        cell->parentChunk->isChunkDirty();  // Mark chunk for rebuild
+        cell->parentChunk->setChunkDirty();  // Mark chunk for rebuild
     }
     return success;
 }
