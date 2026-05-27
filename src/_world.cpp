@@ -778,13 +778,76 @@ void _world::postProcessWorld() {
 
     const int worldWidth = (int)sqrt(numStartingChunks)*16;
 
-    vector<uint8_t> world_noise_copy(world_noise[LAYER_PRIMARY]);
+    vector<uint8_t> world_noise_primary_copy(world_noise[LAYER_PRIMARY]);
+
     uniform_int_distribution<uint8_t> boss_dist(TILE_FLOOR_BOSS_BLANK_1, TILE_FLOOR_BOSS_BLANK_2); 
     uniform_int_distribution<uint8_t> outer_dist(TILE_FLOOR_OUTER_BLANK_1, TILE_FLOOR_OUTER_BLANK_2); 
     uniform_int_distribution<uint8_t> middle_dist(TILE_FLOOR_OUTER_DEFAULT_1, TILE_FLOOR_OUTER_DEFAULT_2); 
     uniform_int_distribution<uint8_t> inner_dist(TILE_FLOOR_INNER_DEFAULT_1, TILE_FLOOR_INNER_DEFAULT_2); 
     uniform_real_distribution<float> dist(0.0f,1.0f);
     
+    for (int i = 0; i < world_noise[LAYER_FLOOR].size(); i++) {
+        const int col = i % worldWidth;                                 // Which column
+        const int row = i / worldWidth;                                 // Which row
+        
+        const float tilePosX = (-worldWidth * 0.5f + col) * 16.0f;      // Get world pos X
+        const float tilePosY = (worldWidth * 0.5f - row) * 16.0f;       // Get world pos Y
+
+        Vec2f tilePos = {tilePosX, tilePosY};
+        const float distance = tilePos.distance({0.0f,0.0f});
+        level_pos level = getLevelFromPos(tilePos);
+        
+        // FLOOR TILE //
+        switch (level) {
+            case LEVEL_INNER:
+                if (distance < 800.0f) {
+                    // Boss Room //
+                    float transitionProgress = (distance - 300.0f) / 500.0f; // 0.0 at 300, 1.0 at 800
+                    transitionProgress = glm::clamp(transitionProgress, 0.0f, 1.0f);
+
+                    if (dist(rng) > transitionProgress) {
+                        world_noise[LAYER_FLOOR][i] = boss_dist(rng);
+                    } else {
+                        world_noise[LAYER_FLOOR][i] = inner_dist(rng);
+                    }
+                } else {
+                    world_noise[LAYER_FLOOR][i] = inner_dist(rng);
+                }
+                break;
+            case LEVEL_MIDDLE:
+                if (distance < 5000.0f) {
+                    // Transition period between INNER and MIDDLE
+                    float transitionProgress = (distance - 3000.0f) / 2000.0f; // 0.0 at 3000, 1.0 at 5000
+                    transitionProgress = glm::clamp(transitionProgress, 0.0f, 1.0f);
+                    
+                    if (dist(rng) > transitionProgress) {
+                        world_noise[LAYER_FLOOR][i] = inner_dist(rng); // Blend toward middle tiles
+                    } else {
+                        world_noise[LAYER_FLOOR][i] = middle_dist(rng);
+                    }
+                } else {
+                    world_noise[LAYER_FLOOR][i] = middle_dist(rng);
+                }
+                break;
+            case LEVEL_OUTER:
+                if (distance < 10000.0f) {
+                    // Transition period between MIDDLE and OUTER
+                    float transitionProgress = (distance - 8000.0f) / 2000.0f; // 0.0 at 8000, 1.0 at 10000
+                    transitionProgress = glm::clamp(transitionProgress, 0.0f, 1.0f);
+                    
+                    if (dist(rng) > transitionProgress) {
+                        world_noise[LAYER_FLOOR][i] = middle_dist(rng); // Blend toward middle tiles
+                    } else {
+                        world_noise[LAYER_FLOOR][i] = outer_dist(rng);
+                    }
+                } else {
+                    world_noise[LAYER_FLOOR][i] = outer_dist(rng);
+                }
+                break;
+        }
+    }
+
+    // PRIMARY TILE //
     for (int i = 0; i < world_noise[LAYER_PRIMARY].size(); i++) {
         const int col = i % worldWidth;                                 // Which column
         const int row = i / worldWidth;                                 // Which row
@@ -796,57 +859,7 @@ void _world::postProcessWorld() {
         const float distance = tilePos.distance({0.0f,0.0f});
         level_pos level = getLevelFromPos(tilePos);
 
-        // Floor tile
-        if (!world_noise_copy[i]) {
-            switch (level) {
-                case LEVEL_INNER:
-                    if (distance < 800.0f) {
-                        // Boss Room //
-                        float transitionProgress = (distance - 300.0f) / 500.0f; // 0.0 at 300, 1.0 at 800
-                        transitionProgress = glm::clamp(transitionProgress, 0.0f, 1.0f);
-
-                        if (dist(rng) > transitionProgress) {
-                            world_noise[LAYER_PRIMARY][i] = boss_dist(rng);
-                        } else {
-                            world_noise[LAYER_PRIMARY][i] = inner_dist(rng);
-                        }
-                    } else {
-                        world_noise[LAYER_PRIMARY][i] = inner_dist(rng);
-                    }
-                    break;
-                case LEVEL_MIDDLE:
-                    if (distance < 5000.0f) {
-                        // Transition period between INNER and MIDDLE
-                        float transitionProgress = (distance - 3000.0f) / 2000.0f; // 0.0 at 3000, 1.0 at 5000
-                        transitionProgress = glm::clamp(transitionProgress, 0.0f, 1.0f);
-                        
-                        if (dist(rng) > transitionProgress) {
-                            world_noise[LAYER_PRIMARY][i] = inner_dist(rng); // Blend toward middle tiles
-                        } else {
-                            world_noise[LAYER_PRIMARY][i] = middle_dist(rng);
-                        }
-                    } else {
-                        world_noise[LAYER_PRIMARY][i] = middle_dist(rng);
-                    }
-                    break;
-                case LEVEL_OUTER:
-                    if (distance < 10000.0f) {
-                        // Transition period between MIDDLE and OUTER
-                        float transitionProgress = (distance - 8000.0f) / 2000.0f; // 0.0 at 8000, 1.0 at 10000
-                        transitionProgress = glm::clamp(transitionProgress, 0.0f, 1.0f);
-                        
-                        if (dist(rng) > transitionProgress) {
-                            world_noise[LAYER_PRIMARY][i] = middle_dist(rng); // Blend toward middle tiles
-                        } else {
-                            world_noise[LAYER_PRIMARY][i] = outer_dist(rng);
-                        }
-                    } else {
-                        world_noise[LAYER_PRIMARY][i] = outer_dist(rng);
-                    }
-                    break;
-            }
-            continue;
-        }
+        if (!world_noise_primary_copy[i]) continue;
         /*
         Wall Tile
 
@@ -871,7 +884,7 @@ void _world::postProcessWorld() {
                 neighborTiles[j] = true;
                 continue;
             }
-            if (world_noise_copy[index]) {  // Check index, true means wall
+            if (world_noise_primary_copy[index]) {  // Check index, true means wall
                 neighborTiles[j] = true;
             }
         }
