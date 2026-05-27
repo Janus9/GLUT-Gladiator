@@ -516,6 +516,9 @@ void _world::initTiles() {
     
     setTileInAtlas(22,18, world_tiles[TILE_WALL_COLUMN_SIDE]);        
     world_tiles[TILE_WALL_COLUMN_SIDE].name = "wall_column_side";
+
+    setTileInAtlas(26,10, world_tiles[TILE_COSMETIC_ROCK_1]);        
+    world_tiles[TILE_COSMETIC_ROCK_1].name = "rock_1";
 }
 
 bool _world::setTileInAtlas(int xIndex, int yIndex, _tile &tile) {
@@ -697,6 +700,13 @@ void _world::postProcessWorld() {
                     world_noise[LAYER_FLOOR][i] = outer_dist(rng);
                 }
                 break;
+        }
+    }
+
+    // COSMETIC 1 //
+    for (int i = 0; i < world_noise[LAYER_COSMETIC_1].size(); i++) {
+        if (dist(rng) > 0.95f) {
+            world_noise[LAYER_COSMETIC_1][i] = TILE_COSMETIC_ROCK_1;
         }
     }
 
