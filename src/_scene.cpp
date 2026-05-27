@@ -1507,6 +1507,10 @@ void _scene::keyboardHandler(WPARAM wParam)
         case 220: // "\"
             cameraFree = !cameraFree;
             Logger.LogInfo("Toggled camera free mode: " + std::string(cameraFree ? "ON" : "OFF"), LOG_CONSOLE);
+            if (!cameraFree && cameraZoom < 3.0f) {
+                // Reset camera on disabling free cam
+                cameraZoom = 3.0f;
+            }
             break;
         case 122: // "F11"
             myWorld->DEBUG_displayChunkBorders = !myWorld->DEBUG_displayChunkBorders;
