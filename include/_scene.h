@@ -83,7 +83,7 @@ class _scene
         bool playEndSongEvent = false;
     protected:
     private:
-    
+        world_config world_configuration;
         bool sceneInitialized = false;
 
         // Window dimensions

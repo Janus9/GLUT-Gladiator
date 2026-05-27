@@ -231,9 +231,11 @@ _world::~_world()
     worldChunks.clear();
 }
 
-void _world::initWorld(bool loadWorld, _lightManager* lightManager)
+void _world::initWorld(bool loadWorld, const world_config &_configuration, _lightManager* lightManager)
 {
     sceneLightManager = lightManager;
+
+    configuration = _configuration;
 
     if (worldInitialized) {
         cout << "WARNING: World has already been initialized, skipping\n";
@@ -242,8 +244,11 @@ void _world::initWorld(bool loadWorld, _lightManager* lightManager)
 
     initBenchmark->startBenchmark();
 
+    // Chunk width/height * 16 tiles wide * 16 world units per tile / 2 
+    worldBounds = sqrt(configuration.num_chunks) * 16.0f * 16.0f * 0.5f;
+
     // Logger.LogInfo("Initializing world for seed " + to_string(seed), LOG_BOTH);
-    Logger.LogInfo("World has " + to_string(numStartingChunks) + " starting chunks.", LOG_BOTH);
+    Logger.LogInfo("World has " + to_string(configuration.num_chunks) + " starting chunks.", LOG_BOTH);
 
     tileAtlas->loadTexture("images/set_1.png"); // Load the tile atlas texture
     // Reserve allocates memory but does not instantiate it -- resize allocates AND instantiates it (dont want that)
@@ -262,7 +267,7 @@ void _world::initWorld(bool loadWorld, _lightManager* lightManager)
 
     initTiles(); // Setup tiles
     
-    double sqrtNumChunks = sqrt(numStartingChunks);
+    const double sqrtNumChunks = sqrt(configuration.num_chunks);
     // This checks if a decimal (like 1.3) is equal to its floor (1.0) which indicates the sqrt wasn't perfect
     if (sqrtNumChunks != floor(sqrtNumChunks)) {
         Logger.LogWarning("numStartingChunks is not a perfect square. This may lead to an uneven distribution of chunks around the center.", LOG_BOTH);
@@ -321,7 +326,7 @@ void _world::initWorld(bool loadWorld, _lightManager* lightManager)
 
     // VBO //
     // Number of total chunks * number of tiles per chunk * number of tile layers * 4 vertices per tile * 7 floats per vertex * bytes per float 
-    const int maxSizeBytes = NUM_CHUNKS * NUM_TILES_CHUNK * NUM_LAYERS * 4 * 7 * sizeof(float);
+    const int maxSizeBytes = configuration.num_chunks * NUM_TILES_CHUNK * NUM_LAYERS * 4 * 7 * sizeof(float);
 
     glBindBuffer(GL_ARRAY_BUFFER, vboID);
     glBufferData(GL_ARRAY_BUFFER,maxSizeBytes,nullptr,GL_STATIC_DRAW);
@@ -329,10 +334,10 @@ void _world::initWorld(bool loadWorld, _lightManager* lightManager)
 
     // EBO //
     // (Number of total chunks) * (256 tiles per chunk) * (number of layers) * (6 indicies per tile)
-    vector<uint32_t> eboData(NUM_CHUNKS * NUM_TILES_CHUNK * NUM_LAYERS * 6);
+    vector<uint32_t> eboData(configuration.num_chunks * NUM_TILES_CHUNK * NUM_LAYERS * 6);
     int vertexOffset = 0;
     int eIndex = 0;
-    for (int i = 0; i < NUM_CHUNKS * NUM_TILES_CHUNK * NUM_LAYERS; i++) {
+    for (int i = 0; i < configuration.num_chunks * NUM_TILES_CHUNK * NUM_LAYERS; i++) {
         // Ebo (Two Triangles) //
         // Triangle 1
         eboData[eIndex++] = vertexOffset + 0; // BL   
@@ -579,8 +584,8 @@ void _world::drawWorld(float left, float right, float top, float bottom)
     const int minChunkY = (int)floor(bottom / (16 * TILE_H));
     const int maxChunkY = (int)ceil(top / (16 * TILE_H));
 
-    constexpr GLsizei indicesPerChunk = NUM_TILES_CHUNK * 6;           // How many indicies a chunk takes up
-    constexpr GLsizei indicesPerLayer = indicesPerChunk * NUM_CHUNKS; // How many indicies an entire layer takes up 
+    constexpr GLsizei indicesPerChunk = NUM_TILES_CHUNK * 6;                        // How many indicies a chunk takes up
+    const GLsizei indicesPerLayer = indicesPerChunk * configuration.num_chunks;     // How many indicies an entire layer takes up 
     
     glBindVertexArray(vaoID);
     
@@ -632,7 +637,7 @@ Vec2i _world::convertIndexToPos(int index, int width, int height) {
 void _world::postProcessWorld() {
     Logger.LogInfo("Starting post processing of world");
 
-    const int worldWidth = (int)sqrt(numStartingChunks)*16;
+    const int worldWidth = (int)sqrt(configuration.num_chunks)*16;
 
     vector<uint8_t> world_noise_primary_copy(world_noise[LAYER_PRIMARY]);
 
@@ -811,12 +816,12 @@ a coordinate system for chunks
 void _world::finalizeWorld() {
     Logger.LogDebug("Mapping world noise into tiles");
     
-    const int worldWidth = (int)sqrt(numStartingChunks) * 16;
-    const int worldHeight = (int)sqrt(numStartingChunks) * 16;
+    const int worldWidth = (int)sqrt(configuration.num_chunks) * 16;
+    const int worldHeight = (int)sqrt(configuration.num_chunks) * 16;
 
-    for (int i = 0; i < numStartingChunks; i++) {
-        const int new_chunkX = i % (int)sqrt(numStartingChunks) - floor(sqrt(numStartingChunks) / 2);
-        const int new_chunkY = i / (int)sqrt(numStartingChunks) - floor(sqrt(numStartingChunks) / 2);
+    for (int i = 0; i < configuration.num_chunks; i++) {
+        const int new_chunkX = i % (int)sqrt(configuration.num_chunks) - floor(sqrt(configuration.num_chunks) / 2);
+        const int new_chunkY = i / (int)sqrt(configuration.num_chunks) - floor(sqrt(configuration.num_chunks) / 2);
 
         worldChunks.emplace_back();
 
@@ -825,8 +830,8 @@ void _world::finalizeWorld() {
         newChunk->chunkY = new_chunkY;
 
         // Calculate the starting position of this chunk in the world grid
-        const int chunkStartX = (new_chunkX + (int)floor(sqrt(numStartingChunks) / 2)) * 16;
-        const int chunkStartY = (new_chunkY + (int)floor(sqrt(numStartingChunks) / 2)) * 16;
+        const int chunkStartX = (new_chunkX + (int)floor(sqrt(configuration.num_chunks) / 2)) * 16;
+        const int chunkStartY = (new_chunkY + (int)floor(sqrt(configuration.num_chunks) / 2)) * 16;
 
         // Extract the 16x16 tile section for this chunk from world_noise
         for (int tileY = 0; tileY < 16; tileY++) {
@@ -1017,7 +1022,7 @@ bool _world::damageCell(_cell* cell, float amount) {
 
 vector<chunk_serial_data> _world::exportSerializeWorld() const {
     vector<chunk_serial_data> world_data;
-    for (int i = 0; i < numStartingChunks; i++) {
+    for (int i = 0; i < configuration.num_chunks; i++) {
         const _chunk* chunk = &worldChunks[i];
         world_data.push_back(chunk->serializeChunk());
     }
@@ -1027,7 +1032,7 @@ vector<chunk_serial_data> _world::exportSerializeWorld() const {
 void _world::importSerializeWorld(vector<chunk_serial_data> world_data) {
     for (int i = 0; i < world_data.size(); i++) {
         // Build chunk
-        worldChunks.reserve(numStartingChunks);
+        worldChunks.reserve(configuration.num_chunks);
         worldChunks.emplace_back();
         _chunk* chunk = &worldChunks.back();
         chunk->loadSerializedChunk(world_data[i]);
@@ -1045,7 +1050,7 @@ void _world::setSeed(uint32_t _seed) {
 }
 
 level_pos _world::getLevelFromPos(const Vec2f &pos) const {
-    const float worldWidth = sqrt(NUM_CHUNKS) * 16 * 16;
+    const float worldWidth = sqrt(configuration.num_chunks) * 16 * 16;
     const float worldRadius = worldWidth * 0.5f;
     const float distance = pos.distance({0.0f,0.0f});           // How far from center?
 
@@ -1065,6 +1070,9 @@ level_pos _world::getLevelFromPos(const Vec2f &pos) const {
     }
 }
 
+void _world::importWorldConfiguration(const world_config &_world_config) {
+    configuration = _world_config;
+}
 
 // -- PRIVATE -- //
 
@@ -1079,7 +1087,7 @@ void _world::buildWorldVBO(float left, float right, float top, float bottom) {
 
     // (Number of tiles in a chunk) * (7 floats per vertex) * (4 verticies per tile) * (bytes per float)
     constexpr GLsizei bytesPerChunk = NUM_TILES_CHUNK * 7 * 4 * sizeof(float); 
-    constexpr GLsizei bytesPerLayer = NUM_CHUNKS * bytesPerChunk; // How many bytes an entire layer takes up (sizeof chunk * how many)
+    const GLsizei bytesPerLayer = configuration.num_chunks * bytesPerChunk; // How many bytes an entire layer takes up (sizeof chunk * how many)
 
     glBindBuffer(GL_ARRAY_BUFFER, vboID);
 
@@ -1176,17 +1184,17 @@ void _world::buildWorldVBO(float left, float right, float top, float bottom) {
 }
 
 void _world::runWorldGeneration(int iterations) {
-    worldChunks.reserve(numStartingChunks); // Resize the vector to hold numStartingChunks chunks
+    worldChunks.reserve(configuration.num_chunks); // Resize the vector to hold configuration.num_chunks chunks
     
     // Setup seed + rng engine 
     seed = std::chrono::system_clock::now().time_since_epoch().count(); 
     rng = mt19937(seed);
 
     // Setup world_noise 
-    world_noise[LAYER_FLOOR].resize(numStartingChunks*256);         // Floor tiles
-    world_noise[LAYER_COSMETIC_1].resize(numStartingChunks*256);    // Cosmetic Tiles (1st layer)
-    world_noise[LAYER_COSMETIC_2].resize(numStartingChunks*256);    // Cosmetic Tiles (2nd layer)
-    world_noise[LAYER_PRIMARY].resize(numStartingChunks*256);       // Wall tiles (run cellular automata w/ moore neighborhood)
+    world_noise[LAYER_FLOOR].resize(configuration.num_chunks*256);         // Floor tiles
+    world_noise[LAYER_COSMETIC_1].resize(configuration.num_chunks*256);    // Cosmetic Tiles (1st layer)
+    world_noise[LAYER_COSMETIC_2].resize(configuration.num_chunks*256);    // Cosmetic Tiles (2nd layer)
+    world_noise[LAYER_PRIMARY].resize(configuration.num_chunks*256);       // Wall tiles (run cellular automata w/ moore neighborhood)
     
     Logger.LogInfo("Running world generation for parameters: ");
     Logger.LogInfo(" - Noise Density: " + to_string(noise_distribution*100.0f) + "%");
@@ -1198,8 +1206,8 @@ void _world::runWorldGeneration(int iterations) {
     Logger.LogInfo("Establishing world noise for a ratio of " + to_string(noise_distribution));
     
       // World width/height in tiles
-    int worldWidth = (int)sqrt(numStartingChunks)*16;
-    int worldHeight = (int)sqrt(numStartingChunks)*16;
+    int worldWidth = (int)sqrt(configuration.num_chunks)*16;
+    int worldHeight = (int)sqrt(configuration.num_chunks)*16;
 
     for (int i = 0; i < world_noise[LAYER_PRIMARY].size(); i++) {
         world_noise[LAYER_FLOOR][i] = TILE_NULL;

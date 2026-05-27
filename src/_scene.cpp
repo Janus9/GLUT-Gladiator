@@ -2,7 +2,8 @@
 
 _scene::_scene() : rng(random_device{}())
 {
-    // ctor
+    // Test world configuration //
+    world_configuration.num_chunks = 16384;
 }
 
 _scene::~_scene()
@@ -78,7 +79,7 @@ void _scene::initScene(bool loadWorld)
     interactionTimer->reset();
     fireRateTimer.reset();
     
-    myWorld->initWorld(loadWorld,lightManager.get());         // Initialize the world
+    myWorld->initWorld(loadWorld, world_configuration, lightManager.get());         // Initialize the world
 
     // PICKUPS //
     pickupManager->initPickupManager("images/pickups/pickup_sheet.png",6,player.get(),lightManager.get());
@@ -349,7 +350,7 @@ void _scene::initScene(bool loadWorld)
          */
     
         // Find spawn 
-        const float numChunks = NUM_CHUNKS;
+        const float numChunks = world_configuration.num_chunks;
         // Total chunk area to length/width * num tiles * 16 units per tile / 2 since 0,0 is center
         float bounds = sqrt(numChunks) * 16 * 16 * 0.5;
         uniform_real_distribution<float> player_pos_neg_dist(-1.0f,1.0f);           // Coin flip for positive vs negative side
@@ -637,7 +638,7 @@ bool _scene::saveSceneToFile(const string &fileName) {
     file.write(reinterpret_cast<const char*>(&version_id),sizeof(version_id));  // Version ID
     const float game_id = GAME_VERSION;
     file.write(reinterpret_cast<const char*>(&game_id),sizeof(game_id));  // Game Version
-    const int numStartingChunks = NUM_CHUNKS;
+    const int numStartingChunks = world_configuration.num_chunks;
     file.write(reinterpret_cast<const char*>(&numStartingChunks),sizeof(numStartingChunks)); // Chunk Count
 
     // Chunk Data Write //
@@ -747,11 +748,11 @@ bool _scene::loadSceneFromFile(const string &fileName) {
 
     int32_t chunk_count = 0;
     file.read(reinterpret_cast<char*>(&chunk_count), sizeof(chunk_count));  // Chunk Count
-    const int numStartingChunks = NUM_CHUNKS;
-    if (chunk_count != numStartingChunks) {
-        cout << "ERROR: Chunk Count of save " << fileName << " for " << chunk_count << "does not match count of " << numStartingChunks << "\n";
+    if (chunk_count <= 0) {
+        cout << "ERROR: Chunk Count of save " << fileName << " for " << chunk_count << "must be greater than 0\n";
         return false;
     }
+    world_configuration.num_chunks = chunk_count;
 
     // Read Chunk Data //
     
@@ -779,6 +780,8 @@ bool _scene::loadSceneFromFile(const string &fileName) {
     cout << "Read world data:\n"
          << " - Number of chunks: " << world_data.size() << "\n"
          << " - Size of world: " << world_data.size() * sizeof(chunk_serial_data) << " bytes\n";
+
+    myWorld->importWorldConfiguration(world_configuration);
 
     myWorld->importSerializeWorld(world_data);
 

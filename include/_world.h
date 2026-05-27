@@ -17,7 +17,6 @@
 
 #define TILE_W 16.0f           // Tile width in world units is ALWAYS the same of 16
 #define TILE_H 16.0f           // Tile height in world units is ALWAYS the same of 16
-#define NUM_CHUNKS 16384       // Number of total world chunks
 #define NUM_TILES_CHUNK 256    // Number of tiles in a chunk
 #define NUM_LAYERS 4           // Number of layers per cell 
 
@@ -318,7 +317,7 @@ class _world
          * @param loadWorld If true world is loaded and NOT generated
          * @param lightManager Pointer to the scene owned light manager (non-owning)
          */
-        void initWorld(bool loadWorld, _lightManager* lightManager);
+        void initWorld(bool loadWorld, const world_config &_configuration, _lightManager* lightManager);
 
         /**
          * Draw function for the world. 
@@ -450,17 +449,24 @@ class _world
 
         level_pos getLevelFromPos(const Vec2f &pos) const;
 
+        /**
+         * @param _world_config Configuration file for the world generation / loading
+         */
+        void importWorldConfiguration(const world_config &_world_config);
+        
         // Sets the view projection matrix
         static void setViewProjectionMatrix(const glm::mat4 &_viewProjectionMatrix);
 
         // Sets the camera position
         static void setCameraPosition(const Vec2f &_cameraPosition);
-        
 
         bool DEBUG_displayChunkBorders = false; // When enabled puts a red border around chunks
     protected:
     private:
+        // -- CONFIGURATION -- //
         bool worldInitialized = false;
+        world_config configuration;     // Configuration for the world generation
+        float worldBounds;              // Width from origin to edge of world
 
         // -- PARTICLE MANAGER -- //
         _particleManager* cellParticles = new _particleManager();
@@ -474,13 +480,6 @@ class _world
         // -- WORLD DATA -- //
 
         _texture* tileAtlas = new _texture(); // Texture loader
-
-        /**
-         * This is the default number of renered chunks for the world. Starts at center and expands evenly outward as a cube 
-         * Would be better done as a sphere but cube is easier -- gives warning if # doesnt make an even cube
-         */
-        const int numStartingChunks = NUM_CHUNKS;
-        const float worldBounds = sqrt(numStartingChunks) * 16 * 16 * 0.5;
 
         // List of all possible tile types. This is a lookup table NOT the main storage array
         _tile world_tiles[256];  
