@@ -469,200 +469,53 @@ void _world::initTiles() {
     world_tiles[TILE_FLOOR_BROKEN_OUTER].name = "broken_floor_outer";
 
     // Outer Wall //
-    setTileInAtlas(22,16, world_tiles[TILE_WALL_OUTER_CENTER]);       
-    world_tiles[TILE_WALL_OUTER_CENTER].name = "wall_outer_center";
+    setTileInAtlas(22,16, world_tiles[TILE_WALL_CENTER]);       
+    world_tiles[TILE_WALL_CENTER].name = "wall_center";
 
-    setTileInAtlas(21,16, world_tiles[TILE_WALL_OUTER_LEFT]);        
-    world_tiles[TILE_WALL_OUTER_LEFT].name = "wall_outer_left";
+    setTileInAtlas(21,16, world_tiles[TILE_WALL_LEFT]);        
+    world_tiles[TILE_WALL_LEFT].name = "wall_left";
     
-    setTileInAtlas(23,16, world_tiles[TILE_WALL_OUTER_RIGHT]);        
-    world_tiles[TILE_WALL_OUTER_RIGHT].name = "wall_outer_right";
+    setTileInAtlas(23,16, world_tiles[TILE_WALL_RIGHT]);        
+    world_tiles[TILE_WALL_RIGHT].name = "wall_right";
     
-    setTileInAtlas(22,15, world_tiles[TILE_WALL_OUTER_UP]);        
-    world_tiles[TILE_WALL_OUTER_UP].name = "wall_outer_up";
+    setTileInAtlas(22,15, world_tiles[TILE_WALL_UP]);        
+    world_tiles[TILE_WALL_UP].name = "wall_up";
     
-    setTileInAtlas(22,17, world_tiles[TILE_WALL_OUTER_DOWN]);       
-    world_tiles[TILE_WALL_OUTER_DOWN].name = "wall_outer_down";
+    setTileInAtlas(22,17, world_tiles[TILE_WALL_DOWN]);       
+    world_tiles[TILE_WALL_DOWN].name = "wall_down";
 
-    setTileInAtlas(21,15, world_tiles[TILE_WALL_OUTER_CORNER_TOPLEFT]);       
-    world_tiles[TILE_WALL_OUTER_CORNER_TOPLEFT].name = "wall_outer_corner_top_left";
+    setTileInAtlas(21,15, world_tiles[TILE_WALL_CORNER_TOPLEFT]);       
+    world_tiles[TILE_WALL_CORNER_TOPLEFT].name = "wall_corner_top_left";
     
-    setTileInAtlas(23,15, world_tiles[TILE_WALL_OUTER_CORNER_TOPRIGHT]);        
-    world_tiles[TILE_WALL_OUTER_CORNER_TOPRIGHT].name = "wall_outer_corner_top_right";
+    setTileInAtlas(23,15, world_tiles[TILE_WALL_CORNER_TOPRIGHT]);        
+    world_tiles[TILE_WALL_CORNER_TOPRIGHT].name = "wall_corner_top_right";
     
-    setTileInAtlas(21,17, world_tiles[TILE_WALL_OUTER_CORNER_BOTTOMLEFT]);        
-    world_tiles[TILE_WALL_OUTER_CORNER_BOTTOMLEFT].name = "wall_outer_corner_bottom_left";
+    setTileInAtlas(21,17, world_tiles[TILE_WALL_CORNER_BOTTOMLEFT]);        
+    world_tiles[TILE_WALL_CORNER_BOTTOMLEFT].name = "wall_corner_bottom_left";
     
-    setTileInAtlas(23,17, world_tiles[TILE_WALL_OUTER_CORNER_BOTTOMRIGHT]);        
-    world_tiles[TILE_WALL_OUTER_CORNER_BOTTOMRIGHT].name = "wall_outer_corner_bottom_right";
+    setTileInAtlas(23,17, world_tiles[TILE_WALL_CORNER_BOTTOMRIGHT]);        
+    world_tiles[TILE_WALL_CORNER_BOTTOMRIGHT].name = "wall_corner_bottom_right";
 
-    setTileInAtlas(25,16, world_tiles[TILE_WALL_OUTER_ISLAND]);        
-    world_tiles[TILE_WALL_OUTER_ISLAND].name = "wall_outer_island";
+    setTileInAtlas(25,16, world_tiles[TILE_WALL_ISLAND]);        
+    world_tiles[TILE_WALL_ISLAND].name = "wall_island";
 
-    setTileInAtlas(25,15, world_tiles[TILE_WALL_OUTER_PENINSULA_TOP]);        
-    world_tiles[TILE_WALL_OUTER_PENINSULA_TOP].name = "wall_outer_peninsula_top";
+    setTileInAtlas(25,15, world_tiles[TILE_WALL_PENINSULA_TOP]);        
+    world_tiles[TILE_WALL_PENINSULA_TOP].name = "wall_peninsula_top";
     
-    setTileInAtlas(25,17, world_tiles[TILE_WALL_OUTER_PENINSULA_DOWN]);        
-    world_tiles[TILE_WALL_OUTER_PENINSULA_DOWN].name = "wall_outer_peninsula_down";
+    setTileInAtlas(25,17, world_tiles[TILE_WALL_PENINSULA_DOWN]);        
+    world_tiles[TILE_WALL_PENINSULA_DOWN].name = "wall_peninsula_down";
     
-    setTileInAtlas(24,16, world_tiles[TILE_WALL_OUTER_PENINSULA_LEFT]);        
-    world_tiles[TILE_WALL_OUTER_PENINSULA_LEFT].name = "wall_outer_peninsula_left";
+    setTileInAtlas(24,16, world_tiles[TILE_WALL_PENINSULA_LEFT]);        
+    world_tiles[TILE_WALL_PENINSULA_LEFT].name = "wall_peninsula_left";
     
-    setTileInAtlas(26,16, world_tiles[TILE_WALL_OUTER_PENINSULA_RIGHT]);        
-    world_tiles[TILE_WALL_OUTER_PENINSULA_RIGHT].name = "wall_outer_peninsula_right";
+    setTileInAtlas(26,16, world_tiles[TILE_WALL_PENINSULA_RIGHT]);        
+    world_tiles[TILE_WALL_PENINSULA_RIGHT].name = "wall_peninsula_right";
 
-    setTileInAtlas(23,18, world_tiles[TILE_WALL_OUTER_COLUMN_UP]);        
-    world_tiles[TILE_WALL_OUTER_COLUMN_UP].name = "wall_outer_column_up";
+    setTileInAtlas(23,18, world_tiles[TILE_WALL_COLUMN_UP]);        
+    world_tiles[TILE_WALL_COLUMN_UP].name = "wall_column_up";
     
-    setTileInAtlas(22,18, world_tiles[TILE_WALL_OUTER_COLUMN_SIDE]);        
-    world_tiles[TILE_WALL_OUTER_COLUMN_SIDE].name = "wall_outer_column_side";
-
-    // Middle Wall //
-    setTileInAtlas(15,16, world_tiles[TILE_WALL_MIDDLE_CENTER]);       
-    world_tiles[TILE_WALL_MIDDLE_CENTER].name = "wall_middle_center";
-
-    setTileInAtlas(14,16, world_tiles[TILE_WALL_MIDDLE_LEFT]);        
-    world_tiles[TILE_WALL_MIDDLE_LEFT].name = "wall_middle_left";
-    
-    setTileInAtlas(16,16, world_tiles[TILE_WALL_MIDDLE_RIGHT]);        
-    world_tiles[TILE_WALL_MIDDLE_RIGHT].name = "wall_middle_right";
-    
-    setTileInAtlas(15,15, world_tiles[TILE_WALL_MIDDLE_UP]);        
-    world_tiles[TILE_WALL_MIDDLE_UP].name = "wall_middle_up";
-    
-    setTileInAtlas(15,17, world_tiles[TILE_WALL_MIDDLE_DOWN]);       
-    world_tiles[TILE_WALL_MIDDLE_DOWN].name = "wall_middle_down";
-
-    setTileInAtlas(14,15, world_tiles[TILE_WALL_MIDDLE_CORNER_TOPLEFT]);       
-    world_tiles[TILE_WALL_MIDDLE_CORNER_TOPLEFT].name = "wall_middle_corner_top_left";
-    
-    setTileInAtlas(16,15, world_tiles[TILE_WALL_MIDDLE_CORNER_TOPRIGHT]);        
-    world_tiles[TILE_WALL_MIDDLE_CORNER_TOPRIGHT].name = "wall_middle_corner_top_right";
-    
-    setTileInAtlas(14,17, world_tiles[TILE_WALL_MIDDLE_CORNER_BOTTOMLEFT]);        
-    world_tiles[TILE_WALL_MIDDLE_CORNER_BOTTOMLEFT].name = "wall_middle_corner_bottom_left";
-    
-    setTileInAtlas(16,17, world_tiles[TILE_WALL_MIDDLE_CORNER_BOTTOMRIGHT]);        
-    world_tiles[TILE_WALL_MIDDLE_CORNER_BOTTOMRIGHT].name = "wall_middle_corner_bottom_right";
-
-    setTileInAtlas(18,16, world_tiles[TILE_WALL_MIDDLE_ISLAND]);        
-    world_tiles[TILE_WALL_MIDDLE_ISLAND].name = "wall_middle_island";
-
-    setTileInAtlas(18,15, world_tiles[TILE_WALL_MIDDLE_PENINSULA_TOP]);        
-    world_tiles[TILE_WALL_MIDDLE_PENINSULA_TOP].name = "wall_middle_peninsula_top";
-    
-    setTileInAtlas(18,17, world_tiles[TILE_WALL_MIDDLE_PENINSULA_DOWN]);        
-    world_tiles[TILE_WALL_MIDDLE_PENINSULA_DOWN].name = "wall_middle_peninsula_down";
-    
-    setTileInAtlas(17,16, world_tiles[TILE_WALL_MIDDLE_PENINSULA_LEFT]);        
-    world_tiles[TILE_WALL_MIDDLE_PENINSULA_LEFT].name = "wall_middle_peninsula_left";
-    
-    setTileInAtlas(19,16, world_tiles[TILE_WALL_MIDDLE_PENINSULA_RIGHT]);        
-    world_tiles[TILE_WALL_MIDDLE_PENINSULA_RIGHT].name = "wall_middle_peninsula_right";
-
-    setTileInAtlas(16,18, world_tiles[TILE_WALL_MIDDLE_COLUMN_UP]);        
-    world_tiles[TILE_WALL_MIDDLE_COLUMN_UP].name = "wall_middle_column_up";
-    
-    setTileInAtlas(15,18, world_tiles[TILE_WALL_MIDDLE_COLUMN_SIDE]);        
-    world_tiles[TILE_WALL_MIDDLE_COLUMN_SIDE].name = "wall_middle_column_side";
-
-    // Middle Wall //
-    setTileInAtlas(15,16, world_tiles[TILE_WALL_MIDDLE_CENTER]);       
-    world_tiles[TILE_WALL_MIDDLE_CENTER].name = "wall_middle_center";
-
-    setTileInAtlas(14,16, world_tiles[TILE_WALL_MIDDLE_LEFT]);        
-    world_tiles[TILE_WALL_MIDDLE_LEFT].name = "wall_middle_left";
-    
-    setTileInAtlas(16,16, world_tiles[TILE_WALL_MIDDLE_RIGHT]);        
-    world_tiles[TILE_WALL_MIDDLE_RIGHT].name = "wall_middle_right";
-    
-    setTileInAtlas(15,15, world_tiles[TILE_WALL_MIDDLE_UP]);        
-    world_tiles[TILE_WALL_MIDDLE_UP].name = "wall_middle_up";
-    
-    setTileInAtlas(15,17, world_tiles[TILE_WALL_MIDDLE_DOWN]);       
-    world_tiles[TILE_WALL_MIDDLE_DOWN].name = "wall_middle_down";
-
-    setTileInAtlas(14,15, world_tiles[TILE_WALL_MIDDLE_CORNER_TOPLEFT]);       
-    world_tiles[TILE_WALL_MIDDLE_CORNER_TOPLEFT].name = "wall_middle_corner_top_left";
-    
-    setTileInAtlas(16,15, world_tiles[TILE_WALL_MIDDLE_CORNER_TOPRIGHT]);        
-    world_tiles[TILE_WALL_MIDDLE_CORNER_TOPRIGHT].name = "wall_middle_corner_top_right";
-    
-    setTileInAtlas(14,17, world_tiles[TILE_WALL_MIDDLE_CORNER_BOTTOMLEFT]);        
-    world_tiles[TILE_WALL_MIDDLE_CORNER_BOTTOMLEFT].name = "wall_middle_corner_bottom_left";
-    
-    setTileInAtlas(16,17, world_tiles[TILE_WALL_MIDDLE_CORNER_BOTTOMRIGHT]);        
-    world_tiles[TILE_WALL_MIDDLE_CORNER_BOTTOMRIGHT].name = "wall_middle_corner_bottom_right";
-
-    setTileInAtlas(18,16, world_tiles[TILE_WALL_MIDDLE_ISLAND]);        
-    world_tiles[TILE_WALL_MIDDLE_ISLAND].name = "wall_middle_island";
-
-    setTileInAtlas(18,15, world_tiles[TILE_WALL_MIDDLE_PENINSULA_TOP]);        
-    world_tiles[TILE_WALL_MIDDLE_PENINSULA_TOP].name = "wall_middle_peninsula_top";
-    
-    setTileInAtlas(18,17, world_tiles[TILE_WALL_MIDDLE_PENINSULA_DOWN]);        
-    world_tiles[TILE_WALL_MIDDLE_PENINSULA_DOWN].name = "wall_middle_peninsula_down";
-    
-    setTileInAtlas(17,16, world_tiles[TILE_WALL_MIDDLE_PENINSULA_LEFT]);        
-    world_tiles[TILE_WALL_MIDDLE_PENINSULA_LEFT].name = "wall_middle_peninsula_left";
-    
-    setTileInAtlas(19,16, world_tiles[TILE_WALL_MIDDLE_PENINSULA_RIGHT]);        
-    world_tiles[TILE_WALL_MIDDLE_PENINSULA_RIGHT].name = "wall_middle_peninsula_right";
-
-    setTileInAtlas(16,18, world_tiles[TILE_WALL_MIDDLE_COLUMN_UP]);        
-    world_tiles[TILE_WALL_MIDDLE_COLUMN_UP].name = "wall_middle_column_up";
-    
-    setTileInAtlas(15,18, world_tiles[TILE_WALL_MIDDLE_COLUMN_SIDE]);        
-    world_tiles[TILE_WALL_MIDDLE_COLUMN_SIDE].name = "wall_middle_column_side";
-
-    // Inner Wall //
-    setTileInAtlas(8,16, world_tiles[TILE_WALL_INNER_CENTER]);       
-    world_tiles[TILE_WALL_INNER_CENTER].name = "wall_inner_center";
-
-    setTileInAtlas(7,16, world_tiles[TILE_WALL_INNER_LEFT]);        
-    world_tiles[TILE_WALL_INNER_LEFT].name = "wall_inner_left";
-    
-    setTileInAtlas(9,16, world_tiles[TILE_WALL_INNER_RIGHT]);        
-    world_tiles[TILE_WALL_INNER_RIGHT].name = "wall_inner_right";
-    
-    setTileInAtlas(8,15, world_tiles[TILE_WALL_INNER_UP]);        
-    world_tiles[TILE_WALL_INNER_UP].name = "wall_inner_up";
-    
-    setTileInAtlas(8,17, world_tiles[TILE_WALL_INNER_DOWN]);       
-    world_tiles[TILE_WALL_INNER_DOWN].name = "wall_inner_down";
-
-    setTileInAtlas(7,15, world_tiles[TILE_WALL_INNER_CORNER_TOPLEFT]);       
-    world_tiles[TILE_WALL_INNER_CORNER_TOPLEFT].name = "wall_inner_corner_top_left";
-    
-    setTileInAtlas(9,15, world_tiles[TILE_WALL_INNER_CORNER_TOPRIGHT]);        
-    world_tiles[TILE_WALL_INNER_CORNER_TOPRIGHT].name = "wall_inner_corner_top_right";
-    
-    setTileInAtlas(7,17, world_tiles[TILE_WALL_INNER_CORNER_BOTTOMLEFT]);        
-    world_tiles[TILE_WALL_INNER_CORNER_BOTTOMLEFT].name = "wall_inner_corner_bottom_left";
-    
-    setTileInAtlas(9,17, world_tiles[TILE_WALL_INNER_CORNER_BOTTOMRIGHT]);        
-    world_tiles[TILE_WALL_INNER_CORNER_BOTTOMRIGHT].name = "wall_inner_corner_bottom_right";
-
-    setTileInAtlas(11,16, world_tiles[TILE_WALL_INNER_ISLAND]);        
-    world_tiles[TILE_WALL_INNER_ISLAND].name = "wall_inner_island";
-
-    setTileInAtlas(11,15, world_tiles[TILE_WALL_INNER_PENINSULA_TOP]);        
-    world_tiles[TILE_WALL_INNER_PENINSULA_TOP].name = "wall_inner_peninsula_top";
-    
-    setTileInAtlas(11,17, world_tiles[TILE_WALL_INNER_PENINSULA_DOWN]);        
-    world_tiles[TILE_WALL_INNER_PENINSULA_DOWN].name = "wall_inner_peninsula_down";
-    
-    setTileInAtlas(10,16, world_tiles[TILE_WALL_INNER_PENINSULA_LEFT]);        
-    world_tiles[TILE_WALL_INNER_PENINSULA_LEFT].name = "wall_inner_peninsula_left";
-    
-    setTileInAtlas(12,16, world_tiles[TILE_WALL_INNER_PENINSULA_RIGHT]);        
-    world_tiles[TILE_WALL_INNER_PENINSULA_RIGHT].name = "wall_inner_peninsula_right";
-
-    setTileInAtlas(9,18, world_tiles[TILE_WALL_INNER_COLUMN_UP]);        
-    world_tiles[TILE_WALL_INNER_COLUMN_UP].name = "wall_inner_column_up";
-    
-    setTileInAtlas(8,18, world_tiles[TILE_WALL_INNER_COLUMN_SIDE]);        
-    world_tiles[TILE_WALL_INNER_COLUMN_SIDE].name = "wall_inner_column_side";
+    setTileInAtlas(22,18, world_tiles[TILE_WALL_COLUMN_SIDE]);        
+    world_tiles[TILE_WALL_COLUMN_SIDE].name = "wall_column_side";
 }
 
 bool _world::setTileInAtlas(int xIndex, int yIndex, _tile &tile) {
@@ -788,64 +641,63 @@ void _world::postProcessWorld() {
     
     // FLOOR TILE //
     for (int i = 0; i < world_noise[LAYER_FLOOR].size(); i++) {
-        world_noise[LAYER_FLOOR][i] = outer_dist(rng);
-        // const int col = i % worldWidth;                                 // Which column
-        // const int row = i / worldWidth;                                 // Which row
+        const int col = i % worldWidth;                                 // Which column
+        const int row = i / worldWidth;                                 // Which row
         
-        // const float tilePosX = (-worldWidth * 0.5f + col) * 16.0f;      // Get world pos X
-        // const float tilePosY = (worldWidth * 0.5f - row) * 16.0f;       // Get world pos Y
+        const float tilePosX = (-worldWidth * 0.5f + col) * 16.0f;      // Get world pos X
+        const float tilePosY = (worldWidth * 0.5f - row) * 16.0f;       // Get world pos Y
 
-        // Vec2f tilePos = {tilePosX, tilePosY};
-        // const float distance = tilePos.distance({0.0f,0.0f});
-        // level_pos level = getLevelFromPos(tilePos);
+        Vec2f tilePos = {tilePosX, tilePosY};
+        const float distance = tilePos.distance({0.0f,0.0f});
+        level_pos level = getLevelFromPos(tilePos);
         
-        // switch (level) {
-        //     case LEVEL_INNER:
-        //         if (distance < 800.0f) {
-        //             // Boss Room //
-        //             float transitionProgress = (distance - 300.0f) / 500.0f; // 0.0 at 300, 1.0 at 800
-        //             transitionProgress = glm::clamp(transitionProgress, 0.0f, 1.0f);
+        switch (level) {
+            case LEVEL_INNER:
+                if (distance < 800.0f) {
+                    // Boss Room //
+                    float transitionProgress = (distance - 300.0f) / 500.0f; // 0.0 at 300, 1.0 at 800
+                    transitionProgress = glm::clamp(transitionProgress, 0.0f, 1.0f);
 
-        //             if (dist(rng) > transitionProgress) {
-        //                 world_noise[LAYER_FLOOR][i] = boss_dist(rng);
-        //             } else {
-        //                 world_noise[LAYER_FLOOR][i] = inner_dist(rng);
-        //             }
-        //         } else {
-        //             world_noise[LAYER_FLOOR][i] = inner_dist(rng);
-        //         }
-        //         break;
-        //     case LEVEL_MIDDLE:
-        //         if (distance < 5000.0f) {
-        //             // Transition period between INNER and MIDDLE
-        //             float transitionProgress = (distance - 3000.0f) / 2000.0f; // 0.0 at 3000, 1.0 at 5000
-        //             transitionProgress = glm::clamp(transitionProgress, 0.0f, 1.0f);
+                    if (dist(rng) > transitionProgress) {
+                        world_noise[LAYER_FLOOR][i] = boss_dist(rng);
+                    } else {
+                        world_noise[LAYER_FLOOR][i] = inner_dist(rng);
+                    }
+                } else {
+                    world_noise[LAYER_FLOOR][i] = inner_dist(rng);
+                }
+                break;
+            case LEVEL_MIDDLE:
+                if (distance < 5000.0f) {
+                    // Transition period between INNER and MIDDLE
+                    float transitionProgress = (distance - 3000.0f) / 2000.0f; // 0.0 at 3000, 1.0 at 5000
+                    transitionProgress = glm::clamp(transitionProgress, 0.0f, 1.0f);
                     
-        //             if (dist(rng) > transitionProgress) {
-        //                 world_noise[LAYER_FLOOR][i] = inner_dist(rng); // Blend toward middle tiles
-        //             } else {
-        //                 world_noise[LAYER_FLOOR][i] = middle_dist(rng);
-        //             }
-        //         } else {
-        //             world_noise[LAYER_FLOOR][i] = middle_dist(rng);
-        //         }
-        //         break;
-        //     case LEVEL_OUTER:
-        //         if (distance < 10000.0f) {
-        //             // Transition period between MIDDLE and OUTER
-        //             float transitionProgress = (distance - 8000.0f) / 2000.0f; // 0.0 at 8000, 1.0 at 10000
-        //             transitionProgress = glm::clamp(transitionProgress, 0.0f, 1.0f);
+                    if (dist(rng) > transitionProgress) {
+                        world_noise[LAYER_FLOOR][i] = inner_dist(rng); // Blend toward middle tiles
+                    } else {
+                        world_noise[LAYER_FLOOR][i] = middle_dist(rng);
+                    }
+                } else {
+                    world_noise[LAYER_FLOOR][i] = middle_dist(rng);
+                }
+                break;
+            case LEVEL_OUTER:
+                if (distance < 10000.0f) {
+                    // Transition period between MIDDLE and OUTER
+                    float transitionProgress = (distance - 8000.0f) / 2000.0f; // 0.0 at 8000, 1.0 at 10000
+                    transitionProgress = glm::clamp(transitionProgress, 0.0f, 1.0f);
                     
-        //             if (dist(rng) > transitionProgress) {
-        //                 world_noise[LAYER_FLOOR][i] = middle_dist(rng); // Blend toward middle tiles
-        //             } else {
-        //                 world_noise[LAYER_FLOOR][i] = outer_dist(rng);
-        //             }
-        //         } else {
-        //             world_noise[LAYER_FLOOR][i] = outer_dist(rng);
-        //         }
-        //         break;
-        // }
+                    if (dist(rng) > transitionProgress) {
+                        world_noise[LAYER_FLOOR][i] = middle_dist(rng); // Blend toward middle tiles
+                    } else {
+                        world_noise[LAYER_FLOOR][i] = outer_dist(rng);
+                    }
+                } else {
+                    world_noise[LAYER_FLOOR][i] = outer_dist(rng);
+                }
+                break;
+        }
     }
 
     // PRIMARY TILE //
@@ -914,89 +766,31 @@ TileId _world::determineTileType(level_pos level, const bool neighborTiles[9]) c
     bool SW = neighborTiles[6];
     bool SE = neighborTiles[8];
 
-    switch (level) {
-        case LEVEL_OUTER:
-            // Island Check //
-            if (!N && !W && !E && !S) return TILE_WALL_OUTER_ISLAND;
-            
-            // Peninsula Checks //
-            if (!N && !W && !S && E) return TILE_WALL_OUTER_PENINSULA_LEFT;
-            if (!N && !E && !S && W) return TILE_WALL_OUTER_PENINSULA_RIGHT;
-            if (N && !W && !E && !S) return TILE_WALL_OUTER_PENINSULA_DOWN;
-            if (!W && !E && S && !N) return TILE_WALL_OUTER_PENINSULA_TOP;
+    if (!N && !W && !E && !S) return TILE_WALL_ISLAND;
+    
+    // Peninsula Checks //
+    if (!N && !W && !S && E) return TILE_WALL_PENINSULA_LEFT;
+    if (!N && !E && !S && W) return TILE_WALL_PENINSULA_RIGHT;
+    if (N && !W && !E && !S) return TILE_WALL_PENINSULA_DOWN;
+    if (!W && !E && S && !N) return TILE_WALL_PENINSULA_TOP;
 
-            // Column Checks //
-            if (N && S && !W && !E) return TILE_WALL_OUTER_COLUMN_UP;
-            if (!N && !S && W && E) return TILE_WALL_OUTER_COLUMN_SIDE;
+    // Column Checks //
+    if (N && S && !W && !E) return TILE_WALL_COLUMN_UP;
+    if (!N && !S && W && E) return TILE_WALL_COLUMN_SIDE;
 
-            // Wall Checks //
-            if (!W && N && S && E) return TILE_WALL_OUTER_LEFT;
-            if (!E && N && S && W) return TILE_WALL_OUTER_RIGHT;
-            if (N && W && E && !S) return TILE_WALL_OUTER_DOWN;
-            if (!N && W && E && S) return TILE_WALL_OUTER_UP;
+    // Wall Checks //
+    if (!W && N && S && E) return TILE_WALL_LEFT;
+    if (!E && N && S && W) return TILE_WALL_RIGHT;
+    if (N && W && E && !S) return TILE_WALL_DOWN;
+    if (!N && W && E && S) return TILE_WALL_UP;
 
-            // Wall Corners //
-            if (!W && !S && N && E) return TILE_WALL_OUTER_CORNER_BOTTOMLEFT;
-            if (!N && !W && E && S) return TILE_WALL_OUTER_CORNER_TOPLEFT;
-            if (!E && !S && N && W) return TILE_WALL_OUTER_CORNER_BOTTOMRIGHT;
-            if (!N && !E && W && S) return TILE_WALL_OUTER_CORNER_TOPRIGHT;
-            if (N && E && S && W) return TILE_WALL_OUTER_CENTER;
-            break;
-        case LEVEL_MIDDLE:
-            // Island Check //
-            if (!N && !W && !E && !S) return TILE_WALL_MIDDLE_ISLAND;
-            
-            // Peninsula Checks //
-            if (!N && !W && !S && E) return TILE_WALL_MIDDLE_PENINSULA_LEFT;
-            if (!N && !E && !S && W) return TILE_WALL_MIDDLE_PENINSULA_RIGHT;
-            if (N && !W && !E && !S) return TILE_WALL_MIDDLE_PENINSULA_DOWN;
-            if (!W && !E && S && !N) return TILE_WALL_MIDDLE_PENINSULA_TOP;
-
-            // Column Checks //
-            if (N && S && !W && !E) return TILE_WALL_MIDDLE_COLUMN_UP;
-            if (!N && !S && W && E) return TILE_WALL_MIDDLE_COLUMN_SIDE;
-
-            // Wall Checks //
-            if (!W && N && S && E) return TILE_WALL_MIDDLE_LEFT;
-            if (!E && N && S && W) return TILE_WALL_MIDDLE_RIGHT;
-            if (N && W && E && !S) return TILE_WALL_MIDDLE_DOWN;
-            if (!N && W && E && S) return TILE_WALL_MIDDLE_UP;
-
-            // Wall Corners //
-            if (!W && !S && N && E) return TILE_WALL_MIDDLE_CORNER_BOTTOMLEFT;
-            if (!N && !W && E && S) return TILE_WALL_MIDDLE_CORNER_TOPLEFT;
-            if (!E && !S && N && W) return TILE_WALL_MIDDLE_CORNER_BOTTOMRIGHT;
-            if (!N && !E && W && S) return TILE_WALL_MIDDLE_CORNER_TOPRIGHT;
-            if (N && E && S && W) return TILE_WALL_MIDDLE_CENTER;
-            break;
-        case LEVEL_INNER:
-            // Island Check //
-            if (!N && !W && !E && !S) return TILE_WALL_INNER_ISLAND;
-            
-            // Peninsula Checks //
-            if (!N && !W && !S && E) return TILE_WALL_INNER_PENINSULA_LEFT;
-            if (!N && !E && !S && W) return TILE_WALL_INNER_PENINSULA_RIGHT;
-            if (N && !W && !E && !S) return TILE_WALL_INNER_PENINSULA_DOWN;
-            if (!W && !E && S && !N) return TILE_WALL_INNER_PENINSULA_TOP;
-
-            // Column Checks //
-            if (N && S && !W && !E) return TILE_WALL_INNER_COLUMN_UP;
-            if (!N && !S && W && E) return TILE_WALL_INNER_COLUMN_SIDE;
-
-            // Wall Checks //
-            if (!W && N && S && E) return TILE_WALL_INNER_LEFT;
-            if (!E && N && S && W) return TILE_WALL_INNER_RIGHT;
-            if (N && W && E && !S) return TILE_WALL_INNER_DOWN;
-            if (!N && W && E && S) return TILE_WALL_INNER_UP;
-
-            // Wall Corners //
-            if (!W && !S && N && E) return TILE_WALL_INNER_CORNER_BOTTOMLEFT;
-            if (!N && !W && E && S) return TILE_WALL_INNER_CORNER_TOPLEFT;
-            if (!E && !S && N && W) return TILE_WALL_INNER_CORNER_BOTTOMRIGHT;
-            if (!N && !E && W && S) return TILE_WALL_INNER_CORNER_TOPRIGHT;
-            if (N && E && S && W) return TILE_WALL_INNER_CENTER;
-            break;
-    }
+    // Wall Corners //
+    if (!W && !S && N && E) return TILE_WALL_CORNER_BOTTOMLEFT;
+    if (!N && !W && E && S) return TILE_WALL_CORNER_TOPLEFT;
+    if (!E && !S && N && W) return TILE_WALL_CORNER_BOTTOMRIGHT;
+    if (!N && !E && W && S) return TILE_WALL_CORNER_TOPRIGHT;
+    if (N && E && S && W) return TILE_WALL_CENTER;
+    
     return TILE_NULL;
 }
 
@@ -1178,7 +972,7 @@ bool _world::setCellTile(_cell* cell, TileId id) {
 }
 
 bool _world::isTileWall(TileId tileId) const {
-    return (tileId >= TILE_WALL_OUTER_CENTER && tileId <= TILE_WALL_INNER_COLUMN_SIDE);
+    return (tileId >= TILE_WALL_CENTER && tileId <= TILE_WALL_COLUMN_SIDE);
 }
 
 // This name should be changed to be something like "cellHasCollision" for when we things beyond walls
