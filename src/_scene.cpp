@@ -1581,9 +1581,12 @@ int _scene::winMsg(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         }
         else if ((short)HIWORD(wParam) < 0)
         {
+            const float maxZoom = cameraFree ? 1.0f : 3.0f;
+
             // Scroll down
-            if (cameraZoom > 3.0f)
+            if (cameraZoom > maxZoom) {
                 cameraZoom--; // Zoom out by decreasing the zoom factor
+            } 
         }
 
         // cout << "Camera Level: " << cameraZoom << "\n";
