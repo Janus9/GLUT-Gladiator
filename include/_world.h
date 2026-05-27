@@ -32,6 +32,27 @@
 #include <glm/gtc/matrix_transform.hpp>     // Matrix ops like transform, scale, ortho, etc
 #include <glm/gtc/type_ptr.hpp>             // Send GLM datatypes (matrix) to GPU
 
+/**
+ * Configuration file for the world + world generation
+ * 
+ * For the cutoffs, the unit is a % from [0.0 - 1.0]
+ *  - Unit is % of world away from the origin (center)
+ *  - ex/ 1.0 is edge of the world
+ *  - ex/ 0.5 is 50% distance from origin to edge of world (any direction)
+ * 
+ * The blend radius is how many tiles the biome takes to transition to the next
+ *  - ex/ 20 means that if outer_cutoff is 1000 tiles, then 1020 - 1000 tile distance is still the "outer" biome but blends to the next
+ */
+struct world_config {
+    uint32_t num_chunks;                /// Number of chunks for world to generate with (must be a perfect square)
+    float outer_cutoff;                 /// At which distance from center the outer biome stops and the middle biome begins [0.0-1.0]
+    float middle_cutoff;                /// At which distance from center the middle biome stops and the inner biome begins [0.0-1.0]  
+    float inner_cutoff;                 /// At which distance from center the inner biome stops and the boss biome begins [0.0-1.0]  
+    float outer_biome_blend_radius;     /// How many tiles wide the "blend" zone is (transitional period where tilesets dither together) for outer to middle
+    float middle_biome_blend_radius;    /// How many tiles wide the "blend" zone is (transitional period where tilesets dither together) for middle to inner
+    float inner_biome_blend_radius;     /// How many tiles wide the "blend" zone is (transitional period where tilesets dither together) for inner to boss
+};
+
 class _chunk; // Forward declaration for cell
 
 /**
