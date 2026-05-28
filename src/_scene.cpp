@@ -340,6 +340,9 @@ void _scene::initScene(bool loadWorld)
     vampire_minion2_config.slewRate = 0.0f;
     vampire_minion2_config.detectionRadius = 300.0f;
 
+    const float numChunks = world_configuration.num_chunks;
+    const float bounds = sqrt(numChunks) * NUM_TILES_CHUNK_SQR * TILE_D * 0.5f;
+
     if(!loadWorld) {
         player->fireRate = 400.0f;
         player->magCapacity = 30;
@@ -351,10 +354,6 @@ void _scene::initScene(bool loadWorld)
         player->setHealth(200.0f);
         player->setMaxHealth(200.0f);
         
-        // Find spawn 
-        const float numChunks = world_configuration.num_chunks;
-        // Total chunk area to length/width * num tiles * 16 units per tile / 2 since 0,0 is center
-        const float bounds = sqrt(numChunks) * NUM_TILES_CHUNK_SQR * TILE_D * 0.5f;
         uniform_real_distribution<float> player_pos_neg_dist(-1.0f,1.0f);           // Coin flip for positive vs negative side
         uniform_real_distribution<float> player_pos_dist_neg(-bounds*0.85f,-bounds*0.95f);  // Distribution for negative side
         uniform_real_distribution<float> player_pos_dist_pos(bounds*0.85f,bounds*0.95f);    // Distribution for positive side
@@ -417,13 +416,13 @@ void _scene::initScene(bool loadWorld)
     const int number_default_turrets = 500;
     const int number_gatling_turrets = 75;
     const int number_orcs = 600;
-    const int number_vampire_minions = 200;  // Spawn naturally in world
+    const int number_vampire_minions = 200;      // Spawn naturally in world
     const int number_vampire_boss_minions = 25;  // Spawn near the boss
 
     // Dont spawn enemies when world is loaded
     if (!loadWorld) {
         // Spawn default turrets //
-        uniform_real_distribution<float> turret_pos_dist(-14000, 14000);
+        uniform_real_distribution<float> turret_pos_dist(-bounds, bounds);
         for (int i = 0; i < number_default_turrets; i++)
         {
             bool lookingForTurretSpawn = true;
@@ -442,7 +441,8 @@ void _scene::initScene(bool loadWorld)
         }
     
         // Spawn gatling turrets //
-        uniform_real_distribution<float> gatling_pos_dist(-4000, 4000);
+        const float gatlingBounds = bounds * world_configuration.middle_cutoff;
+        uniform_real_distribution<float> gatling_pos_dist(-gatlingBounds, gatlingBounds);
         for (int i = 0; i < number_gatling_turrets; i++)
         {
             bool lookingForGatlingSpawn = true;
@@ -461,7 +461,8 @@ void _scene::initScene(bool loadWorld)
         }
 
         // Spawn Orcs //
-        uniform_real_distribution<float> orc_pos_dist(-12000, 12000);
+        const float orcBounds = bounds * world_configuration.outer_cutoff;
+        uniform_real_distribution<float> orc_pos_dist(-orcBounds, orcBounds);
         for (int i = 0; i < number_orcs; i++)
         {
             bool lookingForOrcSpawn = true;
@@ -480,7 +481,8 @@ void _scene::initScene(bool loadWorld)
         }
 
         // Spawn Vampire Minions //
-        uniform_real_distribution<float> vamp_mini_pos_dist(-6000, 6000);
+        const float vampireBounds = bounds * world_configuration.outer_cutoff;
+        uniform_real_distribution<float> vamp_mini_pos_dist(-vampireBounds, vampireBounds);
         uniform_real_distribution<float> vamp_type_dist(0.0f, 1.0f);
 
         for (int i = 0; i < number_vampire_minions; i++)
