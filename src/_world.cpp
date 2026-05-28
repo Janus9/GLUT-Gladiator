@@ -427,30 +427,55 @@ void _world::initTiles() {
     world_tiles[TILE_FLOOR_BOSS_BLANK_2].hasCollision = false;
     world_tiles[TILE_FLOOR_BOSS_BLANK_2].name = "blank_floor_2_boss";
     
-    // Outer Floor //
-    setTileInAtlas(22,11, world_tiles[TILE_FLOOR_OUTER_BLANK_1]);      
-    world_tiles[TILE_FLOOR_OUTER_BLANK_1].hasCollision = false;
-    world_tiles[TILE_FLOOR_OUTER_BLANK_1].name = "blank_floor";
+    // Outer Floor Dry //
+    setTileInAtlas(22,11, world_tiles[TILE_FLOOR_OUTER_BLANK_1_DRY]);      
+    world_tiles[TILE_FLOOR_OUTER_BLANK_1_DRY].hasCollision = false;
+    world_tiles[TILE_FLOOR_OUTER_BLANK_1_DRY].name = "blank_floor_dry";
 
-    setTileInAtlas(23,10, world_tiles[TILE_FLOOR_OUTER_CRACKED_1]);       
-    world_tiles[TILE_FLOOR_OUTER_CRACKED_1].hasCollision = false;
-    world_tiles[TILE_FLOOR_OUTER_CRACKED_1].name = "slightly_cracked_floor";
+    setTileInAtlas(23,10, world_tiles[TILE_FLOOR_OUTER_CRACKED_1_DRY]);       
+    world_tiles[TILE_FLOOR_OUTER_CRACKED_1_DRY].hasCollision = false;
+    world_tiles[TILE_FLOOR_OUTER_CRACKED_1_DRY].name = "slightly_cracked_floor_dry";
 
-    setTileInAtlas(24,11, world_tiles[TILE_FLOOR_OUTER_CRACKED_2]);      
-    world_tiles[TILE_FLOOR_OUTER_CRACKED_2].hasCollision = false;
-    world_tiles[TILE_FLOOR_OUTER_CRACKED_2].name = "medium_cracked_floor";
+    setTileInAtlas(24,11, world_tiles[TILE_FLOOR_OUTER_CRACKED_2_DRY]);      
+    world_tiles[TILE_FLOOR_OUTER_CRACKED_2_DRY].hasCollision = false;
+    world_tiles[TILE_FLOOR_OUTER_CRACKED_2_DRY].name = "medium_cracked_floor_dry";
 
-    setTileInAtlas(22,10, world_tiles[TILE_FLOOR_OUTER_SQUARE_1]);       
-    world_tiles[TILE_FLOOR_OUTER_SQUARE_1].hasCollision = false;
-    world_tiles[TILE_FLOOR_OUTER_SQUARE_1].name = "square_outlined_floor_1";
+    setTileInAtlas(22,10, world_tiles[TILE_FLOOR_OUTER_SQUARE_1_DRY]);       
+    world_tiles[TILE_FLOOR_OUTER_SQUARE_1_DRY].hasCollision = false;
+    world_tiles[TILE_FLOOR_OUTER_SQUARE_1_DRY].name = "square_outlined_floor_1_dry";
 
-    setTileInAtlas(24,10, world_tiles[TILE_FLOOR_OUTER_SQUARE_2]);       
-    world_tiles[TILE_FLOOR_OUTER_SQUARE_2].hasCollision = false;
-    world_tiles[TILE_FLOOR_OUTER_SQUARE_2].name = "square_outlined_floor_2";
+    setTileInAtlas(24,10, world_tiles[TILE_FLOOR_OUTER_SQUARE_2_DRY]);       
+    world_tiles[TILE_FLOOR_OUTER_SQUARE_2_DRY].hasCollision = false;
+    world_tiles[TILE_FLOOR_OUTER_SQUARE_2_DRY].name = "square_outlined_floor_2_dry";
 
-    setTileInAtlas(23,11, world_tiles[TILE_FLOOR_OUTER_BLANK_2]);       
-    world_tiles[TILE_FLOOR_OUTER_BLANK_2].hasCollision = false;
-    world_tiles[TILE_FLOOR_OUTER_BLANK_2].name = "blank_floor_2";
+    setTileInAtlas(23,11, world_tiles[TILE_FLOOR_OUTER_BLANK_2_DRY]);       
+    world_tiles[TILE_FLOOR_OUTER_BLANK_2_DRY].hasCollision = false;
+    world_tiles[TILE_FLOOR_OUTER_BLANK_2_DRY].name = "blank_floor_2_dry";
+
+    // Outer Floor Wet //
+    setTileInAtlas(19,11, world_tiles[TILE_FLOOR_OUTER_BLANK_1_WET]);      
+    world_tiles[TILE_FLOOR_OUTER_BLANK_1_WET].hasCollision = false;
+    world_tiles[TILE_FLOOR_OUTER_BLANK_1_WET].name = "blank_floor_wet";
+
+    setTileInAtlas(20,10, world_tiles[TILE_FLOOR_OUTER_CRACKED_1_WET]);       
+    world_tiles[TILE_FLOOR_OUTER_CRACKED_1_WET].hasCollision = false;
+    world_tiles[TILE_FLOOR_OUTER_CRACKED_1_WET].name = "slightly_cracked_floor_wet";
+
+    setTileInAtlas(21,11, world_tiles[TILE_FLOOR_OUTER_CRACKED_2_WET]);      
+    world_tiles[TILE_FLOOR_OUTER_CRACKED_2_WET].hasCollision = false;
+    world_tiles[TILE_FLOOR_OUTER_CRACKED_2_WET].name = "medium_cracked_floor_wet";
+
+    setTileInAtlas(19,10, world_tiles[TILE_FLOOR_OUTER_SQUARE_1_WET]);       
+    world_tiles[TILE_FLOOR_OUTER_SQUARE_1_WET].hasCollision = false;
+    world_tiles[TILE_FLOOR_OUTER_SQUARE_1_WET].name = "square_outlined_floor_1_wet";
+
+    setTileInAtlas(21,10, world_tiles[TILE_FLOOR_OUTER_SQUARE_2_WET]);       
+    world_tiles[TILE_FLOOR_OUTER_SQUARE_2_WET].hasCollision = false;
+    world_tiles[TILE_FLOOR_OUTER_SQUARE_2_WET].name = "square_outlined_floor_2_wet";
+
+    setTileInAtlas(20,11, world_tiles[TILE_FLOOR_OUTER_BLANK_2_WET]);       
+    world_tiles[TILE_FLOOR_OUTER_BLANK_2_WET].hasCollision = false;
+    world_tiles[TILE_FLOOR_OUTER_BLANK_2_WET].name = "blank_floor_2_wet";
 
     // Middle Floor //
     setTileInAtlas(22,13, world_tiles[TILE_FLOOR_OUTER_DEFAULT_1]);       
@@ -652,7 +677,8 @@ void _world::postProcessWorld() {
     vector<uint8_t> world_noise_primary_copy(world_noise[LAYER_PRIMARY]);
 
     uniform_int_distribution<uint8_t> boss_dist(TILE_FLOOR_BOSS_BLANK_1, TILE_FLOOR_BOSS_BLANK_2); 
-    uniform_int_distribution<uint8_t> outer_dist(TILE_FLOOR_OUTER_BLANK_1, TILE_FLOOR_OUTER_BLANK_2); 
+    uniform_int_distribution<uint8_t> outer_dist_dry(TILE_FLOOR_OUTER_BLANK_1_DRY, TILE_FLOOR_OUTER_BLANK_2_DRY); 
+    uniform_int_distribution<uint8_t> outer_dist_wet(TILE_FLOOR_OUTER_BLANK_1_WET, TILE_FLOOR_OUTER_BLANK_2_WET); 
     uniform_int_distribution<uint8_t> middle_dist(TILE_FLOOR_OUTER_DEFAULT_1, TILE_FLOOR_OUTER_DEFAULT_2); 
     uniform_int_distribution<uint8_t> inner_dist(TILE_FLOOR_INNER_DEFAULT_1, TILE_FLOOR_INNER_DEFAULT_2); 
     uniform_real_distribution<float> dist(0.0f,1.0f);
@@ -721,10 +747,10 @@ void _world::postProcessWorld() {
                     if (dist(rng) > transitionProgress) {
                         world_noise[LAYER_FLOOR][i] = middle_dist(rng); // Blend toward middle tiles
                     } else {
-                        world_noise[LAYER_FLOOR][i] = outer_dist(rng);
+                        world_noise[LAYER_FLOOR][i] = outer_dist_dry(rng);
                     }
                 } else {
-                    world_noise[LAYER_FLOOR][i] = outer_dist(rng);
+                    world_noise[LAYER_FLOOR][i] = outer_dist_dry(rng);
                 }
                 break;
         }

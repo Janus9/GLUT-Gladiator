@@ -115,13 +115,21 @@ enum TileId : uint8_t {
     TILE_FLOOR_BOSS_SQUARE_2,
     TILE_FLOOR_BOSS_BLANK_2,
 
-    // Floor Outer //
-    TILE_FLOOR_OUTER_BLANK_1,
-    TILE_FLOOR_OUTER_CRACKED_1,
-    TILE_FLOOR_OUTER_CRACKED_2,
-    TILE_FLOOR_OUTER_SQUARE_1,
-    TILE_FLOOR_OUTER_SQUARE_2,
-    TILE_FLOOR_OUTER_BLANK_2,
+    // Floor Outer Dry //
+    TILE_FLOOR_OUTER_BLANK_1_DRY,
+    TILE_FLOOR_OUTER_CRACKED_1_DRY,
+    TILE_FLOOR_OUTER_CRACKED_2_DRY,
+    TILE_FLOOR_OUTER_SQUARE_1_DRY,
+    TILE_FLOOR_OUTER_SQUARE_2_DRY,
+    TILE_FLOOR_OUTER_BLANK_2_DRY,
+
+    // Floor Outer Wet //
+    TILE_FLOOR_OUTER_BLANK_1_WET,
+    TILE_FLOOR_OUTER_CRACKED_1_WET,
+    TILE_FLOOR_OUTER_CRACKED_2_WET,
+    TILE_FLOOR_OUTER_SQUARE_1_WET,
+    TILE_FLOOR_OUTER_SQUARE_2_WET,
+    TILE_FLOOR_OUTER_BLANK_2_WET,
 
     // Floor Middle //
     TILE_FLOOR_OUTER_DEFAULT_1,
@@ -512,8 +520,6 @@ class _world
         // -- World Generation -- //
         vector<uint8_t> world_noise[NUM_LAYERS];    // Tile ID distribution of layers
         vector<uint8_t> wet_noise;                  // Noise distribution to create wet/dry tiles
-
-        
 
         // Converts an index into a coordinate position starting at TOP LEFT for (0,0) using grid
         Vec2i convertIndexToPos(int index, int width, int height);
