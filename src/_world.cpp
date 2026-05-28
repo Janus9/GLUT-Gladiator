@@ -1222,8 +1222,10 @@ void _world::runWorldGeneration() {
     world_noise[LAYER_PRIMARY].resize(configuration.num_chunks*256);       // Wall tiles (run cellular automata w/ moore neighborhood)
     
     Logger.LogInfo("Running world generation for parameters: ");
-    Logger.LogInfo(" - Noise Density: " + to_string(configuration.wall_distribution*100.0f) + "%");
-    Logger.LogInfo(" - Generation Iterations: " + to_string(configuration.wall_generation_iterations));
+    Logger.LogInfo(" - Wall Density: " + to_string(configuration.wall_distribution*100.0f) + "%");
+    Logger.LogInfo(" - Wall Generation Iterations: " + to_string(configuration.wall_generation_iterations));
+    Logger.LogInfo(" - Wet Density: " + to_string(configuration.wet_distribution*100.0f) + "%");
+    Logger.LogInfo(" - Wet Generation Iterations: " + to_string(configuration.wet_generation_iterations));
     Logger.LogInfo(" - Seed: " + to_string(seed));
 
     uniform_real_distribution<float> dist(0.0f,1.0f);
@@ -1245,9 +1247,9 @@ void _world::runWorldGeneration() {
 
     Logger.LogInfo("Starting cellular automata algorithm for a world of Width: " + to_string(worldWidth) + "and Height: " + to_string(worldHeight) + " tiles");
     
-    // Run cellular automata algorithm //
+    // Run cellular automata algorithm on walls //
     for (int iteration = 0; iteration < configuration.wall_generation_iterations; iteration++) {
-        vector<uint8_t> world_noise_copy(world_noise[LAYER_PRIMARY]);
+        const vector<uint8_t> world_noise_copy(world_noise[LAYER_PRIMARY]);
         for (int i = 0; i < world_noise[LAYER_PRIMARY].size(); i++) {
             /*
             Each cell must check eight neighbors total (9 including itself). Each neighbor is checked to see if it is of type
@@ -1276,7 +1278,41 @@ void _world::runWorldGeneration() {
                 world_noise[LAYER_PRIMARY][i] = false;
             }
         }
-        Logger.LogDebug(" -- Iteration: " + to_string(iteration) + " completed!");
+        Logger.LogDebug(" -- Wall Iteration: " + to_string(iteration) + " completed!");
+    }
+
+    // Run cellular automata algorithm on wet //
+    for (int iteration = 0; iteration < configuration.wet_generation_iterations; iteration++) {
+        const vector<uint8_t> wet_noise_copy(wet_noise);
+        for (int i = 0; i < wet_noise.size(); i++) {
+            /*
+            Each cell must check eight neighbors total (9 including itself). Each neighbor is checked to see if it is of type
+            Wall = true or type Floor = false
+            We do this by finding the index arround the element for efficiency
+            */
+            int num_neighbors = 0;
+            for (int j = 0; j < 9; j++) {
+                int xOffset = j % 3 - 1;    // Gets xOffset for tiles [-1,1]
+                int yOffset = j / 3 - 1;    // Gets yOffset for tiles [-1,1] -- Applies worldWidth later
+                int index = i + xOffset + yOffset * worldWidth; // Gets the given index to check
+                if (index == i) continue;   // Skip checking ourselves
+                if (index < 0 || index >= wet_noise.size()) { // If index is out of bounds, treat as wall
+                    num_neighbors++;
+                    continue;
+                }
+                if (wet_noise_copy[index]) {  // Check index, true means wall
+                    num_neighbors++;
+                }
+            }
+            
+            // Moore Neighborhood //
+            if (num_neighbors > 4) {
+                wet_noise[i] = true;
+            } else {
+                wet_noise[i] = false;
+            }
+        }
+        Logger.LogDebug(" -- Wet Iteration: " + to_string(iteration) + " completed!");
     }
 
     // World modifications -- clear space in center for the boss //

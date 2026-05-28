@@ -16,7 +16,7 @@ _scene::_scene() : rng(random_device{}())
     world_configuration.wall_distribution = 0.6f;
     world_configuration.wall_generation_iterations = 7;
 
-    world_configuration.wet_distribution = 0.6f;
+    world_configuration.wet_distribution = 0.65f;
     world_configuration.wet_generation_iterations = 7;
 }
 
