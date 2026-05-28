@@ -332,6 +332,11 @@ void _world::initWorld(bool loadWorld, const world_config &_configuration, _ligh
     glBufferData(GL_ARRAY_BUFFER,maxSizeBytes,nullptr,GL_STATIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
+    GLenum errVbo = glGetError();
+    if (errVbo != GL_NO_ERROR) {
+        cout << "ERROR: OpenGL error on world VBO: " << errVbo << "\n";
+    }
+
     // EBO //
     // (Number of total chunks) * (256 tiles per chunk) * (number of layers) * (6 indicies per tile)
     vector<uint32_t> eboData(configuration.num_chunks * NUM_TILES_CHUNK * NUM_LAYERS * 6);
@@ -354,6 +359,11 @@ void _world::initWorld(bool loadWorld, const world_config &_configuration, _ligh
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboID);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, eboData.size() * sizeof(uint32_t), eboData.data(), GL_STATIC_DRAW);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0);
+    
+    GLenum errEbo = glGetError();
+    if (errEbo != GL_NO_ERROR) {
+        cout << "ERROR: OpenGL error on world EBO: " << errEbo << "\n";
+    }
 
     // VAO //
     glBindVertexArray(vaoID);
@@ -1172,6 +1182,11 @@ void _world::buildWorldVBO(float left, float right, float top, float bottom) {
                 const GLsizei offset = (chunk->getVboIndex() * bytesPerChunk) + (bytesPerLayer * layer);
 
                 glBufferSubData(GL_ARRAY_BUFFER, offset, bytesPerChunk, chunkVboData.data()); 
+                
+                GLenum err = glGetError();
+                if (err != GL_NO_ERROR) {
+                    std::cout << "OpenGL error after tile glBufferData: " << err << "\n";
+                }
             }
             chunk->setChunkClean(); // Mark chunk as "clean" to stop rebuilding buffer until dirty again
         }
