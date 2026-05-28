@@ -747,10 +747,18 @@ void _world::postProcessWorld() {
                     if (dist(rng) > transitionProgress) {
                         world_noise[LAYER_FLOOR][i] = middle_dist(rng); // Blend toward middle tiles
                     } else {
-                        world_noise[LAYER_FLOOR][i] = outer_dist_dry(rng);
+                        if (wet_noise[i]) {
+                            world_noise[LAYER_FLOOR][i] = outer_dist_dry(rng);
+                        } else {
+                            world_noise[LAYER_FLOOR][i] = outer_dist_wet(rng);
+                        }
                     }
                 } else {
-                    world_noise[LAYER_FLOOR][i] = outer_dist_dry(rng);
+                    if (wet_noise[i]) {
+                        world_noise[LAYER_FLOOR][i] = outer_dist_dry(rng);
+                    } else {
+                        world_noise[LAYER_FLOOR][i] = outer_dist_wet(rng);
+                    }
                 }
                 break;
         }
@@ -1246,6 +1254,7 @@ void _world::runWorldGeneration() {
     world_noise[LAYER_COSMETIC_1].resize(configuration.num_chunks*256);    // Cosmetic Tiles (1st layer)
     world_noise[LAYER_COSMETIC_2].resize(configuration.num_chunks*256);    // Cosmetic Tiles (2nd layer)
     world_noise[LAYER_PRIMARY].resize(configuration.num_chunks*256);       // Wall tiles (run cellular automata w/ moore neighborhood)
+    wet_noise.resize(configuration.num_chunks*256);                        // Wet tiles (run cellular automata w/ moore neighborhood)
     
     Logger.LogInfo("Running world generation for parameters: ");
     Logger.LogInfo(" - Wall Density: " + to_string(configuration.wall_distribution*100.0f) + "%");
@@ -1267,6 +1276,7 @@ void _world::runWorldGeneration() {
         world_noise[LAYER_COSMETIC_1][i] = TILE_NULL;
         world_noise[LAYER_COSMETIC_2][i] = TILE_NULL;
         world_noise[LAYER_PRIMARY][i] = (dist(rng) < configuration.wall_distribution);    // Randomly assigns 0 or 1 based on noise_distribution
+        wet_noise[i] = (dist(rng) < configuration.wet_distribution);
     }
 
     Logger.LogInfo("Finished generating noise of " + to_string(world_noise[LAYER_PRIMARY].size()) + "tiles");
