@@ -52,6 +52,8 @@ struct world_config {
     float outer_biome_blend_radius;     /// How many tiles wide the "blend" zone is (transitional period where tilesets dither together) for outer to middle
     float middle_biome_blend_radius;    /// How many tiles wide the "blend" zone is (transitional period where tilesets dither together) for middle to inner
     float inner_biome_blend_radius;     /// How many tiles wide the "blend" zone is (transitional period where tilesets dither together) for inner to boss
+    float noise_distribution = 0.60;    /// How much of the world is filled by walls [0.0-1.0] (Recommended 0.6) 
+    uint32_t generation_iterations = 7;    /// Number of iterations to run the world generation algorithm (Recommended 7)
 };
 
 class _chunk; // Forward declaration for cell
@@ -506,10 +508,10 @@ class _world
         unordered_map<pair<int,int>, bool, PairHash> loadedChunks;
 
         // -- World Generation -- //
-        vector<uint8_t> world_noise[NUM_LAYERS];
+        vector<uint8_t> world_noise[NUM_LAYERS];    // Tile ID distribution of layers
+        vector<uint8_t> wet_noise;                  // Noise distribution to create wet/dry tiles
 
-        float noise_distribution = 0.60;  // 0-1 value for % of world that is walls as initial noise
-        float generation_iterations = 7; // Number of iterations to run the algorithm
+        
 
         // Converts an index into a coordinate position starting at TOP LEFT for (0,0) using grid
         Vec2i convertIndexToPos(int index, int width, int height);

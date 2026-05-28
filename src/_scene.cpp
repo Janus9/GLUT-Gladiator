@@ -12,6 +12,9 @@ _scene::_scene() : rng(random_device{}())
     world_configuration.outer_biome_blend_radius = 50.0f;
     world_configuration.middle_biome_blend_radius = 50.0f;
     world_configuration.inner_biome_blend_radius = 50.0f;
+
+    world_configuration.noise_distribution = 0.6f;
+    world_configuration.generation_iterations = 7;
 }
 
 _scene::~_scene()

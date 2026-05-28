@@ -275,7 +275,7 @@ void _world::initWorld(bool loadWorld, const world_config &_configuration, _ligh
 
     // Only run generation when we dont load the world  
     if (!loadWorld) {
-        runWorldGeneration(generation_iterations); 
+        runWorldGeneration(configuration.generation_iterations); 
     }
 
     // PARTICLE EFFECTS //
@@ -1222,13 +1222,13 @@ void _world::runWorldGeneration(int iterations) {
     world_noise[LAYER_PRIMARY].resize(configuration.num_chunks*256);       // Wall tiles (run cellular automata w/ moore neighborhood)
     
     Logger.LogInfo("Running world generation for parameters: ");
-    Logger.LogInfo(" - Noise Density: " + to_string(noise_distribution*100.0f) + "%");
+    Logger.LogInfo(" - Noise Density: " + to_string(configuration.noise_distribution*100.0f) + "%");
     Logger.LogInfo(" - Generation Iterations: " + to_string(iterations));
     Logger.LogInfo(" - Seed: " + to_string(seed));
 
     uniform_real_distribution<float> dist(0.0f,1.0f);
     
-    Logger.LogInfo("Establishing world noise for a ratio of " + to_string(noise_distribution));
+    Logger.LogInfo("Establishing world noise for a ratio of " + to_string(configuration.noise_distribution));
     
       // World width/height in tiles
     int worldWidth = (int)sqrt(configuration.num_chunks)*16;
@@ -1238,7 +1238,7 @@ void _world::runWorldGeneration(int iterations) {
         world_noise[LAYER_FLOOR][i] = TILE_NULL;
         world_noise[LAYER_COSMETIC_1][i] = TILE_NULL;
         world_noise[LAYER_COSMETIC_2][i] = TILE_NULL;
-        world_noise[LAYER_PRIMARY][i] = (dist(rng) < noise_distribution);    // Randomly assigns 0 or 1 based on noise_distribution
+        world_noise[LAYER_PRIMARY][i] = (dist(rng) < configuration.noise_distribution);    // Randomly assigns 0 or 1 based on noise_distribution
     }
 
     Logger.LogInfo("Finished generating noise of " + to_string(world_noise[LAYER_PRIMARY].size()) + "tiles");
