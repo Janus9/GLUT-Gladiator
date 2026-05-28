@@ -45,15 +45,17 @@
  *  - ex/ 20 means that if outer_cutoff is 1000 tiles, then 1020 - 1000 tile distance is still the "outer" biome but blends to the next
  */
 struct world_config {
-    uint32_t num_chunks;                /// Number of chunks for world to generate with (must be a perfect square)
-    float outer_cutoff;                 /// At which distance from center the outer biome stops and the middle biome begins [0.0-1.0]
-    float middle_cutoff;                /// At which distance from center the middle biome stops and the inner biome begins [0.0-1.0]  
-    float inner_cutoff;                 /// At which distance from center the inner biome stops and the boss biome begins [0.0-1.0]  
-    float outer_biome_blend_radius;     /// How many tiles wide the "blend" zone is (transitional period where tilesets dither together) for outer to middle
-    float middle_biome_blend_radius;    /// How many tiles wide the "blend" zone is (transitional period where tilesets dither together) for middle to inner
-    float inner_biome_blend_radius;     /// How many tiles wide the "blend" zone is (transitional period where tilesets dither together) for inner to boss
-    float noise_distribution = 0.60;    /// How much of the world is filled by walls [0.0-1.0] (Recommended 0.6) 
-    uint32_t generation_iterations = 7;    /// Number of iterations to run the world generation algorithm (Recommended 7)
+    uint32_t num_chunks;                        /// Number of chunks for world to generate with (must be a perfect square)
+    float outer_cutoff;                         /// At which distance from center the outer biome stops and the middle biome begins [0.0-1.0]
+    float middle_cutoff;                        /// At which distance from center the middle biome stops and the inner biome begins [0.0-1.0]  
+    float inner_cutoff;                         /// At which distance from center the inner biome stops and the boss biome begins [0.0-1.0]  
+    float outer_biome_blend_radius;             /// How many tiles wide the "blend" zone is (transitional period where tilesets dither together) for outer to middle
+    float middle_biome_blend_radius;            /// How many tiles wide the "blend" zone is (transitional period where tilesets dither together) for middle to inner
+    float inner_biome_blend_radius;             /// How many tiles wide the "blend" zone is (transitional period where tilesets dither together) for inner to boss
+    float wall_distribution = 0.60;             /// How much of the world is filled by walls [0.0-1.0] (Recommended 0.6) 
+    uint32_t wall_generation_iterations = 7;    /// Number of iterations to run the wall generation algorithm (Recommended 7)
+    float wet_distribution = 0.60;              /// How much of the world is "wet" (changes world generation) [0.0-1.0] (Recommended 0.6) 
+    uint32_t wet_generation_iterations = 7;     /// Number of iterations to run the wet generation algorithm (Recommended 7)
 };
 
 class _chunk; // Forward declaration for cell
@@ -526,7 +528,7 @@ class _world
         void finalizeWorld();
 
         // runs through all iterations of the world generation
-        void runWorldGeneration(int iterations);
+        void runWorldGeneration();
 
         /**
          * Maps a 3x3 grid of neighbor cells around the given cell
