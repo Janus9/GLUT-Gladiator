@@ -351,19 +351,13 @@ void _scene::initScene(bool loadWorld)
         player->setHealth(200.0f);
         player->setMaxHealth(200.0f);
         
-        /**
-         * World is 128 x 128 chunks (32,768 x 32,768 world units)
-         * Player spawns in bounds: -15,000 to -12,000 AND 12,000 to 15,000 
-         * 
-         */
-    
         // Find spawn 
         const float numChunks = world_configuration.num_chunks;
         // Total chunk area to length/width * num tiles * 16 units per tile / 2 since 0,0 is center
         const float bounds = sqrt(numChunks) * NUM_TILES_CHUNK_SQR * TILE_D * 0.5f;
         uniform_real_distribution<float> player_pos_neg_dist(-1.0f,1.0f);           // Coin flip for positive vs negative side
-        uniform_real_distribution<float> player_pos_dist_neg(-bounds*0.9f,-bounds);  // Distribution for negative side
-        uniform_real_distribution<float> player_pos_dist_pos(bounds*0.9f,bounds);    // Distribution for positive side
+        uniform_real_distribution<float> player_pos_dist_neg(-bounds*0.85f,-bounds*0.95f);  // Distribution for negative side
+        uniform_real_distribution<float> player_pos_dist_pos(bounds*0.85f,bounds*0.95f);    // Distribution for positive side
         bool lookingForSpawn = true;
         while (lookingForSpawn)
         {
