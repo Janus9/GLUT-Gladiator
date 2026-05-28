@@ -4,6 +4,14 @@ _scene::_scene() : rng(random_device{}())
 {
     // Test world configuration //
     world_configuration.num_chunks = 4096;
+
+    world_configuration.outer_cutoff = 0.8f;
+    world_configuration.middle_cutoff = 0.5f;
+    world_configuration.inner_cutoff = 0.08f;
+
+    world_configuration.outer_biome_blend_radius = 50.0f;
+    world_configuration.middle_biome_blend_radius = 50.0f;
+    world_configuration.inner_biome_blend_radius = 50.0f;
 }
 
 _scene::~_scene()
@@ -352,10 +360,10 @@ void _scene::initScene(bool loadWorld)
         // Find spawn 
         const float numChunks = world_configuration.num_chunks;
         // Total chunk area to length/width * num tiles * 16 units per tile / 2 since 0,0 is center
-        float bounds = sqrt(numChunks) * 16 * 16 * 0.5;
+        const float bounds = sqrt(numChunks) * NUM_TILES_CHUNK_SQR * TILE_D * 0.5f;
         uniform_real_distribution<float> player_pos_neg_dist(-1.0f,1.0f);           // Coin flip for positive vs negative side
-        uniform_real_distribution<float> player_pos_dist_neg(-15000.0f,-12000.0f);  // Distribution for negative side
-        uniform_real_distribution<float> player_pos_dist_pos(12000.0f,15000.0f);    // Distribution for positive side
+        uniform_real_distribution<float> player_pos_dist_neg(-bounds*0.9f,-bounds);  // Distribution for negative side
+        uniform_real_distribution<float> player_pos_dist_pos(bounds*0.9f,bounds);    // Distribution for positive side
         bool lookingForSpawn = true;
         while (lookingForSpawn)
         {

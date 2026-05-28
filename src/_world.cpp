@@ -656,6 +656,15 @@ void _world::postProcessWorld() {
     uniform_int_distribution<uint8_t> middle_dist(TILE_FLOOR_OUTER_DEFAULT_1, TILE_FLOOR_OUTER_DEFAULT_2); 
     uniform_int_distribution<uint8_t> inner_dist(TILE_FLOOR_INNER_DEFAULT_1, TILE_FLOOR_INNER_DEFAULT_2); 
     uniform_real_distribution<float> dist(0.0f,1.0f);
+
+    // Positions (world units) where one biome ends and other begins
+    const float innerCutoff = configuration.inner_cutoff * worldBounds;
+    const float middleCutoff = configuration.middle_cutoff * worldBounds;
+    const float outerCutoff = configuration.outer_cutoff * worldBounds;
+
+    const float innerBlendRadius = configuration.inner_biome_blend_radius * TILE_W;
+    const float middleBlendRadius = configuration.middle_biome_blend_radius * TILE_W;
+    const float outerBlendRadius = configuration.outer_biome_blend_radius * TILE_W;
     
     // FLOOR TILE //
     for (int i = 0; i < world_noise[LAYER_FLOOR].size(); i++) {
@@ -670,10 +679,13 @@ void _world::postProcessWorld() {
         level_pos level = getLevelFromPos(tilePos);
         
         switch (level) {
+            case LEVEL_BOSS: 
+                world_noise[LAYER_FLOOR][i] = boss_dist(rng);
+                break;
             case LEVEL_INNER:
-                if (distance < 800.0f) {
+                if (distance < innerCutoff + innerBlendRadius) {
                     // Boss Room //
-                    float transitionProgress = (distance - 300.0f) / 500.0f; // 0.0 at 300, 1.0 at 800
+                    float transitionProgress = (distance - innerCutoff) / innerBlendRadius; // 0.0 at innerCutoff, 1.0 at innerCutoff + innerBlendRadius
                     transitionProgress = glm::clamp(transitionProgress, 0.0f, 1.0f);
 
                     if (dist(rng) > transitionProgress) {
@@ -686,9 +698,9 @@ void _world::postProcessWorld() {
                 }
                 break;
             case LEVEL_MIDDLE:
-                if (distance < 5000.0f) {
+                if (distance < middleCutoff + middleBlendRadius) {
                     // Transition period between INNER and MIDDLE
-                    float transitionProgress = (distance - 3000.0f) / 2000.0f; // 0.0 at 3000, 1.0 at 5000
+                    float transitionProgress = (distance - middleCutoff) / middleBlendRadius; // 0.0 at middleCutoff, 1.0 at middleCutoff + middleBlendRadius
                     transitionProgress = glm::clamp(transitionProgress, 0.0f, 1.0f);
                     
                     if (dist(rng) > transitionProgress) {
@@ -701,9 +713,9 @@ void _world::postProcessWorld() {
                 }
                 break;
             case LEVEL_OUTER:
-                if (distance < 10000.0f) {
+                if (distance < outerCutoff + outerBlendRadius) {
                     // Transition period between MIDDLE and OUTER
-                    float transitionProgress = (distance - 8000.0f) / 2000.0f; // 0.0 at 8000, 1.0 at 10000
+                    float transitionProgress = (distance - outerCutoff) / outerBlendRadius; // 0.0 at outerCutoff, 1.0 at outerCutoff + outerBlendRadius
                     transitionProgress = glm::clamp(transitionProgress, 0.0f, 1.0f);
                     
                     if (dist(rng) > transitionProgress) {
@@ -1060,20 +1072,18 @@ void _world::setSeed(uint32_t _seed) {
 }
 
 level_pos _world::getLevelFromPos(const Vec2f &pos) const {
-    const float worldWidth = sqrt(configuration.num_chunks) * 16 * 16;
-    const float worldRadius = worldWidth * 0.5f;
     const float distance = pos.distance({0.0f,0.0f});           // How far from center?
 
-    // Config -- Use Percentages for dynamic world size //
-    const float innerPct = 0.2f;
-    const float middlePct = 0.6f;
-    // Outer isnt here since its just the remaining percentage
+    // Positions (world units) where one biome ends and other begins
+    const float innerCutoff = configuration.inner_cutoff * worldBounds;
+    const float middleCutoff = configuration.middle_cutoff * worldBounds;
+    const float outerCutoff = configuration.outer_cutoff * worldBounds;
 
-    if (distance > 0.0f && distance < 800.0f) {
+    if (distance > 0.0f && distance < innerCutoff) {
         return LEVEL_BOSS;
-    } else if (distance >= 800.0f && distance < worldRadius * innerPct) {
+    } else if (distance >= innerCutoff && distance < middleCutoff) {
         return LEVEL_INNER;
-    } else if (distance >= worldRadius * innerPct && distance < worldRadius * middlePct) {
+    } else if (distance >= middleCutoff && distance < outerCutoff) {
         return LEVEL_MIDDLE;
     } else {
         return LEVEL_OUTER;

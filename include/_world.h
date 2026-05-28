@@ -15,9 +15,11 @@
 #ifndef _WORLD_H
 #define _WORLD_H
 
+#define TILE_D 16.0f           // Tile dimensions (X*X)
 #define TILE_W 16.0f           // Tile width in world units is ALWAYS the same of 16
 #define TILE_H 16.0f           // Tile height in world units is ALWAYS the same of 16
 #define NUM_TILES_CHUNK 256    // Number of tiles in a chunk
+#define NUM_TILES_CHUNK_SQR 16 // Number of tiles W/H in a chunk
 #define NUM_LAYERS 4           // Number of layers per cell 
 
 #include <_common.h>
