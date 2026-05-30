@@ -3,7 +3,7 @@
 _scene::_scene() : rng(random_device{}())
 {
     // Test world configuration //
-    world_configuration.num_chunks = 16384;
+    world_configuration.num_chunks = 65536;
 
     world_configuration.outer_cutoff = 0.8f;
     world_configuration.middle_cutoff = 0.5f;
@@ -1524,6 +1524,12 @@ void _scene::keyboardHandler(WPARAM wParam)
                 // Reset camera on disabling free cam
                 cameraZoom = 3.0f;
             }
+            if (cameraFree) {
+                player_light.radius = 2400.0f;
+            } else {
+                player_light.radius = 400.0f;
+            }
+            *lightManager->getLightRadius("PLAYER_LIGHT") = player_light.radius;
             break;
         case 122: // "F11"
             myWorld->DEBUG_displayChunkBorders = !myWorld->DEBUG_displayChunkBorders;
