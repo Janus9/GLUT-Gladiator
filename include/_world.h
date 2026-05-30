@@ -35,6 +35,21 @@
 #include <glm/gtc/type_ptr.hpp>             // Send GLM datatypes (matrix) to GPU
 
 /**
+ * Configuration file for a cellular automata generation
+ * 
+ * - Any values out of their labeled bounds will be rounded to nearest value with warning attached 
+ * - Array of data must already be sized (dont use reserve()), all contents will be *overwritten* by RNG distribution 
+ * 
+ */
+struct generation_config {
+    float random_distribution;                  /// [0.0-1.0] Starting % of tiles that are "alive"
+    uint32_t num_iterations;                    /// [0+] Number of iterations to run algorithm for (must be positive)
+    uint32_t survival_requirement;              /// [0-8] Number of neighbors required for cell to remain "alive"   
+    uint32_t birth_requirement;                 /// [0-8] Number of neighbors required for cell to become "alive"
+    bool out_of_bounds_is_alive;                /// [T/F] Wether a cell out of bounds counts as "alive" or "dead"
+};
+
+/**
  * Configuration file for the world + world generation
  * 
  * For the cutoffs, the unit is a % from [0.0 - 1.0]
@@ -53,13 +68,11 @@ struct world_config {
     float outer_biome_blend_radius;             /// How many tiles wide the "blend" zone is (transitional period where tilesets dither together) for outer to middle
     float middle_biome_blend_radius;            /// How many tiles wide the "blend" zone is (transitional period where tilesets dither together) for middle to inner
     float inner_biome_blend_radius;             /// How many tiles wide the "blend" zone is (transitional period where tilesets dither together) for inner to boss
-    float wall_distribution = 0.60;             /// How much of the world is filled by walls [0.0-1.0] (Recommended 0.6) 
-    uint32_t wall_generation_iterations = 7;    /// Number of iterations to run the wall generation algorithm (Recommended 7)
-    float wet_distribution = 0.60;              /// How much of the world is "wet" (changes world generation) [0.0-1.0] (Recommended 0.6) 
-    uint32_t wet_generation_iterations = 7;     /// Number of iterations to run the wet generation algorithm (Recommended 7)
+    generation_config wall_generation;          /// Generation configuration for the world walls
+    generation_config wet_generation;           /// Generation configuration for the wet biome
 };
 
-class _chunk; // Forward declaration for cell
+class _chunk; // Forward declaration for cell 
 
 /**
  * This is for detailing where we are in the world (level wise as 3 levels)
@@ -543,6 +556,14 @@ class _world
 
         // runs through all iterations of the world generation
         void runWorldGeneration();
+
+        /**
+         * Runs cellular automata using Moore Neighborhoods on the given data with a provided configuration
+         * 
+         * @param config Configuration for the generation algorithm
+         * @param cellData Vector of unsigned bytes that is mutated by the algorithm
+         */
+        void runCellularAutomata(const generation_config &config, vector<uint8_t> &cellData);
 
         /**
          * Maps a 3x3 grid of neighbor cells around the given cell

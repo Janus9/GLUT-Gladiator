@@ -13,11 +13,25 @@ _scene::_scene() : rng(random_device{}())
     world_configuration.middle_biome_blend_radius = 50.0f;
     world_configuration.inner_biome_blend_radius = 50.0f;
 
-    world_configuration.wall_distribution = 0.6f;
-    world_configuration.wall_generation_iterations = 7;
+    // Walls //
+    generation_config wall_config;
+    wall_config.random_distribution = 0.6;
+    wall_config.num_iterations = 7;
+    wall_config.survival_requirement = 5;
+    wall_config.birth_requirement = 4;
+    wall_config.out_of_bounds_is_alive = true;
 
-    world_configuration.wet_distribution = 0.65f;
-    world_configuration.wet_generation_iterations = 7;
+    world_configuration.wall_generation = wall_config;
+
+    // Wet Biome //
+    generation_config wet_config;
+    wet_config.random_distribution = 0.65;
+    wet_config.num_iterations = 7;
+    wet_config.survival_requirement = 5;
+    wet_config.birth_requirement = 4;
+    wet_config.out_of_bounds_is_alive = false;
+
+    world_configuration.wet_generation = wet_config;
 }
 
 _scene::~_scene()

@@ -248,6 +248,10 @@ void _world::initWorld(bool loadWorld, const world_config &_configuration, _ligh
 
     initBenchmark->startBenchmark();
 
+    // Setup seed + rng engine 
+    seed = std::chrono::system_clock::now().time_since_epoch().count(); 
+    rng = mt19937(seed);
+
     // Chunk width/height * 16 tiles wide * 16 world units per tile / 2 
     worldBounds = sqrt(configuration.num_chunks) * 16.0f * 16.0f * 0.5f;
 
@@ -1314,10 +1318,6 @@ void _world::buildWorldVBO(float left, float right, float top, float bottom) {
 
 void _world::runWorldGeneration() {
     worldChunks.reserve(configuration.num_chunks); // Resize the vector to hold configuration.num_chunks chunks
-    
-    // Setup seed + rng engine 
-    seed = std::chrono::system_clock::now().time_since_epoch().count(); 
-    rng = mt19937(seed);
 
     // Setup world_noise 
     world_noise[LAYER_FLOOR].resize(configuration.num_chunks*256);         // Floor tiles
@@ -1327,17 +1327,11 @@ void _world::runWorldGeneration() {
     wet_noise.resize(configuration.num_chunks*256);                        // Wet tiles (run cellular automata w/ moore neighborhood)
     
     Logger.LogInfo("Running world generation for parameters: ");
-    Logger.LogInfo(" - Wall Density: " + to_string(configuration.wall_distribution*100.0f) + "%");
-    Logger.LogInfo(" - Wall Generation Iterations: " + to_string(configuration.wall_generation_iterations));
-    Logger.LogInfo(" - Wet Density: " + to_string(configuration.wet_distribution*100.0f) + "%");
-    Logger.LogInfo(" - Wet Generation Iterations: " + to_string(configuration.wet_generation_iterations));
     Logger.LogInfo(" - Seed: " + to_string(seed));
 
     uniform_real_distribution<float> dist(0.0f,1.0f);
     
-    Logger.LogInfo("Establishing world noise for a ratio of " + to_string(configuration.wall_distribution));
-    
-      // World width/height in tiles
+    // World width/height in tiles
     int worldWidth = (int)sqrt(configuration.num_chunks)*16;
     int worldHeight = (int)sqrt(configuration.num_chunks)*16;
 
@@ -1345,81 +1339,10 @@ void _world::runWorldGeneration() {
         world_noise[LAYER_FLOOR][i] = TILE_NULL;
         world_noise[LAYER_COSMETIC_1][i] = TILE_NULL;
         world_noise[LAYER_COSMETIC_2][i] = TILE_NULL;
-        world_noise[LAYER_PRIMARY][i] = (dist(rng) < configuration.wall_distribution);    // Randomly assigns 0 or 1 based on noise_distribution
-        wet_noise[i] = (dist(rng) < configuration.wet_distribution);
     }
 
-    Logger.LogInfo("Finished generating noise of " + to_string(world_noise[LAYER_PRIMARY].size()) + "tiles");
-
-    Logger.LogInfo("Starting cellular automata algorithm for a world of Width: " + to_string(worldWidth) + "and Height: " + to_string(worldHeight) + " tiles");
-    
-    // Run cellular automata algorithm on walls //
-    for (int iteration = 0; iteration < configuration.wall_generation_iterations; iteration++) {
-        const vector<uint8_t> world_noise_copy(world_noise[LAYER_PRIMARY]);
-        for (int i = 0; i < world_noise[LAYER_PRIMARY].size(); i++) {
-            /*
-            Each cell must check eight neighbors total (9 including itself). Each neighbor is checked to see if it is of type
-            Wall = true or type Floor = false
-            We do this by finding the index arround the element for efficiency
-            */
-            int num_neighbors = 0;
-            for (int j = 0; j < 9; j++) {
-                int xOffset = j % 3 - 1;    // Gets xOffset for tiles [-1,1]
-                int yOffset = j / 3 - 1;    // Gets yOffset for tiles [-1,1] -- Applies worldWidth later
-                int index = i + xOffset + yOffset * worldWidth; // Gets the given index to check
-                if (index == i) continue;   // Skip checking ourselves
-                if (index < 0 || index >= world_noise[LAYER_PRIMARY].size()) { // If index is out of bounds, treat as wall
-                    num_neighbors++;
-                    continue;
-                }
-                if (world_noise_copy[index]) {  // Check index, true means wall
-                    num_neighbors++;
-                }
-            }
-            
-            // Moore Neighborhood //
-            if (num_neighbors > 4) {
-                world_noise[LAYER_PRIMARY][i] = true;
-            } else {
-                world_noise[LAYER_PRIMARY][i] = false;
-            }
-        }
-        Logger.LogDebug(" -- Wall Iteration: " + to_string(iteration) + " completed!");
-    }
-
-    // Run cellular automata algorithm on wet //
-    for (int iteration = 0; iteration < configuration.wet_generation_iterations; iteration++) {
-        const vector<uint8_t> wet_noise_copy(wet_noise);
-        for (int i = 0; i < wet_noise.size(); i++) {
-            /*
-            Each cell must check eight neighbors total (9 including itself). Each neighbor is checked to see if it is of type
-            Wall = true or type Floor = false
-            We do this by finding the index arround the element for efficiency
-            */
-            int num_neighbors = 0;
-            for (int j = 0; j < 9; j++) {
-                int xOffset = j % 3 - 1;    // Gets xOffset for tiles [-1,1]
-                int yOffset = j / 3 - 1;    // Gets yOffset for tiles [-1,1] -- Applies worldWidth later
-                int index = i + xOffset + yOffset * worldWidth; // Gets the given index to check
-                if (index == i) continue;   // Skip checking ourselves
-                if (index < 0 || index >= wet_noise.size()) { // If index is out of bounds, treat as wall
-                    num_neighbors++;
-                    continue;
-                }
-                if (wet_noise_copy[index]) {  // Check index, true means wall
-                    num_neighbors++;
-                }
-            }
-            
-            // Moore Neighborhood //
-            if (num_neighbors > 4) {
-                wet_noise[i] = true;
-            } else {
-                wet_noise[i] = false;
-            }
-        }
-        Logger.LogDebug(" -- Wet Iteration: " + to_string(iteration) + " completed!");
-    }
+    runCellularAutomata(configuration.wall_generation, world_noise[LAYER_PRIMARY]);
+    runCellularAutomata(configuration.wet_generation, wet_noise);
 
     // World modifications -- clear space in center for the boss //
     vector<uint8_t> world_noise_copy(world_noise[LAYER_PRIMARY]);
@@ -1444,6 +1367,93 @@ void _world::runWorldGeneration() {
     postProcessWorld();
     Logger.LogDebug("Post processing completed! Finalizing world now ...");
     finalizeWorld();
+}
+
+void _world::runCellularAutomata(const generation_config &config, vector<uint8_t> &cellData) {
+    if (cellData.empty()) {
+        cerr << "ERROR: Cell data is empty, make sure array is initialized prior to running algorithm\n"; 
+        return;
+    }
+
+    const float rngDist = glm::clamp(config.random_distribution, 0.0f, 1.0f);
+    const uint32_t numIt = glm::clamp(config.num_iterations, 0u, UINT_MAX);
+    const uint32_t survivalReq = glm::clamp(config.survival_requirement,0u,8u);
+    const uint32_t birthReq = glm::clamp(config.birth_requirement,0u,8u);
+
+    cout << "Running cellular automata algorithm for parameters:\n"
+         << " - Alive Cell Distribution: " << rngDist * 100.0f << "%\n"
+         << " - Number of Iterations: " << numIt << "\n"
+         << " - Survival Requirement: " << survivalReq << " cells\n"
+         << " - Birth Requirement: " << birthReq << " cells\n"
+         << " - Out of Bounds is Alive: " << (config.out_of_bounds_is_alive ? "TRUE" : "FALSE") << "\n";
+
+    // Check to ensure contents is a perfect square
+    const int gridWidth = sqrt(cellData.size());
+    if (gridWidth * gridWidth != static_cast<int>(cellData.size())) {
+        cerr << "ERROR: Cell data size must be a perfect square\n";
+        return;
+    }
+
+    // Apply random noise into the cell data
+    uniform_real_distribution<float> dist(0.0f,1.0f);
+    for (size_t i = 0; i < cellData.size(); i++) {
+        cellData[i] = static_cast<uint8_t>(dist(rng) < rngDist);
+    }
+
+
+    for (uint32_t it = 0; it < numIt; it++) {
+        const vector<uint8_t> cellDataCopy(cellData);
+        
+        for (int y = 0; y < gridWidth; y++) {
+            for (int x = 0; x < gridWidth; x++) {
+                const int i = y * gridWidth + x;
+                
+                uint8_t numNeighbors = 0;
+                const bool cellAlive = static_cast<bool>(cellDataCopy[i]);
+
+                // Neighbor check with all 8 (center not counted)
+                for (int yOffset = -1; yOffset <= 1; yOffset++) {
+                    for (int xOffset = -1; xOffset <= 1; xOffset++) {
+                        if (xOffset == 0 && yOffset == 0) continue; // Skip center
+
+                        const int neighborX = x + xOffset;    // Gets xOffset for tiles [-1,1]
+                        const int neighborY = y + yOffset;    // Gets yOffset for tiles [-1,1] -- Applies worldWidth later
+                        
+                        if (neighborX < 0 || neighborX >= gridWidth || neighborY < 0 || neighborY >= gridWidth) {
+                            // Cell out of bounds
+                            if (config.out_of_bounds_is_alive) {
+                                numNeighbors++;
+                            } 
+                            continue;
+                        }
+                        
+                        const int neighborIndex = neighborY * gridWidth + neighborX;
+                        if (cellDataCopy[neighborIndex] != 0) {
+                            // Neighbor found
+                            numNeighbors++;
+                        }
+                    }
+                }
+
+                // Moore Neighborhood
+                if (cellAlive) {
+                    // Survival Check
+                    if (numNeighbors >= survivalReq) {
+                        cellData[i] = static_cast<uint8_t>(true);
+                    } else {
+                        cellData[i] = static_cast<uint8_t>(false);
+                    }
+                } else {
+                    // Birth Check
+                    if (numNeighbors >= birthReq) {
+                        cellData[i] = static_cast<uint8_t>(true);
+                    } else {
+                        cellData[i] = static_cast<uint8_t>(false);
+                    }
+                }   
+            }
+        }
+    }
 }
 
 void _world::mapCellNeighbors(_cell* cell, _cell* outNeighbors[9]) {
