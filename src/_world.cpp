@@ -2,10 +2,20 @@
 
 // -- CELL -- // 
 
+_cell::_cell() {
+    for (int i = 0; i < NUM_LAYERS; i++) {
+        tileIDs[i] = TILE_NULL;
+    }
+}
+
+_cell::~_cell() {
+
+}
+
 bool _cell::setOutline(bool state) {
-if (!this || !parentChunk) return false;
-    outlined = state;
-    parentChunk->vboDirty = true;
+    if (!this || !parentChunk) return false;
+        outlined = state;
+        parentChunk->setChunkDirty();
     return true;
 }   
 
@@ -37,79 +47,24 @@ bool _cell::isAlive() const {
 
 // -- CHUNK -- //
 
+// Static //
+
+int _chunk::nextID = 0;
+
+// Public //
+
 _chunk::_chunk() {
-    // Creates the buffers for the chunk
-    glGenBuffers(1, &tileVboID);
-    glGenBuffers(1, &tileEboID);
-    glGenVertexArrays(1, &tileVaoID);
-
-    // CHUNK EBO SETUP //
-
-    // 6 vertices * 6 floats * 256 tiles per chunk
-    uint32_t tileEboData[6 * 256];
-    int vertexOffset = 0;
-    int eIndex = 0;
-    for (int i = 0; i < 256; i++) {
-        // Ebo (Two Triangles) //
-        // Triangle 1
-        tileEboData[eIndex++] = vertexOffset + 0; // BL   
-        tileEboData[eIndex++] = vertexOffset + 1; // BR
-        tileEboData[eIndex++] = vertexOffset + 2; // TR
-        // Triangle 2
-        tileEboData[eIndex++] = vertexOffset + 0; // BL
-        tileEboData[eIndex++] = vertexOffset + 2; // TR
-        tileEboData[eIndex++] = vertexOffset + 3; // TL
-
-        vertexOffset += 4;
-    }
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, tileEboID);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(tileEboData), tileEboData, GL_STATIC_DRAW);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0);
-
-    // CHUNK VAO SETUP //
-
-    glBindVertexArray(tileVaoID);
-
-    // Setup buffers
-    glBindBuffer(GL_ARRAY_BUFFER,tileVboID);            // VBO
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,tileEboID);    // EBO
-    
-    // 6 floats per vertex 
-    GLsizei stride = 7 * sizeof(float);
-
-    // Setup attributes
-    glEnableVertexAttribArray(0);       // Size (vec2)
-    glVertexAttribPointer(0,2,GL_FLOAT,GL_FALSE,stride,(void*)(0 * sizeof(float)));
-    glEnableVertexAttribArray(1);       // Texture Coords (vec2)
-    glVertexAttribPointer(1,2,GL_FLOAT,GL_FALSE,stride,(void*)(2 * sizeof(float)));
-    glEnableVertexAttribArray(2);       // Position (vec2)
-    glVertexAttribPointer(2,2,GL_FLOAT,GL_FALSE,stride,(void*)(4 * sizeof(float)));
-    glEnableVertexAttribArray(3);       // Tile Outlined (float)
-    glVertexAttribPointer(3,1,GL_FLOAT,GL_FALSE,stride,(void*)(6 * sizeof(float)));
-
-    glBindVertexArray(0);
+    chunkID = nextID;
+    nextID++;
 }
 
 _chunk::~_chunk() {
-    if (tileVboID != 0) {
-        glDeleteBuffers(1,&tileVboID); 
-        tileVboID = 0;
-    }
-    if (tileEboID != 0) {
-        glDeleteBuffers(1,&tileEboID); 
-        tileEboID = 0;
-    }
-    if (tileVaoID != 0) {
-        glDeleteVertexArrays(1,&tileVaoID); 
-        tileVaoID = 0;
-    }
 }
 
 TileId _chunk::getTileIdAt(int index) const {
     if (!this) return TILE_NULL;
     if (index < 0 || index > 255) return TILE_NULL;
-    return tileData[index];
+    return cellData[index].tileIDs[LAYER_PRIMARY];       // Change later only returns "primary" tile
 }
 
 _cell* _chunk::cellAt(int index) {
@@ -121,8 +76,7 @@ bool _chunk::setTileIdAt(TileId id, int index) {
     if (!this) return false;
     if (index < 0 || index > 255) return false;
     
-    tileData[index] = id;
-    cellData[index].tileId = id;
+    cellData[index].tileIDs[LAYER_PRIMARY] = id;         // Change later only sets "primary" tile
     vboDirty = true;
 
     return true;
@@ -132,26 +86,9 @@ const _cell* _chunk::getAllCells() const {
     return cellData;
 }
 
-const TileId* _chunk::getAllTileIds() const {
-    return tileData;
-}
-
 void _chunk::setAllCells(const _cell* cells) {
     if (!cells) return;
     memcpy(cellData,cells,256 * sizeof(_cell));
-    vboDirty = true;
-}
-
-void _chunk::setAllTiles(const TileId* tiles) {
-    if (!tiles) return;
-    memcpy(tileData,tiles,256 * sizeof(TileId));
-
-    // Set all cell IDs to match
-    _cell cellData[256];
-    for (int i = 0; i < 256; i++) {
-        cellData[i].tileId = tiles[i];
-    }
-    setAllCells(cellData);
     vboDirty = true;
 }
 
@@ -160,10 +97,11 @@ chunk_serial_data _chunk::serializeChunk() const {
     chunk_data.chunkX = chunkX;
     chunk_data.chunkY = chunkY;
     for (int i = 0; i < 256; i++) {
-        const _cell* cell = &cellData[i]; 
-        chunk_data.cell_data[i].tileID = cell->tileId;
+        const _cell* cell = &cellData[i];
+        memcpy(chunk_data.cell_data[i].tileIDs, cell->tileIDs, NUM_LAYERS * sizeof(TileId)); 
         chunk_data.cell_data[i].outlined = static_cast<uint8_t>(cell->isOutlined());
-        chunk_data.cell_data[i].padding = 0;   // Padding, does nothing.
+        chunk_data.cell_data[i].padding1 = 0;   // Padding, does nothing.
+        chunk_data.cell_data[i].padding2 = 0;   // Padding, does nothing.
         chunk_data.cell_data[i].health = cell->getHealth();
     }
     return chunk_data;
@@ -172,17 +110,51 @@ chunk_serial_data _chunk::serializeChunk() const {
 void _chunk::loadSerializedChunk(const chunk_serial_data &chunk_data) {
     chunkX = chunk_data.chunkX;
     chunkY = chunk_data.chunkY;
-    for (int i = 0; i < 256; i++) {
-        // Serialized Data //
-        tileData[i] = static_cast<TileId>(chunk_data.cell_data[i].tileID);
-        cellData[i].tileId = static_cast<TileId>(chunk_data.cell_data[i].tileID);
-        cellData[i].setOutline(static_cast<bool>(chunk_data.cell_data[i].outlined));
-        cellData[i].setHealth(chunk_data.cell_data[i].health);
+    for (int y = 0; y < 16; y++) {
+        for (int x = 0; x < 16; x++) {
+            const int tileIndex = y * 16 + x;
 
-        // Non Serialized Data //
-        // Handled by VBO setup -- should be changed later
-        vboDirty = true;
+            const float halfWidth = TILE_W * 0.5f;
+            const float halfHeight = TILE_H * 0.5f;
+        
+            const float worldXCenter = (chunkX * 16 + x) * TILE_W + halfWidth;
+            const float worldYCenter = (chunkY * 16 + y) * TILE_H + halfHeight;
+
+            _cell& chunkCell = cellData[tileIndex];
+
+            // Serialized Data //
+            chunkCell.setHealth(chunk_data.cell_data[tileIndex].health);
+            chunkCell.setOutline(static_cast<bool>(chunk_data.cell_data[tileIndex].outlined));
+            chunkCell.parentChunk = this;
+            memcpy(chunkCell.tileIDs, chunk_data.cell_data[tileIndex].tileIDs, NUM_LAYERS * sizeof(TileId));
+            chunkCell.index = tileIndex;
+            chunkCell.pos = {worldXCenter, worldYCenter};
+
+            // Non Serialized Data //
+            // Handled by VBO setup -- should be changed later
+            vboDirty = true;
+        }
     }
+}
+
+int _chunk::getVboIndex() const {
+    return vboIndex;
+}
+
+void _chunk::setVboIndex(int index) {
+    vboIndex = index;
+}
+
+bool _chunk::isChunkDirty() const {
+    return vboDirty;
+}
+
+void _chunk::setChunkDirty() {
+    vboDirty = true;
+}
+
+void _chunk::setChunkClean() {
+    vboDirty = false;
 }
 
 // -- WORLD -- //
@@ -191,6 +163,33 @@ void _chunk::loadSerializedChunk(const chunk_serial_data &chunk_data) {
 
 glm::mat4 _world::viewProjectionMatrix;
 Vec2f _world::cameraPosition = {0.0f, 0.0f};
+
+// -- PUBLIC -- //
+
+void _world::debugPrint() {
+
+    const size_t ChunkBytes = sizeof(_chunk) * worldChunks.size();
+    const size_t TileBytes = sizeof(uint8_t) * worldChunks.size() * NUM_TILES_CHUNK;
+
+    Logger.LogInfo(" -- World Debug Print -- ", LOG_CONSOLE);
+    Logger.LogInfo(
+        "Chunks Loaded: " 
+        + std::to_string(worldChunks.size()) 
+        + " (" + std::to_string(ChunkBytes) + " B)" 
+        + " (" + std::to_string(ChunkBytes/1000000) + "MB)", 
+        LOG_CONSOLE
+    );
+    Logger.LogInfo(
+        "Tiles Loaded: " 
+        + std::to_string(worldChunks.size() * 256) 
+        + " (" + std::to_string(TileBytes) + " B)" 
+        + " (" + std::to_string(TileBytes/1000000) + "MB)", 
+        LOG_CONSOLE);
+
+    Logger.LogInfo("Tiles to Draw: " + to_string(tilesToDraw),LOG_CONSOLE);
+    
+    Logger.LogInfo("------------------------", LOG_CONSOLE);
+}
 
 void _world::setViewProjectionMatrix(const glm::mat4 &_viewProjectionMatrix) {
     viewProjectionMatrix = _viewProjectionMatrix;
@@ -207,6 +206,19 @@ _world::_world()
 
 _world::~_world()
 {
+    if (vboID != 0) {
+        glDeleteBuffers(1,&vboID); // tell the GPU to delete the vertex buffer
+        vboID = 0;
+    }
+    if (eboID != 0) {
+        glDeleteBuffers(1,&eboID); // tell the GPU to delete the index buffer
+        eboID = 0;
+    }
+    if (vaoID != 0) {
+        glDeleteVertexArrays(1,&vaoID); // tell the GPU to delete the array buffer
+        vaoID = 0;
+    }
+
     //dtor
     delete tileAtlas;
     tileAtlas = nullptr;
@@ -223,9 +235,11 @@ _world::~_world()
     worldChunks.clear();
 }
 
-void _world::initWorld(bool loadWorld, _lightManager* lightManager)
+void _world::initWorld(bool loadWorld, const world_config &_configuration, _lightManager* lightManager)
 {
     sceneLightManager = lightManager;
+
+    configuration = _configuration;
 
     if (worldInitialized) {
         cout << "WARNING: World has already been initialized, skipping\n";
@@ -234,8 +248,11 @@ void _world::initWorld(bool loadWorld, _lightManager* lightManager)
 
     initBenchmark->startBenchmark();
 
+    // Chunk width/height * 16 tiles wide * 16 world units per tile / 2 
+    worldBounds = sqrt(configuration.num_chunks) * 16.0f * 16.0f * 0.5f;
+
     // Logger.LogInfo("Initializing world for seed " + to_string(seed), LOG_BOTH);
-    Logger.LogInfo("World has " + to_string(numStartingChunks) + " starting chunks.", LOG_BOTH);
+    Logger.LogInfo("World has " + to_string(configuration.num_chunks) + " starting chunks.", LOG_BOTH);
 
     tileAtlas->loadTexture("images/set_1.png"); // Load the tile atlas texture
     // Reserve allocates memory but does not instantiate it -- resize allocates AND instantiates it (dont want that)
@@ -254,7 +271,7 @@ void _world::initWorld(bool loadWorld, _lightManager* lightManager)
 
     initTiles(); // Setup tiles
     
-    double sqrtNumChunks = sqrt(numStartingChunks);
+    const double sqrtNumChunks = sqrt(configuration.num_chunks);
     // This checks if a decimal (like 1.3) is equal to its floor (1.0) which indicates the sqrt wasn't perfect
     if (sqrtNumChunks != floor(sqrtNumChunks)) {
         Logger.LogWarning("numStartingChunks is not a perfect square. This may lead to an uneven distribution of chunks around the center.", LOG_BOTH);
@@ -262,7 +279,7 @@ void _world::initWorld(bool loadWorld, _lightManager* lightManager)
 
     // Only run generation when we dont load the world  
     if (!loadWorld) {
-        runWorldGeneration(generation_iterations); 
+        runWorldGeneration(); 
     }
 
     // PARTICLE EFFECTS //
@@ -306,6 +323,71 @@ void _world::initWorld(bool loadWorld, _lightManager* lightManager)
     wall_damage_effect.minSpawnOffsetY = -4.0f;
     wall_damage_effect.maxSpawnOffsetY = 4.0f;
 
+    // -- BUFFER SETUP -- //
+    glGenBuffers(1, &vboID); 
+    glGenBuffers(1, &eboID); 
+    glGenVertexArrays(1, &vaoID);
+
+    // VBO //
+    glBindBuffer(GL_ARRAY_BUFFER, vboID);
+    glBufferData(GL_ARRAY_BUFFER,maxSizeBytes,nullptr,GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    GLenum errVbo = glGetError();
+    if (errVbo != GL_NO_ERROR) {
+        cout << "ERROR: OpenGL error on world VBO: " << errVbo << "\n";
+    }
+
+    // EBO //
+    // (Number of total chunks) * (256 tiles per chunk) * (number of layers) * (6 indicies per tile)
+    vector<uint32_t> eboData(NUM_RENDER_CHUNKS * NUM_TILES_CHUNK * NUM_LAYERS * 6);
+    int vertexOffset = 0;
+    int eIndex = 0;
+    for (int i = 0; i < NUM_RENDER_CHUNKS * NUM_TILES_CHUNK * NUM_LAYERS; i++) {
+        // Ebo (Two Triangles) //
+        // Triangle 1
+        eboData[eIndex++] = vertexOffset + 0; // BL   
+        eboData[eIndex++] = vertexOffset + 1; // BR
+        eboData[eIndex++] = vertexOffset + 2; // TR
+        // Triangle 2
+        eboData[eIndex++] = vertexOffset + 0; // BL
+        eboData[eIndex++] = vertexOffset + 2; // TR
+        eboData[eIndex++] = vertexOffset + 3; // TL
+
+        vertexOffset += 4;
+    }
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboID);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, eboData.size() * sizeof(uint32_t), eboData.data(), GL_STATIC_DRAW);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0);
+    
+    GLenum errEbo = glGetError();
+    if (errEbo != GL_NO_ERROR) {
+        cout << "ERROR: OpenGL error on world EBO: " << errEbo << "\n";
+    }
+
+    // VAO //
+    glBindVertexArray(vaoID);
+    
+    glBindBuffer(GL_ARRAY_BUFFER,vboID);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,eboID);
+    
+    const GLsizei stride = 7 * sizeof(float);
+    
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0,2,GL_FLOAT,GL_FALSE,stride,(void*)(0 * sizeof(float)));     // Size (vec2)
+    
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1,2,GL_FLOAT,GL_FALSE,stride,(void*)(2 * sizeof(float)));     // Texture Position (vec2)
+    
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(2,2,GL_FLOAT,GL_FALSE,stride,(void*)(4 * sizeof(float)));     // Position (vec2)
+    
+    glEnableVertexAttribArray(3);
+    glVertexAttribPointer(3,1,GL_FLOAT,GL_FALSE,stride,(void*)(6 * sizeof(float)));     // Outlined (int)
+
+    glBindVertexArray(0);
+
     // BENCHMARK //
 
     initBenchmark->clickBenchmark();
@@ -346,30 +428,55 @@ void _world::initTiles() {
     world_tiles[TILE_FLOOR_BOSS_BLANK_2].hasCollision = false;
     world_tiles[TILE_FLOOR_BOSS_BLANK_2].name = "blank_floor_2_boss";
     
-    // Outer Floor //
-    setTileInAtlas(22,11, world_tiles[TILE_FLOOR_OUTER_BLANK_1]);      
-    world_tiles[TILE_FLOOR_OUTER_BLANK_1].hasCollision = false;
-    world_tiles[TILE_FLOOR_OUTER_BLANK_1].name = "blank_floor";
+    // Outer Floor Dry //
+    setTileInAtlas(22,11, world_tiles[TILE_FLOOR_OUTER_BLANK_1_DRY]);      
+    world_tiles[TILE_FLOOR_OUTER_BLANK_1_DRY].hasCollision = false;
+    world_tiles[TILE_FLOOR_OUTER_BLANK_1_DRY].name = "blank_floor_dry";
 
-    setTileInAtlas(23,10, world_tiles[TILE_FLOOR_OUTER_CRACKED_1]);       
-    world_tiles[TILE_FLOOR_OUTER_CRACKED_1].hasCollision = false;
-    world_tiles[TILE_FLOOR_OUTER_CRACKED_1].name = "slightly_cracked_floor";
+    setTileInAtlas(23,10, world_tiles[TILE_FLOOR_OUTER_CRACKED_1_DRY]);       
+    world_tiles[TILE_FLOOR_OUTER_CRACKED_1_DRY].hasCollision = false;
+    world_tiles[TILE_FLOOR_OUTER_CRACKED_1_DRY].name = "slightly_cracked_floor_dry";
 
-    setTileInAtlas(24,11, world_tiles[TILE_FLOOR_OUTER_CRACKED_2]);      
-    world_tiles[TILE_FLOOR_OUTER_CRACKED_2].hasCollision = false;
-    world_tiles[TILE_FLOOR_OUTER_CRACKED_2].name = "medium_cracked_floor";
+    setTileInAtlas(24,11, world_tiles[TILE_FLOOR_OUTER_CRACKED_2_DRY]);      
+    world_tiles[TILE_FLOOR_OUTER_CRACKED_2_DRY].hasCollision = false;
+    world_tiles[TILE_FLOOR_OUTER_CRACKED_2_DRY].name = "medium_cracked_floor_dry";
 
-    setTileInAtlas(22,10, world_tiles[TILE_FLOOR_OUTER_SQUARE_1]);       
-    world_tiles[TILE_FLOOR_OUTER_SQUARE_1].hasCollision = false;
-    world_tiles[TILE_FLOOR_OUTER_SQUARE_1].name = "square_outlined_floor_1";
+    setTileInAtlas(22,10, world_tiles[TILE_FLOOR_OUTER_SQUARE_1_DRY]);       
+    world_tiles[TILE_FLOOR_OUTER_SQUARE_1_DRY].hasCollision = false;
+    world_tiles[TILE_FLOOR_OUTER_SQUARE_1_DRY].name = "square_outlined_floor_1_dry";
 
-    setTileInAtlas(24,10, world_tiles[TILE_FLOOR_OUTER_SQUARE_2]);       
-    world_tiles[TILE_FLOOR_OUTER_SQUARE_2].hasCollision = false;
-    world_tiles[TILE_FLOOR_OUTER_SQUARE_2].name = "square_outlined_floor_2";
+    setTileInAtlas(24,10, world_tiles[TILE_FLOOR_OUTER_SQUARE_2_DRY]);       
+    world_tiles[TILE_FLOOR_OUTER_SQUARE_2_DRY].hasCollision = false;
+    world_tiles[TILE_FLOOR_OUTER_SQUARE_2_DRY].name = "square_outlined_floor_2_dry";
 
-    setTileInAtlas(23,11, world_tiles[TILE_FLOOR_OUTER_BLANK_2]);       
-    world_tiles[TILE_FLOOR_OUTER_BLANK_2].hasCollision = false;
-    world_tiles[TILE_FLOOR_OUTER_BLANK_2].name = "blank_floor_2";
+    setTileInAtlas(23,11, world_tiles[TILE_FLOOR_OUTER_BLANK_2_DRY]);       
+    world_tiles[TILE_FLOOR_OUTER_BLANK_2_DRY].hasCollision = false;
+    world_tiles[TILE_FLOOR_OUTER_BLANK_2_DRY].name = "blank_floor_2_dry";
+
+    // Outer Floor Wet //
+    setTileInAtlas(19,11, world_tiles[TILE_FLOOR_OUTER_BLANK_1_WET]);      
+    world_tiles[TILE_FLOOR_OUTER_BLANK_1_WET].hasCollision = false;
+    world_tiles[TILE_FLOOR_OUTER_BLANK_1_WET].name = "blank_floor_wet";
+
+    setTileInAtlas(20,10, world_tiles[TILE_FLOOR_OUTER_CRACKED_1_WET]);       
+    world_tiles[TILE_FLOOR_OUTER_CRACKED_1_WET].hasCollision = false;
+    world_tiles[TILE_FLOOR_OUTER_CRACKED_1_WET].name = "slightly_cracked_floor_wet";
+
+    setTileInAtlas(21,11, world_tiles[TILE_FLOOR_OUTER_CRACKED_2_WET]);      
+    world_tiles[TILE_FLOOR_OUTER_CRACKED_2_WET].hasCollision = false;
+    world_tiles[TILE_FLOOR_OUTER_CRACKED_2_WET].name = "medium_cracked_floor_wet";
+
+    setTileInAtlas(19,10, world_tiles[TILE_FLOOR_OUTER_SQUARE_1_WET]);       
+    world_tiles[TILE_FLOOR_OUTER_SQUARE_1_WET].hasCollision = false;
+    world_tiles[TILE_FLOOR_OUTER_SQUARE_1_WET].name = "square_outlined_floor_1_wet";
+
+    setTileInAtlas(21,10, world_tiles[TILE_FLOOR_OUTER_SQUARE_2_WET]);       
+    world_tiles[TILE_FLOOR_OUTER_SQUARE_2_WET].hasCollision = false;
+    world_tiles[TILE_FLOOR_OUTER_SQUARE_2_WET].name = "square_outlined_floor_2_wet";
+
+    setTileInAtlas(20,11, world_tiles[TILE_FLOOR_OUTER_BLANK_2_WET]);       
+    world_tiles[TILE_FLOOR_OUTER_BLANK_2_WET].hasCollision = false;
+    world_tiles[TILE_FLOOR_OUTER_BLANK_2_WET].name = "blank_floor_2_wet";
 
     // Middle Floor //
     setTileInAtlas(22,13, world_tiles[TILE_FLOOR_OUTER_DEFAULT_1]);       
@@ -403,200 +510,56 @@ void _world::initTiles() {
     world_tiles[TILE_FLOOR_BROKEN_OUTER].name = "broken_floor_outer";
 
     // Outer Wall //
-    setTileInAtlas(22,16, world_tiles[TILE_WALL_OUTER_CENTER]);       
-    world_tiles[TILE_WALL_OUTER_CENTER].name = "wall_outer_center";
+    setTileInAtlas(22,16, world_tiles[TILE_WALL_CENTER]);       
+    world_tiles[TILE_WALL_CENTER].name = "wall_center";
 
-    setTileInAtlas(21,16, world_tiles[TILE_WALL_OUTER_LEFT]);        
-    world_tiles[TILE_WALL_OUTER_LEFT].name = "wall_outer_left";
+    setTileInAtlas(21,16, world_tiles[TILE_WALL_LEFT]);        
+    world_tiles[TILE_WALL_LEFT].name = "wall_left";
     
-    setTileInAtlas(23,16, world_tiles[TILE_WALL_OUTER_RIGHT]);        
-    world_tiles[TILE_WALL_OUTER_RIGHT].name = "wall_outer_right";
+    setTileInAtlas(23,16, world_tiles[TILE_WALL_RIGHT]);        
+    world_tiles[TILE_WALL_RIGHT].name = "wall_right";
     
-    setTileInAtlas(22,15, world_tiles[TILE_WALL_OUTER_UP]);        
-    world_tiles[TILE_WALL_OUTER_UP].name = "wall_outer_up";
+    setTileInAtlas(22,15, world_tiles[TILE_WALL_UP]);        
+    world_tiles[TILE_WALL_UP].name = "wall_up";
     
-    setTileInAtlas(22,17, world_tiles[TILE_WALL_OUTER_DOWN]);       
-    world_tiles[TILE_WALL_OUTER_DOWN].name = "wall_outer_down";
+    setTileInAtlas(22,17, world_tiles[TILE_WALL_DOWN]);       
+    world_tiles[TILE_WALL_DOWN].name = "wall_down";
 
-    setTileInAtlas(21,15, world_tiles[TILE_WALL_OUTER_CORNER_TOPLEFT]);       
-    world_tiles[TILE_WALL_OUTER_CORNER_TOPLEFT].name = "wall_outer_corner_top_left";
+    setTileInAtlas(21,15, world_tiles[TILE_WALL_CORNER_TOPLEFT]);       
+    world_tiles[TILE_WALL_CORNER_TOPLEFT].name = "wall_corner_top_left";
     
-    setTileInAtlas(23,15, world_tiles[TILE_WALL_OUTER_CORNER_TOPRIGHT]);        
-    world_tiles[TILE_WALL_OUTER_CORNER_TOPRIGHT].name = "wall_outer_corner_top_right";
+    setTileInAtlas(23,15, world_tiles[TILE_WALL_CORNER_TOPRIGHT]);        
+    world_tiles[TILE_WALL_CORNER_TOPRIGHT].name = "wall_corner_top_right";
     
-    setTileInAtlas(21,17, world_tiles[TILE_WALL_OUTER_CORNER_BOTTOMLEFT]);        
-    world_tiles[TILE_WALL_OUTER_CORNER_BOTTOMLEFT].name = "wall_outer_corner_bottom_left";
+    setTileInAtlas(21,17, world_tiles[TILE_WALL_CORNER_BOTTOMLEFT]);        
+    world_tiles[TILE_WALL_CORNER_BOTTOMLEFT].name = "wall_corner_bottom_left";
     
-    setTileInAtlas(23,17, world_tiles[TILE_WALL_OUTER_CORNER_BOTTOMRIGHT]);        
-    world_tiles[TILE_WALL_OUTER_CORNER_BOTTOMRIGHT].name = "wall_outer_corner_bottom_right";
+    setTileInAtlas(23,17, world_tiles[TILE_WALL_CORNER_BOTTOMRIGHT]);        
+    world_tiles[TILE_WALL_CORNER_BOTTOMRIGHT].name = "wall_corner_bottom_right";
 
-    setTileInAtlas(25,16, world_tiles[TILE_WALL_OUTER_ISLAND]);        
-    world_tiles[TILE_WALL_OUTER_ISLAND].name = "wall_outer_island";
+    setTileInAtlas(25,16, world_tiles[TILE_WALL_ISLAND]);        
+    world_tiles[TILE_WALL_ISLAND].name = "wall_island";
 
-    setTileInAtlas(25,15, world_tiles[TILE_WALL_OUTER_PENINSULA_TOP]);        
-    world_tiles[TILE_WALL_OUTER_PENINSULA_TOP].name = "wall_outer_peninsula_top";
+    setTileInAtlas(25,15, world_tiles[TILE_WALL_PENINSULA_TOP]);        
+    world_tiles[TILE_WALL_PENINSULA_TOP].name = "wall_peninsula_top";
     
-    setTileInAtlas(25,17, world_tiles[TILE_WALL_OUTER_PENINSULA_DOWN]);        
-    world_tiles[TILE_WALL_OUTER_PENINSULA_DOWN].name = "wall_outer_peninsula_down";
+    setTileInAtlas(25,17, world_tiles[TILE_WALL_PENINSULA_DOWN]);        
+    world_tiles[TILE_WALL_PENINSULA_DOWN].name = "wall_peninsula_down";
     
-    setTileInAtlas(24,16, world_tiles[TILE_WALL_OUTER_PENINSULA_LEFT]);        
-    world_tiles[TILE_WALL_OUTER_PENINSULA_LEFT].name = "wall_outer_peninsula_left";
+    setTileInAtlas(24,16, world_tiles[TILE_WALL_PENINSULA_LEFT]);        
+    world_tiles[TILE_WALL_PENINSULA_LEFT].name = "wall_peninsula_left";
     
-    setTileInAtlas(26,16, world_tiles[TILE_WALL_OUTER_PENINSULA_RIGHT]);        
-    world_tiles[TILE_WALL_OUTER_PENINSULA_RIGHT].name = "wall_outer_peninsula_right";
+    setTileInAtlas(26,16, world_tiles[TILE_WALL_PENINSULA_RIGHT]);        
+    world_tiles[TILE_WALL_PENINSULA_RIGHT].name = "wall_peninsula_right";
 
-    setTileInAtlas(23,18, world_tiles[TILE_WALL_OUTER_COLUMN_UP]);        
-    world_tiles[TILE_WALL_OUTER_COLUMN_UP].name = "wall_outer_column_up";
+    setTileInAtlas(23,18, world_tiles[TILE_WALL_COLUMN_UP]);        
+    world_tiles[TILE_WALL_COLUMN_UP].name = "wall_column_up";
     
-    setTileInAtlas(22,18, world_tiles[TILE_WALL_OUTER_COLUMN_SIDE]);        
-    world_tiles[TILE_WALL_OUTER_COLUMN_SIDE].name = "wall_outer_column_side";
+    setTileInAtlas(22,18, world_tiles[TILE_WALL_COLUMN_SIDE]);        
+    world_tiles[TILE_WALL_COLUMN_SIDE].name = "wall_column_side";
 
-    // Middle Wall //
-    setTileInAtlas(15,16, world_tiles[TILE_WALL_MIDDLE_CENTER]);       
-    world_tiles[TILE_WALL_MIDDLE_CENTER].name = "wall_middle_center";
-
-    setTileInAtlas(14,16, world_tiles[TILE_WALL_MIDDLE_LEFT]);        
-    world_tiles[TILE_WALL_MIDDLE_LEFT].name = "wall_middle_left";
-    
-    setTileInAtlas(16,16, world_tiles[TILE_WALL_MIDDLE_RIGHT]);        
-    world_tiles[TILE_WALL_MIDDLE_RIGHT].name = "wall_middle_right";
-    
-    setTileInAtlas(15,15, world_tiles[TILE_WALL_MIDDLE_UP]);        
-    world_tiles[TILE_WALL_MIDDLE_UP].name = "wall_middle_up";
-    
-    setTileInAtlas(15,17, world_tiles[TILE_WALL_MIDDLE_DOWN]);       
-    world_tiles[TILE_WALL_MIDDLE_DOWN].name = "wall_middle_down";
-
-    setTileInAtlas(14,15, world_tiles[TILE_WALL_MIDDLE_CORNER_TOPLEFT]);       
-    world_tiles[TILE_WALL_MIDDLE_CORNER_TOPLEFT].name = "wall_middle_corner_top_left";
-    
-    setTileInAtlas(16,15, world_tiles[TILE_WALL_MIDDLE_CORNER_TOPRIGHT]);        
-    world_tiles[TILE_WALL_MIDDLE_CORNER_TOPRIGHT].name = "wall_middle_corner_top_right";
-    
-    setTileInAtlas(14,17, world_tiles[TILE_WALL_MIDDLE_CORNER_BOTTOMLEFT]);        
-    world_tiles[TILE_WALL_MIDDLE_CORNER_BOTTOMLEFT].name = "wall_middle_corner_bottom_left";
-    
-    setTileInAtlas(16,17, world_tiles[TILE_WALL_MIDDLE_CORNER_BOTTOMRIGHT]);        
-    world_tiles[TILE_WALL_MIDDLE_CORNER_BOTTOMRIGHT].name = "wall_middle_corner_bottom_right";
-
-    setTileInAtlas(18,16, world_tiles[TILE_WALL_MIDDLE_ISLAND]);        
-    world_tiles[TILE_WALL_MIDDLE_ISLAND].name = "wall_middle_island";
-
-    setTileInAtlas(18,15, world_tiles[TILE_WALL_MIDDLE_PENINSULA_TOP]);        
-    world_tiles[TILE_WALL_MIDDLE_PENINSULA_TOP].name = "wall_middle_peninsula_top";
-    
-    setTileInAtlas(18,17, world_tiles[TILE_WALL_MIDDLE_PENINSULA_DOWN]);        
-    world_tiles[TILE_WALL_MIDDLE_PENINSULA_DOWN].name = "wall_middle_peninsula_down";
-    
-    setTileInAtlas(17,16, world_tiles[TILE_WALL_MIDDLE_PENINSULA_LEFT]);        
-    world_tiles[TILE_WALL_MIDDLE_PENINSULA_LEFT].name = "wall_middle_peninsula_left";
-    
-    setTileInAtlas(19,16, world_tiles[TILE_WALL_MIDDLE_PENINSULA_RIGHT]);        
-    world_tiles[TILE_WALL_MIDDLE_PENINSULA_RIGHT].name = "wall_middle_peninsula_right";
-
-    setTileInAtlas(16,18, world_tiles[TILE_WALL_MIDDLE_COLUMN_UP]);        
-    world_tiles[TILE_WALL_MIDDLE_COLUMN_UP].name = "wall_middle_column_up";
-    
-    setTileInAtlas(15,18, world_tiles[TILE_WALL_MIDDLE_COLUMN_SIDE]);        
-    world_tiles[TILE_WALL_MIDDLE_COLUMN_SIDE].name = "wall_middle_column_side";
-
-    // Middle Wall //
-    setTileInAtlas(15,16, world_tiles[TILE_WALL_MIDDLE_CENTER]);       
-    world_tiles[TILE_WALL_MIDDLE_CENTER].name = "wall_middle_center";
-
-    setTileInAtlas(14,16, world_tiles[TILE_WALL_MIDDLE_LEFT]);        
-    world_tiles[TILE_WALL_MIDDLE_LEFT].name = "wall_middle_left";
-    
-    setTileInAtlas(16,16, world_tiles[TILE_WALL_MIDDLE_RIGHT]);        
-    world_tiles[TILE_WALL_MIDDLE_RIGHT].name = "wall_middle_right";
-    
-    setTileInAtlas(15,15, world_tiles[TILE_WALL_MIDDLE_UP]);        
-    world_tiles[TILE_WALL_MIDDLE_UP].name = "wall_middle_up";
-    
-    setTileInAtlas(15,17, world_tiles[TILE_WALL_MIDDLE_DOWN]);       
-    world_tiles[TILE_WALL_MIDDLE_DOWN].name = "wall_middle_down";
-
-    setTileInAtlas(14,15, world_tiles[TILE_WALL_MIDDLE_CORNER_TOPLEFT]);       
-    world_tiles[TILE_WALL_MIDDLE_CORNER_TOPLEFT].name = "wall_middle_corner_top_left";
-    
-    setTileInAtlas(16,15, world_tiles[TILE_WALL_MIDDLE_CORNER_TOPRIGHT]);        
-    world_tiles[TILE_WALL_MIDDLE_CORNER_TOPRIGHT].name = "wall_middle_corner_top_right";
-    
-    setTileInAtlas(14,17, world_tiles[TILE_WALL_MIDDLE_CORNER_BOTTOMLEFT]);        
-    world_tiles[TILE_WALL_MIDDLE_CORNER_BOTTOMLEFT].name = "wall_middle_corner_bottom_left";
-    
-    setTileInAtlas(16,17, world_tiles[TILE_WALL_MIDDLE_CORNER_BOTTOMRIGHT]);        
-    world_tiles[TILE_WALL_MIDDLE_CORNER_BOTTOMRIGHT].name = "wall_middle_corner_bottom_right";
-
-    setTileInAtlas(18,16, world_tiles[TILE_WALL_MIDDLE_ISLAND]);        
-    world_tiles[TILE_WALL_MIDDLE_ISLAND].name = "wall_middle_island";
-
-    setTileInAtlas(18,15, world_tiles[TILE_WALL_MIDDLE_PENINSULA_TOP]);        
-    world_tiles[TILE_WALL_MIDDLE_PENINSULA_TOP].name = "wall_middle_peninsula_top";
-    
-    setTileInAtlas(18,17, world_tiles[TILE_WALL_MIDDLE_PENINSULA_DOWN]);        
-    world_tiles[TILE_WALL_MIDDLE_PENINSULA_DOWN].name = "wall_middle_peninsula_down";
-    
-    setTileInAtlas(17,16, world_tiles[TILE_WALL_MIDDLE_PENINSULA_LEFT]);        
-    world_tiles[TILE_WALL_MIDDLE_PENINSULA_LEFT].name = "wall_middle_peninsula_left";
-    
-    setTileInAtlas(19,16, world_tiles[TILE_WALL_MIDDLE_PENINSULA_RIGHT]);        
-    world_tiles[TILE_WALL_MIDDLE_PENINSULA_RIGHT].name = "wall_middle_peninsula_right";
-
-    setTileInAtlas(16,18, world_tiles[TILE_WALL_MIDDLE_COLUMN_UP]);        
-    world_tiles[TILE_WALL_MIDDLE_COLUMN_UP].name = "wall_middle_column_up";
-    
-    setTileInAtlas(15,18, world_tiles[TILE_WALL_MIDDLE_COLUMN_SIDE]);        
-    world_tiles[TILE_WALL_MIDDLE_COLUMN_SIDE].name = "wall_middle_column_side";
-
-    // Inner Wall //
-    setTileInAtlas(8,16, world_tiles[TILE_WALL_INNER_CENTER]);       
-    world_tiles[TILE_WALL_INNER_CENTER].name = "wall_inner_center";
-
-    setTileInAtlas(7,16, world_tiles[TILE_WALL_INNER_LEFT]);        
-    world_tiles[TILE_WALL_INNER_LEFT].name = "wall_inner_left";
-    
-    setTileInAtlas(9,16, world_tiles[TILE_WALL_INNER_RIGHT]);        
-    world_tiles[TILE_WALL_INNER_RIGHT].name = "wall_inner_right";
-    
-    setTileInAtlas(8,15, world_tiles[TILE_WALL_INNER_UP]);        
-    world_tiles[TILE_WALL_INNER_UP].name = "wall_inner_up";
-    
-    setTileInAtlas(8,17, world_tiles[TILE_WALL_INNER_DOWN]);       
-    world_tiles[TILE_WALL_INNER_DOWN].name = "wall_inner_down";
-
-    setTileInAtlas(7,15, world_tiles[TILE_WALL_INNER_CORNER_TOPLEFT]);       
-    world_tiles[TILE_WALL_INNER_CORNER_TOPLEFT].name = "wall_inner_corner_top_left";
-    
-    setTileInAtlas(9,15, world_tiles[TILE_WALL_INNER_CORNER_TOPRIGHT]);        
-    world_tiles[TILE_WALL_INNER_CORNER_TOPRIGHT].name = "wall_inner_corner_top_right";
-    
-    setTileInAtlas(7,17, world_tiles[TILE_WALL_INNER_CORNER_BOTTOMLEFT]);        
-    world_tiles[TILE_WALL_INNER_CORNER_BOTTOMLEFT].name = "wall_inner_corner_bottom_left";
-    
-    setTileInAtlas(9,17, world_tiles[TILE_WALL_INNER_CORNER_BOTTOMRIGHT]);        
-    world_tiles[TILE_WALL_INNER_CORNER_BOTTOMRIGHT].name = "wall_inner_corner_bottom_right";
-
-    setTileInAtlas(11,16, world_tiles[TILE_WALL_INNER_ISLAND]);        
-    world_tiles[TILE_WALL_INNER_ISLAND].name = "wall_inner_island";
-
-    setTileInAtlas(11,15, world_tiles[TILE_WALL_INNER_PENINSULA_TOP]);        
-    world_tiles[TILE_WALL_INNER_PENINSULA_TOP].name = "wall_inner_peninsula_top";
-    
-    setTileInAtlas(11,17, world_tiles[TILE_WALL_INNER_PENINSULA_DOWN]);        
-    world_tiles[TILE_WALL_INNER_PENINSULA_DOWN].name = "wall_inner_peninsula_down";
-    
-    setTileInAtlas(10,16, world_tiles[TILE_WALL_INNER_PENINSULA_LEFT]);        
-    world_tiles[TILE_WALL_INNER_PENINSULA_LEFT].name = "wall_inner_peninsula_left";
-    
-    setTileInAtlas(12,16, world_tiles[TILE_WALL_INNER_PENINSULA_RIGHT]);        
-    world_tiles[TILE_WALL_INNER_PENINSULA_RIGHT].name = "wall_inner_peninsula_right";
-
-    setTileInAtlas(9,18, world_tiles[TILE_WALL_INNER_COLUMN_UP]);        
-    world_tiles[TILE_WALL_INNER_COLUMN_UP].name = "wall_inner_column_up";
-    
-    setTileInAtlas(8,18, world_tiles[TILE_WALL_INNER_COLUMN_SIDE]);        
-    world_tiles[TILE_WALL_INNER_COLUMN_SIDE].name = "wall_inner_column_side";
+    setTileInAtlas(26,10, world_tiles[TILE_COSMETIC_ROCK_1]);        
+    world_tiles[TILE_COSMETIC_ROCK_1].name = "rock_1";
 }
 
 bool _world::setTileInAtlas(int xIndex, int yIndex, _tile &tile) {
@@ -634,84 +597,23 @@ bool _world::setTileInAtlas(int xIndex, int yIndex, _tile &tile) {
     return true;
 }
 
-void _world::buildChunkVBO(_chunk* chunk) {
-    // 4 Verticies of 7 floats and 256 total
-    float tileVboData[4 * 7 * 256];
-    int vIndex = 0;
-
-    // For each tile of the chunk //
-    for (int y = 0; y < 16; y++) {
-        for (int x = 0; x < 16; x++) {
-            int tileIndex = y * 16 + x;
-
-            TileId tileId = chunk->getTileIdAt(tileIndex);
-            _cell* cell = chunk->cellAt(tileIndex);
-            const _tile* tile = &world_tiles[tileId];
-            
-            cell->tileId = tileId;
-            cell->index = tileIndex; // Match every draw cycle
-            cell->parentChunk = chunk;
-
-            float halfWidth = TILE_W * 0.5f;
-            float halfHeight = TILE_H * 0.5f;
-
-            float worldXCenter = (chunk->chunkX * 16 + x) * TILE_W + halfWidth;
-            float worldYCenter = (chunk->chunkY * 16 + y) * TILE_H + halfHeight;
-
-            cell->pos = {worldXCenter, worldYCenter};
-
-            float cellOutlined = cell->isOutlined() ? 1.0f : 0.0f;  // <= 0.0 is false > 0.0 is true
-
-            // Tile VBO Setup //
-            // The VBO is set up identical to how we would do glVertex2f and glTexCoord2f
-            
-            // Bottom-left
-            tileVboData[vIndex++] = -halfWidth;
-            tileVboData[vIndex++] = -halfHeight;
-            tileVboData[vIndex++] = tile->u0;
-            tileVboData[vIndex++] = tile->v1;
-            tileVboData[vIndex++] = worldXCenter;
-            tileVboData[vIndex++] = worldYCenter;
-            tileVboData[vIndex++] = cellOutlined;
-            
-            // Bottom-right
-            tileVboData[vIndex++] = halfWidth;
-            tileVboData[vIndex++] = -halfHeight;
-            tileVboData[vIndex++] = tile->u1;
-            tileVboData[vIndex++] = tile->v1;
-            tileVboData[vIndex++] = worldXCenter;
-            tileVboData[vIndex++] = worldYCenter;
-            tileVboData[vIndex++] = cellOutlined;
-            
-            // Top-right
-            tileVboData[vIndex++] = halfWidth;
-            tileVboData[vIndex++] = halfHeight;
-            tileVboData[vIndex++] = tile->u1;
-            tileVboData[vIndex++] = tile->v0;
-            tileVboData[vIndex++] = worldXCenter;
-            tileVboData[vIndex++] = worldYCenter;
-            tileVboData[vIndex++] = cellOutlined;
-            
-            // Top-left
-            tileVboData[vIndex++] = -halfWidth;
-            tileVboData[vIndex++] = halfHeight;
-            tileVboData[vIndex++] = tile->u0;
-            tileVboData[vIndex++] = tile->v0;  
-            tileVboData[vIndex++] = worldXCenter;
-            tileVboData[vIndex++] = worldYCenter;
-            tileVboData[vIndex++] = cellOutlined;
-        }
-    }
-    // Tile Data VBO //
-    glBindBuffer(GL_ARRAY_BUFFER, chunk->tileVboID); // Working with this specific buffer
-    glBufferData(GL_ARRAY_BUFFER, sizeof(tileVboData), tileVboData, GL_STATIC_DRAW); // Copy the system memory buffer (tileVboData) into a GPU memory buffer
-    glBindBuffer(GL_ARRAY_BUFFER, 0); // Make sure to set vbo to 0 (nothing) to signal we're done working with this tileVboID
-
-    chunk->vboDirty = false;
-}
-
 void _world::drawWorld(float left, float right, float top, float bottom)
 {
+    const float middleX = (right - left) * 0.5f + left;
+    const float middleY = (top - bottom) * 0.5f + bottom;
+
+    const float distancePrevDraw = prevDrawPos.distance(Vec2f(middleX, middleY));
+
+    // Check if our render VBO needs to be rebuilt (negative checks are for kick-starting system)
+    if (distancePrevDraw > maxRenderDistance || distancePrevDraw < 0.0f) {
+        // cout << "Distance of: " << distancePrevDraw << " exceeded " << maxRenderDistance << " building world VBO!\n";
+        buildWorldVBO(left,right,top,bottom);
+        prevDrawPos = {middleX, middleY};
+    }
+
+    // Build VBO data for drawing culled chunks in viewport range
+    updateWorldVBO(left,right,top,bottom);
+   
     // Since its an atlas we only need one text bind. Each tile takes a snippit of the atlas
     glUseProgram(shader.getProgram());
     
@@ -725,32 +627,39 @@ void _world::drawWorld(float left, float right, float top, float bottom)
     sceneLightManager->applyLights(shader.getProgram());
 
     // Calculate which chunks are visible
-    int minChunkX = (int)floor(left / (16 * TILE_W));
-    int maxChunkX = (int)ceil(right / (16 * TILE_W));
-    int minChunkY = (int)floor(bottom / (16 * TILE_H));
-    int maxChunkY = (int)ceil(top / (16 * TILE_H));
+    const int minChunkX = (int)floor(left / (16 * TILE_W));
+    const int maxChunkX = (int)ceil(right / (16 * TILE_W));
+    const int minChunkY = (int)floor(bottom / (16 * TILE_H));
+    const int maxChunkY = (int)ceil(top / (16 * TILE_H));
 
+    constexpr GLsizei indicesPerChunk = NUM_TILES_CHUNK * 6;                        // How many indicies a chunk takes up
+    const GLsizei indicesPerLayer = indicesPerChunk * NUM_RENDER_CHUNKS;     // How many indicies an entire layer takes up 
+    
+    glBindVertexArray(vaoID);
+    
     for (int chunkY = minChunkY; chunkY < maxChunkY; chunkY++) {
         for (int chunkX = minChunkX; chunkX < maxChunkX; chunkX++) {
-            // Check if we loaded the given chunk
-            if (!isChunkLoaded(chunkX, chunkY)) { continue; }
-            
             // Uses unordered map to get a reference to the chunk (since we arent iterating through entire vector)
-            _chunk* chunk = getChunkAt(Vec2i(chunkX, chunkY));
+            const _chunk* chunk = getChunkAt(Vec2i(chunkX, chunkY));
             if (chunk == nullptr) { continue; }
-
-            // If chunk is dirty (so tiles changed) call a rebuild
-            if (chunk->vboDirty) {
-                buildChunkVBO(chunk);
+            
+            // Draw Tiles Per Chunk //
+            const GLsizei chunkIndexByteOffset = chunk->getVboIndex() * indicesPerChunk * sizeof(uint32_t);   // Which byte index to start reading from
+            
+            for (int layer = 0; layer < NUM_LAYERS; layer++) {
+                const GLsizei layerIndexByteOffset = layer * indicesPerLayer * sizeof(uint32_t);
+                const GLsizei drawOffsetBytes = layerIndexByteOffset + chunkIndexByteOffset;
+                /**
+                 * Draw per layer, layer 0 is the LAYER_FLOOR and top layer is LAYER_PRIMARY
+                 * Each layer is in the same buffer, but just one length over
+                 */
+                glDrawElements(GL_TRIANGLES, indicesPerChunk, GL_UNSIGNED_INT, (void*)(drawOffsetBytes));
             }
-
-            // Draw Tiles  //
-            glBindVertexArray(chunk->tileVaoID);
-            glDrawElements(GL_TRIANGLES, 256 * 7, GL_UNSIGNED_INT, 0);
-            glBindVertexArray(0);
         }
     }
-
+    
+    glBindVertexArray(0);
+    
     glUseProgram(0);
 
     // Draw everything else before image bind of world
@@ -776,16 +685,107 @@ Vec2i _world::convertIndexToPos(int index, int width, int height) {
 void _world::postProcessWorld() {
     Logger.LogInfo("Starting post processing of world");
 
-    const int worldWidth = (int)sqrt(numStartingChunks)*16;
+    const int worldWidth = (int)sqrt(configuration.num_chunks)*16;
 
-    vector<uint8_t> world_noise_copy(world_noise);
+    vector<uint8_t> world_noise_primary_copy(world_noise[LAYER_PRIMARY]);
+
     uniform_int_distribution<uint8_t> boss_dist(TILE_FLOOR_BOSS_BLANK_1, TILE_FLOOR_BOSS_BLANK_2); 
-    uniform_int_distribution<uint8_t> outer_dist(TILE_FLOOR_OUTER_BLANK_1, TILE_FLOOR_OUTER_BLANK_2); 
+    uniform_int_distribution<uint8_t> outer_dist_dry(TILE_FLOOR_OUTER_BLANK_1_DRY, TILE_FLOOR_OUTER_BLANK_2_DRY); 
+    uniform_int_distribution<uint8_t> outer_dist_wet(TILE_FLOOR_OUTER_BLANK_1_WET, TILE_FLOOR_OUTER_BLANK_2_WET); 
     uniform_int_distribution<uint8_t> middle_dist(TILE_FLOOR_OUTER_DEFAULT_1, TILE_FLOOR_OUTER_DEFAULT_2); 
     uniform_int_distribution<uint8_t> inner_dist(TILE_FLOOR_INNER_DEFAULT_1, TILE_FLOOR_INNER_DEFAULT_2); 
     uniform_real_distribution<float> dist(0.0f,1.0f);
+
+    // Positions (world units) where one biome ends and other begins
+    const float innerCutoff = configuration.inner_cutoff * worldBounds;
+    const float middleCutoff = configuration.middle_cutoff * worldBounds;
+    const float outerCutoff = configuration.outer_cutoff * worldBounds;
+
+    const float innerBlendRadius = configuration.inner_biome_blend_radius * TILE_W;
+    const float middleBlendRadius = configuration.middle_biome_blend_radius * TILE_W;
+    const float outerBlendRadius = configuration.outer_biome_blend_radius * TILE_W;
     
-    for (int i = 0; i < world_noise.size(); i++) {
+    // FLOOR TILE //
+    for (int i = 0; i < world_noise[LAYER_FLOOR].size(); i++) {
+        const int col = i % worldWidth;                                 // Which column
+        const int row = i / worldWidth;                                 // Which row
+        
+        const float tilePosX = (-worldWidth * 0.5f + col) * 16.0f;      // Get world pos X
+        const float tilePosY = (worldWidth * 0.5f - row) * 16.0f;       // Get world pos Y
+
+        Vec2f tilePos = {tilePosX, tilePosY};
+        const float distance = tilePos.distance({0.0f,0.0f});
+        level_pos level = getLevelFromPos(tilePos);
+        
+        switch (level) {
+            case LEVEL_BOSS: 
+                world_noise[LAYER_FLOOR][i] = boss_dist(rng);
+                break;
+            case LEVEL_INNER:
+                if (distance < innerCutoff + innerBlendRadius) {
+                    // Boss Room //
+                    float transitionProgress = (distance - innerCutoff) / innerBlendRadius; // 0.0 at innerCutoff, 1.0 at innerCutoff + innerBlendRadius
+                    transitionProgress = glm::clamp(transitionProgress, 0.0f, 1.0f);
+
+                    if (dist(rng) > transitionProgress) {
+                        world_noise[LAYER_FLOOR][i] = boss_dist(rng);
+                    } else {
+                        world_noise[LAYER_FLOOR][i] = inner_dist(rng);
+                    }
+                } else {
+                    world_noise[LAYER_FLOOR][i] = inner_dist(rng);
+                }
+                break;
+            case LEVEL_MIDDLE:
+                if (distance < middleCutoff + middleBlendRadius) {
+                    // Transition period between INNER and MIDDLE
+                    float transitionProgress = (distance - middleCutoff) / middleBlendRadius; // 0.0 at middleCutoff, 1.0 at middleCutoff + middleBlendRadius
+                    transitionProgress = glm::clamp(transitionProgress, 0.0f, 1.0f);
+                    
+                    if (dist(rng) > transitionProgress) {
+                        world_noise[LAYER_FLOOR][i] = inner_dist(rng); // Blend toward middle tiles
+                    } else {
+                        world_noise[LAYER_FLOOR][i] = middle_dist(rng);
+                    }
+                } else {
+                    world_noise[LAYER_FLOOR][i] = middle_dist(rng);
+                }
+                break;
+            case LEVEL_OUTER:
+                if (distance < outerCutoff + outerBlendRadius) {
+                    // Transition period between MIDDLE and OUTER
+                    float transitionProgress = (distance - outerCutoff) / outerBlendRadius; // 0.0 at outerCutoff, 1.0 at outerCutoff + outerBlendRadius
+                    transitionProgress = glm::clamp(transitionProgress, 0.0f, 1.0f);
+                    
+                    if (dist(rng) > transitionProgress) {
+                        world_noise[LAYER_FLOOR][i] = middle_dist(rng); // Blend toward middle tiles
+                    } else {
+                        if (wet_noise[i]) {
+                            world_noise[LAYER_FLOOR][i] = outer_dist_dry(rng);
+                        } else {
+                            world_noise[LAYER_FLOOR][i] = outer_dist_wet(rng);
+                        }
+                    }
+                } else {
+                    if (wet_noise[i]) {
+                        world_noise[LAYER_FLOOR][i] = outer_dist_dry(rng);
+                    } else {
+                        world_noise[LAYER_FLOOR][i] = outer_dist_wet(rng);
+                    }
+                }
+                break;
+        }
+    }
+
+    // COSMETIC 1 //
+    for (int i = 0; i < world_noise[LAYER_COSMETIC_1].size(); i++) {
+        if (dist(rng) > 0.95f) {
+            world_noise[LAYER_COSMETIC_1][i] = TILE_COSMETIC_ROCK_1;
+        }
+    }
+
+    // PRIMARY TILE //
+    for (int i = 0; i < world_noise[LAYER_PRIMARY].size(); i++) {
         const int col = i % worldWidth;                                 // Which column
         const int row = i / worldWidth;                                 // Which row
         
@@ -796,55 +796,8 @@ void _world::postProcessWorld() {
         const float distance = tilePos.distance({0.0f,0.0f});
         level_pos level = getLevelFromPos(tilePos);
 
-        // Floor tile
-        if (!world_noise_copy[i]) {
-            switch (level) {
-                case LEVEL_INNER:
-                    if (distance < 800.0f) {
-                        // Boss Room //
-                        float transitionProgress = (distance - 300.0f) / 500.0f; // 0.0 at 300, 1.0 at 800
-                        transitionProgress = glm::clamp(transitionProgress, 0.0f, 1.0f);
-
-                        if (dist(rng) > transitionProgress) {
-                            world_noise[i] = boss_dist(rng);
-                        } else {
-                            world_noise[i] = inner_dist(rng);
-                        }
-                    } else {
-                        world_noise[i] = inner_dist(rng);
-                    }
-                    break;
-                case LEVEL_MIDDLE:
-                    if (distance < 5000.0f) {
-                        // Transition period between INNER and MIDDLE
-                        float transitionProgress = (distance - 3000.0f) / 2000.0f; // 0.0 at 3000, 1.0 at 5000
-                        transitionProgress = glm::clamp(transitionProgress, 0.0f, 1.0f);
-                        
-                        if (dist(rng) > transitionProgress) {
-                            world_noise[i] = inner_dist(rng); // Blend toward middle tiles
-                        } else {
-                            world_noise[i] = middle_dist(rng);
-                        }
-                    } else {
-                        world_noise[i] = middle_dist(rng);
-                    }
-                    break;
-                case LEVEL_OUTER:
-                    if (distance < 10000.0f) {
-                        // Transition period between MIDDLE and OUTER
-                        float transitionProgress = (distance - 8000.0f) / 2000.0f; // 0.0 at 8000, 1.0 at 10000
-                        transitionProgress = glm::clamp(transitionProgress, 0.0f, 1.0f);
-                        
-                        if (dist(rng) > transitionProgress) {
-                            world_noise[i] = middle_dist(rng); // Blend toward middle tiles
-                        } else {
-                            world_noise[i] = outer_dist(rng);
-                        }
-                    } else {
-                        world_noise[i] = outer_dist(rng);
-                    }
-                    break;
-            }
+        if (!world_noise_primary_copy[i]) {
+            world_noise[LAYER_PRIMARY][i] = TILE_NULL;
             continue;
         }
         /*
@@ -867,15 +820,15 @@ void _world::postProcessWorld() {
             int yOffset = (8-j) / 3 - 1;    // Gets yOffset for tiles [-1,1] -- Applies worldWidth later
             int index = i + xOffset + yOffset * worldWidth; // Gets the given index to check
             if (index == i) continue;   // Skip checking ourselves
-            if (index < 0 || index >= world_noise.size()) { // If index is out of bounds, treat as wall
+            if (index < 0 || index >= world_noise[LAYER_PRIMARY].size()) { // If index is out of bounds, treat as wall
                 neighborTiles[j] = true;
                 continue;
             }
-            if (world_noise_copy[index]) {  // Check index, true means wall
+            if (world_noise_primary_copy[index]) {  // Check index, true means wall
                 neighborTiles[j] = true;
             }
         }
-        world_noise[i] = determineTileType(level, neighborTiles);
+        world_noise[LAYER_PRIMARY][i] = determineTileType(level, neighborTiles);
     }
     Logger.LogInfo("Finishing post processing of world");
 }
@@ -897,89 +850,31 @@ TileId _world::determineTileType(level_pos level, const bool neighborTiles[9]) c
     bool SW = neighborTiles[6];
     bool SE = neighborTiles[8];
 
-    switch (level) {
-        case LEVEL_OUTER:
-            // Island Check //
-            if (!N && !W && !E && !S) return TILE_WALL_OUTER_ISLAND;
-            
-            // Peninsula Checks //
-            if (!N && !W && !S && E) return TILE_WALL_OUTER_PENINSULA_LEFT;
-            if (!N && !E && !S && W) return TILE_WALL_OUTER_PENINSULA_RIGHT;
-            if (N && !W && !E && !S) return TILE_WALL_OUTER_PENINSULA_DOWN;
-            if (!W && !E && S && !N) return TILE_WALL_OUTER_PENINSULA_TOP;
+    if (!N && !W && !E && !S) return TILE_WALL_ISLAND;
+    
+    // Peninsula Checks //
+    if (!N && !W && !S && E) return TILE_WALL_PENINSULA_LEFT;
+    if (!N && !E && !S && W) return TILE_WALL_PENINSULA_RIGHT;
+    if (N && !W && !E && !S) return TILE_WALL_PENINSULA_DOWN;
+    if (!W && !E && S && !N) return TILE_WALL_PENINSULA_TOP;
 
-            // Column Checks //
-            if (N && S && !W && !E) return TILE_WALL_OUTER_COLUMN_UP;
-            if (!N && !S && W && E) return TILE_WALL_OUTER_COLUMN_SIDE;
+    // Column Checks //
+    if (N && S && !W && !E) return TILE_WALL_COLUMN_UP;
+    if (!N && !S && W && E) return TILE_WALL_COLUMN_SIDE;
 
-            // Wall Checks //
-            if (!W && N && S && E) return TILE_WALL_OUTER_LEFT;
-            if (!E && N && S && W) return TILE_WALL_OUTER_RIGHT;
-            if (N && W && E && !S) return TILE_WALL_OUTER_DOWN;
-            if (!N && W && E && S) return TILE_WALL_OUTER_UP;
+    // Wall Checks //
+    if (!W && N && S && E) return TILE_WALL_LEFT;
+    if (!E && N && S && W) return TILE_WALL_RIGHT;
+    if (N && W && E && !S) return TILE_WALL_DOWN;
+    if (!N && W && E && S) return TILE_WALL_UP;
 
-            // Wall Corners //
-            if (!W && !S && N && E) return TILE_WALL_OUTER_CORNER_BOTTOMLEFT;
-            if (!N && !W && E && S) return TILE_WALL_OUTER_CORNER_TOPLEFT;
-            if (!E && !S && N && W) return TILE_WALL_OUTER_CORNER_BOTTOMRIGHT;
-            if (!N && !E && W && S) return TILE_WALL_OUTER_CORNER_TOPRIGHT;
-            if (N && E && S && W) return TILE_WALL_OUTER_CENTER;
-            break;
-        case LEVEL_MIDDLE:
-            // Island Check //
-            if (!N && !W && !E && !S) return TILE_WALL_MIDDLE_ISLAND;
-            
-            // Peninsula Checks //
-            if (!N && !W && !S && E) return TILE_WALL_MIDDLE_PENINSULA_LEFT;
-            if (!N && !E && !S && W) return TILE_WALL_MIDDLE_PENINSULA_RIGHT;
-            if (N && !W && !E && !S) return TILE_WALL_MIDDLE_PENINSULA_DOWN;
-            if (!W && !E && S && !N) return TILE_WALL_MIDDLE_PENINSULA_TOP;
-
-            // Column Checks //
-            if (N && S && !W && !E) return TILE_WALL_MIDDLE_COLUMN_UP;
-            if (!N && !S && W && E) return TILE_WALL_MIDDLE_COLUMN_SIDE;
-
-            // Wall Checks //
-            if (!W && N && S && E) return TILE_WALL_MIDDLE_LEFT;
-            if (!E && N && S && W) return TILE_WALL_MIDDLE_RIGHT;
-            if (N && W && E && !S) return TILE_WALL_MIDDLE_DOWN;
-            if (!N && W && E && S) return TILE_WALL_MIDDLE_UP;
-
-            // Wall Corners //
-            if (!W && !S && N && E) return TILE_WALL_MIDDLE_CORNER_BOTTOMLEFT;
-            if (!N && !W && E && S) return TILE_WALL_MIDDLE_CORNER_TOPLEFT;
-            if (!E && !S && N && W) return TILE_WALL_MIDDLE_CORNER_BOTTOMRIGHT;
-            if (!N && !E && W && S) return TILE_WALL_MIDDLE_CORNER_TOPRIGHT;
-            if (N && E && S && W) return TILE_WALL_MIDDLE_CENTER;
-            break;
-        case LEVEL_INNER:
-            // Island Check //
-            if (!N && !W && !E && !S) return TILE_WALL_INNER_ISLAND;
-            
-            // Peninsula Checks //
-            if (!N && !W && !S && E) return TILE_WALL_INNER_PENINSULA_LEFT;
-            if (!N && !E && !S && W) return TILE_WALL_INNER_PENINSULA_RIGHT;
-            if (N && !W && !E && !S) return TILE_WALL_INNER_PENINSULA_DOWN;
-            if (!W && !E && S && !N) return TILE_WALL_INNER_PENINSULA_TOP;
-
-            // Column Checks //
-            if (N && S && !W && !E) return TILE_WALL_INNER_COLUMN_UP;
-            if (!N && !S && W && E) return TILE_WALL_INNER_COLUMN_SIDE;
-
-            // Wall Checks //
-            if (!W && N && S && E) return TILE_WALL_INNER_LEFT;
-            if (!E && N && S && W) return TILE_WALL_INNER_RIGHT;
-            if (N && W && E && !S) return TILE_WALL_INNER_DOWN;
-            if (!N && W && E && S) return TILE_WALL_INNER_UP;
-
-            // Wall Corners //
-            if (!W && !S && N && E) return TILE_WALL_INNER_CORNER_BOTTOMLEFT;
-            if (!N && !W && E && S) return TILE_WALL_INNER_CORNER_TOPLEFT;
-            if (!E && !S && N && W) return TILE_WALL_INNER_CORNER_BOTTOMRIGHT;
-            if (!N && !E && W && S) return TILE_WALL_INNER_CORNER_TOPRIGHT;
-            if (N && E && S && W) return TILE_WALL_INNER_CENTER;
-            break;
-    }
+    // Wall Corners //
+    if (!W && !S && N && E) return TILE_WALL_CORNER_BOTTOMLEFT;
+    if (!N && !W && E && S) return TILE_WALL_CORNER_TOPLEFT;
+    if (!E && !S && N && W) return TILE_WALL_CORNER_BOTTOMRIGHT;
+    if (!N && !E && W && S) return TILE_WALL_CORNER_TOPRIGHT;
+    if (N && E && S && W) return TILE_WALL_CENTER;
+    
     return TILE_NULL;
 }
 
@@ -990,12 +885,12 @@ a coordinate system for chunks
 void _world::finalizeWorld() {
     Logger.LogDebug("Mapping world noise into tiles");
     
-    int worldWidth = (int)sqrt(numStartingChunks) * 16;
-    int worldHeight = (int)sqrt(numStartingChunks) * 16;
-    
-    for (int i = 0; i < numStartingChunks; i++) {
-        int new_chunkX = i % (int)sqrt(numStartingChunks) - floor(sqrt(numStartingChunks) / 2);
-        int new_chunkY = i / (int)sqrt(numStartingChunks) - floor(sqrt(numStartingChunks) / 2);
+    const int worldWidth = (int)sqrt(configuration.num_chunks) * 16;
+    const int worldHeight = (int)sqrt(configuration.num_chunks) * 16;
+
+    for (int i = 0; i < configuration.num_chunks; i++) {
+        const int new_chunkX = i % (int)sqrt(configuration.num_chunks) - floor(sqrt(configuration.num_chunks) / 2);
+        const int new_chunkY = i / (int)sqrt(configuration.num_chunks) - floor(sqrt(configuration.num_chunks) / 2);
 
         worldChunks.emplace_back();
 
@@ -1004,31 +899,56 @@ void _world::finalizeWorld() {
         newChunk->chunkY = new_chunkY;
 
         // Calculate the starting position of this chunk in the world grid
-        int chunkStartX = (new_chunkX + (int)floor(sqrt(numStartingChunks) / 2)) * 16;
-        int chunkStartY = (new_chunkY + (int)floor(sqrt(numStartingChunks) / 2)) * 16;
+        const int chunkStartX = (new_chunkX + (int)floor(sqrt(configuration.num_chunks) / 2)) * 16;
+        const int chunkStartY = (new_chunkY + (int)floor(sqrt(configuration.num_chunks) / 2)) * 16;
 
         // Extract the 16x16 tile section for this chunk from world_noise
         for (int tileY = 0; tileY < 16; tileY++) {
             for (int tileX = 0; tileX < 16; tileX++) {
                 // Calculate position in world grid
-                int worldX = chunkStartX + tileX;
-                int worldY = chunkStartY + tileY;
+                const int worldX = chunkStartX + tileX;
+                const int worldY = chunkStartY + tileY;
                 
                 // Convert to flat array index
-                int world_noise_index = worldY * worldWidth + worldX;
+                const int world_noise_index = worldY * worldWidth + worldX;
                 
                 // Convert to chunk tile index (tileY * 16 + tileX gives position in chunk's 16x16 grid)
-                int chunk_tile_index = tileY * 16 + tileX;
+                const int chunk_tile_index = tileY * 16 + tileX;
                 
-                TileId newId = static_cast<TileId>(world_noise[world_noise_index]);
+                const float halfWidth = TILE_W * 0.5f;
+                const float halfHeight = TILE_H * 0.5f;
 
-                newChunk->setTileIdAt(newId,chunk_tile_index);
+                // Positions of the tiles/cells
+                const float worldXCenter = (newChunk->chunkX * 16 + tileX) * TILE_W + halfWidth;
+                const float worldYCenter = (newChunk->chunkY * 16 + tileY) * TILE_H + halfHeight;
+                
+                _cell* cell = newChunk->cellAt(chunk_tile_index);
+                
+                // Apply tile IDs from the noise to each chunk
+                for (uint8_t layer = 0; layer < NUM_LAYERS; layer++) {
+                    const TileId newId = static_cast<TileId>(world_noise[layer][world_noise_index]);
+                    cell->tileIDs[layer] = newId;   
+                }
+                
+                // Set Cell Data //
+                cell->setHealth(100.0f);
+                cell->setOutline(false);
+                cell->index = chunk_tile_index; // Match every draw cycle
+                cell->parentChunk = newChunk;
+
+                cell->pos = {worldXCenter, worldYCenter};
             }
         }
 
         loadedChunks[{new_chunkX, new_chunkY}] = true;
         chunkLookup[{new_chunkX, new_chunkY}] = newChunk;
     }
+
+    // Clear the world generation memory 
+    for (int layer = 0; layer < NUM_LAYERS; layer++) {
+        world_noise[layer].clear();
+    }
+
     Logger.LogDebug("World noise has been mapped to tiles and has been finalized!");
 }
 
@@ -1110,7 +1030,7 @@ bool _world::setCellTile(_cell* cell, TileId id) {
 
         // For each cell, rerun the post-processing tile type (requires checking all 8 around it)
         for (int i = 0; i < 9; i++) {
-            if (i == 4 || !isTileWall(neighborCells[i]->tileId)) continue; // Skip center cell and floors
+            if (i == 4 || !isCellWall(neighborCells[i])) continue; // Skip center cell and floors
             _cell* localCell = neighborCells[i];
             // We need all 9 cells around each cell we check
             _cell* localNeighborCells[9];
@@ -1120,7 +1040,7 @@ bool _world::setCellTile(_cell* cell, TileId id) {
             bool neighborTiles[9];
             for (int j = 0; j < 9; j++) {
                 if (neighborCells[j]) {
-                    neighborTiles[j] = isTileWall(localNeighborCells[j]->tileId);
+                    neighborTiles[j] = isCellWall(localNeighborCells[j]);
                 } else {
                     // nullptr (out of bounds treat as wall)
                     neighborTiles[j] = true;
@@ -1130,18 +1050,22 @@ bool _world::setCellTile(_cell* cell, TileId id) {
             localCell->parentChunk->setTileIdAt(localTileId, localCell->index);
         }
         
-        cell->parentChunk->vboDirty = true;  // Mark chunk for rebuild
+        cell->parentChunk->setChunkDirty();  // Mark chunk for rebuild
     }
     return success;
 }
 
 bool _world::isTileWall(TileId tileId) const {
-    return (tileId >= TILE_WALL_OUTER_CENTER && tileId <= TILE_WALL_INNER_COLUMN_SIDE);
+    return (tileId >= TILE_WALL_CENTER && tileId <= TILE_WALL_COLUMN_SIDE);
 }
 
+// This name should be changed to be something like "cellHasCollision" for when we things beyond walls
 bool _world::isCellWall(const _cell* cell) const {
     if (!cell) return false;
-    return (cell->tileId >= TILE_WALL_OUTER_CENTER && cell->tileId <= TILE_WALL_INNER_COLUMN_SIDE);
+    // Any tile that contains a primary layer has collision and is thus a "wall"
+    const _tile collisionTile = world_tiles[cell->tileIDs[LAYER_PRIMARY]];
+    if (cell->tileIDs[LAYER_PRIMARY] == TILE_NULL) return false;
+    return (collisionTile.hasCollision);
 }
 
 bool _world::damageCell(_cell* cell, float amount) {
@@ -1167,7 +1091,7 @@ bool _world::damageCell(_cell* cell, float amount) {
 
 vector<chunk_serial_data> _world::exportSerializeWorld() const {
     vector<chunk_serial_data> world_data;
-    for (int i = 0; i < numStartingChunks; i++) {
+    for (int i = 0; i < configuration.num_chunks; i++) {
         const _chunk* chunk = &worldChunks[i];
         world_data.push_back(chunk->serializeChunk());
     }
@@ -1177,7 +1101,7 @@ vector<chunk_serial_data> _world::exportSerializeWorld() const {
 void _world::importSerializeWorld(vector<chunk_serial_data> world_data) {
     for (int i = 0; i < world_data.size(); i++) {
         // Build chunk
-        worldChunks.reserve(numStartingChunks);
+        worldChunks.reserve(configuration.num_chunks);
         worldChunks.emplace_back();
         _chunk* chunk = &worldChunks.back();
         chunk->loadSerializedChunk(world_data[i]);
@@ -1197,53 +1121,242 @@ void _world::setSeed(uint32_t _seed) {
 level_pos _world::getLevelFromPos(const Vec2f &pos) const {
     const float distance = pos.distance({0.0f,0.0f});           // How far from center?
 
-    if (distance > 0.0f && distance < 3000.0f) {
+    // Positions (world units) where one biome ends and other begins
+    const float innerCutoff = configuration.inner_cutoff * worldBounds;
+    const float middleCutoff = configuration.middle_cutoff * worldBounds;
+    const float outerCutoff = configuration.outer_cutoff * worldBounds;
+
+    if (distance > 0.0f && distance < innerCutoff) {
+        return LEVEL_BOSS;
+    } else if (distance >= innerCutoff && distance < middleCutoff) {
         return LEVEL_INNER;
-    } else if (distance >= 3000.0f && distance < 8000.0f) {
+    } else if (distance >= middleCutoff && distance < outerCutoff) {
         return LEVEL_MIDDLE;
     } else {
         return LEVEL_OUTER;
     }
 }
 
+void _world::importWorldConfiguration(const world_config &_world_config) {
+    configuration = _world_config;
+}
 
 // -- PRIVATE -- //
 
-void _world::runWorldGeneration(int iterations) {
-    worldChunks.reserve(numStartingChunks); // Resize the vector to hold numStartingChunks chunks
+void _world::updateWorldVBO(float left, float right, float top, float bottom) {
+    // Calculate which chunks are visible
+    const float middleX = (right - left) * 0.5f + left;
+    const float middleY = (top - bottom) * 0.5f + bottom;
+
+    // Calculate which chunks are visible
+    const int minChunkX = static_cast<int>(floor((middleX - viewRange) / (16 * TILE_D)));
+    const int maxChunkX = static_cast<int>(ceil((middleX + viewRange) / (16 * TILE_D)));
+    const int minChunkY = static_cast<int>(floor((middleY - viewRange) / (16 * TILE_D)));
+    const int maxChunkY = static_cast<int>(ceil((middleY + viewRange) / (16 * TILE_D)));
+
+    const int numChunksToRender = (maxChunkX - minChunkX) * (maxChunkY - minChunkY);    // Total chunks in visible range
+
+    // (Number of tiles in a chunk) * (7 floats per vertex) * (4 verticies per tile) * (bytes per float)
+    constexpr GLsizei bytesPerChunk = NUM_TILES_CHUNK * 7 * 4 * sizeof(float); 
+    const GLsizei bytesPerLayer = NUM_RENDER_CHUNKS * bytesPerChunk; // How many bytes an entire layer takes up (sizeof chunk * how many)
+
+    glBindBuffer(GL_ARRAY_BUFFER, vboID);
+
+    for (int chunkY = minChunkY; chunkY < maxChunkY; chunkY++) {
+        for (int chunkX = minChunkX; chunkX < maxChunkX; chunkX++) {
+            const Vec2i chunkPos(chunkX,chunkY);
+            _chunk* chunk = getChunkAt(chunkPos);
+
+            if (!chunk) {
+                // cout << "ERROR: Could not find chunk at (" << chunkX << ", " << chunkY << ") for update VBO\n";
+                // Dont need errors, chunk is likely just out of bounds (end of world)
+                continue;
+            }
+            
+            if (!chunk->isChunkDirty()) continue; // Skip chunks with unchanged data
+
+            const _cell* cellList = chunk->getAllCells();
+            
+            for (uint8_t layer = 0; layer < NUM_LAYERS; layer++) {
+
+                // 256 tiles * 4 verticies * 7 floats per vertex
+                vector<float> chunkVboData(NUM_TILES_CHUNK * 4 * 7);
+                int vIndex = 0;
+
+                // For each tile of the chunk //
+                for (int y = 0; y < 16; y++) {
+                    for (int x = 0; x < 16; x++) {
+                        const int tileIndex = y * 16 + x;
+    
+                        const _cell& cell = cellList[tileIndex];
+                        const _tile& tile = world_tiles[cell.tileIDs[layer]];
+
+                        bool drawTile = (cell.tileIDs[layer] != TILE_NULL);
+                        
+                        const float halfWidth = drawTile ? TILE_W * 0.5f : 0.0f;
+                        const float halfHeight = drawTile ? TILE_H * 0.5f : 0.0f;
+    
+                        const float worldXCenter = (chunk->chunkX * 16 + x) * TILE_W + halfWidth;
+                        const float worldYCenter = (chunk->chunkY * 16 + y) * TILE_H + halfHeight;
+    
+                        const float cellOutlined = cell.isOutlined() ? 1.0f : 0.0f;  // <= 0.0 is false > 0.0 is true
+    
+                        // Tile VBO Setup //
+                        // The VBO is set up identical to how we would do glVertex2f and glTexCoord2f
+                        
+                        // Bottom-left
+                        chunkVboData[vIndex++] = -halfWidth;
+                        chunkVboData[vIndex++] = -halfHeight;
+                        chunkVboData[vIndex++] = tile.u0;
+                        chunkVboData[vIndex++] = tile.v1;
+                        chunkVboData[vIndex++] = worldXCenter;
+                        chunkVboData[vIndex++] = worldYCenter;
+                        chunkVboData[vIndex++] = cellOutlined;
+                        
+                        // Bottom-right
+                        chunkVboData[vIndex++] = halfWidth;
+                        chunkVboData[vIndex++] = -halfHeight;
+                        chunkVboData[vIndex++] = tile.u1;
+                        chunkVboData[vIndex++] = tile.v1;
+                        chunkVboData[vIndex++] = worldXCenter;
+                        chunkVboData[vIndex++] = worldYCenter;
+                        chunkVboData[vIndex++] = cellOutlined;
+                        
+                        // Top-right
+                        chunkVboData[vIndex++] = halfWidth;
+                        chunkVboData[vIndex++] = halfHeight;
+                        chunkVboData[vIndex++] = tile.u1;
+                        chunkVboData[vIndex++] = tile.v0;
+                        chunkVboData[vIndex++] = worldXCenter;
+                        chunkVboData[vIndex++] = worldYCenter;
+                        chunkVboData[vIndex++] = cellOutlined;
+                        
+                        // Top-left
+                        chunkVboData[vIndex++] = -halfWidth;
+                        chunkVboData[vIndex++] = halfHeight;
+                        chunkVboData[vIndex++] = tile.u0;
+                        chunkVboData[vIndex++] = tile.v0;  
+                        chunkVboData[vIndex++] = worldXCenter;
+                        chunkVboData[vIndex++] = worldYCenter;
+                        chunkVboData[vIndex++] = cellOutlined;
+                    }
+                }
+                const GLsizei offset = (chunk->getVboIndex() * bytesPerChunk) + (bytesPerLayer * layer);
+
+                glBufferSubData(GL_ARRAY_BUFFER, offset, bytesPerChunk, chunkVboData.data()); 
+
+                if (offset + bytesPerChunk > maxSizeBytes) {
+                    cout << "ERROR: Buffer overflow of (" << offset + bytesPerChunk << "B) max (" << maxSizeBytes << "B)\n";
+                    cout << " - Index: " << chunk->getVboIndex() << "\n";
+                }
+
+                GLenum err = glGetError();
+                if (err != GL_NO_ERROR) {
+                    cout << "OpenGL error after tile glBufferData: " << err << "\n";
+                }
+            }
+            chunk->setChunkClean(); // Mark chunk as "clean" to stop rebuilding buffer until dirty again
+        }
+    }
+    
+    glBindBuffer(GL_ARRAY_BUFFER,0);
+    
+    // How many total tiles for draw command to draw
+    tilesToDraw = numChunksToRender * NUM_TILES_CHUNK;
+}
+
+// https://www.desmos.com/calculator/ac9qf6beyv //
+void _world::buildWorldVBO(float left, float right, float top, float bottom) {
+    const float middleX = (right - left) * 0.5f + left;
+    const float middleY = (top - bottom) * 0.5f + bottom;
+
+    // cout << "Left(" << left << ") ----- Right(" << right << ")\n";
+    // cout << "Top(" << top << ") ----- Bottom(" << bottom << ")\n";
+    
+    // Calculate which chunks are visible
+    const int minChunkX = static_cast<int>(floor((middleX - viewRange) / (16 * TILE_D)));
+    const int maxChunkX = static_cast<int>(floor((middleX + viewRange) / (16 * TILE_D)));
+    const int minChunkY = static_cast<int>(floor((middleY - viewRange) / (16 * TILE_D)));
+    const int maxChunkY = static_cast<int>(floor((middleY + viewRange) / (16 * TILE_D)));
+
+    const int numChunksToRender = (maxChunkX - minChunkX) * (maxChunkY - minChunkY);    // Total chunks in visible range
+    
+    // cout << "Number of chunks to render: " << numChunksToRender << "\n";
+    // cout << "View Range: " << viewRange << "\n";
+    // cout << "View Middle: (" << middleX << ", " << middleY << ")\n";
+
+    // cout << "minChunkX(" << minChunkX << ") ----- maxChunkX(" << maxChunkX << ")\n";
+    // cout << "minChunkY(" << minChunkY << ") ----- maxChunkY(" << maxChunkY << ")\n";
+
+    int chunkIndex = 0;
+    for (int chunkY = minChunkY; chunkY < maxChunkY; chunkY++) {
+        for (int chunkX = minChunkX; chunkX < maxChunkX; chunkX++) {
+            _chunk* chunk = getChunkAt({chunkX, chunkY});
+
+            if (!chunk) {
+                // Chunk doesn't exist (out of world bounds)
+                continue;
+            }
+
+            if (chunk->getVboIndex() >= NUM_RENDER_CHUNKS) {
+                cout << "ERROR: Too many visible chunks for render buffer. "
+                     << "chunkIndex=" << chunkIndex
+                     << " max=" << NUM_RENDER_CHUNKS << "\n";
+                continue;
+            }
+
+            chunk->setVboIndex(chunkIndex);
+            chunk->setChunkDirty();
+            chunkIndex++;
+        }
+    }
+}
+
+void _world::runWorldGeneration() {
+    worldChunks.reserve(configuration.num_chunks); // Resize the vector to hold configuration.num_chunks chunks
     
     // Setup seed + rng engine 
     seed = std::chrono::system_clock::now().time_since_epoch().count(); 
     rng = mt19937(seed);
 
-    // Setup world_noise
-    world_noise.resize(numStartingChunks*256);  // 256 tiles per chunk
+    // Setup world_noise 
+    world_noise[LAYER_FLOOR].resize(configuration.num_chunks*256);         // Floor tiles
+    world_noise[LAYER_COSMETIC_1].resize(configuration.num_chunks*256);    // Cosmetic Tiles (1st layer)
+    world_noise[LAYER_COSMETIC_2].resize(configuration.num_chunks*256);    // Cosmetic Tiles (2nd layer)
+    world_noise[LAYER_PRIMARY].resize(configuration.num_chunks*256);       // Wall tiles (run cellular automata w/ moore neighborhood)
+    wet_noise.resize(configuration.num_chunks*256);                        // Wet tiles (run cellular automata w/ moore neighborhood)
     
     Logger.LogInfo("Running world generation for parameters: ");
-    Logger.LogInfo(" - Noise Density: " + to_string(noise_distribution*100.0f) + "%");
-    Logger.LogInfo(" - Generation Iterations: " + to_string(iterations));
+    Logger.LogInfo(" - Wall Density: " + to_string(configuration.wall_distribution*100.0f) + "%");
+    Logger.LogInfo(" - Wall Generation Iterations: " + to_string(configuration.wall_generation_iterations));
+    Logger.LogInfo(" - Wet Density: " + to_string(configuration.wet_distribution*100.0f) + "%");
+    Logger.LogInfo(" - Wet Generation Iterations: " + to_string(configuration.wet_generation_iterations));
     Logger.LogInfo(" - Seed: " + to_string(seed));
 
     uniform_real_distribution<float> dist(0.0f,1.0f);
     
-    Logger.LogInfo("Establishing world noise for a ratio of " + to_string(noise_distribution));
+    Logger.LogInfo("Establishing world noise for a ratio of " + to_string(configuration.wall_distribution));
     
       // World width/height in tiles
-    int worldWidth = (int)sqrt(numStartingChunks)*16;
-    int worldHeight = (int)sqrt(numStartingChunks)*16;
+    int worldWidth = (int)sqrt(configuration.num_chunks)*16;
+    int worldHeight = (int)sqrt(configuration.num_chunks)*16;
 
-    for (int i = 0; i < world_noise.size(); i++) {
-        world_noise[i] = (dist(rng) < noise_distribution);    // Randomly assigns 0 or 1 based on noise_distribution
+    for (int i = 0; i < world_noise[LAYER_PRIMARY].size(); i++) {
+        world_noise[LAYER_FLOOR][i] = TILE_NULL;
+        world_noise[LAYER_COSMETIC_1][i] = TILE_NULL;
+        world_noise[LAYER_COSMETIC_2][i] = TILE_NULL;
+        world_noise[LAYER_PRIMARY][i] = (dist(rng) < configuration.wall_distribution);    // Randomly assigns 0 or 1 based on noise_distribution
+        wet_noise[i] = (dist(rng) < configuration.wet_distribution);
     }
 
-    Logger.LogInfo("Finished generating noise of " + to_string(world_noise.size()) + "tiles");
+    Logger.LogInfo("Finished generating noise of " + to_string(world_noise[LAYER_PRIMARY].size()) + "tiles");
 
     Logger.LogInfo("Starting cellular automata algorithm for a world of Width: " + to_string(worldWidth) + "and Height: " + to_string(worldHeight) + " tiles");
     
-    // Run cellular automata algorithm //
-    for (int iteration = 0; iteration < iterations; iteration++) {
-        vector<uint8_t> world_noise_copy(world_noise);
-        for (int i = 0; i < world_noise.size(); i++) {
+    // Run cellular automata algorithm on walls //
+    for (int iteration = 0; iteration < configuration.wall_generation_iterations; iteration++) {
+        const vector<uint8_t> world_noise_copy(world_noise[LAYER_PRIMARY]);
+        for (int i = 0; i < world_noise[LAYER_PRIMARY].size(); i++) {
             /*
             Each cell must check eight neighbors total (9 including itself). Each neighbor is checked to see if it is of type
             Wall = true or type Floor = false
@@ -1255,7 +1368,7 @@ void _world::runWorldGeneration(int iterations) {
                 int yOffset = j / 3 - 1;    // Gets yOffset for tiles [-1,1] -- Applies worldWidth later
                 int index = i + xOffset + yOffset * worldWidth; // Gets the given index to check
                 if (index == i) continue;   // Skip checking ourselves
-                if (index < 0 || index >= world_noise.size()) { // If index is out of bounds, treat as wall
+                if (index < 0 || index >= world_noise[LAYER_PRIMARY].size()) { // If index is out of bounds, treat as wall
                     num_neighbors++;
                     continue;
                 }
@@ -1266,17 +1379,51 @@ void _world::runWorldGeneration(int iterations) {
             
             // Moore Neighborhood //
             if (num_neighbors > 4) {
-                world_noise[i] = true;
+                world_noise[LAYER_PRIMARY][i] = true;
             } else {
-                world_noise[i] = false;
+                world_noise[LAYER_PRIMARY][i] = false;
             }
         }
-        Logger.LogDebug(" -- Iteration: " + to_string(iteration) + " completed!");
+        Logger.LogDebug(" -- Wall Iteration: " + to_string(iteration) + " completed!");
+    }
+
+    // Run cellular automata algorithm on wet //
+    for (int iteration = 0; iteration < configuration.wet_generation_iterations; iteration++) {
+        const vector<uint8_t> wet_noise_copy(wet_noise);
+        for (int i = 0; i < wet_noise.size(); i++) {
+            /*
+            Each cell must check eight neighbors total (9 including itself). Each neighbor is checked to see if it is of type
+            Wall = true or type Floor = false
+            We do this by finding the index arround the element for efficiency
+            */
+            int num_neighbors = 0;
+            for (int j = 0; j < 9; j++) {
+                int xOffset = j % 3 - 1;    // Gets xOffset for tiles [-1,1]
+                int yOffset = j / 3 - 1;    // Gets yOffset for tiles [-1,1] -- Applies worldWidth later
+                int index = i + xOffset + yOffset * worldWidth; // Gets the given index to check
+                if (index == i) continue;   // Skip checking ourselves
+                if (index < 0 || index >= wet_noise.size()) { // If index is out of bounds, treat as wall
+                    num_neighbors++;
+                    continue;
+                }
+                if (wet_noise_copy[index]) {  // Check index, true means wall
+                    num_neighbors++;
+                }
+            }
+            
+            // Moore Neighborhood //
+            if (num_neighbors > 4) {
+                wet_noise[i] = true;
+            } else {
+                wet_noise[i] = false;
+            }
+        }
+        Logger.LogDebug(" -- Wet Iteration: " + to_string(iteration) + " completed!");
     }
 
     // World modifications -- clear space in center for the boss //
-    vector<uint8_t> world_noise_copy(world_noise);
-    for (int i = 0; i < world_noise.size(); i++) {
+    vector<uint8_t> world_noise_copy(world_noise[LAYER_PRIMARY]);
+    for (int i = 0; i < world_noise[LAYER_PRIMARY].size(); i++) {
         const int col = i % worldWidth;                                 // Which column
         const int row = i / worldWidth;                                 // Which row
         
@@ -1289,7 +1436,7 @@ void _world::runWorldGeneration(int iterations) {
         // Wall tile
         if (world_noise_copy[i] && distance < 400.0f) {
             // Clear out all tiles of distance from center
-            world_noise[i] = static_cast<uint8_t>(false);
+            world_noise[LAYER_PRIMARY][i] = static_cast<uint8_t>(false);
         }
     }
 
@@ -1297,9 +1444,6 @@ void _world::runWorldGeneration(int iterations) {
     postProcessWorld();
     Logger.LogDebug("Post processing completed! Finalizing world now ...");
     finalizeWorld();
-
-    // Clean up data once world gen is done since no longer used
-    world_noise.clear();
 }
 
 void _world::mapCellNeighbors(_cell* cell, _cell* outNeighbors[9]) {
@@ -1321,28 +1465,4 @@ void _world::mapCellNeighbors(_cell* cell, _cell* outNeighbors[9]) {
     //  << outNeighbors[0]->tileId << ", " << outNeighbors[1]->tileId << ", " << outNeighbors[2]->tileId << "\n"
     //  << outNeighbors[3]->tileId << ", " << outNeighbors[4]->tileId << ", " << outNeighbors[5]->tileId << "\n"
     //  << outNeighbors[6]->tileId << ", " << outNeighbors[7]->tileId << ", " << outNeighbors[8]->tileId << "\n";
-}
-
-/* -- >> DEBUGING << -- */
-
-void _world::debugPrint() {
-
-    size_t ChunkBytes = sizeof(_chunk) * worldChunks.size();
-    size_t TileBytes = sizeof(uint8_t) * worldChunks.size() * 256;
-
-    Logger.LogInfo(" -- World Debug Print -- ", LOG_CONSOLE);
-    Logger.LogInfo(
-        "Chunks Loaded: " 
-        + std::to_string(worldChunks.size()) 
-        + " (" + std::to_string(ChunkBytes) + " B)" 
-        + " (" + std::to_string(ChunkBytes/1000000) + "MB)", 
-        LOG_CONSOLE
-    );
-    Logger.LogInfo(
-        "Tiles Loaded: " 
-        + std::to_string(worldChunks.size() * 256) 
-        + " (" + std::to_string(TileBytes) + " B)" 
-        + " (" + std::to_string(TileBytes/1000000) + "MB)", 
-        LOG_CONSOLE);
-    Logger.LogInfo("------------------------", LOG_CONSOLE);
 }

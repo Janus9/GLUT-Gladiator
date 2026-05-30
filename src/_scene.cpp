@@ -2,7 +2,22 @@
 
 _scene::_scene() : rng(random_device{}())
 {
-    // ctor
+    // Test world configuration //
+    world_configuration.num_chunks = 65536;
+
+    world_configuration.outer_cutoff = 0.8f;
+    world_configuration.middle_cutoff = 0.5f;
+    world_configuration.inner_cutoff = 0.08f;
+
+    world_configuration.outer_biome_blend_radius = 50.0f;
+    world_configuration.middle_biome_blend_radius = 50.0f;
+    world_configuration.inner_biome_blend_radius = 50.0f;
+
+    world_configuration.wall_distribution = 0.6f;
+    world_configuration.wall_generation_iterations = 7;
+
+    world_configuration.wet_distribution = 0.65f;
+    world_configuration.wet_generation_iterations = 7;
 }
 
 _scene::~_scene()
@@ -78,7 +93,7 @@ void _scene::initScene(bool loadWorld)
     interactionTimer->reset();
     fireRateTimer.reset();
     
-    myWorld->initWorld(loadWorld,lightManager.get());         // Initialize the world
+    myWorld->initWorld(loadWorld, world_configuration, lightManager.get());         // Initialize the world
 
     // PICKUPS //
     pickupManager->initPickupManager("images/pickups/pickup_sheet.png",6,player.get(),lightManager.get());
@@ -331,6 +346,9 @@ void _scene::initScene(bool loadWorld)
     vampire_minion2_config.slewRate = 0.0f;
     vampire_minion2_config.detectionRadius = 300.0f;
 
+    const float numChunks = world_configuration.num_chunks;
+    const float bounds = sqrt(numChunks) * NUM_TILES_CHUNK_SQR * TILE_D * 0.5f;
+
     if(!loadWorld) {
         player->fireRate = 400.0f;
         player->magCapacity = 30;
@@ -342,19 +360,9 @@ void _scene::initScene(bool loadWorld)
         player->setHealth(200.0f);
         player->setMaxHealth(200.0f);
         
-        /**
-         * World is 128 x 128 chunks (32,768 x 32,768 world units)
-         * Player spawns in bounds: -15,000 to -12,000 AND 12,000 to 15,000 
-         * 
-         */
-    
-        // Find spawn 
-        const float numChunks = NUM_CHUNKS;
-        // Total chunk area to length/width * num tiles * 16 units per tile / 2 since 0,0 is center
-        float bounds = sqrt(numChunks) * 16 * 16 * 0.5;
         uniform_real_distribution<float> player_pos_neg_dist(-1.0f,1.0f);           // Coin flip for positive vs negative side
-        uniform_real_distribution<float> player_pos_dist_neg(-15000.0f,-12000.0f);  // Distribution for negative side
-        uniform_real_distribution<float> player_pos_dist_pos(12000.0f,15000.0f);    // Distribution for positive side
+        uniform_real_distribution<float> player_pos_dist_neg(-bounds*0.85f,-bounds*0.95f);  // Distribution for negative side
+        uniform_real_distribution<float> player_pos_dist_pos(bounds*0.85f,bounds*0.95f);    // Distribution for positive side
         bool lookingForSpawn = true;
         while (lookingForSpawn)
         {
@@ -414,13 +422,13 @@ void _scene::initScene(bool loadWorld)
     const int number_default_turrets = 500;
     const int number_gatling_turrets = 75;
     const int number_orcs = 600;
-    const int number_vampire_minions = 200;  // Spawn naturally in world
+    const int number_vampire_minions = 200;      // Spawn naturally in world
     const int number_vampire_boss_minions = 25;  // Spawn near the boss
 
     // Dont spawn enemies when world is loaded
     if (!loadWorld) {
         // Spawn default turrets //
-        uniform_real_distribution<float> turret_pos_dist(-14000, 14000);
+        uniform_real_distribution<float> turret_pos_dist(-bounds, bounds);
         for (int i = 0; i < number_default_turrets; i++)
         {
             bool lookingForTurretSpawn = true;
@@ -439,7 +447,8 @@ void _scene::initScene(bool loadWorld)
         }
     
         // Spawn gatling turrets //
-        uniform_real_distribution<float> gatling_pos_dist(-4000, 4000);
+        const float gatlingBounds = bounds * world_configuration.middle_cutoff;
+        uniform_real_distribution<float> gatling_pos_dist(-gatlingBounds, gatlingBounds);
         for (int i = 0; i < number_gatling_turrets; i++)
         {
             bool lookingForGatlingSpawn = true;
@@ -458,7 +467,8 @@ void _scene::initScene(bool loadWorld)
         }
 
         // Spawn Orcs //
-        uniform_real_distribution<float> orc_pos_dist(-12000, 12000);
+        const float orcBounds = bounds * world_configuration.outer_cutoff;
+        uniform_real_distribution<float> orc_pos_dist(-orcBounds, orcBounds);
         for (int i = 0; i < number_orcs; i++)
         {
             bool lookingForOrcSpawn = true;
@@ -477,7 +487,8 @@ void _scene::initScene(bool loadWorld)
         }
 
         // Spawn Vampire Minions //
-        uniform_real_distribution<float> vamp_mini_pos_dist(-6000, 6000);
+        const float vampireBounds = bounds * world_configuration.outer_cutoff;
+        uniform_real_distribution<float> vamp_mini_pos_dist(-vampireBounds, vampireBounds);
         uniform_real_distribution<float> vamp_type_dist(0.0f, 1.0f);
 
         for (int i = 0; i < number_vampire_minions; i++)
@@ -637,7 +648,7 @@ bool _scene::saveSceneToFile(const string &fileName) {
     file.write(reinterpret_cast<const char*>(&version_id),sizeof(version_id));  // Version ID
     const float game_id = GAME_VERSION;
     file.write(reinterpret_cast<const char*>(&game_id),sizeof(game_id));  // Game Version
-    const int numStartingChunks = NUM_CHUNKS;
+    const int numStartingChunks = world_configuration.num_chunks;
     file.write(reinterpret_cast<const char*>(&numStartingChunks),sizeof(numStartingChunks)); // Chunk Count
 
     // Chunk Data Write //
@@ -747,11 +758,11 @@ bool _scene::loadSceneFromFile(const string &fileName) {
 
     int32_t chunk_count = 0;
     file.read(reinterpret_cast<char*>(&chunk_count), sizeof(chunk_count));  // Chunk Count
-    const int numStartingChunks = NUM_CHUNKS;
-    if (chunk_count != numStartingChunks) {
-        cout << "ERROR: Chunk Count of save " << fileName << " for " << chunk_count << "does not match count of " << numStartingChunks << "\n";
+    if (chunk_count <= 0) {
+        cout << "ERROR: Chunk Count of save " << fileName << " for " << chunk_count << "must be greater than 0\n";
         return false;
     }
+    world_configuration.num_chunks = chunk_count;
 
     // Read Chunk Data //
     
@@ -779,6 +790,8 @@ bool _scene::loadSceneFromFile(const string &fileName) {
     cout << "Read world data:\n"
          << " - Number of chunks: " << world_data.size() << "\n"
          << " - Size of world: " << world_data.size() * sizeof(chunk_serial_data) << " bytes\n";
+
+    myWorld->importWorldConfiguration(world_configuration);
 
     myWorld->importSerializeWorld(world_data);
 
@@ -1425,7 +1438,7 @@ void _scene::updateScene(double dt, bool *keysArray)
     if (hoveredChunk)
     {
         string text_main = "Chunk Redraw: ";
-        string test_con = hoveredChunk->vboDirty ? "TRUE" : "FALSE";
+        string test_con = hoveredChunk->isChunkDirty() ? "TRUE" : "FALSE";
         hud->getHudText("CHUNK_REDRAW")->setText(text_main + test_con);
     }
 }
@@ -1434,7 +1447,11 @@ void _scene::debugPrint()
 {
     Logger.LogDebug("World drawing took: " + to_string(drawWorldBenchmark.getAverageResult()) + "ms");
     Logger.LogDebug("Enemy drawing took: " + to_string(drawEnemiesBenchmark.getAverageResult()) + "ms");
-    // myWorld->debugPrint();
+    cout << "-- LEFT: " << left << "\n"
+         << "-- RIGHT: " << right << "\n"
+         << "-- TOP: " << top << "\n"
+         << "-- BOTTOM: " << bottom << "\n";
+    myWorld->debugPrint();
 }
 
 void _scene::debugPrintFPS()
@@ -1503,6 +1520,16 @@ void _scene::keyboardHandler(WPARAM wParam)
         case 220: // "\"
             cameraFree = !cameraFree;
             Logger.LogInfo("Toggled camera free mode: " + std::string(cameraFree ? "ON" : "OFF"), LOG_CONSOLE);
+            if (!cameraFree && cameraZoom < 3.0f) {
+                // Reset camera on disabling free cam
+                cameraZoom = 3.0f;
+            }
+            if (cameraFree) {
+                player_light.radius = 2400.0f;
+            } else {
+                player_light.radius = 400.0f;
+            }
+            *lightManager->getLightRadius("PLAYER_LIGHT") = player_light.radius;
             break;
         case 122: // "F11"
             myWorld->DEBUG_displayChunkBorders = !myWorld->DEBUG_displayChunkBorders;
@@ -1569,17 +1596,21 @@ int _scene::winMsg(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     case WM_MOUSEWHEEL:
         if (inputDebugEnabled)
             Logger.LogDebug("Mouse Wheel: " + std::to_string((short)HIWORD(wParam)) + " at (" + std::to_string(LOWORD(lParam)) + ", " + std::to_string(HIWORD(lParam)) + ")", LOG_CONSOLE); // Log the amount of scroll and position of the mouse when the wheel is scrolled
-        if ((short)HIWORD(wParam) > 0)
-        {
+        if ((short)HIWORD(wParam) > 0) {
             // Scroll up
-            if (cameraZoom < 9.0f)
+            if (cameraZoom < 9.0f) {
                 cameraZoom++; // Zoom in by increasing the zoom factor
-        }
-        else if ((short)HIWORD(wParam) < 0)
-        {
+            }
+        } else if ((short)HIWORD(wParam) < 0) {
+            const float maxZoom = cameraFree ? 0.05f : 3.0f;
+            if (cameraZoom > maxZoom) {
+                if (cameraFree) {
+                    cameraZoom*=0.9f;
+                } else {
+                    cameraZoom--; // Zoom out by decreasing the zoom factor
+                }
+            } 
             // Scroll down
-            if (cameraZoom > 3.0f)
-                cameraZoom--; // Zoom out by decreasing the zoom factor
         }
 
         // cout << "Camera Level: " << cameraZoom << "\n";

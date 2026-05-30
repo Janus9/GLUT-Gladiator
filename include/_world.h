@@ -15,9 +15,13 @@
 #ifndef _WORLD_H
 #define _WORLD_H
 
-#define TILE_W 16.0f   // Tile width in world units is ALWAYS the same of 16
-#define TILE_H 16.0f   // Tile height in world units is ALWAYS the same of 16
-#define NUM_CHUNKS 16384;
+#define TILE_D 16.0f           // Tile dimensions (X*X)
+#define TILE_W 16.0f           // Tile width in world units is ALWAYS the same of 16
+#define TILE_H 16.0f           // Tile height in world units is ALWAYS the same of 16
+#define NUM_TILES_CHUNK 256    // Number of tiles in a chunk
+#define NUM_TILES_CHUNK_SQR 16 // Number of tiles W/H in a chunk
+#define NUM_LAYERS 4           // Number of layers per cell 
+#define NUM_RENDER_CHUNKS 256  // Number of chunks to render for the render distance (as a square so area)
 
 #include <_common.h>
 #include <_texture.h>
@@ -30,8 +34,32 @@
 #include <glm/gtc/matrix_transform.hpp>     // Matrix ops like transform, scale, ortho, etc
 #include <glm/gtc/type_ptr.hpp>             // Send GLM datatypes (matrix) to GPU
 
-class _chunk; // Forward declaration for cell
+/**
+ * Configuration file for the world + world generation
+ * 
+ * For the cutoffs, the unit is a % from [0.0 - 1.0]
+ *  - Unit is % of world away from the origin (center)
+ *  - ex/ 1.0 is edge of the world
+ *  - ex/ 0.5 is 50% distance from origin to edge of world (any direction)
+ * 
+ * The blend radius is how many tiles the biome takes to transition to the next
+ *  - ex/ 20 means that if outer_cutoff is 1000 tiles, then 1020 - 1000 tile distance is still the "outer" biome but blends to the next
+ */
+struct world_config {
+    uint32_t num_chunks;                        /// Number of chunks for world to generate with (must be a perfect square)
+    float outer_cutoff;                         /// At which distance from center the outer biome stops and the middle biome begins [0.0-1.0]
+    float middle_cutoff;                        /// At which distance from center the middle biome stops and the inner biome begins [0.0-1.0]  
+    float inner_cutoff;                         /// At which distance from center the inner biome stops and the boss biome begins [0.0-1.0]  
+    float outer_biome_blend_radius;             /// How many tiles wide the "blend" zone is (transitional period where tilesets dither together) for outer to middle
+    float middle_biome_blend_radius;            /// How many tiles wide the "blend" zone is (transitional period where tilesets dither together) for middle to inner
+    float inner_biome_blend_radius;             /// How many tiles wide the "blend" zone is (transitional period where tilesets dither together) for inner to boss
+    float wall_distribution = 0.60;             /// How much of the world is filled by walls [0.0-1.0] (Recommended 0.6) 
+    uint32_t wall_generation_iterations = 7;    /// Number of iterations to run the wall generation algorithm (Recommended 7)
+    float wet_distribution = 0.60;              /// How much of the world is "wet" (changes world generation) [0.0-1.0] (Recommended 0.6) 
+    uint32_t wet_generation_iterations = 7;     /// Number of iterations to run the wet generation algorithm (Recommended 7)
+};
 
+class _chunk; // Forward declaration for cell
 
 /**
  * This is for detailing where we are in the world (level wise as 3 levels)
@@ -39,7 +67,8 @@ class _chunk; // Forward declaration for cell
 enum level_pos {
     LEVEL_OUTER,
     LEVEL_MIDDLE,
-    LEVEL_INNER
+    LEVEL_INNER,
+    LEVEL_BOSS
 };
 
 
@@ -47,9 +76,10 @@ enum level_pos {
  * This is for serializing data for world saving. It stores cell/tile data of a chunk.
  */
 struct cell_serial_data {         // Offset 
-    uint8_t tileID;               // 1 byte
+    uint8_t tileIDs[NUM_LAYERS];   // NUM_LAYERS bytes 
     uint8_t outlined;             // 2 bytes
-    uint16_t padding;             // 4 bytes (Do not change)   
+    uint8_t padding1;             // 1 bytes (Do not change)   
+    uint16_t padding2;            // 2 bytes (Do not change)   
     float health;                 // 8 bytes
 };
 
@@ -60,6 +90,17 @@ struct chunk_serial_data {
     int32_t chunkX;
     int32_t chunkY;
     cell_serial_data cell_data[256];
+};
+
+/**
+ * Enum type to help navigate the layer list of each cell.
+ * Details are below.
+ */
+enum TileLayer : uint8_t {
+    LAYER_FLOOR,            /// Floor Layer (No collision) 
+    LAYER_COSMETIC_1,       /// Cosmetic Layer (No collision)
+    LAYER_COSMETIC_2,       /// Costmetic Layer (No collision)
+    LAYER_PRIMARY           /// Primary object (Collision), reacts to damage events and lighting
 };
 
 /**
@@ -75,13 +116,21 @@ enum TileId : uint8_t {
     TILE_FLOOR_BOSS_SQUARE_2,
     TILE_FLOOR_BOSS_BLANK_2,
 
-    // Floor Outer //
-    TILE_FLOOR_OUTER_BLANK_1,
-    TILE_FLOOR_OUTER_CRACKED_1,
-    TILE_FLOOR_OUTER_CRACKED_2,
-    TILE_FLOOR_OUTER_SQUARE_1,
-    TILE_FLOOR_OUTER_SQUARE_2,
-    TILE_FLOOR_OUTER_BLANK_2,
+    // Floor Outer Dry //
+    TILE_FLOOR_OUTER_BLANK_1_DRY,
+    TILE_FLOOR_OUTER_CRACKED_1_DRY,
+    TILE_FLOOR_OUTER_CRACKED_2_DRY,
+    TILE_FLOOR_OUTER_SQUARE_1_DRY,
+    TILE_FLOOR_OUTER_SQUARE_2_DRY,
+    TILE_FLOOR_OUTER_BLANK_2_DRY,
+
+    // Floor Outer Wet //
+    TILE_FLOOR_OUTER_BLANK_1_WET,
+    TILE_FLOOR_OUTER_CRACKED_1_WET,
+    TILE_FLOOR_OUTER_CRACKED_2_WET,
+    TILE_FLOOR_OUTER_SQUARE_1_WET,
+    TILE_FLOOR_OUTER_SQUARE_2_WET,
+    TILE_FLOOR_OUTER_BLANK_2_WET,
 
     // Floor Middle //
     TILE_FLOOR_OUTER_DEFAULT_1,
@@ -96,59 +145,25 @@ enum TileId : uint8_t {
     TILE_FLOOR_BROKEN_MIDDLE,
     TILE_FLOOR_BROKEN_OUTER,
 
-    // Outer Wall //
-    TILE_WALL_OUTER_CENTER,
-    TILE_WALL_OUTER_LEFT,
-    TILE_WALL_OUTER_RIGHT,
-    TILE_WALL_OUTER_UP,
-    TILE_WALL_OUTER_DOWN,
-    TILE_WALL_OUTER_CORNER_TOPLEFT,
-    TILE_WALL_OUTER_CORNER_TOPRIGHT,
-    TILE_WALL_OUTER_CORNER_BOTTOMLEFT,
-    TILE_WALL_OUTER_CORNER_BOTTOMRIGHT,
-    TILE_WALL_OUTER_ISLAND,
-    TILE_WALL_OUTER_PENINSULA_TOP,
-    TILE_WALL_OUTER_PENINSULA_DOWN,
-    TILE_WALL_OUTER_PENINSULA_LEFT,
-    TILE_WALL_OUTER_PENINSULA_RIGHT,
-    TILE_WALL_OUTER_COLUMN_UP,
-    TILE_WALL_OUTER_COLUMN_SIDE,
+    // Wall //
+    TILE_WALL_CENTER,
+    TILE_WALL_LEFT,
+    TILE_WALL_RIGHT,
+    TILE_WALL_UP,
+    TILE_WALL_DOWN,
+    TILE_WALL_CORNER_TOPLEFT,
+    TILE_WALL_CORNER_TOPRIGHT,
+    TILE_WALL_CORNER_BOTTOMLEFT,
+    TILE_WALL_CORNER_BOTTOMRIGHT,
+    TILE_WALL_ISLAND,
+    TILE_WALL_PENINSULA_TOP,
+    TILE_WALL_PENINSULA_DOWN,
+    TILE_WALL_PENINSULA_LEFT,
+    TILE_WALL_PENINSULA_RIGHT,
+    TILE_WALL_COLUMN_UP,
+    TILE_WALL_COLUMN_SIDE,
 
-    // Middle Wall
-    TILE_WALL_MIDDLE_CENTER,
-    TILE_WALL_MIDDLE_LEFT,
-    TILE_WALL_MIDDLE_RIGHT,
-    TILE_WALL_MIDDLE_UP,
-    TILE_WALL_MIDDLE_DOWN,
-    TILE_WALL_MIDDLE_CORNER_TOPLEFT,
-    TILE_WALL_MIDDLE_CORNER_TOPRIGHT,
-    TILE_WALL_MIDDLE_CORNER_BOTTOMLEFT,
-    TILE_WALL_MIDDLE_CORNER_BOTTOMRIGHT,
-    TILE_WALL_MIDDLE_ISLAND,
-    TILE_WALL_MIDDLE_PENINSULA_TOP,
-    TILE_WALL_MIDDLE_PENINSULA_DOWN,
-    TILE_WALL_MIDDLE_PENINSULA_LEFT,
-    TILE_WALL_MIDDLE_PENINSULA_RIGHT,
-    TILE_WALL_MIDDLE_COLUMN_UP,
-    TILE_WALL_MIDDLE_COLUMN_SIDE,
-
-    // Inner Wall
-    TILE_WALL_INNER_CENTER,
-    TILE_WALL_INNER_LEFT,
-    TILE_WALL_INNER_RIGHT,
-    TILE_WALL_INNER_UP,
-    TILE_WALL_INNER_DOWN,
-    TILE_WALL_INNER_CORNER_TOPLEFT,
-    TILE_WALL_INNER_CORNER_TOPRIGHT,
-    TILE_WALL_INNER_CORNER_BOTTOMLEFT,
-    TILE_WALL_INNER_CORNER_BOTTOMRIGHT,
-    TILE_WALL_INNER_ISLAND,
-    TILE_WALL_INNER_PENINSULA_TOP,
-    TILE_WALL_INNER_PENINSULA_DOWN,
-    TILE_WALL_INNER_PENINSULA_LEFT,
-    TILE_WALL_INNER_PENINSULA_RIGHT,
-    TILE_WALL_INNER_COLUMN_UP,
-    TILE_WALL_INNER_COLUMN_SIDE,
+    TILE_COSMETIC_ROCK_1,
 
     // Special //
     TILE_NULL, // Special undefined tile
@@ -161,7 +176,11 @@ enum TileId : uint8_t {
 class _cell
 {
     public:
-        TileId tileId = TILE_NULL; // Defaults to undefined tile
+        _cell();
+        virtual ~_cell();
+
+        TileId tileIDs[NUM_LAYERS]; // Defaults to undefined tile
+
         uint8_t index = 0; // Index cell lives in chunk data array
 
         Vec2f pos; // Position of the cell 
@@ -241,12 +260,6 @@ class _chunk
         int chunkX;
         int chunkY;
 
-        // This should really be private info 
-        GLuint tileVboID = 0;       // ID for the GPU vertex memory of tiles
-        GLuint tileEboID = 0;       // ID for the GPU index memory of the tiles
-        GLuint tileVaoID = 0;       // ID for the GPU array memory of the tiles
-        bool vboDirty = true;       // If dirty then we update the chunk (when tiles change)
-
         /**
          * Gets a tile at the given index
          * 
@@ -279,22 +292,36 @@ class _chunk
         // Returns all 256 cells stored in the chunk as an array (readonly)
         const _cell* getAllCells() const;
 
-        // Returns all 256 tiles stored in the chunk as an array (readonly)
-        const TileId* getAllTileIds() const;
-
         // Sets all 256 cells to the array passed in
         void setAllCells(const _cell* cells);
-
-        // Sets all 256 tiles to the array passed in
-        void setAllTiles(const TileId* tiles);
 
         chunk_serial_data serializeChunk() const;
 
         void loadSerializedChunk(const chunk_serial_data &chunk_data);
+
+        /** Returns the chunk's unique VBO index */
+        int getVboIndex() const;
+
+        /** Sets the chunk's unique VBO index */
+        void setVboIndex(int index);
+
+        /** Returns true if the chunk is dirty (marked for redraw) */
+        bool isChunkDirty() const;
+
+        /** Sets the chunk as dirty (for redraw) */
+        void setChunkDirty();
+        
+        /** Sets the chunk as clean (after redraw) */
+        void setChunkClean();
     protected:
     private:
-        TileId tileData[256];  // 16x16 chunk
         _cell cellData[256];   // 16x16 chunk
+
+        bool vboDirty = true;       // If dirty then we update the chunk (when tiles change)
+        int vboIndex;               // Marker of where in VBO buffer the chunk data starts
+        
+        int chunkID;                // Unique ID for the chunk
+        static int nextID;
 };
 
 class _world
@@ -307,10 +334,19 @@ class _world
          * Initializes the world by loading tile textures and generating the initial chunks.
          * 
          * @param loadWorld If true world is loaded and NOT generated
+         * @param lightManager Pointer to the scene owned light manager (non-owning)
          */
-        void initWorld(bool loadWorld, _lightManager* lightManager);
+        void initWorld(bool loadWorld, const world_config &_configuration, _lightManager* lightManager);
 
-        // Draw function for world
+        /**
+         * Draw function for the world. 
+         * The entries are required for chunk culling to keep draw count to only what is literally visible.
+         * 
+         * @param left World position min X value
+         * @param right World position max X value
+         * @param top World position max Y value
+         * @param bottom World position min Y value
+         */
         void drawWorld(float left, float right, float top, float bottom);
 
         /**
@@ -432,17 +468,24 @@ class _world
 
         level_pos getLevelFromPos(const Vec2f &pos) const;
 
+        /**
+         * @param _world_config Configuration file for the world generation / loading
+         */
+        void importWorldConfiguration(const world_config &_world_config);
+        
         // Sets the view projection matrix
         static void setViewProjectionMatrix(const glm::mat4 &_viewProjectionMatrix);
 
         // Sets the camera position
         static void setCameraPosition(const Vec2f &_cameraPosition);
-        
 
         bool DEBUG_displayChunkBorders = false; // When enabled puts a red border around chunks
     protected:
     private:
+        // -- CONFIGURATION -- //
         bool worldInitialized = false;
+        world_config configuration;     // Configuration for the world generation
+        float worldBounds;              // Width from origin to edge of world
 
         // -- PARTICLE MANAGER -- //
         _particleManager* cellParticles = new _particleManager();
@@ -457,13 +500,6 @@ class _world
 
         _texture* tileAtlas = new _texture(); // Texture loader
 
-        /**
-         * This is the default number of renered chunks for the world. Starts at center and expands evenly outward as a cube 
-         * Would be better done as a sphere but cube is easier -- gives warning if # doesnt make an even cube
-         */
-        const int numStartingChunks = NUM_CHUNKS;
-        const float worldBounds = sqrt(numStartingChunks) * 16 * 16 * 0.5;
-
         // List of all possible tile types. This is a lookup table NOT the main storage array
         _tile world_tiles[256];  
         
@@ -473,8 +509,11 @@ class _world
         // Uses the tileNum to calculated the tex coords for each tile
         bool setTileInAtlas(int xIndex, int yIndex, _tile &tile);
 
-        // Builds a VBO for each chunk of all 256 tiles
-        void buildChunkVBO(_chunk* chunk);
+        /** Updates the world VBO based on culling entries */
+        void updateWorldVBO(float left, float right, float top, float bottom);
+
+        /** Sets all the chunk index values and marks them dirty so updateWorldVBO knows where to find them */
+        void buildWorldVBO(float left, float right, float top, float bottom);
 
         /*
             Main storage of world data. The world is made up of chunks (16x16 tiles) thus holding 256 tiles each.
@@ -487,10 +526,8 @@ class _world
         unordered_map<pair<int,int>, bool, PairHash> loadedChunks;
 
         // -- World Generation -- //
-        vector<uint8_t> world_noise;
-
-        float noise_distribution = 0.60;  // 0-1 value for % of world that is walls as initial noise
-        float generation_iterations = 7; // Number of iterations to run the algorithm
+        vector<uint8_t> world_noise[NUM_LAYERS];    // Tile ID distribution of layers
+        vector<uint8_t> wet_noise;                  // Noise distribution to create wet/dry tiles
 
         // Converts an index into a coordinate position starting at TOP LEFT for (0,0) using grid
         Vec2i convertIndexToPos(int index, int width, int height);
@@ -505,7 +542,7 @@ class _world
         void finalizeWorld();
 
         // runs through all iterations of the world generation
-        void runWorldGeneration(int iterations);
+        void runWorldGeneration();
 
         /**
          * Maps a 3x3 grid of neighbor cells around the given cell
@@ -530,6 +567,24 @@ class _world
 
         float time = 0.0f;
         static Vec2f cameraPosition; 
+
+        GLuint vboID;
+        GLuint eboID;
+        GLuint vaoID;
+
+        GLuint tilesToDraw;  
+        
+        // How far we can be from prevDrawPos before calling another buildWorldVbo
+        const float maxRenderDistance = sqrt(NUM_RENDER_CHUNKS) * 0.33f * NUM_TILES_CHUNK_SQR * TILE_D;
+        
+        // How many chunks * how many tiles wide a chunk is * world length of a tile * 0.5
+        const float viewRange = sqrt(NUM_RENDER_CHUNKS) * NUM_TILES_CHUNK_SQR * TILE_D * 0.5f; 
+
+        // Number of render chunks * number of tiles per chunk * number of tile layers * 4 vertices per tile * 7 floats per vertex * bytes per float 
+        static constexpr int maxSizeBytes = NUM_RENDER_CHUNKS * NUM_TILES_CHUNK * NUM_LAYERS * 4 * 7 * sizeof(float);
+
+        // Previous position buildWorldVbo was called on (checked for distance)
+        Vec2f prevDrawPos = {-1.0f, -1.0f};  // Start negative to kick-start world rendering on first pass
 
         // -- DEBUGGING -- //
         

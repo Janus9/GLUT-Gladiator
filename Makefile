@@ -161,3 +161,8 @@ clean:
 	@echo "-- Debug folder cleaned successfully -- "
 	@Remove-Item $(BUILD_R_DIR)\*
 	@echo "-- Release folder cleaned successfully -- "
+	@Remove-Item $(BIN_D_DIR)\*
+	@echo "-- Debug Binaries cleaned successfully -- "
+	@Remove-Item $(BIN_R_DIR)\*
+	@echo "-- Release Binaries cleaned successfully -- "
+	

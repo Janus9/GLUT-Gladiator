@@ -150,7 +150,7 @@ void _bulletManager::updateBulletManager(double dt) {
         // World Collision Checks
         _cell* occupyingCell = world->getCellAtWorld(b->pos);
         if (occupyingCell) {
-            if (world->isTileWall(occupyingCell->tileId)) {
+            if (world->isCellWall(occupyingCell)) {
                 // Collision event
                 world->damageCell(occupyingCell,b->damage);
                 if (sounds) sounds->playSfx3D("BULLET_HIT_WALL",occupyingCell->pos);
