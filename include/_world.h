@@ -21,6 +21,7 @@
 #define NUM_TILES_CHUNK 256    // Number of tiles in a chunk
 #define NUM_TILES_CHUNK_SQR 16 // Number of tiles W/H in a chunk
 #define NUM_LAYERS 4           // Number of layers per cell 
+#define NUM_RENDER_CHUNKS 1024 // Number of chunks to render for the render distance (as a square so area)
 
 #include <_common.h>
 #include <_texture.h>
@@ -301,6 +302,9 @@ class _chunk
         /** Returns the chunk's unique VBO index */
         int getVboIndex() const;
 
+        /** Sets the chunk's unique VBO index */
+        void setVboIndex(int index);
+
         /** Returns true if the chunk is dirty (marked for redraw) */
         bool isChunkDirty() const;
 
@@ -315,8 +319,9 @@ class _chunk
 
         bool vboDirty = true;       // If dirty then we update the chunk (when tiles change)
         int vboIndex;               // Marker of where in VBO buffer the chunk data starts
-
-        static int nextIndex;
+        
+        int chunkID;                // Unique ID for the chunk
+        static int nextID;
 };
 
 class _world
@@ -504,7 +509,10 @@ class _world
         // Uses the tileNum to calculated the tex coords for each tile
         bool setTileInAtlas(int xIndex, int yIndex, _tile &tile);
 
-        /** Builds the world VBO based on culling entries */
+        /** Updates the world VBO based on culling entries */
+        void updateWorldVBO(float left, float right, float top, float bottom);
+
+        /** Sets all the chunk index values and marks them dirty so updateWorldVBO knows where to find them */
         void buildWorldVBO(float left, float right, float top, float bottom);
 
         /*
@@ -565,6 +573,15 @@ class _world
         GLuint vaoID;
 
         GLuint tilesToDraw;  
+        
+        // How far we can be from prevDrawPos before calling another buildWorldVbo
+        const float maxRenderDistance = sqrt(NUM_RENDER_CHUNKS) * 0.33f * NUM_TILES_CHUNK_SQR * TILE_D;
+        
+        // How many chunks * how many tiles wide a chunk is * world length of a tile * 0.5
+        const float viewRange = sqrt(NUM_RENDER_CHUNKS) * NUM_TILES_CHUNK_SQR * TILE_D * 0.5f; 
+
+        // Previous position buildWorldVbo was called on (checked for distance)
+        Vec2f prevDrawPos = {-1.0f, -1.0f};  // Start negative to kick-start world rendering on first pass
 
         // -- DEBUGGING -- //
         

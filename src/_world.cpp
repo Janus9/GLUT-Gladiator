@@ -49,13 +49,13 @@ bool _cell::isAlive() const {
 
 // Static //
 
-int _chunk::nextIndex = 0;
+int _chunk::nextID = 0;
 
 // Public //
 
 _chunk::_chunk() {
-    vboIndex = nextIndex;
-    nextIndex++;
+    chunkID = nextID;
+    nextID++;
 }
 
 _chunk::~_chunk() {
@@ -141,6 +141,10 @@ int _chunk::getVboIndex() const {
     return vboIndex;
 }
 
+void _chunk::setVboIndex(int index) {
+    vboIndex = index;
+}
+
 bool _chunk::isChunkDirty() const {
     return vboDirty;
 }
@@ -164,8 +168,8 @@ Vec2f _world::cameraPosition = {0.0f, 0.0f};
 
 void _world::debugPrint() {
 
-    size_t ChunkBytes = sizeof(_chunk) * worldChunks.size();
-    size_t TileBytes = sizeof(uint8_t) * worldChunks.size() * 256;
+    const size_t ChunkBytes = sizeof(_chunk) * worldChunks.size();
+    const size_t TileBytes = sizeof(uint8_t) * worldChunks.size() * NUM_TILES_CHUNK;
 
     Logger.LogInfo(" -- World Debug Print -- ", LOG_CONSOLE);
     Logger.LogInfo(
@@ -325,8 +329,8 @@ void _world::initWorld(bool loadWorld, const world_config &_configuration, _ligh
     glGenVertexArrays(1, &vaoID);
 
     // VBO //
-    // Number of total chunks * number of tiles per chunk * number of tile layers * 4 vertices per tile * 7 floats per vertex * bytes per float 
-    const int maxSizeBytes = configuration.num_chunks * NUM_TILES_CHUNK * NUM_LAYERS * 4 * 7 * sizeof(float);
+    // Number of render chunks * number of tiles per chunk * number of tile layers * 4 vertices per tile * 7 floats per vertex * bytes per float 
+    const int maxSizeBytes = NUM_RENDER_CHUNKS * NUM_TILES_CHUNK * NUM_LAYERS * 4 * 7 * sizeof(float);
 
     glBindBuffer(GL_ARRAY_BUFFER, vboID);
     glBufferData(GL_ARRAY_BUFFER,maxSizeBytes,nullptr,GL_STATIC_DRAW);
@@ -339,10 +343,10 @@ void _world::initWorld(bool loadWorld, const world_config &_configuration, _ligh
 
     // EBO //
     // (Number of total chunks) * (256 tiles per chunk) * (number of layers) * (6 indicies per tile)
-    vector<uint32_t> eboData(configuration.num_chunks * NUM_TILES_CHUNK * NUM_LAYERS * 6);
+    vector<uint32_t> eboData(NUM_RENDER_CHUNKS * NUM_TILES_CHUNK * NUM_LAYERS * 6);
     int vertexOffset = 0;
     int eIndex = 0;
-    for (int i = 0; i < configuration.num_chunks * NUM_TILES_CHUNK * NUM_LAYERS; i++) {
+    for (int i = 0; i < NUM_RENDER_CHUNKS * NUM_TILES_CHUNK * NUM_LAYERS; i++) {
         // Ebo (Two Triangles) //
         // Triangle 1
         eboData[eIndex++] = vertexOffset + 0; // BL   
@@ -598,8 +602,18 @@ bool _world::setTileInAtlas(int xIndex, int yIndex, _tile &tile) {
 
 void _world::drawWorld(float left, float right, float top, float bottom)
 {
+    const float middleX = (right - left) * 0.5f + left;
+    const float middleY = (top - bottom) * 0.5f + bottom;
+
+    const float distancePrevDraw = prevDrawPos.distance(Vec2f(middleX, middleY));
+
+    // Check if our render VBO needs to be rebuilt (negative checks are for kick-starting system)
+    if (distancePrevDraw > maxRenderDistance || distancePrevDraw < 0.0f) {
+        buildWorldVBO(left,right,top,bottom);
+    }
+
     // Build VBO data for drawing culled chunks in viewport range
-    buildWorldVBO(left,right,top,bottom);
+    updateWorldVBO(left,right,top,bottom);
    
     // Since its an atlas we only need one text bind. Each tile takes a snippit of the atlas
     glUseProgram(shader.getProgram());
@@ -620,7 +634,7 @@ void _world::drawWorld(float left, float right, float top, float bottom)
     const int maxChunkY = (int)ceil(top / (16 * TILE_H));
 
     constexpr GLsizei indicesPerChunk = NUM_TILES_CHUNK * 6;                        // How many indicies a chunk takes up
-    const GLsizei indicesPerLayer = indicesPerChunk * configuration.num_chunks;     // How many indicies an entire layer takes up 
+    const GLsizei indicesPerLayer = indicesPerChunk * NUM_RENDER_CHUNKS;     // How many indicies an entire layer takes up 
     
     glBindVertexArray(vaoID);
     
@@ -1130,18 +1144,18 @@ void _world::importWorldConfiguration(const world_config &_world_config) {
 
 // -- PRIVATE -- //
 
-void _world::buildWorldVBO(float left, float right, float top, float bottom) {
+void _world::updateWorldVBO(float left, float right, float top, float bottom) {
     // Calculate which chunks are visible
-    const int minChunkX = (int)floor(left / (16 * TILE_W));
-    const int maxChunkX = (int)ceil(right / (16 * TILE_W));
-    const int minChunkY = (int)floor(bottom / (16 * TILE_H));
-    const int maxChunkY = (int)ceil(top / (16 * TILE_H));
+    const int minChunkX = static_cast<int>(floor(left / (NUM_TILES_CHUNK_SQR * TILE_D)));
+    const int maxChunkX = static_cast<int>(ceil(right / (NUM_TILES_CHUNK_SQR * TILE_D)));
+    const int minChunkY = static_cast<int>(floor(bottom / (NUM_TILES_CHUNK_SQR * TILE_D)));
+    const int maxChunkY = static_cast<int>(ceil(top / (NUM_TILES_CHUNK_SQR * TILE_D)));
 
     const int numChunksToRender = (maxChunkX - minChunkX) * (maxChunkY - minChunkY);    // Total chunks in visible range
 
     // (Number of tiles in a chunk) * (7 floats per vertex) * (4 verticies per tile) * (bytes per float)
     constexpr GLsizei bytesPerChunk = NUM_TILES_CHUNK * 7 * 4 * sizeof(float); 
-    const GLsizei bytesPerLayer = configuration.num_chunks * bytesPerChunk; // How many bytes an entire layer takes up (sizeof chunk * how many)
+    const GLsizei bytesPerLayer = NUM_RENDER_CHUNKS * bytesPerChunk; // How many bytes an entire layer takes up (sizeof chunk * how many)
 
     glBindBuffer(GL_ARRAY_BUFFER, vboID);
 
@@ -1151,7 +1165,8 @@ void _world::buildWorldVBO(float left, float right, float top, float bottom) {
             _chunk* chunk = getChunkAt(chunkPos);
 
             if (!chunk) {
-                cout << "ERROR: Could not find chunk at (" << chunkX << ", " << chunkY << ")\n";
+                // cout << "ERROR: Could not find chunk at (" << chunkX << ", " << chunkY << ") for update VBO\n";
+                // Dont need errors, chunk is likely just out of bounds (end of world)
                 continue;
             }
             
@@ -1240,6 +1255,34 @@ void _world::buildWorldVBO(float left, float right, float top, float bottom) {
     
     // How many total tiles for draw command to draw
     tilesToDraw = numChunksToRender * NUM_TILES_CHUNK;
+}
+
+void _world::buildWorldVBO(float left, float right, float top, float bottom) {
+    const float middleX = (right - left) * 0.5f + left;
+    const float middleY = (top - bottom) * 0.5f + bottom;
+    
+    // Calculate which chunks are visible
+    const int minChunkX = static_cast<int>(floor((middleX - viewRange) / (16 * TILE_D)));
+    const int maxChunkX = static_cast<int>(ceil((middleX + viewRange) / (16 * TILE_D)));
+    const int minChunkY = static_cast<int>(floor((middleY - viewRange) / (16 * TILE_D)));
+    const int maxChunkY = static_cast<int>(ceil((middleY + viewRange) / (16 * TILE_D)));
+
+    int chunkIndex = 0;
+    for (int chunkY = minChunkY; chunkY < maxChunkY; chunkY++) {
+        for (int chunkX = minChunkX; chunkX < maxChunkX; chunkX++) {
+            _chunk* chunk = getChunkAt({chunkX, chunkY});
+
+            if (!chunk) {
+                // cout << "ERROR: Could not find chunk at (" << chunkX << ", " << chunkY << ") for build VBO\n";
+                // No error on this, if range is out of world view then skip
+                continue;
+            }
+
+            chunk->setVboIndex(chunkIndex);
+            chunk->setChunkDirty();
+            chunkIndex++;
+        }
+    }
 }
 
 void _world::runWorldGeneration() {
