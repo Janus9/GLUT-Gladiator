@@ -1590,20 +1590,21 @@ int _scene::winMsg(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     case WM_MOUSEWHEEL:
         if (inputDebugEnabled)
             Logger.LogDebug("Mouse Wheel: " + std::to_string((short)HIWORD(wParam)) + " at (" + std::to_string(LOWORD(lParam)) + ", " + std::to_string(HIWORD(lParam)) + ")", LOG_CONSOLE); // Log the amount of scroll and position of the mouse when the wheel is scrolled
-        if ((short)HIWORD(wParam) > 0)
-        {
+        if ((short)HIWORD(wParam) > 0) {
             // Scroll up
-            if (cameraZoom < 9.0f)
+            if (cameraZoom < 9.0f) {
                 cameraZoom++; // Zoom in by increasing the zoom factor
-        }
-        else if ((short)HIWORD(wParam) < 0)
-        {
-            const float maxZoom = cameraFree ? 1.0f : 3.0f;
-
-            // Scroll down
+            }
+        } else if ((short)HIWORD(wParam) < 0) {
+            const float maxZoom = cameraFree ? 0.05f : 3.0f;
             if (cameraZoom > maxZoom) {
-                cameraZoom--; // Zoom out by decreasing the zoom factor
+                if (cameraFree) {
+                    cameraZoom*=0.9f;
+                } else {
+                    cameraZoom--; // Zoom out by decreasing the zoom factor
+                }
             } 
+            // Scroll down
         }
 
         // cout << "Camera Level: " << cameraZoom << "\n";
