@@ -138,7 +138,8 @@ class _scene
 
         _lightSettings *myLight = new _lightSettings();     
         _model* myModel = new _model();
-        _world* myWorld = new _world();
+
+        std::unique_ptr<_world> myWorld = std::make_unique<_world>();
 
         _unit* testUnit = new _unit();
 

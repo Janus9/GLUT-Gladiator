@@ -501,7 +501,7 @@ class _world
         float worldBounds;              // Width from origin to edge of world
 
         // -- PARTICLE MANAGER -- //
-        _particleManager* cellParticles = new _particleManager();
+        std::unique_ptr<_particleManager> cellParticles;
         particle_effect wall_break_effect;
         particle_effect wall_damage_effect;
 

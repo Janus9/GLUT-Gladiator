@@ -3,7 +3,7 @@
 _scene::_scene() : rng(std::random_device{}())
 {
     // Test world configuration //
-    world_configuration.num_chunks = 65536;
+    world_configuration.num_chunks = 4096;
 
     world_configuration.outer_cutoff = 0.8f;
     world_configuration.middle_cutoff = 0.5f;
@@ -42,9 +42,6 @@ _scene::~_scene()
 
     delete myModel;
     myModel = nullptr;
-
-    delete myWorld;
-    myWorld = nullptr;
 
     delete fpsTimer;
     fpsTimer = nullptr;
@@ -239,7 +236,7 @@ void _scene::initScene(bool loadWorld)
     drawWorldBenchmark.startBenchmark();
     drawEnemiesBenchmark.startBenchmark();
 
-    if(!loadWorld) enemyManager->initEnemyManager(player.get(), myWorld, bulletManager.get(), soundManager, lightManager.get(), textureManager.get(),pickupManager.get());
+    if(!loadWorld) enemyManager->initEnemyManager(player.get(), myWorld.get(), bulletManager.get(), soundManager, lightManager.get(), textureManager.get(),pickupManager.get());
     enemyManager->bullet_1 = &turret_bullet;
     enemyManager->bullet_2 = &gatling_bullet;
 
@@ -280,7 +277,7 @@ void _scene::initScene(bool loadWorld)
 
 
     // -- BULLETS -- //
-    bulletManager->initBulletManager("images/test_bullet.png", myWorld, player.get(), enemyManager.get(), soundManager, lightManager.get());
+    bulletManager->initBulletManager("images/test_bullet.png", myWorld.get(), player.get(), enemyManager.get(), soundManager, lightManager.get());
     
     // Player //
     player_bullet.amount = 1;
@@ -375,7 +372,7 @@ void _scene::initScene(bool loadWorld)
         player->setMaxHealth(200.0f);
         
         std::uniform_real_distribution<float> player_pos_neg_dist(-1.0f,1.0f);           // Coin flip for positive vs negative side
-        std::uniform_real_distribution<float> player_pos_dist_neg(-bounds*0.85f,-bounds*0.95f);  // Distribution for negative side
+        std::uniform_real_distribution<float> player_pos_dist_neg(-bounds*0.95f,-bounds*0.85f);  // Distribution for negative side
         std::uniform_real_distribution<float> player_pos_dist_pos(bounds*0.85f,bounds*0.95f);    // Distribution for positive side
         bool lookingForSpawn = true;
         while (lookingForSpawn)
@@ -829,7 +826,7 @@ bool _scene::loadSceneFromFile(const std::string &fileName) {
 
     // Setup enemy manager before adding enemies
     setupTextures();
-    enemyManager->initEnemyManager(player.get(), myWorld, bulletManager.get(), soundManager, lightManager.get(), textureManager.get(), pickupManager.get());
+    enemyManager->initEnemyManager(player.get(), myWorld.get(), bulletManager.get(), soundManager, lightManager.get(), textureManager.get(), pickupManager.get());
 
     std::vector<enemy_serial_data> enemy_data;
     enemy_data.resize(enemy_count);

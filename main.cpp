@@ -41,7 +41,7 @@ bool LMB = false;			// Left mouse button held
 
 // CLASS INSTANCE DECLARATIONS //
 _logger Logger; //New instance of logger to be used in the program. Logger will be used to track specific values and print them to the console for debugging purposes
-_scene *myScene = new _scene();//handling memory to point to specific scene values. makes an instance of scene
+std::unique_ptr<_scene> myScene = std::make_unique<_scene>(); //handling memory to point to specific scene values. makes an instance of scene
 std::unique_ptr<_timerPlusPlus> timer = std::make_unique<_timerPlusPlus>();
 std::unique_ptr<_menuManager> menuManager = std::make_unique<_menuManager>();
 _sounds* sharedSounds = new _sounds(); // Shared irrKlang engine used by both menus and scene
@@ -285,7 +285,7 @@ BOOL CreateGLWindow(char* title, int width, int height, int bits, bool fullscree
 	sharedSounds->registerSfx("MENU_CLICK", "sounds/menu_click.ogg", 0.6f);
 	sharedSounds->registerSfx("GAME_START", "sounds/level_start.ogg", 0.6f);
 
-	menuManager->initMenuManager(sharedSounds, myScene);
+	menuManager->initMenuManager(sharedSounds, myScene.get());
 	menuManager->loadMenu(MENU_HOME); 
 	sharedSounds->playBackgroundMusic("sounds/main_menu_music.ogg", 0.3f);
 	return TRUE;									// Success
@@ -440,6 +440,12 @@ int WINAPI WinMain(	HINSTANCE	hInstance,			// Instance
 		return 0;									// Quit If Window Was Not Created, Program is exited
 	}
 
+	int argc = 1;
+	char appName[] = "GLUT Gladiator";
+	char* argv[] = { appName, nullptr };
+
+	glutInit(&argc, argv);
+
 	while(!done)									// Loop That Runs While done=FALSE
         //Program will run in a while loop until the user states it is done
         //Parallel ideas interlinking together
@@ -590,8 +596,7 @@ int WINAPI WinMain(	HINSTANCE	hInstance,			// Instance
 
 	// Shutdown
 	KillGLWindow();									// Kill The Window
-	delete myScene;                                 // Scene first so it stops touching sharedSounds before we drop the engine
-	myScene = nullptr;
+	
 	delete sharedSounds;
 	sharedSounds = nullptr;
 	return (msg.wParam);							// Exit The Program. Program is then exited after the parameter has been fulfilled

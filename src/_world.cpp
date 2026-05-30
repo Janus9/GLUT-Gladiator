@@ -201,7 +201,7 @@ void _world::setCameraPosition(const Vec2f &_cameraPosition) {
 
 _world::_world()
 {
-    //ctor
+    cellParticles = std::make_unique<_particleManager>();
 }
 
 _world::~_world()
@@ -225,9 +225,6 @@ _world::~_world()
 
     delete initBenchmark;
     initBenchmark = nullptr;
-
-    delete cellParticles;
-    cellParticles = nullptr;
 
     chunkLookup.clear();
     loadedChunks.clear();
@@ -1074,6 +1071,12 @@ bool _world::isCellWall(const _cell* cell) const {
 
 bool _world::damageCell(_cell* cell, float amount) {
     if (!cell) return false;
+
+    if (cellParticles == nullptr) {
+        std::cerr << "ERROR: cellParticles is null\n";
+        return false;
+    }
+
     cell->impluseHealth(-amount); // Reverse sign since function expects healing
     cellParticles->spawnEffect(cell->pos, wall_damage_effect);
     if (!cell->isAlive()) {
@@ -1091,6 +1094,8 @@ bool _world::damageCell(_cell* cell, float amount) {
         }
         cellParticles->spawnEffect(cell->pos,wall_break_effect);
     }
+    
+    return true;
 }
 
 std::vector<chunk_serial_data> _world::exportSerializeWorld() const {

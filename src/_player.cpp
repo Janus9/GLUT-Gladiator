@@ -29,7 +29,7 @@ void _player::initPlayer(_lightManager* lightManager) {
     player_hit_effect.minRadius = 2.0f;
     player_hit_effect.maxRadius = 3.5f;
 
-    player_hit_effect.minLifeTime = 5.0f;
+    player_hit_effect.minLifeTime = 4.0f;
     player_hit_effect.maxLifeTime = 5.0f;
 
     player_hit_effect.minSpawnOffsetX = -3.0f;
@@ -38,7 +38,7 @@ void _player::initPlayer(_lightManager* lightManager) {
     player_hit_effect.maxSpawnOffsetY = 3.0f;
 
     player_hit_effect.minRotation = 30.0f;
-    player_hit_effect.minRotation = 180.0f;
+    player_hit_effect.maxRotation = 180.0f;
 
     player_hit_effect.hasFloor = true;
     player_hit_effect.floorOffset = -4.0f;
@@ -56,7 +56,7 @@ void _player::initPlayer(_lightManager* lightManager) {
     resupply_health_effect.maxRadius = 4.0f;
 
     resupply_health_effect.minLifeTime = 2.0f;
-    resupply_health_effect.maxRadius = 3.0f;
+    resupply_health_effect.maxLifeTime = 3.0f;
 
     resupply_health_effect.minSpawnOffsetX = -12.0f;
     resupply_health_effect.maxSpawnOffsetX = 12.0f;
@@ -83,7 +83,7 @@ void _player::initPlayer(_lightManager* lightManager) {
     resupply_ammo_effect.maxRadius = 4.0f;
 
     resupply_ammo_effect.minLifeTime = 2.0f;
-    resupply_ammo_effect.maxRadius = 3.0f;
+    resupply_ammo_effect.maxLifeTime = 3.0f;
 
     resupply_ammo_effect.minSpawnOffsetX = -12.0f;
     resupply_ammo_effect.maxSpawnOffsetX = 12.0f;

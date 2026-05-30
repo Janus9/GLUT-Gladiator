@@ -7,7 +7,7 @@ SHELL := cmd.exe
 # Compiler Flags
 CXX := g++ 
 R_FLAGS := -std=c++17 -O0  																							# Release Flags
-D_FLAGS := -std=c++17 -g -O0 																						# Debug Flags																		
+D_FLAGS := -std=c++17 -g -O0 -Wall -Wextra -D_GLIBCXX_DEBUG 		 												# Debug Flags																		
 INCLUDE := -Iinclude -isystem common/include -isystem C:/msys64/uctr64/include										# Headers
 LIB := -LC:/msys64/ucrt64/lib -Lcommon/lib -lglew32 -lfreeglut -lopengl32 -lglu32 -lwinmm -lgdi32  					# Libraries	    
 
@@ -148,11 +148,11 @@ $(BUILD_R_DIR): | $(BUILD_DIR)
 
 # Removes .o files
 clean:
-	@if exist $(BUILD_D_DIR) rd /s /q $(BUILD_D_DIR)
-	@echo -- Debug folder cleaned successfully --
-	@if exist $(BUILD_R_DIR) rd /s /q $(BUILD_R_DIR)
-	@echo -- Release folder cleaned successfully --
-	@if exist $(BIN_D_DIR) rd /s /q $(BIN_D_DIR)
+	@if exist bin\debug\*.o del /Q bin\debug\*.o
 	@echo -- Debug Binaries cleaned successfully --
 	@if exist $(BIN_R_DIR) rd /s /q $(BIN_R_DIR)
 	@echo -- Release Binaries cleaned successfully --
+	@if exist $(BUILD_D_DIR) rd /s /q $(BUILD_D_DIR)
+	@echo -- Debug build folder cleaned successfully --
+	@if exist $(BUILD_R_DIR) rd /s /q $(BUILD_R_DIR)
+	@echo -- Release build folder cleaned successfully --
