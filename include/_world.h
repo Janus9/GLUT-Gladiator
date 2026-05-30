@@ -580,6 +580,9 @@ class _world
         // How many chunks * how many tiles wide a chunk is * world length of a tile * 0.5
         const float viewRange = sqrt(NUM_RENDER_CHUNKS) * NUM_TILES_CHUNK_SQR * TILE_D * 0.5f; 
 
+        // Number of render chunks * number of tiles per chunk * number of tile layers * 4 vertices per tile * 7 floats per vertex * bytes per float 
+        static constexpr int maxSizeBytes = NUM_RENDER_CHUNKS * NUM_TILES_CHUNK * NUM_LAYERS * 4 * 7 * sizeof(float);
+
         // Previous position buildWorldVbo was called on (checked for distance)
         Vec2f prevDrawPos = {-1.0f, -1.0f};  // Start negative to kick-start world rendering on first pass
 

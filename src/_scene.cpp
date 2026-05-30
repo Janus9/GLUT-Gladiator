@@ -3,7 +3,7 @@
 _scene::_scene() : rng(random_device{}())
 {
     // Test world configuration //
-    world_configuration.num_chunks = 65536;
+    world_configuration.num_chunks = 4096;
 
     world_configuration.outer_cutoff = 0.8f;
     world_configuration.middle_cutoff = 0.5f;

@@ -329,9 +329,6 @@ void _world::initWorld(bool loadWorld, const world_config &_configuration, _ligh
     glGenVertexArrays(1, &vaoID);
 
     // VBO //
-    // Number of render chunks * number of tiles per chunk * number of tile layers * 4 vertices per tile * 7 floats per vertex * bytes per float 
-    const int maxSizeBytes = NUM_RENDER_CHUNKS * NUM_TILES_CHUNK * NUM_LAYERS * 4 * 7 * sizeof(float);
-
     glBindBuffer(GL_ARRAY_BUFFER, vboID);
     glBufferData(GL_ARRAY_BUFFER,maxSizeBytes,nullptr,GL_STATIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -1148,10 +1145,19 @@ void _world::importWorldConfiguration(const world_config &_world_config) {
 
 void _world::updateWorldVBO(float left, float right, float top, float bottom) {
     // Calculate which chunks are visible
-    const int minChunkX = static_cast<int>(floor(left / (NUM_TILES_CHUNK_SQR * TILE_D)));
-    const int maxChunkX = static_cast<int>(ceil(right / (NUM_TILES_CHUNK_SQR * TILE_D)));
-    const int minChunkY = static_cast<int>(floor(bottom / (NUM_TILES_CHUNK_SQR * TILE_D)));
-    const int maxChunkY = static_cast<int>(ceil(top / (NUM_TILES_CHUNK_SQR * TILE_D)));
+    const float middleX = (right - left) * 0.5f + left;
+    const float middleY = (top - bottom) * 0.5f + bottom;
+
+    // Calculate which chunks are visible
+    const int minChunkX = static_cast<int>(floor((middleX - viewRange) / (16 * TILE_D)));
+    const int maxChunkX = static_cast<int>(ceil((middleX + viewRange) / (16 * TILE_D)));
+    const int minChunkY = static_cast<int>(floor((middleY - viewRange) / (16 * TILE_D)));
+    const int maxChunkY = static_cast<int>(ceil((middleY + viewRange) / (16 * TILE_D)));
+
+    // const int minChunkX = static_cast<int>(floor(left / (NUM_TILES_CHUNK_SQR * TILE_D)));
+    // const int maxChunkX = static_cast<int>(ceil(right / (NUM_TILES_CHUNK_SQR * TILE_D)));
+    // const int minChunkY = static_cast<int>(floor(bottom / (NUM_TILES_CHUNK_SQR * TILE_D)));
+    // const int maxChunkY = static_cast<int>(ceil(top / (NUM_TILES_CHUNK_SQR * TILE_D)));
 
     const int numChunksToRender = (maxChunkX - minChunkX) * (maxChunkY - minChunkY);    // Total chunks in visible range
 
@@ -1243,10 +1249,15 @@ void _world::updateWorldVBO(float left, float right, float top, float bottom) {
                 const GLsizei offset = (chunk->getVboIndex() * bytesPerChunk) + (bytesPerLayer * layer);
 
                 glBufferSubData(GL_ARRAY_BUFFER, offset, bytesPerChunk, chunkVboData.data()); 
-                
+
+                if (offset + bytesPerChunk > maxSizeBytes) {
+                    cout << "ERROR: Buffer overflow of (" << offset + bytesPerChunk << "B) max (" << maxSizeBytes << "B)\n";
+                    cout << " - Index: " << chunk->getVboIndex() << "\n";
+                }
+
                 GLenum err = glGetError();
                 if (err != GL_NO_ERROR) {
-                    std::cout << "OpenGL error after tile glBufferData: " << err << "\n";
+                    cout << "OpenGL error after tile glBufferData: " << err << "\n";
                 }
             }
             chunk->setChunkClean(); // Mark chunk as "clean" to stop rebuilding buffer until dirty again
@@ -1259,15 +1270,28 @@ void _world::updateWorldVBO(float left, float right, float top, float bottom) {
     tilesToDraw = numChunksToRender * NUM_TILES_CHUNK;
 }
 
+// https://www.desmos.com/calculator/ac9qf6beyv //
 void _world::buildWorldVBO(float left, float right, float top, float bottom) {
     const float middleX = (right - left) * 0.5f + left;
     const float middleY = (top - bottom) * 0.5f + bottom;
+
+    cout << "Left(" << left << ") ----- Right(" << right << ")\n";
+    cout << "Top(" << top << ") ----- Bottom(" << bottom << ")\n";
     
     // Calculate which chunks are visible
     const int minChunkX = static_cast<int>(floor((middleX - viewRange) / (16 * TILE_D)));
-    const int maxChunkX = static_cast<int>(ceil((middleX + viewRange) / (16 * TILE_D)));
+    const int maxChunkX = static_cast<int>(floor((middleX + viewRange) / (16 * TILE_D)));
     const int minChunkY = static_cast<int>(floor((middleY - viewRange) / (16 * TILE_D)));
-    const int maxChunkY = static_cast<int>(ceil((middleY + viewRange) / (16 * TILE_D)));
+    const int maxChunkY = static_cast<int>(floor((middleY + viewRange) / (16 * TILE_D)));
+
+    const int numChunksToRender = (maxChunkX - minChunkX) * (maxChunkY - minChunkY);    // Total chunks in visible range
+    
+    cout << "Number of chunks to render: " << numChunksToRender << "\n";
+    cout << "View Range: " << viewRange << "\n";
+    cout << "View Middle: (" << middleX << ", " << middleY << ")\n";
+
+    cout << "minChunkX(" << minChunkX << ") ----- maxChunkX(" << maxChunkX << ")\n";
+    cout << "minChunkY(" << minChunkY << ") ----- maxChunkY(" << maxChunkY << ")\n";
 
     int chunkIndex = 0;
     for (int chunkY = minChunkY; chunkY < maxChunkY; chunkY++) {
@@ -1279,6 +1303,13 @@ void _world::buildWorldVBO(float left, float right, float top, float bottom) {
                 // No error on this, if range is out of world view then skip
                 continue;
             }
+
+            // if (chunk->getVboIndex() >= NUM_RENDER_CHUNKS) {
+            //     cout << "ERROR: Too many visible chunks for render buffer. "
+            //          << "chunkIndex=" << chunkIndex
+            //          << " max=" << NUM_RENDER_CHUNKS << "\n";
+            //     continue;
+            // }
 
             chunk->setVboIndex(chunkIndex);
             chunk->setChunkDirty();
