@@ -609,7 +609,9 @@ void _world::drawWorld(float left, float right, float top, float bottom)
 
     // Check if our render VBO needs to be rebuilt (negative checks are for kick-starting system)
     if (distancePrevDraw > maxRenderDistance || distancePrevDraw < 0.0f) {
+        cout << "Distance of: " << distancePrevDraw << " exceeded " << maxRenderDistance << " building world VBO!\n";
         buildWorldVBO(left,right,top,bottom);
+        prevDrawPos = {middleX, middleY};
     }
 
     // Build VBO data for drawing culled chunks in viewport range

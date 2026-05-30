@@ -21,7 +21,7 @@
 #define NUM_TILES_CHUNK 256    // Number of tiles in a chunk
 #define NUM_TILES_CHUNK_SQR 16 // Number of tiles W/H in a chunk
 #define NUM_LAYERS 4           // Number of layers per cell 
-#define NUM_RENDER_CHUNKS 1024 // Number of chunks to render for the render distance (as a square so area)
+#define NUM_RENDER_CHUNKS 256  // Number of chunks to render for the render distance (as a square so area)
 
 #include <_common.h>
 #include <_texture.h>
