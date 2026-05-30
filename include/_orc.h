@@ -70,8 +70,8 @@ class _orc : public _enemy {
     protected:
     private:
         struct OrcAnim {
-            string sprite;       // "WALK" | "ATTACK" | "HURT" | "DEATH"
-            string action;       // sprite_action name (e.g. "WALK_DOWN")
+            std::string sprite;       // "WALK" | "ATTACK" | "HURT" | "DEATH"
+            std::string action;       // sprite_action name (e.g. "WALK_DOWN")
             Vec2i  idleFrame = {0, 0};
         };
         OrcAnim animationTable[ORC_ACTION_COUNT];
@@ -88,7 +88,7 @@ class _orc : public _enemy {
         orc_action deathActionFor(orc_face f)  const;
 
         // Returns the sprite name ("WALK"/"ATTACK"/...) the action belongs to.
-        string spriteGroupFor(orc_action a) const;
+        std::string spriteGroupFor(orc_action a) const;
 };
 
 #endif // _ORC_H

@@ -1,6 +1,6 @@
 #include "_scene.h"
 
-_scene::_scene() : rng(random_device{}())
+_scene::_scene() : rng(std::random_device{}())
 {
     // Test world configuration //
     world_configuration.num_chunks = 65536;
@@ -69,7 +69,7 @@ void _scene::setSounds(_sounds *sounds)
 
 GLint _scene::initGL()
 {
-    cout << "Running Scene initGL Initialization ... \n";
+    std::cout << "Running Scene initGL Initialization ... \n";
 
     glClearColor(0.0, 0.0, 0.0, 1.0); // Intended to change the background color. 0001 is black
     glClearDepth(1.0);                // Gives depth to the environment by having color both in the front and back. Depth-test value
@@ -89,18 +89,18 @@ GLint _scene::initGL()
 void _scene::initScene(bool loadWorld)
 {
     if (sceneInitialized) {
-        cout << "WARNING: Scene already initialized, skipping\n";
+        std::cout << "WARNING: Scene already initialized, skipping\n";
         return;
     }
     // -- RNG SETUP -- //    
     if (!loadWorld) {
         seed = std::chrono::system_clock::now().time_since_epoch().count(); 
-        rng = mt19937(seed);
+        rng = std::mt19937(seed);
     }
 
     // -- CLASS INIT -- //
 
-    cout << "Running Scene Class Initialization ... \n";
+    std::cout << "Running Scene Class Initialization ... \n";
 
     inputTimer.reset();
     fpsTimer->reset();
@@ -374,9 +374,9 @@ void _scene::initScene(bool loadWorld)
         player->setHealth(200.0f);
         player->setMaxHealth(200.0f);
         
-        uniform_real_distribution<float> player_pos_neg_dist(-1.0f,1.0f);           // Coin flip for positive vs negative side
-        uniform_real_distribution<float> player_pos_dist_neg(-bounds*0.85f,-bounds*0.95f);  // Distribution for negative side
-        uniform_real_distribution<float> player_pos_dist_pos(bounds*0.85f,bounds*0.95f);    // Distribution for positive side
+        std::uniform_real_distribution<float> player_pos_neg_dist(-1.0f,1.0f);           // Coin flip for positive vs negative side
+        std::uniform_real_distribution<float> player_pos_dist_neg(-bounds*0.85f,-bounds*0.95f);  // Distribution for negative side
+        std::uniform_real_distribution<float> player_pos_dist_pos(bounds*0.85f,bounds*0.95f);    // Distribution for positive side
         bool lookingForSpawn = true;
         while (lookingForSpawn)
         {
@@ -442,7 +442,7 @@ void _scene::initScene(bool loadWorld)
     // Dont spawn enemies when world is loaded
     if (!loadWorld) {
         // Spawn default turrets //
-        uniform_real_distribution<float> turret_pos_dist(-bounds, bounds);
+        std::uniform_real_distribution<float> turret_pos_dist(-bounds, bounds);
         for (int i = 0; i < number_default_turrets; i++)
         {
             bool lookingForTurretSpawn = true;
@@ -462,7 +462,7 @@ void _scene::initScene(bool loadWorld)
     
         // Spawn gatling turrets //
         const float gatlingBounds = bounds * world_configuration.middle_cutoff;
-        uniform_real_distribution<float> gatling_pos_dist(-gatlingBounds, gatlingBounds);
+        std::uniform_real_distribution<float> gatling_pos_dist(-gatlingBounds, gatlingBounds);
         for (int i = 0; i < number_gatling_turrets; i++)
         {
             bool lookingForGatlingSpawn = true;
@@ -482,7 +482,7 @@ void _scene::initScene(bool loadWorld)
 
         // Spawn Orcs //
         const float orcBounds = bounds * world_configuration.outer_cutoff;
-        uniform_real_distribution<float> orc_pos_dist(-orcBounds, orcBounds);
+std::        uniform_real_distribution<float> orc_pos_dist(-orcBounds, orcBounds);
         for (int i = 0; i < number_orcs; i++)
         {
             bool lookingForOrcSpawn = true;
@@ -502,8 +502,8 @@ void _scene::initScene(bool loadWorld)
 
         // Spawn Vampire Minions //
         const float vampireBounds = bounds * world_configuration.outer_cutoff;
-        uniform_real_distribution<float> vamp_mini_pos_dist(-vampireBounds, vampireBounds);
-        uniform_real_distribution<float> vamp_type_dist(0.0f, 1.0f);
+        std::uniform_real_distribution<float> vamp_mini_pos_dist(-vampireBounds, vampireBounds);
+        std::uniform_real_distribution<float> vamp_type_dist(0.0f, 1.0f);
 
         for (int i = 0; i < number_vampire_minions; i++)
         {
@@ -533,7 +533,7 @@ void _scene::initScene(bool loadWorld)
         enemyManager->addEnemy({0.0f,0.0f},vampire_config);
         
         // Spawn Boss Minions //
-        uniform_real_distribution<float> vamp_mini_boss_pos_dist(-300, 300);
+        std::uniform_real_distribution<float> vamp_mini_boss_pos_dist(-300, 300);
         for (int i = 0; i < number_vampire_boss_minions; i++) {
             Vec2f spawnVampMiniPos = {vamp_mini_boss_pos_dist(rng), vamp_mini_boss_pos_dist(rng)};
             if (vamp_type_dist(rng) > 0.5f) {
@@ -550,11 +550,11 @@ void _scene::initScene(bool loadWorld)
         const int num_max_hp_pickups = 80;
         const int num_fire_rate_pickups = 80;
 
-        uniform_real_distribution<float> hp_pos_dist(-10000, 10000);
-        uniform_real_distribution<float> ammo_pos_dist(-10000, 10000);
-        uniform_real_distribution<float> speed_pos_dist(-6500, 6500);
-        uniform_real_distribution<float> max_hp_pos_dist(-5000, 5000);
-        uniform_real_distribution<float> fire_rate_pos_dist(-2000, 2000);
+        std::uniform_real_distribution<float> hp_pos_dist(-10000, 10000);
+        std::uniform_real_distribution<float> ammo_pos_dist(-10000, 10000);
+        std::uniform_real_distribution<float> speed_pos_dist(-6500, 6500);
+        std::uniform_real_distribution<float> max_hp_pos_dist(-5000, 5000);
+        std::uniform_real_distribution<float> fire_rate_pos_dist(-2000, 2000);
 
         // Hp Pickup Distribution //
         for (int i = 0; i < num_hp_pickups; i++)
@@ -632,11 +632,11 @@ void _scene::initScene(bool loadWorld)
     sceneInitialized = true;
 }
 
-bool _scene::saveSceneToFile(const string &fileName) {
-    cout << "Exporting game to save file: " << fileName << ".gg_world\n";
-    ofstream file(fileName + ".gg_world", ios::binary);     // Output as binary file
+bool _scene::saveSceneToFile(const std::string &fileName) {
+    std::cout << "Exporting game to save file: " << fileName << ".gg_world\n";
+    std::ofstream file(fileName + ".gg_world", std::ios::binary);     // Output as binary file
     if (!file) {
-        cerr << "ERROR: Cannot create output file for: " << fileName << "\n";
+        std::cerr << "ERROR: Cannot create output file for: " << fileName << "\n";
         return false;
     }
     // Header Data Write //
@@ -653,9 +653,9 @@ bool _scene::saveSceneToFile(const string &fileName) {
      */
     file.write(reinterpret_cast<const char*>(&seed),sizeof(seed));  // Seed
 
-    auto now = chrono::system_clock::now();
+    auto now = std::chrono::system_clock::now();
     auto duration = now.time_since_epoch(); 
-    const uint64_t seconds = chrono::duration_cast<chrono::seconds>(duration).count();
+    const uint64_t seconds = std::chrono::duration_cast<std::chrono::seconds>(duration).count();
     file.write(reinterpret_cast<const char*>(&seconds),sizeof(seconds)); // Time Stamp    
 
     const uint32_t version_id = WORLD_SAVE_VERSION;
@@ -670,31 +670,31 @@ bool _scene::saveSceneToFile(const string &fileName) {
     const char data_header[4] = {'W','R','L','D'};
     file.write(data_header,4); // Chunk Data Header ("WRLD")
 
-    vector<chunk_serial_data> world_data = myWorld->exportSerializeWorld();
+    std::vector<chunk_serial_data> world_data = myWorld->exportSerializeWorld();
     if (!world_data.empty()) {
-        cout << "Writing world data:\n"
+        std::cout << "Writing world data:\n"
              << " - Number of chunks: " << world_data.size() << "\n"
              << " - Size of world: " << world_data.size() * sizeof(chunk_serial_data) << " bytes\n";
         // This writes the contents of the entire vector to file
         file.write(reinterpret_cast<const char*>(world_data.data()), world_data.size() * sizeof(chunk_serial_data));
 
         if (!file) {
-            cout << "ERROR: Save failed to write the world data\n";
+            std::cout << "ERROR: Save failed to write the world data\n";
             return false;
         }
     } else {
-        cout << "ERROR: Size of world data is 0\n";
+        std::cout << "ERROR: Size of world data is 0\n";
     }
 
     // Enemy Data Write //
 
-    vector<enemy_serial_data> enemy_data = enemyManager->exportSerializedEnemies();
+    std::vector<enemy_serial_data> enemy_data = enemyManager->exportSerializedEnemies();
     if (enemy_data.empty()) {
-        cout << "ERROR: Enemy data is empty\n";
+        std::cout << "ERROR: Enemy data is empty\n";
         return false;
     }
 
-    cout << "Writing enemy data:\n"
+    std::cout << "Writing enemy data:\n"
          << " - Number of enemies: " << enemy_data.size() << "\n"
          << " - Size of enemies: " << enemy_data.size() * sizeof(enemy_serial_data) << " bytes\n";
 
@@ -706,13 +706,13 @@ bool _scene::saveSceneToFile(const string &fileName) {
 
     file.write(reinterpret_cast<const char*>(enemy_data.data()), enemy_data.size() * sizeof(enemy_serial_data)); // Enemy Data
     if (!file) {
-        cout << "ERROR: Save failed to write the enemy data\n";
+        std::cout << "ERROR: Save failed to write the enemy data\n";
         return false;
     }
 
     // Player Data Write //
 
-    cout << "Writing player data:\n"
+    std::cout << "Writing player data:\n"
          << " - Size of player: " << sizeof(player_serial_data) << " bytes\n";
 
     const char player_header[4] = {'P','L','Y','R'};
@@ -722,36 +722,36 @@ bool _scene::saveSceneToFile(const string &fileName) {
     file.write(reinterpret_cast<const char*>(&player_data), sizeof(player_data));
 
     if (!file) {
-        cout << "ERROR: Save failed to write the player data\n";
+        std::cout << "ERROR: Save failed to write the player data\n";
         return false;
     }
 
-    cout << "Finished game saving!\n"
+    std::cout << "Finished game saving!\n"
          << "Save Size: " << file.tellp() << " bytes\n";
 
     return true;
 }
 
-bool _scene::loadSceneFromFile(const string &fileName) {
-    cout << "Starting game import from: " << fileName + ".gg_world\n";
+bool _scene::loadSceneFromFile(const std::string &fileName) {
+    std::cout << "Starting game import from: " << fileName + ".gg_world\n";
 
-    ifstream file(fileName + ".gg_world", ios::binary);
+    std::ifstream file(fileName + ".gg_world", std::ios::binary);
     if (!file) {
-        cerr << "ERROR: Cannot open file: " << fileName << "\n";
+        std::cerr << "ERROR: Cannot open file: " << fileName << "\n";
         return false;
     }
 
     char header[2];
     file.read(header,2);
     if (header[0] != 'G' || header[1] != 'G') {
-        cout << "ERROR: Invalid file header\n";
+        std::cout << "ERROR: Invalid file header\n";
         return false;
     }
 
     uint32_t save_seed = 0;
     file.read(reinterpret_cast<char*>(&save_seed), sizeof(save_seed));      // Seed
     seed = save_seed;
-    rng = mt19937(seed);    // Set rng engine to seed
+    rng = std::mt19937(seed);    // Set rng engine to seed
 
     uint64_t time_stamp = 0;
     file.read(reinterpret_cast<char*>(&time_stamp), sizeof(time_stamp));    // Time Stamp
@@ -759,21 +759,21 @@ bool _scene::loadSceneFromFile(const string &fileName) {
     uint32_t version_id = 0;
     file.read(reinterpret_cast<char*>(&version_id), sizeof(version_id));    // Version ID
     if (version_id != WORLD_SAVE_VERSION) {
-        cout << "WARNING: World file version of " << version_id << " does not match current version of "
+        std::cout << "WARNING: World file version of " << version_id << " does not match current version of "
              << WORLD_SAVE_VERSION << " continuing with load but may fail\n";
     }    
 
     float game_id = 0;
     file.read(reinterpret_cast<char*>(&game_id), sizeof(game_id));    // Version ID
     if (game_id < GAME_VERSION) {
-        cout << "WARNING: Game file version of " << game_id << " does not match loaded version of the game "
+        std::cout << "WARNING: Game file version of " << game_id << " does not match loaded version of the game "
              << WORLD_SAVE_VERSION << " continuing with load but may fail\n";
     }  
 
     int32_t chunk_count = 0;
     file.read(reinterpret_cast<char*>(&chunk_count), sizeof(chunk_count));  // Chunk Count
     if (chunk_count <= 0) {
-        cout << "ERROR: Chunk Count of save " << fileName << " for " << chunk_count << "must be greater than 0\n";
+        std::cout << "ERROR: Chunk Count of save " << fileName << " for " << chunk_count << "must be greater than 0\n";
         return false;
     }
     world_configuration.num_chunks = chunk_count;
@@ -783,25 +783,25 @@ bool _scene::loadSceneFromFile(const string &fileName) {
     char data_header[4];
     file.read(data_header,4);    // Chunk Data Header
     if (data_header[0] != 'W' || data_header[1] != 'R' || data_header[2] != 'L' || data_header[3] != 'D') {
-        cout << "ERROR: Invalid chunk data header\n";
+        std::cout << "ERROR: Invalid chunk data header\n";
         return false;
     }
 
-    vector<chunk_serial_data> world_data;
+    std::vector<chunk_serial_data> world_data;
     world_data.resize(chunk_count);
     file.read(reinterpret_cast<char*>(world_data.data()), world_data.size() * sizeof(chunk_serial_data));
 
     if (!file) {
-        cout << "ERROR: Unable to read chunk data\n";
+        std::cout << "ERROR: Unable to read chunk data\n";
         return false;
     }
 
     if (world_data.empty()) {
-        cout << "ERROR: World data read is empty\n";
+        std::cout << "ERROR: World data read is empty\n";
         return false;
     }
 
-    cout << "Read world data:\n"
+    std::cout << "Read world data:\n"
          << " - Number of chunks: " << world_data.size() << "\n"
          << " - Size of world: " << world_data.size() * sizeof(chunk_serial_data) << " bytes\n";
 
@@ -814,40 +814,40 @@ bool _scene::loadSceneFromFile(const string &fileName) {
     char enemy_header[4];
     file.read(enemy_header,4);    // Enemy Data Header
     if (enemy_header[0] != 'E' || enemy_header[1] != 'N' || enemy_header[2] != 'M' || enemy_header[3] != 'Y') {
-        cout << "ERROR: Invalid enemy data header\n";
+        std::cout << "ERROR: Invalid enemy data header\n";
         return false;
     }
 
     uint32_t enemy_count = 0;
     file.read(reinterpret_cast<char*>(&enemy_count), sizeof(enemy_count));  // Enemy Count
 
-    cout << "Enemie count read: " << enemy_count << "\n";
+    std::cout << "Enemie count read: " << enemy_count << "\n";
 
     if (enemy_count == 0) {
-        cout << "WARNING: Enemy count is 0\n";
+        std::cout << "WARNING: Enemy count is 0\n";
     }
 
     // Setup enemy manager before adding enemies
     setupTextures();
     enemyManager->initEnemyManager(player.get(), myWorld, bulletManager.get(), soundManager, lightManager.get(), textureManager.get(), pickupManager.get());
 
-    vector<enemy_serial_data> enemy_data;
+    std::vector<enemy_serial_data> enemy_data;
     enemy_data.resize(enemy_count);
     file.read(reinterpret_cast<char*>(enemy_data.data()), enemy_data.size() * sizeof(enemy_serial_data));
 
     enemyManager->importSerializedEnemies(enemy_data);
 
     if (!file) {
-        cout << "ERROR: Unable to read chunk data\n";
+        std::cout << "ERROR: Unable to read chunk data\n";
         return false;
     }
 
     if (enemy_data.empty()) {
-        cout << "ERROR: Enemy data read is empty\n";
+        std::cout << "ERROR: Enemy data read is empty\n";
         return false;
     }
 
-    cout << "Read enemy data:\n"
+    std::cout << "Read enemy data:\n"
          << " - Number of enemies: " << enemy_data.size() << "\n"
          << " - Size of enemies: " << enemy_data.size() * sizeof(enemy_serial_data) << " bytes\n";
 
@@ -856,7 +856,7 @@ bool _scene::loadSceneFromFile(const string &fileName) {
     char player_header[4];
     file.read(player_header,4);    // Enemy Data Header
     if (player_header[0] != 'P' || player_header[1] != 'L' || player_header[2] != 'Y' || player_header[3] != 'R') {
-        cout << "ERROR: Invalid player data header\n";
+        std::cout << "ERROR: Invalid player data header\n";
         return false;
     }
 
@@ -865,11 +865,11 @@ bool _scene::loadSceneFromFile(const string &fileName) {
 
     player->importSerializedPlayer(player_data);
 
-    cout << "Read player data:\n"
+    std::cout << "Read player data:\n"
          << " - Size of player: " << sizeof(player_data) << " bytes\n";
 
 
-    cout << "Finished game import from: " << fileName + ".gg_world\n"
+    std::cout << "Finished game import from: " << fileName + ".gg_world\n"
          << " - Save Size: " << file.tellg() << " bytes\n";
 
     return true;
@@ -1027,14 +1027,14 @@ void _scene::updateScene(double dt, bool *keysArray)
         enemyManager->bossKilledEvent = false;
         gameEnded = true;
         gameWon = true;
-        cout << "GAME WON!\n";
+        std::cout << "GAME WON!\n";
     }
 
     if (player->playerLoseEvent) {
         player->playerLoseEvent = false;
         gameEnded = true;
         gameWon = false;
-        cout << "GAME LOST\n";
+        std::cout << "GAME LOST\n";
     }
 
     if (gameEnded) {
@@ -1064,7 +1064,7 @@ void _scene::updateScene(double dt, bool *keysArray)
     const float playerSpeed = player->movementSpeed;
 
     if (gameUnPausedEvent) {
-        cout << "Game un-paused!\n";
+        std::cout << "Game un-paused!\n";
         gameUnPausedEvent = false;
 
         const float distance = player->pos.distance({0.0f,0.0f});
@@ -1081,22 +1081,22 @@ void _scene::updateScene(double dt, bool *keysArray)
 
     switch (player->playerLevelEvent) {
         case PLAYER_EVENT_LEVEL_OUTER:
-            cout << "Player entered level: OUTER\n";
+            std::cout << "Player entered level: OUTER\n";
             soundManager->playBackgroundMusic("sounds/level_outer.wav",0.3f);
             player->playerLevelEvent = PLAYER_EVENT_LEVEL_NONE;
             break;
         case PLAYER_EVENT_LEVEL_MIDDLE:
-            cout << "Player entered level: MIDDLE\n";
+            std::cout << "Player entered level: MIDDLE\n";
             soundManager->playBackgroundMusic("sounds/level_middle.wav",0.3f);
             player->playerLevelEvent = PLAYER_EVENT_LEVEL_NONE;
             break;
         case PLAYER_EVENT_LEVEL_CENTER:
-            cout << "Player entered level: CENTER\n";
+            std::cout << "Player entered level: CENTER\n";
             soundManager->playBackgroundMusic("sounds/level_center.ogg",0.3f);
             player->playerLevelEvent = PLAYER_EVENT_LEVEL_NONE;
             break;
         case PLAYER_EVENT_LEVEL_BOSS:
-            cout << "Player entered level: BOSS\n";
+            std::cout << "Player entered level: BOSS\n";
             soundManager->playBackgroundMusic("sounds/level_boss.wav",0.15f);
             player->playerLevelEvent = PLAYER_EVENT_LEVEL_NONE;
             break;
@@ -1111,7 +1111,7 @@ void _scene::updateScene(double dt, bool *keysArray)
             myWorld->damageCell(hoveredCell, 25.0f);
             if (!hoveredCell->isAlive())
             {
-                cout << "BLOCK HAS BEEN MINED \n";
+                std::cout << "BLOCK HAS BEEN MINED \n";
                 hud->getHudSprite("PROGRESS_BAR")->getSprite()->stopAnimation(); // Mining finished, reset progress bar animation
                 soundManager->playSfx("MINE_COMPLETE");
             }
@@ -1417,15 +1417,15 @@ void _scene::updateScene(double dt, bool *keysArray)
 
     playerChunkPos = myWorld->worldToChunkPos(player->pos);
 
-    hud->getHudText("FPS")->setText("FPS: " + to_string(sceneFPS));
+    hud->getHudText("FPS")->setText("FPS: " + std::to_string(sceneFPS));
     hud->getHudText("PLAYER_POS")->setText("Position: " + player->pos.toString());
     hud->getHudText("CHUNK_POS")->setText("Chunk Position: " + playerChunkPos.toString());
     hud->getHudText("MOUSE_SCREEN")->setText("Mouse Screen Coords: " + mouseScreenPos.toString());
     hud->getHudText("MOUSE_WORLD")->setText("Mouse World Coords: " + mouseWorldPos.toString());
     hud->getHudText("MOUSE_NORMAL")->setText("Mouse Normal Coords: " + mouseNormalPos.toString());
-    hud->getHudText("PLAYER_HEALTH")->setText("HP: " + to_string(player->getHealth()));
-    hud->getHudText("PLAYER_AMMO")->setText("Ammo: " + to_string(player->magLevel) + " / " + to_string(player->magCapacity));
-    hud->getHudText("PLAYER_RESERVE")->setText("Reserve: " + to_string(player->reserveLevel) + " / " + to_string(player->reserveCapacity));
+    hud->getHudText("PLAYER_HEALTH")->setText("HP: " + std::to_string(player->getHealth()));
+    hud->getHudText("PLAYER_AMMO")->setText("Ammo: " + std::to_string(player->magLevel) + " / " + std::to_string(player->magCapacity));
+    hud->getHudText("PLAYER_RESERVE")->setText("Reserve: " + std::to_string(player->reserveLevel) + " / " + std::to_string(player->reserveCapacity));
     // const _tile* tile = myWorld->getTileAtWorld(player->pos);
 
     const _tile *tile = myWorld->getTileAtWorld(Vec2f(mouseWorldPos.x, mouseWorldPos.y));
@@ -1447,21 +1447,21 @@ void _scene::updateScene(double dt, bool *keysArray)
     }
     if (hoveredCell)
     {
-        hud->getHudText("CELL_HEALTH")->setText("Selected Cell Health: " + to_string(hoveredCell->getHealth()));
+        hud->getHudText("CELL_HEALTH")->setText("Selected Cell Health: " + std::to_string(hoveredCell->getHealth()));
     }
     if (hoveredChunk)
     {
-        string text_main = "Chunk Redraw: ";
-        string test_con = hoveredChunk->isChunkDirty() ? "TRUE" : "FALSE";
+        std::string text_main = "Chunk Redraw: ";
+        std::string test_con = hoveredChunk->isChunkDirty() ? "TRUE" : "FALSE";
         hud->getHudText("CHUNK_REDRAW")->setText(text_main + test_con);
     }
 }
 
 void _scene::debugPrint()
 {
-    Logger.LogDebug("World drawing took: " + to_string(drawWorldBenchmark.getAverageResult()) + "ms");
-    Logger.LogDebug("Enemy drawing took: " + to_string(drawEnemiesBenchmark.getAverageResult()) + "ms");
-    cout << "-- LEFT: " << left << "\n"
+    Logger.LogDebug("World drawing took: " + std::to_string(drawWorldBenchmark.getAverageResult()) + "ms");
+    Logger.LogDebug("Enemy drawing took: " + std::to_string(drawEnemiesBenchmark.getAverageResult()) + "ms");
+    std::cout << "-- LEFT: " << left << "\n"
          << "-- RIGHT: " << right << "\n"
          << "-- TOP: " << top << "\n"
          << "-- BOTTOM: " << bottom << "\n";

@@ -32,7 +32,7 @@ _orc::~_orc() {
 
 void _orc::initOrc(const _textureManager* sceneTextureManager) {
     if (!sceneTextureManager) {
-        cout << "ERROR: Cannot initialize the orc enemy as the texture is missing\n";
+        std::cout << "ERROR: Cannot initialize the orc enemy as the texture is missing\n";
         return;
     }
 
@@ -360,7 +360,7 @@ orc_action _orc::deathActionFor(orc_face f) const {
     }
 }
 
-string _orc::spriteGroupFor(orc_action a) const {
+std::string _orc::spriteGroupFor(orc_action a) const {
     if (a >= ORC_WALK_DOWN  && a <= ORC_WALK_RIGHT)   return "WALK";
     if (a >= ORC_ATTACK_DOWN && a <= ORC_ATTACK_RIGHT) return "ATTACK";
     if (a >= ORC_HURT_DOWN  && a <= ORC_HURT_RIGHT)   return "HURT";

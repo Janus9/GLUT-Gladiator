@@ -25,12 +25,12 @@ void _hud::setHudViewportDimensions(double width, double height) {
     Wheight = height;
 }
 
-void _hud::addHudText(const string &name) {
+void _hud::addHudText(const std::string &name) {
     addHudElement(name, HUD_TEXT);
 }
 
-_hudText* _hud::getHudText(const string &name) const {
-    const string fullName = text_prefix + name;
+_hudText* _hud::getHudText(const std::string &name) const {
+    const std::string fullName = text_prefix + name;
     auto it = childrenMap.find(fullName);
     if (it == childrenMap.end()) {
         return nullptr;
@@ -40,8 +40,8 @@ _hudText* _hud::getHudText(const string &name) const {
     return dynamic_cast<_hudText*>(it->second);
 }
 
-void _hud::addHudElement(const string &name, elementType type) {
-    const string fullName = text_prefix + name;
+void _hud::addHudElement(const std::string &name, elementType type) {
+    const std::string fullName = text_prefix + name;
     // Look for element in the hashmap first (have to for adjusting Vector) -- Look in map first for O(1) lookup. Not found means we dont run O(n) vector check
     auto it = childrenMap.find(fullName);
     it = childrenMap.find(fullName);
@@ -59,7 +59,7 @@ void _hud::addHudElement(const string &name, elementType type) {
             }
         }
         if (!found) {
-            cerr << "WARNING: Element existed in childrenMap but not childrenList. They were desyncronized\n";
+            std::cerr << "WARNING: Element existed in childrenMap but not childrenList. They were desyncronized\n";
         }
     }
     switch (type) {
@@ -78,12 +78,12 @@ void _hud::addHudElement(const string &name, elementType type) {
     }
 }
 
-void _hud::addHudSprite(const string &name) {
+void _hud::addHudSprite(const std::string &name) {
     addHudElement(name, HUD_SPRITE);
 }
 
-bool _hud::removeHudElement(const string &name) {
-    const string fullName = text_prefix + name;
+bool _hud::removeHudElement(const std::string &name) {
+    const std::string fullName = text_prefix + name;
     auto it = childrenMap.find(fullName);
     if (it == childrenMap.end()) {
         return false;
@@ -92,7 +92,7 @@ bool _hud::removeHudElement(const string &name) {
     if (list_it != childrenList.end()) {
         childrenList.erase(list_it);
     } else {
-        cerr << "WARNING: Element existed in childrenMap but not childrenList. They were desyncronized\n";
+        std::cerr << "WARNING: Element existed in childrenMap but not childrenList. They were desyncronized\n";
     }
 
     delete it->second;
@@ -101,8 +101,8 @@ bool _hud::removeHudElement(const string &name) {
     return true;
 }
 
-_hudSprite* _hud::getHudSprite(const string &name) const {
-    const string fullName = text_prefix + name;
+_hudSprite* _hud::getHudSprite(const std::string &name) const {
+    const std::string fullName = text_prefix + name;
     auto it = childrenMap.find(fullName);
     if (it == childrenMap.end()) {
         return nullptr;
@@ -216,7 +216,7 @@ void _hudText::setFont(void* _font) {
     font = _font;
 }
 
-void _hudText::setText(const string &_text) {
+void _hudText::setText(const std::string &_text) {
     text = _text;
     
     size.x = getTextWidth();  // Set the width
@@ -268,7 +268,7 @@ int _hudText::getTextHeight() const {
     return 0;
 }
 
-const string& _hudText::getText() const {
+const std::string& _hudText::getText() const {
     return text;
 }
 

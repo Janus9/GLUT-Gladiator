@@ -33,7 +33,7 @@ class _fob : public _unit {
         _lightManager* sceneLightManager = nullptr; // Pointer to existing light manager instance (non-owning)
         _sounds* sceneSoundManager = nullptr;            // Pointer to existing sound maanger instance (non-owning)
 
-        unique_ptr<_particleManager> particleManager = make_unique<_particleManager>();
+        std::unique_ptr<_particleManager> particleManager = std::make_unique<_particleManager>();
         particle_effect death_1_effect;
         particle_effect death_2_effect;
         particle_effect death_3_effect;

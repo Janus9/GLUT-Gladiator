@@ -8,18 +8,18 @@ _shader::~_shader() {
     cleanUp();
 }
 
-string _shader::loadFile(const string &fileName) {
+std::string _shader::loadFile(const std::string &fileName) {
     const size_t BUFFER_SIZE = 1024;
     char buffer[BUFFER_SIZE];
-    ifstream file(fileName);
-    string str;
+    std::ifstream file(fileName);
+    std::string str;
     if (!file) {
-        cerr << "Error opening file: " << fileName << "\n";
+        std::cerr << "Error opening file: " << fileName << "\n";
         return str;
     }
     while(file) {
         file.read(buffer,BUFFER_SIZE);  // Read BUFFER_SIZE into buffer
-        streamsize bytesRead = file.gcount();   // Returns how many bytes read (this is for end when we read partial buffer)
+        std::streamsize bytesRead = file.gcount();   // Returns how many bytes read (this is for end when we read partial buffer)
         if (bytesRead > 0) {
             str.append(buffer,(size_t)bytesRead); // Append the buffer, but buffer is fixed size so we specify how many bytes exactly
         }
@@ -28,7 +28,7 @@ string _shader::loadFile(const string &fileName) {
     return str;
 }
 
-uint32_t _shader::loadShader(const string &source, uint32_t mode) {
+uint32_t _shader::loadShader(const std::string &source, uint32_t mode) {
     uint32_t id;
 
     const char* c_source = source.c_str(); // source must be char* for API 
@@ -41,19 +41,19 @@ uint32_t _shader::loadShader(const string &source, uint32_t mode) {
 
     glGetShaderInfoLog(id,1024, NULL, error); // Error output for shader compilation
 
-    cout << "Shader Compilation Status: " << error << "\n";
+    std::cout << "Shader Compilation Status: " << error << "\n";
 
     return id;
 }
 
-void _shader::initShader(const string &vertShader, const string &fragShader) {
-    cout << "Loading Shader: " << vertShader << "\n";
+void _shader::initShader(const std::string &vertShader, const std::string &fragShader) {
+    std::cout << "Loading Shader: " << vertShader << "\n";
 
     // Load vertex shader
-    string source = loadFile(vertShader);
+    std::string source = loadFile(vertShader);
     vs = loadShader(source,GL_VERTEX_SHADER);
 
-    cout << "Loading Shader: " << fragShader << "\n";
+    std::cout << "Loading Shader: " << fragShader << "\n";
 
     // Load fragment shader
     source = loadFile(fragShader);

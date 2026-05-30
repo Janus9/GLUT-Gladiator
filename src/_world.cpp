@@ -186,7 +186,7 @@ void _world::debugPrint() {
         + " (" + std::to_string(TileBytes/1000000) + "MB)", 
         LOG_CONSOLE);
 
-    Logger.LogInfo("Tiles to Draw: " + to_string(tilesToDraw),LOG_CONSOLE);
+    Logger.LogInfo("Tiles to Draw: " + std::to_string(tilesToDraw),LOG_CONSOLE);
     
     Logger.LogInfo("------------------------", LOG_CONSOLE);
 }
@@ -242,7 +242,7 @@ void _world::initWorld(bool loadWorld, const world_config &_configuration, _ligh
     configuration = _configuration;
 
     if (worldInitialized) {
-        cout << "WARNING: World has already been initialized, skipping\n";
+        std::cout << "WARNING: World has already been initialized, skipping\n";
         return;
     }
 
@@ -250,13 +250,13 @@ void _world::initWorld(bool loadWorld, const world_config &_configuration, _ligh
 
     // Setup seed + rng engine 
     seed = std::chrono::system_clock::now().time_since_epoch().count(); 
-    rng = mt19937(seed);
+    rng = std::mt19937(seed);
 
     // Chunk width/height * 16 tiles wide * 16 world units per tile / 2 
     worldBounds = sqrt(configuration.num_chunks) * 16.0f * 16.0f * 0.5f;
 
     // Logger.LogInfo("Initializing world for seed " + to_string(seed), LOG_BOTH);
-    Logger.LogInfo("World has " + to_string(configuration.num_chunks) + " starting chunks.", LOG_BOTH);
+    Logger.LogInfo("World has " + std::to_string(configuration.num_chunks) + " starting chunks.", LOG_BOTH);
 
     tileAtlas->loadTexture("images/set_1.png"); // Load the tile atlas texture
     // Reserve allocates memory but does not instantiate it -- resize allocates AND instantiates it (dont want that)
@@ -339,12 +339,12 @@ void _world::initWorld(bool loadWorld, const world_config &_configuration, _ligh
 
     GLenum errVbo = glGetError();
     if (errVbo != GL_NO_ERROR) {
-        cout << "ERROR: OpenGL error on world VBO: " << errVbo << "\n";
+        std::cout << "ERROR: OpenGL error on world VBO: " << errVbo << "\n";
     }
 
     // EBO //
     // (Number of total chunks) * (256 tiles per chunk) * (number of layers) * (6 indicies per tile)
-    vector<uint32_t> eboData(NUM_RENDER_CHUNKS * NUM_TILES_CHUNK * NUM_LAYERS * 6);
+    std::vector<uint32_t> eboData(NUM_RENDER_CHUNKS * NUM_TILES_CHUNK * NUM_LAYERS * 6);
     int vertexOffset = 0;
     int eIndex = 0;
     for (int i = 0; i < NUM_RENDER_CHUNKS * NUM_TILES_CHUNK * NUM_LAYERS; i++) {
@@ -367,7 +367,7 @@ void _world::initWorld(bool loadWorld, const world_config &_configuration, _ligh
     
     GLenum errEbo = glGetError();
     if (errEbo != GL_NO_ERROR) {
-        cout << "ERROR: OpenGL error on world EBO: " << errEbo << "\n";
+        std::cout << "ERROR: OpenGL error on world EBO: " << errEbo << "\n";
     }
 
     // VAO //
@@ -398,7 +398,7 @@ void _world::initWorld(bool loadWorld, const world_config &_configuration, _ligh
     double time = initBenchmark->getAverageResult();
 
     worldInitialized = true;
-    Logger.LogInfo("World initialization for " + to_string(worldChunks.size()) + "chunks took " + to_string(time) + "ms");
+    Logger.LogInfo("World initialization for " + std::to_string(worldChunks.size()) + "chunks took " + std::to_string(time) + "ms");
 }
 
 void _world::initTiles() {
@@ -591,7 +591,7 @@ bool _world::setTileInAtlas(int xIndex, int yIndex, _tile &tile) {
     // Right (Y)
     float v1 = v0 + (TILE_H / 320.0f);
 
-    Logger.LogDebug("Tile (" + to_string(xIndex) + ", " + to_string(yIndex) + " atlas coordinates: (" + to_string(u0) + ", " + to_string(v0) + ") to (" + to_string(u1) + ", " + to_string(v1) + ")", LOG_CONSOLE);
+    Logger.LogDebug("Tile (" + std::to_string(xIndex) + ", " + std::to_string(yIndex) + " atlas coordinates: (" + std::to_string(u0) + ", " + std::to_string(v0) + ") to (" + std::to_string(u1) + ", " + std::to_string(v1) + ")", LOG_CONSOLE);
 
     tile.u0 = u0;
     tile.v0 = v0;
@@ -691,14 +691,14 @@ void _world::postProcessWorld() {
 
     const int worldWidth = (int)sqrt(configuration.num_chunks)*16;
 
-    vector<uint8_t> world_noise_primary_copy(world_noise[LAYER_PRIMARY]);
+    std::vector<uint8_t> world_noise_primary_copy(world_noise[LAYER_PRIMARY]);
 
-    uniform_int_distribution<uint8_t> boss_dist(TILE_FLOOR_BOSS_BLANK_1, TILE_FLOOR_BOSS_BLANK_2); 
-    uniform_int_distribution<uint8_t> outer_dist_dry(TILE_FLOOR_OUTER_BLANK_1_DRY, TILE_FLOOR_OUTER_BLANK_2_DRY); 
-    uniform_int_distribution<uint8_t> outer_dist_wet(TILE_FLOOR_OUTER_BLANK_1_WET, TILE_FLOOR_OUTER_BLANK_2_WET); 
-    uniform_int_distribution<uint8_t> middle_dist(TILE_FLOOR_OUTER_DEFAULT_1, TILE_FLOOR_OUTER_DEFAULT_2); 
-    uniform_int_distribution<uint8_t> inner_dist(TILE_FLOOR_INNER_DEFAULT_1, TILE_FLOOR_INNER_DEFAULT_2); 
-    uniform_real_distribution<float> dist(0.0f,1.0f);
+    std::uniform_int_distribution<uint8_t> boss_dist(TILE_FLOOR_BOSS_BLANK_1, TILE_FLOOR_BOSS_BLANK_2); 
+    std::uniform_int_distribution<uint8_t> outer_dist_dry(TILE_FLOOR_OUTER_BLANK_1_DRY, TILE_FLOOR_OUTER_BLANK_2_DRY); 
+    std::uniform_int_distribution<uint8_t> outer_dist_wet(TILE_FLOOR_OUTER_BLANK_1_WET, TILE_FLOOR_OUTER_BLANK_2_WET); 
+    std::uniform_int_distribution<uint8_t> middle_dist(TILE_FLOOR_OUTER_DEFAULT_1, TILE_FLOOR_OUTER_DEFAULT_2); 
+    std::uniform_int_distribution<uint8_t> inner_dist(TILE_FLOOR_INNER_DEFAULT_1, TILE_FLOOR_INNER_DEFAULT_2); 
+    std::uniform_real_distribution<float> dist(0.0f,1.0f);
 
     // Positions (world units) where one biome ends and other begins
     const float innerCutoff = configuration.inner_cutoff * worldBounds;
@@ -1093,8 +1093,8 @@ bool _world::damageCell(_cell* cell, float amount) {
     }
 }
 
-vector<chunk_serial_data> _world::exportSerializeWorld() const {
-    vector<chunk_serial_data> world_data;
+std::vector<chunk_serial_data> _world::exportSerializeWorld() const {
+    std::vector<chunk_serial_data> world_data;
     for (int i = 0; i < configuration.num_chunks; i++) {
         const _chunk* chunk = &worldChunks[i];
         world_data.push_back(chunk->serializeChunk());
@@ -1102,7 +1102,7 @@ vector<chunk_serial_data> _world::exportSerializeWorld() const {
     return world_data;
 }
 
-void _world::importSerializeWorld(vector<chunk_serial_data> world_data) {
+void _world::importSerializeWorld(std::vector<chunk_serial_data> world_data) {
     for (int i = 0; i < world_data.size(); i++) {
         // Build chunk
         worldChunks.reserve(configuration.num_chunks);
@@ -1184,7 +1184,7 @@ void _world::updateWorldVBO(float left, float right, float top, float bottom) {
             for (uint8_t layer = 0; layer < NUM_LAYERS; layer++) {
 
                 // 256 tiles * 4 verticies * 7 floats per vertex
-                vector<float> chunkVboData(NUM_TILES_CHUNK * 4 * 7);
+                std::vector<float> chunkVboData(NUM_TILES_CHUNK * 4 * 7);
                 int vIndex = 0;
 
                 // For each tile of the chunk //
@@ -1250,13 +1250,13 @@ void _world::updateWorldVBO(float left, float right, float top, float bottom) {
                 glBufferSubData(GL_ARRAY_BUFFER, offset, bytesPerChunk, chunkVboData.data()); 
 
                 if (offset + bytesPerChunk > maxSizeBytes) {
-                    cout << "ERROR: Buffer overflow of (" << offset + bytesPerChunk << "B) max (" << maxSizeBytes << "B)\n";
-                    cout << " - Index: " << chunk->getVboIndex() << "\n";
+                    std::cout << "ERROR: Buffer overflow of (" << offset + bytesPerChunk << "B) max (" << maxSizeBytes << "B)\n";
+                    std::cout << " - Index: " << chunk->getVboIndex() << "\n";
                 }
 
                 GLenum err = glGetError();
                 if (err != GL_NO_ERROR) {
-                    cout << "OpenGL error after tile glBufferData: " << err << "\n";
+                    std::cout << "OpenGL error after tile glBufferData: " << err << "\n";
                 }
             }
             chunk->setChunkClean(); // Mark chunk as "clean" to stop rebuilding buffer until dirty again
@@ -1303,7 +1303,7 @@ void _world::buildWorldVBO(float left, float right, float top, float bottom) {
             }
 
             if (chunk->getVboIndex() >= NUM_RENDER_CHUNKS) {
-                cout << "ERROR: Too many visible chunks for render buffer. "
+                std::cout << "ERROR: Too many visible chunks for render buffer. "
                      << "chunkIndex=" << chunkIndex
                      << " max=" << NUM_RENDER_CHUNKS << "\n";
                 continue;
@@ -1327,9 +1327,9 @@ void _world::runWorldGeneration() {
     wet_noise.resize(configuration.num_chunks*256);                        // Wet tiles (run cellular automata w/ moore neighborhood)
     
     Logger.LogInfo("Running world generation for parameters: ");
-    Logger.LogInfo(" - Seed: " + to_string(seed));
+    Logger.LogInfo(" - Seed: " + std::to_string(seed));
 
-    uniform_real_distribution<float> dist(0.0f,1.0f);
+    std::uniform_real_distribution<float> dist(0.0f,1.0f);
     
     // World width/height in tiles
     int worldWidth = (int)sqrt(configuration.num_chunks)*16;
@@ -1345,7 +1345,7 @@ void _world::runWorldGeneration() {
     runCellularAutomata(configuration.wet_generation, wet_noise);
 
     // World modifications -- clear space in center for the boss //
-    vector<uint8_t> world_noise_copy(world_noise[LAYER_PRIMARY]);
+    std::vector<uint8_t> world_noise_copy(world_noise[LAYER_PRIMARY]);
     for (int i = 0; i < world_noise[LAYER_PRIMARY].size(); i++) {
         const int col = i % worldWidth;                                 // Which column
         const int row = i / worldWidth;                                 // Which row
@@ -1369,9 +1369,9 @@ void _world::runWorldGeneration() {
     finalizeWorld();
 }
 
-void _world::runCellularAutomata(const generation_config &config, vector<uint8_t> &cellData) {
+void _world::runCellularAutomata(const generation_config &config, std::vector<uint8_t> &cellData) {
     if (cellData.empty()) {
-        cerr << "ERROR: Cell data is empty, make sure array is initialized prior to running algorithm\n"; 
+        std::cerr << "ERROR: Cell data is empty, make sure array is initialized prior to running algorithm\n"; 
         return;
     }
 
@@ -1380,7 +1380,7 @@ void _world::runCellularAutomata(const generation_config &config, vector<uint8_t
     const uint32_t survivalReq = glm::clamp(config.survival_requirement,0u,8u);
     const uint32_t birthReq = glm::clamp(config.birth_requirement,0u,8u);
 
-    cout << "Running cellular automata algorithm for parameters:\n"
+    std::cout << "Running cellular automata algorithm for parameters:\n"
          << " - Alive Cell Distribution: " << rngDist * 100.0f << "%\n"
          << " - Number of Iterations: " << numIt << "\n"
          << " - Survival Requirement: " << survivalReq << " cells\n"
@@ -1390,19 +1390,19 @@ void _world::runCellularAutomata(const generation_config &config, vector<uint8_t
     // Check to ensure contents is a perfect square
     const int gridWidth = sqrt(cellData.size());
     if (gridWidth * gridWidth != static_cast<int>(cellData.size())) {
-        cerr << "ERROR: Cell data size must be a perfect square\n";
+        std::cerr << "ERROR: Cell data size must be a perfect square\n";
         return;
     }
 
     // Apply random noise into the cell data
-    uniform_real_distribution<float> dist(0.0f,1.0f);
+    std::uniform_real_distribution<float> dist(0.0f,1.0f);
     for (size_t i = 0; i < cellData.size(); i++) {
         cellData[i] = static_cast<uint8_t>(dist(rng) < rngDist);
     }
 
 
     for (uint32_t it = 0; it < numIt; it++) {
-        const vector<uint8_t> cellDataCopy(cellData);
+        const std::vector<uint8_t> cellDataCopy(cellData);
         
         for (int y = 0; y < gridWidth; y++) {
             for (int x = 0; x < gridWidth; x++) {

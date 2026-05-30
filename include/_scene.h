@@ -33,6 +33,9 @@
 #include <glm/gtc/matrix_transform.hpp>     // Matrix ops like transform, scale, ortho, etc
 #include <glm/gtc/type_ptr.hpp>             // Send GLM datatypes (matrix) to GPU
 
+#define TOML_HEADER_ONLY 0
+#include <toml.hpp>
+
 class _scene
 {
     public:
@@ -50,14 +53,14 @@ class _scene
          *
          * @return True if operation succeeded
          */
-        bool saveSceneToFile(const string &fileName);
+        bool saveSceneToFile(const std::string &fileName);
 
         /**
          * Runs a load command to load the world/player/enemies etc from a save file specified
          * 
          * @return True if operation succeeded
          */
-        bool loadSceneFromFile(const string &fileName);
+        bool loadSceneFromFile(const std::string &fileName);
 
         // Inject the shared sound engine (owned by main). Must be called before initScene().
         void setSounds(_sounds* sounds);
@@ -105,15 +108,15 @@ class _scene
         float top = 0.0f;
 
         // Player
-        unique_ptr<_player> player = make_unique<_player>();                        
+        std::unique_ptr<_player> player = std::make_unique<_player>();                        
         player_action action = PLAYER_ACTION_NULL;
         player_face face = PLAYER_FACE_NULL;
 
         // FOB //
-        unique_ptr<_fob> FOB = make_unique<_fob>();
+        std::unique_ptr<_fob> FOB = std::make_unique<_fob>();
 
         // Enemies
-        unique_ptr<_enemyManager> enemyManager = make_unique<_enemyManager>();
+        std::unique_ptr<_enemyManager> enemyManager = std::make_unique<_enemyManager>();
         enemy_config default_turret_config;
         enemy_config gatling_turret_config;
         enemy_config orc_config;
@@ -122,7 +125,7 @@ class _scene
         enemy_config vampire_minion2_config;
         
         // Bullets (Projectiles)
-        unique_ptr<_bulletManager> bulletManager = make_unique<_bulletManager>();
+        std::unique_ptr<_bulletManager> bulletManager = std::make_unique<_bulletManager>();
         _bullet_config player_bullet;
         _bullet_config turret_bullet;
         _bullet_config gatling_bullet;
@@ -131,7 +134,7 @@ class _scene
 
         // Texture Manager //
         void setupTextures();
-        unique_ptr<_textureManager> textureManager = make_unique<_textureManager>();
+        std::unique_ptr<_textureManager> textureManager = std::make_unique<_textureManager>();
 
         _lightSettings *myLight = new _lightSettings();     
         _model* myModel = new _model();
@@ -154,7 +157,7 @@ class _scene
         _shader* sh = new _shader();
 
         // Pickups //
-        unique_ptr<_pickupManager> pickupManager = make_unique<_pickupManager>();
+        std::unique_ptr<_pickupManager> pickupManager = std::make_unique<_pickupManager>();
         pickup_config health_pickup;
         pickup_config ammo_pickup;
         pickup_config speed_pickup;
@@ -214,7 +217,7 @@ class _scene
 
         // Rng machine
         uint32_t seed; 
-        mt19937 rng;
+        std::mt19937 rng;
 
         // GML Matrix //
         glm::mat4 sceneProjectionMatrix;
@@ -222,7 +225,7 @@ class _scene
         glm::mat4 sceneViewProjectionMatrix;
 
         // Lighting //
-        unique_ptr<_lightManager> lightManager = make_unique<_lightManager>();
+        std::unique_ptr<_lightManager> lightManager = std::make_unique<_lightManager>();
         light_config player_light;
         light_config boss_light;
         light_config fob_light;

@@ -11,7 +11,7 @@ _unit::_unit() {
 
 _unit::~_unit() {
     // dtor
-    unordered_map<string, _sprite*>::iterator it;
+    std::unordered_map<std::string, _sprite*>::iterator it;
 
     // The map and list hold REFERENCES not the actual data objects. if we clear them w/o deleting all the elements first then
     // we have a mem leak.
@@ -25,9 +25,9 @@ _unit::~_unit() {
     spriteList.clear();
 }
 
-void _unit::setupSprite(const string &spriteName) {
+void _unit::setupSprite(const std::string &spriteName) {
     // Look for element in the hashmap first (have to for adjusting Vector) -- Look in map first for O(1) lookup. Not found means we dont run O(n) vector check
-    unordered_map<string, _sprite*>::iterator it;
+    std::unordered_map<std::string, _sprite*>::iterator it;
     it = spriteMap.find(spriteName);
     if (it != spriteMap.end()) {
         // Found -- need to find inside vector
@@ -43,7 +43,7 @@ void _unit::setupSprite(const string &spriteName) {
             }
         }
         if (!found) {
-            cerr << "WARNING: Element existed in spriteMap but not spriteList. They are desyncronized\n";
+            std::cerr << "WARNING: Element existed in spriteMap but not spriteList. They are desyncronized\n";
         }
     }
     // Regardless if it was found or not we allow overwrites so we create a new one
@@ -96,9 +96,9 @@ void _unit::applyPhysics(double dt) {
     // cout << "Position: " << pos.toString() << "\n";
 }
 
-_sprite* _unit::getSprite(const string &spriteName) {
+_sprite* _unit::getSprite(const std::string &spriteName) {
     // Look for sprite in hashmap
-    unordered_map<string, _sprite*>::iterator it;
+    std::unordered_map<std::string, _sprite*>::iterator it;
     it = spriteMap.find(spriteName);
     if (it != spriteMap.end()) {
         return it->second;
@@ -108,7 +108,7 @@ _sprite* _unit::getSprite(const string &spriteName) {
 }
 
 void _unit::setCollisionBox(const Vec2f &size, const Vec2f &offset) {
-    collisionBox = make_unique<_collisionBound>();
+    collisionBox = std::make_unique<_collisionBound>();
     collisionBox->setSize(size);
     collisionBox->setLockedPosition(&pos);
     collisionBox->setPositionOffset(offset);
@@ -149,7 +149,7 @@ void _unit::buildUnitVBO(float* vboData, int &vIndex) const {
     }
 }
 
-const vector<_sprite*>& _unit::getSpriteList() const {
+const std::vector<_sprite*>& _unit::getSpriteList() const {
     return spriteList;
 }
 

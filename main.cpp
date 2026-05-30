@@ -42,8 +42,8 @@ bool LMB = false;			// Left mouse button held
 // CLASS INSTANCE DECLARATIONS //
 _logger Logger; //New instance of logger to be used in the program. Logger will be used to track specific values and print them to the console for debugging purposes
 _scene *myScene = new _scene();//handling memory to point to specific scene values. makes an instance of scene
-unique_ptr<_timerPlusPlus> timer = make_unique<_timerPlusPlus>();
-unique_ptr<_menuManager> menuManager = make_unique<_menuManager>();
+std::unique_ptr<_timerPlusPlus> timer = std::make_unique<_timerPlusPlus>();
+std::unique_ptr<_menuManager> menuManager = std::make_unique<_menuManager>();
 _sounds* sharedSounds = new _sounds(); // Shared irrKlang engine used by both menus and scene
 
 //An option to parallel-check each individual function would be loops to handle interrupts
@@ -167,7 +167,7 @@ BOOL CreateGLWindow(char* title, int width, int height, int bits, bool fullscree
 		
 		hCursor = LoadCursorFromFile("cursor/normal.cur");
 		if (hCursor == NULL) {
-			cout << "ERROR: cannot load cursor!\n";
+			std::cout << "ERROR: cannot load cursor!\n";
 		}
 		SetCursor(hCursor);
 		ShowCursor(TRUE);									
@@ -358,7 +358,7 @@ LRESULT CALLBACK WndProc(	HWND	hWnd,			// Handle For This Window
 		{
 			keys[wParam] = TRUE;					// If So, Mark It As TRUE
 			if (wParam == VK_ESCAPE && menuManager->getLoadedMenu() == MENU_GAME) {
-				cout << "Escape key pressed -- pausing game!\n";
+				std::cout << "Escape key pressed -- pausing game!\n";
 				sharedSounds->playBackgroundMusic("sounds/main_menu_music.ogg", 0.3f);
 				menuManager->loadMenu(MENU_PAUSE);
 			}
@@ -475,7 +475,7 @@ int WINAPI WinMain(	HINSTANCE	hInstance,			// Instance
 			if (menuManager->getLoadedMenu() == MENU_GAME) {
 				if (menuManager->loadGame) {
 					// myScene->initGL();
-					cout << "ENTERING GAME MODE\n";
+					std::cout << "ENTERING GAME MODE\n";
 					timer->reset();
 					myScene->reSize(wWidth,wHeight);
 					menuManager->loadGame = false;

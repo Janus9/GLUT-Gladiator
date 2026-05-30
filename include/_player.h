@@ -164,8 +164,8 @@ class _player : public _unit {
         double shootTimeElapsed = 0.0;
 
         struct PlayerAnimationResult {
-            string sprite = ""; // Which sprite
-            string action = ""; // Which action (direction facing)
+            std::string sprite = ""; // Which sprite
+            std::string action = ""; // Which action (direction facing)
             Vec2i idleFrame = {0,0};
             bool valid = true;  // Wether action is valid (not null)
             
@@ -181,12 +181,12 @@ class _player : public _unit {
         // Gets animation with error checking + NULL handling
         PlayerAnimationResult getAnimationResult(player_action action, player_face face);
 
-        unique_ptr<_particleManager> particleManger = make_unique<_particleManager>();
+        std::unique_ptr<_particleManager> particleManger = std::make_unique<_particleManager>();
         particle_effect player_hit_effect;
         particle_effect resupply_health_effect;
         particle_effect resupply_ammo_effect;
 
-        unique_ptr<_sprite> navSprite = make_unique<_sprite>();
+        std::unique_ptr<_sprite> navSprite = std::make_unique<_sprite>();
 };
 
 #endif // _PLAYER_H

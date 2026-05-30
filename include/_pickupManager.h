@@ -33,7 +33,7 @@ class _pickupManager {
          * @param currentPlayer Player owned by scene to apply pickup attributes
          * @param currentLightManager Light manager owned by scene to apply lighting effects
          */
-        void initPickupManager(const string& fileName, int imageWidth, _player* currentPlayer, _lightManager* currentLightManager);
+        void initPickupManager(const std::string& fileName, int imageWidth, _player* currentPlayer, _lightManager* currentLightManager);
         
         /** Draw function */
         void drawPickups();
@@ -77,10 +77,10 @@ class _pickupManager {
             bool alive;
         };
 
-        vector<_pickup> pickupList;
+        std::vector<_pickup> pickupList;
 
         _player* player = nullptr;  // Pointer to player instance in scene (non-owning) 
-        unique_ptr<_particleManager> particleManager = make_unique<_particleManager>();
+        std::unique_ptr<_particleManager> particleManager = std::make_unique<_particleManager>();
 
         // Rendering //
         void buildVBO();
@@ -104,7 +104,7 @@ class _pickupManager {
         _lightManager* sceneLightManager;   // Pointer to light manager in scene (non-owning)
 
         // Rng machine
-        mt19937 rng;   
+        std::mt19937 rng;   
 };
 
 #endif // _PICKUP_MANAGER_H

@@ -10,7 +10,7 @@ void _particleManager::setViewProjectionMatrix(const glm::mat4 &_viewProjectionM
 
 // -- PUBLIC -- //
 
-_particleManager::_particleManager() : rng(random_device{}()) {
+_particleManager::_particleManager() : rng(std::random_device{}()) {
     // ctor
 }
 
@@ -35,7 +35,7 @@ _particleManager::~_particleManager() {
     timer = nullptr;
 }
 
-void _particleManager::initParticleManager(const string& fileName, int _numImages, _lightManager* lightManager, int _maxParticles) {
+void _particleManager::initParticleManager(const std::string& fileName, int _numImages, _lightManager* lightManager, int _maxParticles) {
     maxParticles = _maxParticles;
     numImages = _numImages;
     sceneLightManager = lightManager;
@@ -122,20 +122,20 @@ void _particleManager::updateParticleManger(double dt) {
 }
 
 void _particleManager::spawnEffect(const Vec2f &pos, const particle_effect &effect) {
-    uniform_real_distribution<float> vel_x_dist(effect.minVelX, effect.maxVelX);
-    uniform_real_distribution<float> vel_y_dist(effect.minVelY, effect.maxVelY);
-    uniform_real_distribution<float> rot_dist(effect.minRotation, effect.maxRotation);
+    std::uniform_real_distribution<float> vel_x_dist(effect.minVelX, effect.maxVelX);
+    std::uniform_real_distribution<float> vel_y_dist(effect.minVelY, effect.maxVelY);
+    std::uniform_real_distribution<float> rot_dist(effect.minRotation, effect.maxRotation);
 
-    uniform_real_distribution<float> radius_dist(effect.minRadius, effect.maxRadius);
+    std::uniform_real_distribution<float> radius_dist(effect.minRadius, effect.maxRadius);
 
-    uniform_real_distribution<float> lifeTime_dist(effect.minLifeTime, effect.maxLifeTime);
+    std::uniform_real_distribution<float> lifeTime_dist(effect.minLifeTime, effect.maxLifeTime);
 
-    uniform_real_distribution<float> offset_x_dist(effect.minSpawnOffsetX, effect.maxSpawnOffsetX);
-    uniform_real_distribution<float> offset_y_dist(effect.minSpawnOffsetY, effect.maxSpawnOffsetY);
+    std::uniform_real_distribution<float> offset_x_dist(effect.minSpawnOffsetX, effect.maxSpawnOffsetX);
+    std::uniform_real_distribution<float> offset_y_dist(effect.minSpawnOffsetY, effect.maxSpawnOffsetY);
 
-    uniform_real_distribution<float> wave_amp_dist(effect.waveAmplitudeMin, effect.waveAmplitudeMax);
-    uniform_real_distribution<float> wave_freq_dist(effect.waveFrequencyMin, effect.waveFrequencyMax);
-    uniform_real_distribution<float> wave_off_dist(0.0f, 2* PI);
+    std::uniform_real_distribution<float> wave_amp_dist(effect.waveAmplitudeMin, effect.waveAmplitudeMax);
+    std::uniform_real_distribution<float> wave_freq_dist(effect.waveFrequencyMin, effect.waveFrequencyMax);
+    std::uniform_real_distribution<float> wave_off_dist(0.0f, 2* PI);
 
     int currentParticles = 0;
     for (int i = 0; i < maxParticles; i++) {

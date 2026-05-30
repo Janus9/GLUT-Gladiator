@@ -1,8 +1,7 @@
 #ifndef _TEXTURE_H
 #define _TEXTURE_H
 
-#include<_common.h>
-#include<SOIL2.h>
+#include <_common.h>
 
 /*
 Allows for loading textures from image files to be bound into textureIds, and stored in GPU memory.

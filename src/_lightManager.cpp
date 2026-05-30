@@ -42,7 +42,7 @@ bool _lightManager::addLight(const light_config &config) {
     return true;
 }
 
-bool _lightManager::removeLight(const string &ID) {
+bool _lightManager::removeLight(const std::string &ID) {
     auto it = lightIDMap.find(ID);
     if (it == lightIDMap.end()) {
         // Does not exist
@@ -96,7 +96,7 @@ void _lightManager::addProgram(GLuint program) {
     programMap[program] = newProgram;
 }
 
-Vec2f* _lightManager::getLightPosition(const string &ID) {
+Vec2f* _lightManager::getLightPosition(const std::string &ID) {
     auto it = lightIDMap.find(ID);
     if (it == lightIDMap.end()) {
         // Not found
@@ -105,7 +105,7 @@ Vec2f* _lightManager::getLightPosition(const string &ID) {
     return &lightPositions[it->second];
 }
 
-float* _lightManager::getLightRadius(const string &ID) {
+float* _lightManager::getLightRadius(const std::string &ID) {
     auto it = lightIDMap.find(ID);
     if (it == lightIDMap.end()) {
         // Not found
@@ -114,7 +114,7 @@ float* _lightManager::getLightRadius(const string &ID) {
     return &lightRadiuses[it->second];
 }
 
-float* _lightManager::getLightIntensity(const string &ID) {
+float* _lightManager::getLightIntensity(const std::string &ID) {
     auto it = lightIDMap.find(ID);
     if (it == lightIDMap.end()) {
         // Not found
@@ -123,7 +123,7 @@ float* _lightManager::getLightIntensity(const string &ID) {
     return &lightIntensities[it->second];
 }
 
-Col3f* _lightManager::getLightColor(const string &ID) {
+Col3f* _lightManager::getLightColor(const std::string &ID) {
     auto it = lightIDMap.find(ID);
     if (it == lightIDMap.end()) {
         // Not found

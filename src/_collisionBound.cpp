@@ -23,7 +23,7 @@ _collisionBound::~_collisionBound() {
 
 void _collisionBound::setLockedPosition(const Vec2f* _pos) {
     if (!_pos) {
-        cerr << "ERROR: _pos is nullptr\n";
+        std::cerr << "ERROR: _pos is nullptr\n";
         return;
     }
     posLocked = _pos;

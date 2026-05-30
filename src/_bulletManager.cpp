@@ -11,7 +11,7 @@ void _bulletManager::setViewProjectionMatrix(const glm::mat4 &_viewProjectionMat
 
 // -- PUBLIC -- //
 
-_bulletManager::_bulletManager() : rng(random_device{}()) {
+_bulletManager::_bulletManager() : rng(std::random_device{}()) {
     // ctor
 }
 
@@ -40,7 +40,7 @@ _bulletManager::~_bulletManager() {
     // no timers
 }
 
-void _bulletManager::initBulletManager(const string &fileName, _world* currentWorld, _player* currentPlayer, _enemyManager* currentEnemyManager, _sounds* currentSounds, _lightManager* lightManager) {
+void _bulletManager::initBulletManager(const std::string &fileName, _world* currentWorld, _player* currentPlayer, _enemyManager* currentEnemyManager, _sounds* currentSounds, _lightManager* lightManager) {
     // Generate new buffers
     glGenBuffers(1,&vboID);
     glGenBuffers(1,&eboID);
@@ -182,7 +182,7 @@ void _bulletManager::updateBulletManager(double dt) {
 void _bulletManager::spawnBulletEffect(const Vec2f &pos, const Vec2f &dest, _team bulletTeam, const _bullet_config &config) {
     int currentBullets = 0;
 
-    uniform_real_distribution<float> angle_dist(-config.angleOffset, config.angleOffset);
+    std::uniform_real_distribution<float> angle_dist(-config.angleOffset, config.angleOffset);
 
     float angleOffset = degreeToRad(angle_dist(rng)); // Radians
 

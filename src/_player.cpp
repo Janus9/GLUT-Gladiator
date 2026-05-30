@@ -377,7 +377,7 @@ void _player::updatePlayer(double dt) {
         reloadTimeElapsed += dt;
         if (reloadTimeElapsed >= reloadSpeed) {
             // reload finished //
-            cout << "Player reload finished\n";
+            std::cout << "Player reload finished\n";
             int numBulletsFromReserve = 0;  // How many bullets to put INTO the mag from reserve
             int numBulletsIntoMag = magCapacity - magLevel;  // How many bullets to put INTO the mag
             
@@ -455,8 +455,8 @@ void _player::setAction(player_action action, player_face face) {
     if (currentResult == animationTable[action][face]) return; // Skip result the same
     PlayerAnimationResult result = getAnimationResult(action,face);
     if (result.valid) {
-        string s_sprite = result.sprite;
-        string s_action = result.action;
+        std::string s_sprite = result.sprite;
+        std::string s_action = result.action;
         Vec2i idleFrame = result.idleFrame;
         
         _sprite* sprite = getSprite(s_sprite);
@@ -505,8 +505,8 @@ void _player::handlePlayerDeath(player_face face) {
     PlayerAnimationResult result = getAnimationResult(PLAYER_ACTION_DEATH_GUN,face);
     if (result.valid) {
         inDeathAnimation = true;
-        string s_sprite = result.sprite;
-        string s_action = result.action;
+        std::string s_sprite = result.sprite;
+        std::string s_action = result.action;
         Vec2i idleFrame = result.idleFrame;
         
         _sprite* sprite = getSprite(s_sprite);
@@ -600,7 +600,7 @@ void _player::resupply(float health, int ammo) {
 void _player::procReload() {
     if (reloading) return; // Early return on reloading for call saftey
     if (reserveLevel <= 0 || magLevel == magCapacity) return; // Early return, no bullets to reload or mag is full
-    cout << "Reload event started\n";
+    std::cout << "Reload event started\n";
     reloading = true;
 }
 

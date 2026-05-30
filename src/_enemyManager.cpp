@@ -131,7 +131,7 @@ void _enemyManager::setViewProjectionMatrix(const glm::mat4 &_viewProjectionMatr
 
 // -- PUBLIC -- //
 
-_enemyManager::_enemyManager() : rng(random_device{}()) {
+_enemyManager::_enemyManager() : rng(std::random_device{}()) {
     
 }
 
@@ -326,8 +326,8 @@ void _enemyManager::initEnemyManager(_player* currentPlayer, _world* currentWorl
 void _enemyManager::updateEnemies(double dt) {
     time += dt;
 
-    uniform_real_distribution<float> roll(0.0f,1.0f);
-    uniform_real_distribution<float> pos_dist(-8.0f,8.0f);
+    std::uniform_real_distribution<float> roll(0.0f,1.0f);
+    std::uniform_real_distribution<float> pos_dist(-8.0f,8.0f);
 
     // Iterate backwards to removal safety
     particleManager->updateParticleManger(dt);
@@ -341,7 +341,7 @@ void _enemyManager::updateEnemies(double dt) {
         // Kill enemy event //
         if (enemy->isDead() && enemy->deathTime > enemy->timeInDeathAnimation) {
             // Get a list of sprites registered to the enemy
-            const vector<_sprite*>& enemySpriteList = enemy->getSpriteList();
+            const std::vector<_sprite*>& enemySpriteList = enemy->getSpriteList();
             for (const auto &sprite : enemySpriteList) {
                 // For each sprite we remove it from the map
 
@@ -355,7 +355,7 @@ void _enemyManager::updateEnemies(double dt) {
                     auto mapIt = textureMap.find(textureID);
                     if (mapIt != textureMap.end()) {
                         // Texture map not empty -- remove
-                        vector<_sprite*> &spriteVector = mapIt->second;      // Pull vector out of the map
+                        std::vector<_sprite*> &spriteVector = mapIt->second;      // Pull vector out of the map
                         auto spriteIt = find(spriteVector.begin(),spriteVector.end(),sprite);
                         if (spriteIt != spriteVector.end()) {
                             spriteVector.erase(spriteIt);
@@ -637,7 +637,7 @@ void _enemyManager::drawEnemies() {
         for (auto it = textureMap.begin(); it != textureMap.end(); it++) {
 
             const GLuint textureID = it->first;                   // Texture ID
-            const vector<_sprite*> &spriteVector = it->second;    // List of sprites mapped to texture ID
+            const std::vector<_sprite*> &spriteVector = it->second;    // List of sprites mapped to texture ID
 
             // cout << "Texture ID: " << textureID << "\n";
             // cout << " - Num Sprites: " << spriteVector.size() << "\n";
@@ -649,7 +649,7 @@ void _enemyManager::drawEnemies() {
 
             // BUILD BATCH VBO //
             const int spriteBatchCount = spriteVector.size();
-            vector<float> vboData(spriteBatchCount * 7 * 4);
+            std::vector<float> vboData(spriteBatchCount * 7 * 4);
             int vIndex = 0;
 
             for (auto &sprite : spriteVector) {
@@ -662,7 +662,7 @@ void _enemyManager::drawEnemies() {
             glBufferData(GL_ARRAY_BUFFER, vboData.size() * sizeof(float), vboData.data(), GL_DYNAMIC_DRAW);
 
             // BUILD BATCH EBO //
-            vector<uint32_t> eboData(spriteBatchCount * 6);
+            std::vector<uint32_t> eboData(spriteBatchCount * 6);
             int vertexOffset = 0;
             int eIndex = 0;
 
@@ -703,30 +703,30 @@ void _enemyManager::drawEnemies() {
 }
 
 void _enemyManager::addEnemy(const Vec2f &_pos, const enemy_config &config) {
-    unique_ptr<_enemy> newEnemy;
+    std::unique_ptr<_enemy> newEnemy;
     if (config.type == ENEMY_ORC) {
-        unique_ptr<_orc> orc = make_unique<_orc>();
+        std::unique_ptr<_orc> orc = std::make_unique<_orc>();
         orc->initOrc(sceneTextureManager);
         newEnemy = move(orc);
     } else if (config.type == ENEMY_VAMPIRE) {
-        unique_ptr<_vampire> vampire = make_unique<_vampire>();
+        std::unique_ptr<_vampire> vampire = std::make_unique<_vampire>();
         vampire->initVampire(sceneTextureManager, VAMPIRE_BOSS);
         newEnemy = move(vampire);
     } else if (config.type == ENEMY_VAMPIRE_MINION1) {
-        unique_ptr<_vampire> vampire = make_unique<_vampire>();
+        std::unique_ptr<_vampire> vampire = std::make_unique<_vampire>();
         vampire->initVampire(sceneTextureManager, VAMPIRE_MINION1);
         newEnemy = move(vampire);
     } else if (config.type == ENEMY_VAMPIRE_MINION2) {
-        unique_ptr<_vampire> vampire = make_unique<_vampire>();
+        std::unique_ptr<_vampire> vampire = std::make_unique<_vampire>();
         vampire->initVampire(sceneTextureManager, VAMPIRE_MINION2);
         newEnemy = move(vampire);
     } else {
-        newEnemy = make_unique<_enemy>();
+        newEnemy = std::make_unique<_enemy>();
         newEnemy->initEnemy(config, sceneTextureManager);
     }
     newEnemy->pos = _pos;
 
-    const vector<_sprite*>& enemySpriteList = newEnemy->getSpriteList();
+    const std::vector<_sprite*>& enemySpriteList = newEnemy->getSpriteList();
     for (const auto &sprite : enemySpriteList) {
         const GLuint textureID = sprite->getTextureID();
         const int layer = sprite->getLayer(); 
@@ -740,8 +740,8 @@ void _enemyManager::addEnemy(const Vec2f &_pos, const enemy_config &config) {
     enemyList.push_back(move(newEnemy));
 }
 
-vector<enemy_serial_data> _enemyManager::exportSerializedEnemies() const {
-    vector<enemy_serial_data> enemy_data;
+std::vector<enemy_serial_data> _enemyManager::exportSerializedEnemies() const {
+    std::vector<enemy_serial_data> enemy_data;
     for (int i = 0; i < enemyList.size(); i++) {
         const _enemy* enemy = enemyList[i].get();
         if (enemy->inDeathAnimation || enemy->isDead()) continue; // Skip dead enemies
@@ -750,9 +750,9 @@ vector<enemy_serial_data> _enemyManager::exportSerializedEnemies() const {
     return enemy_data;
 }
 
-bool _enemyManager::importSerializedEnemies(const vector<enemy_serial_data> &enemy_data) {
+bool _enemyManager::importSerializedEnemies(const std::vector<enemy_serial_data> &enemy_data) {
     if (enemy_data.empty()) {
-        cout << "ERROR: Cannot import enemies as the data is empty\n";
+        std::cout << "ERROR: Cannot import enemies as the data is empty\n";
         return false;
     }
     enemyList.reserve(enemy_data.size());

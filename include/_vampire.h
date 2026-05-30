@@ -69,8 +69,8 @@ class _vampire : public _enemy {
 
     private:
         struct VampireAnim {
-            string sprite;     // "IDLE" | "WALK" | "ATTACK" | "HURT" | "DEATH"
-            string action;     // sprite_action name (e.g. "WALK_DOWN")
+            std::string sprite;     // "IDLE" | "WALK" | "ATTACK" | "HURT" | "DEATH"
+            std::string action;     // sprite_action name (e.g. "WALK_DOWN")
             Vec2i  idleFrame = {0, 0};
         };
         VampireAnim animationTable[VAMPIRE_ACTION_COUNT];
@@ -84,7 +84,7 @@ class _vampire : public _enemy {
         vampire_action hurtActionFor(vampire_face f)   const;
         vampire_action deathActionFor(vampire_face f)  const;
 
-        string spriteGroupFor(vampire_action a) const;
+        std::string spriteGroupFor(vampire_action a) const;
 };
 
 #endif // _VAMPIRE_H

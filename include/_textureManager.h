@@ -2,7 +2,6 @@
 #define _TEXTURE_MANAGER_H
 
 #include <_common.h>
-#include<SOIL2.h>
 
 struct texture_entry {
     GLuint ID = 0;          // Unique ID
@@ -23,7 +22,7 @@ class _textureManager {
          * @param fileName Image file to add to manager
          * @return True if texture was added successfully
          */
-        bool addTexture(const string &fileName);
+        bool addTexture(const std::string &fileName);
         
         /**
          * Removes a texture from the manager 
@@ -31,7 +30,7 @@ class _textureManager {
          * @param fileName Image file to remove from manager
          * @return True if image was removed successfully (false if not)
          */
-        bool removeTexture(const string &fileName);
+        bool removeTexture(const std::string &fileName);
         
         /**
          * Gets a texture entry from the manager
@@ -41,10 +40,10 @@ class _textureManager {
          * @param fileName Image file to get ID from
          * @return Texture entry containing texture ID, and dimensions
          */
-        texture_entry getTextureEntry(const string &fileName) const;
+        texture_entry getTextureEntry(const std::string &fileName) const;
     protected:
     private:
-        unordered_map<string, texture_entry> textureMap;   // Map of all the unique IDs (string is the file directory)
+        std::unordered_map<std::string, texture_entry> textureMap;   // Map of all the unique IDs (string is the file directory)
 };
 
 #endif // _TEXTURE_MANAGER_H

@@ -16,7 +16,7 @@ enum class sprite_direction {
 
 // Structure for a sprite action
 struct sprite_action {
-    string action_name = "";                // A name of the action for usage
+    std::string action_name = "";                // A name of the action for usage
     int frame_row_index = 0;                // Which row of the sprite sheet is being used
     // We use start/stop positions so we can use a partial row
     int frame_column_start_index = 0;       // The start location of a row for animation
@@ -35,12 +35,12 @@ struct sprite_action {
      * @param _frame_column_start_index Frame index animation starts at (min)
      * @param _frame_column_stop_index Frame index animation stops at (max)
      */
-    sprite_action(const string &_action_name, int _frame_row_index, int _frame_column_start_index, int _frame_column_stop_index) {
+    sprite_action(const std::string &_action_name, int _frame_row_index, int _frame_column_start_index, int _frame_column_stop_index) {
         // Name setter cant fail, so set on top
         action_name = _action_name;
         if (_frame_row_index < 0 || _frame_column_start_index < 0 || _frame_column_stop_index < 0) {
             // Ensure on creation we have valid indexes, cant bound check for positive values until inside the sprite
-            cerr << "ERROR: Values entered for " << action_name << "must be greater than 0\n";
+            std::cerr << "ERROR: Values entered for " << action_name << "must be greater than 0\n";
             return;
         }
         frame_row_index = _frame_row_index;
@@ -79,7 +79,7 @@ class _sprite {
          * @param direction Direction sprite sheet is facing
          * @param _FPS Animation rate (frames per second, default = 24)
          */
-        void initSprite(const string &fileName, int _framesX, int _framesY, const sprite_direction &direction, int _FPS = 24);
+        void initSprite(const std::string &fileName, int _framesX, int _framesY, const sprite_direction &direction, int _FPS = 24);
 
         /**
          * Initialize sprite from a loaded texture atlas.
@@ -97,7 +97,7 @@ class _sprite {
         void createSpriteAction(const sprite_action &action);
 
         // Removes a given sprite action from the list of sprite actions
-        void removeSpriteAction(const string &actionName);
+        void removeSpriteAction(const std::string &actionName);
         
         /**
          * Sets the current sprite action by name and sets the animation frames to start index
@@ -109,7 +109,7 @@ class _sprite {
          * @param actionName Name of action to load
          * @return true if action exists and was not already loaded
          */
-        bool loadSpriteAction(const string &actionName);
+        bool loadSpriteAction(const std::string &actionName);
         
         // Sets a direction for the sprite to face
         void setDirection(const sprite_direction &direction);
@@ -146,7 +146,7 @@ class _sprite {
          * 
          * @param actionName Name of action to play
          */
-        void playAction(const string &actionName);
+        void playAction(const std::string &actionName);
         
         // Sets a frame of the sheet to act as the "idle" for when stopAnimation is called
         void setIdleFrame(int _idleFrameX, int _idleFrameY);
@@ -245,10 +245,10 @@ class _sprite {
         int pixelDrawStart = 0; // Which Y pixel we start drawing at (0 is top of image)
         int pixelDrawStop = 0; // Which Y pixel we stop drawing at (pixelsY is bottom of image)
 
-        unique_ptr<_timerPlusPlus> animationTimer = make_unique<_timerPlusPlus>();
-        unique_ptr<_texture> texture = make_unique<_texture>();
+        std::unique_ptr<_timerPlusPlus> animationTimer = std::make_unique<_timerPlusPlus>();
+        std::unique_ptr<_texture> texture = std::make_unique<_texture>();
 
-        unordered_map<string, sprite_action> spriteActions; // List of actions that can be toggled for animation
+        std::unordered_map<std::string, sprite_action> spriteActions; // List of actions that can be toggled for animation
 
         sprite_action* currentAction = nullptr; // The current action we use in draw
 

@@ -130,17 +130,17 @@ class _enemyManager {
         // Adds a single enemy (only 1 type for now)
         void addEnemy(const Vec2f &_pos, const enemy_config &config);
 
-        // Returns a vector of all the serialized enemies for saving
-        vector<enemy_serial_data> exportSerializedEnemies() const;
+        // Returns a std::vector of all the serialized enemies for saving
+        std::vector<enemy_serial_data> exportSerializedEnemies() const;
         
         /**
-         * Reads a vector of serialized enemy data for import
+         * Reads a std::vector of serialized enemy data for import
          * 
          * @param enemy_data Vector of enemy data
          * 
          * @return True if operation was successful
          */
-        bool importSerializedEnemies(const vector<enemy_serial_data> &enemy_data);
+        bool importSerializedEnemies(const std::vector<enemy_serial_data> &enemy_data);
 
         /**
          * Checks if any enemy instance is colliding with the provided position
@@ -180,9 +180,9 @@ class _enemyManager {
 
         _sounds* sounds = nullptr;                  // Pointer to sounds instance instantiated in scene (non-owning)
 
-        vector<unique_ptr<_enemy>> enemyList;   // List of enemy instances
+        std::vector<std::unique_ptr<_enemy>> enemyList;   // List of enemy instances
 
-        unique_ptr<_particleManager> particleManager = make_unique<_particleManager>();
+        std::unique_ptr<_particleManager> particleManager = std::make_unique<_particleManager>();
         particle_effect turret_hit_effect;
         particle_effect turret_death_effect;
         particle_effect gatling_death_effect;
@@ -192,7 +192,7 @@ class _enemyManager {
         particle_effect gatling_bullet_casing;
 
         // -- SHADERS -- //
-        map<int, unordered_map<GLuint, vector<_sprite*>>> layerMap;
+        std::map<int, std::unordered_map<GLuint, std::vector<_sprite*>>> layerMap;
 
         uint32_t spriteCount = 0;   // TODO DOES NOTHING
 
@@ -212,7 +212,7 @@ class _enemyManager {
         float time = 0.0f;
 
         // Rng machine
-        mt19937 rng;   
+        std::mt19937 rng;   
 };
 
 #endif // _ENEMY_MANAGER_H

@@ -2,10 +2,10 @@
 #define _SOUNDS_H
 
 #include <_common.h>
-#include <SNDS/irrKlang.h>
+// #include <SNDS/irrKlang.h>
 #include <unordered_map>
 
-using namespace irrklang;
+// using namespace irrklang;
 
 class _sounds
 {
@@ -74,10 +74,10 @@ class _sounds
             float volume = 1.0f;
         };
 
-        ISoundEngine* engine = nullptr;
+        // ISoundEngine* engine = nullptr;
 
         // Music state
-        ISound* currentMusic = nullptr;
+        // ISound* currentMusic = nullptr;
         float targetVolume = 1.0f;
         float fadeDuration = 0.75f;
         float fadeElapsed = 0.0f;
@@ -85,14 +85,14 @@ class _sounds
 
         // Outgoing track during a crossfade. Ramped from fadeOutStartVolume → 0 over fadeDuration,
         // then stopped/dropped. Null when no crossfade is in progress.
-        ISound* fadingOutMusic = nullptr;
+        // ISound* fadingOutMusic = nullptr;
         float fadeOutStartVolume = 0.0f;
 
         // SFX registry
         std::unordered_map<std::string, SfxEntry> sfxRegistry;
         float sfxMasterVolume = 1.0f;
 
-        std::unordered_map<int, ISound*> loopedSfxActive;
+        // std::unordered_map<int, ISound*> loopedSfxActive;
 
         // 3D Audio Listener Position
         Vec2f listenerPos = {0.0f, 0.0f};

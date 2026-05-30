@@ -61,8 +61,8 @@ class _bulletManager {
          * @param fileName Name of file for bullet image
          * @param world Pointer to world where manager operates
          */
-        void initBulletManager(const string &fileName, _world* currentWorld, _player* currentPlayer, _enemyManager* currentEnemyManager, _sounds* currentSounds, _lightManager* lightManager);
-
+        void initBulletManager(const std::string &fileName, _world* currentWorld, _player* currentPlayer, _enemyManager* currentEnemyManager, _sounds* currentSounds, _lightManager* lightManager);
+       
         /**
          * Draw function
          */
@@ -141,7 +141,7 @@ class _bulletManager {
         static glm::mat4 viewProjectionMatrix;
         
         // Rng machine
-        mt19937 rng;
+        std::mt19937 rng;
 };
 
 #endif // _BULLET_MANAGER_H

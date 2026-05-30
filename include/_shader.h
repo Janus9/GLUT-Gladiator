@@ -15,7 +15,7 @@ class _shader {
          * 
          * @return string of data containing the shader code
          */
-        string loadFile(const string &fileName);
+        std::string loadFile(const std::string &fileName);
 
         /**
          * Loads a given shader of vertex or fragment into the GPU and returns an ID
@@ -26,7 +26,7 @@ class _shader {
          * 
          * @return unsigned int of the shader ID
          */
-        uint32_t loadShader(const string &source, uint32_t mode);
+        uint32_t loadShader(const std::string &source, uint32_t mode);
 
         /**
          * Initializes the the vertex and fragment shaders
@@ -35,7 +35,7 @@ class _shader {
          * 
          * @param fragShader Fragment Shader directory
          */
-        void initShader(const string &vertShader, const string &fragShader);
+        void initShader(const std::string &vertShader, const std::string &fragShader);
 
         // Cleans the shaders
         void cleanUp();

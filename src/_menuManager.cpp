@@ -7,7 +7,7 @@
 Vec2i _menuManager::windowDimensions = {0,0};
 
 void _menuManager::setWindowDimensions(const Vec2i &dim) {
-    cout << "Menu Manager dimensions resized to (" << dim.x << ", " << dim.y << ")\n";
+    std::cout << "Menu Manager dimensions resized to (" << dim.x << ", " << dim.y << ")\n";
     windowDimensions = dim;
 }
 
@@ -20,7 +20,7 @@ _menuManager::~_menuManager() {
 }
 
 void _menuManager::initMenuManager(_sounds* sharedSounds, _scene* _scene) {
-    cout << "Initializing the menu manager ...\n";
+    std::cout << "Initializing the menu manager ...\n";
 
     sounds = sharedSounds;
     scene = _scene;
@@ -270,33 +270,33 @@ void _menuManager::updateMenuManager(double dt, const Vec2f &mousePos, bool mous
     menu->updateMenu(dt,mousePos,mouseClicked,sounds);
 
     if (menu->generateWorldEvent) {
-        cout << "Generate World Event!\n";
+        std::cout << "Generate World Event!\n";
         menu->generateWorldEvent = false;
         // Dont load world as it gets generated
         scene->initScene(false);            // Setup scene to generate world
     }
     
     if (menu->loadWorldEvent) {
-        cout << "Load World Event!\n";
+        std::cout << "Load World Event!\n";
         menu->loadWorldEvent = false;
         if (!scene->loadSceneFromFile("saves/game")) {
-            cout << "ERROR: Save failed to load correctly\n";
+            std::cout << "ERROR: Save failed to load correctly\n";
             return;
         }
         scene->initScene(true);             // Setup scene to load world
     }
 
     if (menu->saveGameEvent) {
-        cout << "Save Game Event!\n";
+        std::cout << "Save Game Event!\n";
         menu->saveGameEvent = false;
         if (!scene->saveSceneToFile("saves/game")) {
-            cout << "ERROR: Failed to save game correctly\n";
+            std::cout << "ERROR: Failed to save game correctly\n";
             return;
         }
     }
 
     if (menu->endGameEvent) {
-        cout << "Exit Game Event!\n";
+        std::cout << "Exit Game Event!\n";
         menu->endGameEvent = false;
         closeGameEvent = true;
     }
@@ -525,7 +525,7 @@ void _menuManager::_menuObject::buildVAO() {
     glBindVertexArray(0);
 }
 
-string _menuManager::_menuObject::getID() const {
+std::string _menuManager::_menuObject::getID() const {
     return menuObjectID;
 }
 
@@ -560,7 +560,7 @@ void _menuManager::_menu::initMenu(menu_type _type) {
 }
 
 void _menuManager::_menu::addMenuObject(const menu_object_config &config) {
-    unique_ptr<_menuObject> newObject = make_unique<_menuObject>();
+    std::unique_ptr<_menuObject> newObject = std::make_unique<_menuObject>();
     newObject->initMenuObject(config);
     menuObjects.push_back(move(newObject));
 }
@@ -580,7 +580,7 @@ void _menuManager::_menu::updateMenu(double dt, const Vec2f &mousePos, bool mous
             if (sounds) sounds->playSfx("MENU_HOVER");
         }
         if (menuObject->getMouseState() && mouseClicked && timeSinceRedirect > 0.5) {
-            cout << "Mouse clicked on ID: " << menuObject->getID() << "\n";
+            std::cout << "Mouse clicked on ID: " << menuObject->getID() << "\n";
             if (menuObject->getID() == "saves_generate_button") {
                 generateWorldEvent = true;
             } else if (menuObject->getID() == "saves_load_button") {

@@ -31,17 +31,17 @@ enum menu_type {
  * @param size Size in % from 0-1 (Ex/ 0.5 is 50%)
  * @param pos Position of center (bottom-left is (0,0) and top right is (1,1))
  * @param hasMouseState Condition if object reacts to mouse or not (disable for backgrounds)
- * @param ID Unique string ID to lookup object by
+ * @param ID Unique std::string ID to lookup object by
  * @param parent Which menu owns this object
  * @param destination Which menu should we redirect to on mouse event? (Leave as MENU_NULL if no redirection)
  */
 struct menu_object_config {
-    string fileName;
+    std::string fileName;
     Vec2f size;
     Vec2f pos;
     bool hasMouseState;
 
-    string ID;
+    std::string ID;
     menu_type parent;
     menu_type destination = MENU_NULL;
 };
@@ -116,7 +116,7 @@ class _menuManager {
                 bool justEnteredHover() const;
 
                 // Returns the ID of the object
-                string getID() const;
+                std::string getID() const;
 
                 // Get parent of the menu object
                 menu_type getParent() const;
@@ -138,12 +138,12 @@ class _menuManager {
                 void buildEBO();
                 void buildVAO();
 
-                unique_ptr<_texture> texture = make_unique<_texture>();
+                std::unique_ptr<_texture> texture = std::make_unique<_texture>();
                 GLuint vboID = 0;
                 GLuint eboID = 0;
                 GLuint vaoID = 0;
 
-                unique_ptr<_shader> shader = make_unique<_shader>();
+                std::unique_ptr<_shader> shader = std::make_unique<_shader>();
 
                 GLint u_texture = -1;
                 GLint u_projection = -1;
@@ -151,7 +151,7 @@ class _menuManager {
                 GLint u_model = -1;
                 GLint u_isHovering = -1;
 
-                string menuObjectID;
+                std::string menuObjectID;
                 
                 menu_type parent;
                 menu_type destination;
@@ -199,7 +199,7 @@ class _menuManager {
                 bool endGameEvent = false;
             protected:
             private:
-                vector<unique_ptr<_menuObject>> menuObjects;
+                std::vector<std::unique_ptr<_menuObject>> menuObjects;
 
                 menu_type type;
 

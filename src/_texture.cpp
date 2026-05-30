@@ -1,5 +1,7 @@
 #include "_texture.h"
 
+#include <stb_image.h>
+
 _texture::_texture()
 {
     //ctor
@@ -25,7 +27,9 @@ GLuint _texture::loadTexture(const std::string& fileName)
     glGenTextures(1,&textID);               // Creates an OpenGL texture and stores the ID in textID
     glBindTexture(GL_TEXTURE_2D,textID);    // Makes the texture "active"
 
-    image = SOIL_load_image(fileName.c_str(),&width,&height,0,SOIL_LOAD_RGBA); 
+    int channels = 0;
+
+    image = stbi_load(fileName.c_str(),&width,&height,&channels,4); 
     if (!image) {
         Logger.LogError("Couldn't load texture: " + std::string(fileName), LOG_BOTH);
         glBindTexture(GL_TEXTURE_2D, 0);
@@ -34,7 +38,7 @@ GLuint _texture::loadTexture(const std::string& fileName)
     }
     // Logger.LogInfo("Loaded texture: " + std::string(fileName) + " with width: " + std::to_string(width) + " and height: " + std::to_string(height), LOG_BOTH);
     glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA,width,height,0,GL_RGBA,GL_UNSIGNED_BYTE,image); // Copies the image data into GPU memory
-    SOIL_free_image_data(image); // Free the image data from CPU memory since it's now in GPU memory
+    stbi_image_free(image); // Free the image data from CPU memory since it's now in GPU memory
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);

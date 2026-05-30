@@ -29,12 +29,12 @@ _vampire::~_vampire() {}
 
 void _vampire::initVampire(const _textureManager* sceneTextureManager, vampire_variant variant) {
     if (!sceneTextureManager) {
-        cout << "ERROR: Cannot initialize the vampire enemy as the texture is missing\n";
+        std::cout << "ERROR: Cannot initialize the vampire enemy as the texture is missing\n";
         return;
     }
 
     // -- Per-variant config -- //
-    string spritePrefix;
+    std::string spritePrefix;
     float  vScale, vBox, vMaxHP, vDamage, vReach, vSpeed, vPitch;
     enemy_type vType;
     switch (variant) {
@@ -412,7 +412,7 @@ vampire_action _vampire::deathActionFor(vampire_face f) const {
     }
 }
 
-string _vampire::spriteGroupFor(vampire_action a) const {
+std::string _vampire::spriteGroupFor(vampire_action a) const {
     if (a >= VAMPIRE_IDLE_DOWN   && a <= VAMPIRE_IDLE_RIGHT)   return "IDLE";
     if (a >= VAMPIRE_WALK_DOWN   && a <= VAMPIRE_WALK_RIGHT)   return "WALK";
     if (a >= VAMPIRE_ATTACK_DOWN && a <= VAMPIRE_ATTACK_RIGHT) return "ATTACK";

@@ -46,7 +46,7 @@ class _hudText : public _hudElement {
         void setFont(void* _font);
 
         // Sets text and automatically updates the size by the contents of the text and font
-        void setText(const string &_text);
+        void setText(const std::string &_text);
 
         // Returns the width of the current text content + font
         int getTextWidth() const;
@@ -54,10 +54,10 @@ class _hudText : public _hudElement {
         int getTextHeight() const;
 
         // Returns a readonly reference to the current text
-        const string& getText() const;
+        const std::string& getText() const;
     protected:
     private:
-        string text = ""; 
+        std::string text = ""; 
         void* font = GLUT_BITMAP_9_BY_15;
 };
 
@@ -102,7 +102,7 @@ class _hud {
          * 
          * @return True if found and removed. False if not found
          */
-        bool removeHudElement(const string &name);
+        bool removeHudElement(const std::string &name);
 
         // -- Hud Text -- //
 
@@ -114,7 +114,7 @@ class _hud {
          * 
          * @param name Name associated to new hud text for future lookups
          */
-        void addHudText(const string &name);
+        void addHudText(const std::string &name);
 
         /**
          * Looks up a hud text by name in the table
@@ -123,7 +123,7 @@ class _hud {
          * 
          * @return Pointer to the hud text or nullptr if not found
          */
-        _hudText* getHudText(const string &name) const;
+        _hudText* getHudText(const std::string &name) const;
 
         // -- Hud Sprite -- //
 
@@ -135,7 +135,7 @@ class _hud {
          * 
          * @param name Name associated to new hud sprite for future lookups
          */
-        void addHudSprite(const string &name);
+        void addHudSprite(const std::string &name);
 
         /**
          * Looks up a hud sprite by name in the table
@@ -144,7 +144,7 @@ class _hud {
          * 
          * @return Pointer to the hud sprite or nullptr if not found
          */
-        _hudSprite* getHudSprite(const string &name) const;
+        _hudSprite* getHudSprite(const std::string &name) const;
 
         // -- Other -- //
 
@@ -165,18 +165,18 @@ class _hud {
 
     protected:
     private:
-        vector<_hudElement*> childrenList; // For fast iterative looping 
-        unordered_map<string,_hudElement*> childrenMap; // For lookups
+        std::vector<_hudElement*> childrenList; // For fast iterative looping 
+        std::unordered_map<std::string,_hudElement*> childrenMap; // For lookups
 
         // Static Viewport Dimensions
         static double Wwidth;
         static double Wheight;
 
-        const string text_prefix = "TEXT_";  // Applied to name for the hashmap to prevent collisions with other hudElement variants
-        const string sprite_prefix = "SPRITE_";  // Applied to name for the hashmap to prevent collisions with other hudElement variants
+        const std::string text_prefix = "TEXT_";  // Applied to name for the hashmap to prevent collisions with other hudElement variants
+        const std::string sprite_prefix = "SPRITE_";  // Applied to name for the hashmap to prevent collisions with other hudElement variants
         
         enum elementType { HUD_SPRITE, HUD_TEXT };
-        void addHudElement(const string &name, elementType type);
+        void addHudElement(const std::string &name, elementType type);
 };
 
 #endif // _HUD_H

@@ -18,7 +18,7 @@ _sprite::~_sprite() {
     
 }
 
-void _sprite::initSprite(const string &fileName, int _framesX, int _framesY, const sprite_direction &direction, int _FPS) {
+void _sprite::initSprite(const std::string &fileName, int _framesX, int _framesY, const sprite_direction &direction, int _FPS) {
     texture->loadTexture(fileName);
     textureID = texture->textID;
 
@@ -26,7 +26,7 @@ void _sprite::initSprite(const string &fileName, int _framesX, int _framesY, con
     framesY = _framesY;
     
     if (framesX == 0 || framesY == 0) {
-        cerr << "ERROR: Sprite frames X/Y cannot be 0\n";
+        std::cerr << "ERROR: Sprite frames X/Y cannot be 0\n";
         return;
     }
 
@@ -51,7 +51,7 @@ void _sprite::initSprite(const texture_entry &texture, int _framesX, int _frames
     setTexture(texture);
 
      if (framesX == 0 || framesY == 0) {
-        cerr << "ERROR: Sprite frames X/Y cannot be 0\n";
+        std::cerr << "ERROR: Sprite frames X/Y cannot be 0\n";
         return;
     }
 
@@ -62,16 +62,16 @@ void _sprite::createSpriteAction(const sprite_action &action) {
     spriteActions[action.action_name] = action;
 }
 
-void _sprite::removeSpriteAction(const string &actionName) {
+void _sprite::removeSpriteAction(const std::string &actionName) {
     spriteActions.erase(actionName);
 }
 
-bool _sprite::loadSpriteAction(const string &actionName) {
+bool _sprite::loadSpriteAction(const std::string &actionName) {
     if (currentAction != nullptr && currentAction->action_name == actionName) {
         // Sprite action already loaded, no need to load it again
         return false;
     }
-    unordered_map<string, sprite_action>::iterator it;
+    std::unordered_map<std::string, sprite_action>::iterator it;
     it = spriteActions.find(actionName); 
     if (it != spriteActions.end()) {
         // Found
@@ -83,7 +83,7 @@ bool _sprite::loadSpriteAction(const string &actionName) {
         return true;
     } 
     // Not Found
-    cerr << "ERROR: Cannot load sprite action " << actionName << " as it does not exist\n";
+    std::cerr << "ERROR: Cannot load sprite action " << actionName << " as it does not exist\n";
     currentAction = nullptr;
     return false;
 }
@@ -225,10 +225,10 @@ void _sprite::drawSprite() {
             stopAnimation();
         } 
         if (debugging) {
-            cout << "DRAW for sprite ID: " << spriteID << "\n";
-            cout << "-------------------------------\n";
-            cout << "Frame Pos: (" << currentFrameX << ", " << currentFrameY << ")\n"; 
-            cout << "Pivot Point: (" << pivotPoint.x << "px, " << pivotPoint.y << "px)\n";
+            std::cout << "DRAW for sprite ID: " << spriteID << "\n";
+            std::cout << "-------------------------------\n";
+            std::cout << "Frame Pos: (" << currentFrameX << ", " << currentFrameY << ")\n"; 
+            std::cout << "Pivot Point: (" << pivotPoint.x << "px, " << pivotPoint.y << "px)\n";
         }
     }
 }
@@ -253,10 +253,10 @@ void _sprite::updateSprite(double dt) {
             stopAnimation();
         } 
         if (debugging) {
-            cout << "DRAW for sprite ID: " << spriteID << "\n";
-            cout << "-------------------------------\n";
-            cout << "Frame Pos: (" << currentFrameX << ", " << currentFrameY << ")\n"; 
-            cout << "Pivot Point: (" << pivotPoint.x << "px, " << pivotPoint.y << "px)\n";
+            std::cout << "DRAW for sprite ID: " << spriteID << "\n";
+            std::cout << "-------------------------------\n";
+            std::cout << "Frame Pos: (" << currentFrameX << ", " << currentFrameY << ")\n"; 
+            std::cout << "Pivot Point: (" << pivotPoint.x << "px, " << pivotPoint.y << "px)\n";
         }
     }
 }
@@ -266,7 +266,7 @@ bool _sprite::startAnimation() {
     if (playingAnimation) return false;
     if (currentAction == nullptr) {
         // If FPS is 0 then we prevent divide by 0 errors and block animations by setting the delay to an impossibly high value
-        cerr << "ERROR: Cannot activate animation as the currentAction is not selected\n";
+        std::cerr << "ERROR: Cannot activate animation as the currentAction is not selected\n";
         playingAnimation = false;
         return false;
     }
@@ -285,7 +285,7 @@ void _sprite::stopAnimation() {
     singleActionInProgress = false;
 }
 
-void _sprite::playAction(const string &actionName) {
+void _sprite::playAction(const std::string &actionName) {
     currentAction = nullptr; // Unload current action to force loadSpriteAction to start on beginning frame
     stopAnimation();
     loadSpriteAction(actionName);
@@ -296,7 +296,7 @@ void _sprite::playAction(const string &actionName) {
 void _sprite::setIdleFrame(int _idleFrameX, int _idleFrameY) {
     if (_idleFrameX < 0 || _idleFrameX >= framesX || _idleFrameY < 0 || _idleFrameY >= framesY) {
         // Frame is out of bounds and going to cause undefined behavior -- guard against it and default to 0,0
-        cerr << "ERROR: Idle frame is set out of bounds of tile atlas\n"
+        std::cerr << "ERROR: Idle frame is set out of bounds of tile atlas\n"
              << "- FrameX Set: " << _idleFrameX << "Min: 0 and Max: " << framesX-1 << "\n"
              << "- FrameY Set: " << _idleFrameY << "Min: 0 and Max: " << framesY-1 << "\n";        
         idleFrameX = 0;
@@ -314,8 +314,8 @@ int _sprite::getNumAction() const {
 void _sprite::setFPS(int _FPS) {
     if (_FPS <= 0) {
         FPS = 0;
-        fpsDelay = numeric_limits<double>::max();
-        cerr << "ERROR: FPS value of " << _FPS << "is less than or equal to 0. Must be positive and non-zero. Animation will not play until resolved.\n";
+        fpsDelay = std::numeric_limits<double>::max();
+        std::cerr << "ERROR: FPS value of " << _FPS << "is less than or equal to 0. Must be positive and non-zero. Animation will not play until resolved.\n";
         return;
     }
     FPS = _FPS;
@@ -330,15 +330,15 @@ void _sprite::setDrawBoundsExact(int _pixelDrawStart, int _pixelDrawStop) {
     if (_pixelDrawStart >= 0) {
         pixelDrawStart = _pixelDrawStart;
     } else {
-        cerr << "WARNING: Pixel amount entered was negative for _pixelDrawStart, setting to 0\n";
+        std::cerr << "WARNING: Pixel amount entered was negative for _pixelDrawStart, setting to 0\n";
         pixelDrawStart = 0;
     }
 
     if (_pixelDrawStop < _pixelDrawStart) {
-        cerr << "WARNING: Pixel amount entered was below _pixelDrawStart for _pixelDrawStop which cannot be drawn. Setting to _pixelDrawStart\n";
+        std::cerr << "WARNING: Pixel amount entered was below _pixelDrawStart for _pixelDrawStop which cannot be drawn. Setting to _pixelDrawStart\n";
         pixelDrawStop = pixelDrawStart;
     } else if (_pixelDrawStop > pixelsY-1) {
-        cerr << "WARNING: Pixel amount entered was above max of image for _pixelDrawStop which cannot be drawn. Setting to max of image\n";
+        std::cerr << "WARNING: Pixel amount entered was above max of image for _pixelDrawStop which cannot be drawn. Setting to max of image\n";
         pixelDrawStop = pixelsY-1; 
     } else {
         pixelDrawStop = _pixelDrawStop; 
@@ -437,7 +437,7 @@ void _sprite::setTexture(const texture_entry &texture) {
     textureID = texture.ID;
 
     if (framesX == 0 || framesY == 0) {
-        cerr << "ERROR: Sprite frames X/Y cannot be 0\n";
+        std::cerr << "ERROR: Sprite frames X/Y cannot be 0\n";
     }
 
     pixelsX = texture.width / framesX; 

@@ -24,7 +24,7 @@ class _unit {
          * 
          * @param spriteName Name for the sprite to be set. Used in getSprite(name)
          */
-        void setupSprite(const string &spriteName);
+        void setupSprite(const std::string &spriteName);
 
         /**
          * 
@@ -69,7 +69,7 @@ class _unit {
          * 
          * @return _sprite pointer or nullptr if never set
          */ 
-        _sprite* getSprite(const string &spriteName);
+        _sprite* getSprite(const std::string &spriteName);
 
         /**
          * Creates a collision box for the current object. Position is automatically locked to the unit's position.
@@ -172,7 +172,7 @@ class _unit {
         void buildUnitVBO(float* vboData, int &vIndex) const;
 
         /** Returns a reference to the unit's list of sprites (readonly) */
-        const vector<_sprite*>& getSpriteList() const;
+        const std::vector<_sprite*>& getSpriteList() const;
 
         /** Returns the number of sprites registered to the unit */
         int getNumSprites() const;
@@ -212,10 +212,10 @@ class _unit {
         float maxHealth = 100.0f;       // Max health unit can hold
 
         _sprite* singleSprite = nullptr;             // Pointer to single sprite if unit only draws on at a time (common)
-        vector<_sprite*> spriteList;                 // Vector for draw iteration
-        unordered_map<string,_sprite*> spriteMap;    // Hashmap for lookups
+        std::vector<_sprite*> spriteList;                 // Vector for draw iteration
+        std::unordered_map<std::string,_sprite*> spriteMap;    // Hashmap for lookups
 
-        unique_ptr<_collisionBound> collisionBox = nullptr;
+        std::unique_ptr<_collisionBound> collisionBox = nullptr;
 
         int unitID;
         static int nextID;

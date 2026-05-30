@@ -10,7 +10,7 @@ void _pickupManager::setViewProjectionMatrix(const glm::mat4 &_viewProjectionMat
 
 // -- PUBLIC -- //
 
-_pickupManager::_pickupManager() : rng(random_device{}()) {
+_pickupManager::_pickupManager() : rng(std::random_device{}()) {
     alivePickups = 0;
 }
 
@@ -29,13 +29,13 @@ _pickupManager::~_pickupManager() {
     }
 }
 
-void _pickupManager::initPickupManager(const string& fileName, int imageWidth, _player* currentPlayer, _lightManager* currentLightManager) {
+void _pickupManager::initPickupManager(const std::string& fileName, int imageWidth, _player* currentPlayer, _lightManager* currentLightManager) {
     player = currentPlayer;
     sceneLightManager = currentLightManager;
     numImages = imageWidth;
 
     if (!player || !sceneLightManager) {
-        cout << "ERROR: Player or LightManager is nullptr\n";
+        std::cout << "ERROR: Player or LightManager is nullptr\n";
         return;
     }
     

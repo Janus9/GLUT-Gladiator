@@ -13,13 +13,13 @@ _timerPlusPlus::~_timerPlusPlus()
 
 void _timerPlusPlus::reset()
 {
-    startTime = chrono::steady_clock::now();
+    startTime = std::chrono::steady_clock::now();
 }
 
 double _timerPlusPlus::getSeconds() const
 {
-    auto currentTime = chrono::steady_clock::now();
-    chrono::duration<double> duration = currentTime - startTime;
+    auto currentTime = std::chrono::steady_clock::now();
+    std::chrono::duration<double> duration = currentTime - startTime;
     return duration.count();
 }
 

@@ -3,8 +3,7 @@
 
 // DEFINES //
 
-#define GLEW_STATIC
-#define GLUT_DISABLE_ATEXIT_HACK   // glut.h here is classic GLUT; skip the inline ATEXIT stubs that reference __glut*WithExit symbols not exported by freeglut
+#define GLUT_DISABLE_ATEXIT_HACK    // glut.h here is classic GLUT; skip the inline ATEXIT stubs that reference __glut*WithExit symbols not exported by freeglut
 #define GRAVITY 9.81
 
 // Versions //
@@ -35,10 +34,7 @@
 #include <algorithm>
 #include <unordered_map> // Hashtable
 #include <map>
-
-// USING // 
-
-using namespace std;
+#include <memory>
 
 // DEFINITIONS //
 
@@ -151,8 +147,8 @@ struct Vec2f
      * 
      * @return string formated as (x[unit], y[unit]) with no newline
      */
-    string toString(const string &unit = "") const {
-        return "(" + to_string(x) + unit + ", " + to_string(y) + unit + ")";
+    std::string toString(const std::string &unit = "") const {
+        return "(" + std::to_string(x) + unit + ", " + std::to_string(y) + unit + ")";
     }
 
     /**
@@ -298,8 +294,8 @@ struct Vec3f
      * 
      * @return string formated as (x[unit], y[unit], z[unit]) with no newline
      */
-    string toString(const string &unit = "") const {
-        return "(" + to_string(x) + unit + ", " + to_string(y) + unit + ", " + to_string(z) + unit + ")";
+    std::string toString(const std::string &unit = "") const {
+        return "(" + std::to_string(x) + unit + ", " + std::to_string(y) + unit + ", " + std::to_string(z) + unit + ")";
     }
 };
 
@@ -332,8 +328,8 @@ struct Vec2i
      * 
      * @return string formated as (x[unit], y[unit]) with no newline
      */
-    string toString(const string &unit = "") const {
-        return "(" + to_string(x) + unit + ", " + to_string(y) + unit + ")";
+    std::string toString(const std::string &unit = "") const {
+        return "(" + std::to_string(x) + unit + ", " + std::to_string(y) + unit + ")";
     }
 };
 

@@ -93,7 +93,7 @@ class _particleManager {
          * @param _numImages How many images are in the atlas file
          * @param _maxParticles Number of particles the system holds (defaults to 1,000)
          */
-        void initParticleManager(const string& fileName, int _numImages, _lightManager* lightManager, int _maxParticles = 1000);
+        void initParticleManager(const std::string& fileName, int _numImages, _lightManager* lightManager, int _maxParticles = 1000);
 
         // Draw function
         void drawParticleManager();
@@ -134,7 +134,7 @@ class _particleManager {
         _texture* texture = new _texture();
         _timerPlusPlus* timer = new _timerPlusPlus();
 
-        vector<particle> particles;
+        std::vector<particle> particles;
 
         // Shaders //
         _lightManager* sceneLightManager = nullptr; // Pointer to light manager instantiated in scne (non-owning)
@@ -150,7 +150,7 @@ class _particleManager {
         int numImages = 0;
 
         // Rng machine
-        mt19937 rng;   
+        std::mt19937 rng;   
 };
 
 #endif // _PARTICLE_MANAGER_H

@@ -246,7 +246,7 @@ class _cell
  */
 struct _tile
 {
-    string name = "";
+    std::string name = "";
     bool hasCollision = true;
     float u0, v0, u1, v1; 
 };
@@ -471,10 +471,10 @@ class _world
         // -- World Saving -- //
         
         // Returns a vector of serialized chunk data for export
-        vector<chunk_serial_data> exportSerializeWorld() const;
+        std::vector<chunk_serial_data> exportSerializeWorld() const;
 
         // Reads a vector of serialized chunk data for import
-        void importSerializeWorld(vector<chunk_serial_data> world_data);
+        void importSerializeWorld(std::vector<chunk_serial_data> world_data);
 
         // Sets the seed for the world generation
         void setSeed(uint32_t _seed);
@@ -507,7 +507,7 @@ class _world
 
         // -- RNG -- //
         uint32_t seed; 
-        mt19937 rng; 
+        std::mt19937 rng; 
 
         // -- WORLD DATA -- //
 
@@ -532,15 +532,15 @@ class _world
             Main storage of world data. The world is made up of chunks (16x16 tiles) thus holding 256 tiles each.
             Each tile is represented by a single byte holding an ID that uses the world_tiles lookup to establish a texture and parameters for that tile.
         */
-        vector<_chunk> worldChunks; 
+        std::vector<_chunk> worldChunks; 
 
         // Constant lookup time for a given chunk and is loaded (vector still used for iterating)
-        unordered_map<pair<int,int>, _chunk*, PairHash> chunkLookup;
-        unordered_map<pair<int,int>, bool, PairHash> loadedChunks;
+        std::unordered_map<std::pair<int,int>, _chunk*, PairHash> chunkLookup;
+        std::unordered_map<std::pair<int,int>, bool, PairHash> loadedChunks;
 
         // -- World Generation -- //
-        vector<uint8_t> world_noise[NUM_LAYERS];    // Tile ID distribution of layers
-        vector<uint8_t> wet_noise;                  // Noise distribution to create wet/dry tiles
+        std::vector<uint8_t> world_noise[NUM_LAYERS];    // Tile ID distribution of layers
+        std::vector<uint8_t> wet_noise;                  // Noise distribution to create wet/dry tiles
 
         // Converts an index into a coordinate position starting at TOP LEFT for (0,0) using grid
         Vec2i convertIndexToPos(int index, int width, int height);
@@ -563,7 +563,7 @@ class _world
          * @param config Configuration for the generation algorithm
          * @param cellData Vector of unsigned bytes that is mutated by the algorithm
          */
-        void runCellularAutomata(const generation_config &config, vector<uint8_t> &cellData);
+        void runCellularAutomata(const generation_config &config, std::vector<uint8_t> &cellData);
 
         /**
          * Maps a 3x3 grid of neighbor cells around the given cell
