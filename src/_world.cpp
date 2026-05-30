@@ -606,7 +606,7 @@ void _world::drawWorld(float left, float right, float top, float bottom)
 
     // Check if our render VBO needs to be rebuilt (negative checks are for kick-starting system)
     if (distancePrevDraw > maxRenderDistance || distancePrevDraw < 0.0f) {
-        cout << "Distance of: " << distancePrevDraw << " exceeded " << maxRenderDistance << " building world VBO!\n";
+        // cout << "Distance of: " << distancePrevDraw << " exceeded " << maxRenderDistance << " building world VBO!\n";
         buildWorldVBO(left,right,top,bottom);
         prevDrawPos = {middleX, middleY};
     }
@@ -1154,11 +1154,6 @@ void _world::updateWorldVBO(float left, float right, float top, float bottom) {
     const int minChunkY = static_cast<int>(floor((middleY - viewRange) / (16 * TILE_D)));
     const int maxChunkY = static_cast<int>(ceil((middleY + viewRange) / (16 * TILE_D)));
 
-    // const int minChunkX = static_cast<int>(floor(left / (NUM_TILES_CHUNK_SQR * TILE_D)));
-    // const int maxChunkX = static_cast<int>(ceil(right / (NUM_TILES_CHUNK_SQR * TILE_D)));
-    // const int minChunkY = static_cast<int>(floor(bottom / (NUM_TILES_CHUNK_SQR * TILE_D)));
-    // const int maxChunkY = static_cast<int>(ceil(top / (NUM_TILES_CHUNK_SQR * TILE_D)));
-
     const int numChunksToRender = (maxChunkX - minChunkX) * (maxChunkY - minChunkY);    // Total chunks in visible range
 
     // (Number of tiles in a chunk) * (7 floats per vertex) * (4 verticies per tile) * (bytes per float)
@@ -1275,8 +1270,8 @@ void _world::buildWorldVBO(float left, float right, float top, float bottom) {
     const float middleX = (right - left) * 0.5f + left;
     const float middleY = (top - bottom) * 0.5f + bottom;
 
-    cout << "Left(" << left << ") ----- Right(" << right << ")\n";
-    cout << "Top(" << top << ") ----- Bottom(" << bottom << ")\n";
+    // cout << "Left(" << left << ") ----- Right(" << right << ")\n";
+    // cout << "Top(" << top << ") ----- Bottom(" << bottom << ")\n";
     
     // Calculate which chunks are visible
     const int minChunkX = static_cast<int>(floor((middleX - viewRange) / (16 * TILE_D)));
@@ -1286,12 +1281,12 @@ void _world::buildWorldVBO(float left, float right, float top, float bottom) {
 
     const int numChunksToRender = (maxChunkX - minChunkX) * (maxChunkY - minChunkY);    // Total chunks in visible range
     
-    cout << "Number of chunks to render: " << numChunksToRender << "\n";
-    cout << "View Range: " << viewRange << "\n";
-    cout << "View Middle: (" << middleX << ", " << middleY << ")\n";
+    // cout << "Number of chunks to render: " << numChunksToRender << "\n";
+    // cout << "View Range: " << viewRange << "\n";
+    // cout << "View Middle: (" << middleX << ", " << middleY << ")\n";
 
-    cout << "minChunkX(" << minChunkX << ") ----- maxChunkX(" << maxChunkX << ")\n";
-    cout << "minChunkY(" << minChunkY << ") ----- maxChunkY(" << maxChunkY << ")\n";
+    // cout << "minChunkX(" << minChunkX << ") ----- maxChunkX(" << maxChunkX << ")\n";
+    // cout << "minChunkY(" << minChunkY << ") ----- maxChunkY(" << maxChunkY << ")\n";
 
     int chunkIndex = 0;
     for (int chunkY = minChunkY; chunkY < maxChunkY; chunkY++) {
@@ -1299,17 +1294,16 @@ void _world::buildWorldVBO(float left, float right, float top, float bottom) {
             _chunk* chunk = getChunkAt({chunkX, chunkY});
 
             if (!chunk) {
-                // cout << "ERROR: Could not find chunk at (" << chunkX << ", " << chunkY << ") for build VBO\n";
-                // No error on this, if range is out of world view then skip
+                // Chunk doesn't exist (out of world bounds)
                 continue;
             }
 
-            // if (chunk->getVboIndex() >= NUM_RENDER_CHUNKS) {
-            //     cout << "ERROR: Too many visible chunks for render buffer. "
-            //          << "chunkIndex=" << chunkIndex
-            //          << " max=" << NUM_RENDER_CHUNKS << "\n";
-            //     continue;
-            // }
+            if (chunk->getVboIndex() >= NUM_RENDER_CHUNKS) {
+                cout << "ERROR: Too many visible chunks for render buffer. "
+                     << "chunkIndex=" << chunkIndex
+                     << " max=" << NUM_RENDER_CHUNKS << "\n";
+                continue;
+            }
 
             chunk->setVboIndex(chunkIndex);
             chunk->setChunkDirty();
