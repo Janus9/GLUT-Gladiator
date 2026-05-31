@@ -12,23 +12,29 @@ The game can be saved/loaded and is fully destructible
 
 ## Build Information
 
-GLUT Gladiator is built on Windows using **MinGW**, **GNU Make**, and **PowerShell** as the Makefile shell.
+GLUT Gladiator is built on Windows using **Msys2**, and **GNU Make**.
 
 ### Required Tools
 
 Before building, make sure the following are installed and available from your terminal:
 
-- MinGW / g++
-- GNU Make
-- PowerShell
+- 64-bit msys64/ucrt64 g++
+- msys64/ucrt64 mingw32-make
+- OpenGL: Glew, Freeglut
+- Sound Engine **TODO**
 
 You can verify the tools with:
 
 ```bash
 g++ --version
-make --version
-powershell --version
+ - (Needs to be at least V16.0.0)
+mingw32-make --version
+ - GNU Make 4.4.1
 ```
+
+There are included (but required) header libraries located inside of ``common/include``:
+ - stb_image (Image loader) https://github.com/nothings/stb/blob/master/stb_image.h
+ - toml.hpp (TOML Configuration Parser) https://github.com/toml-lang/toml
 
 ### How To
 
