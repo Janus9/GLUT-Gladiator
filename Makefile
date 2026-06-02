@@ -1,13 +1,12 @@
 # Make Settings
 MAKEFLAGS += -j16						# Parallel build with 8 jobs -- change as needed
 SHELL := cmd.exe
-.SHELLFLAGS := /c
 .ONESHELL:
 
 # Compiler Flags
 CXX := g++ 
-R_FLAGS := -std=c++17 -O0  																							# Release Flags
-D_FLAGS := -std=c++17 -g -O0 -Wall -Wextra -D_GLIBCXX_DEBUG 		 												# Debug Flags																		
+R_FLAGS := -std=c++20 -O0  																							# Release Flags
+D_FLAGS := -std=c++20 -g -O0 -Wall -Wextra -D_GLIBCXX_DEBUG 		 												# Debug Flags																		
 INCLUDE := -Iinclude -isystem common/include -isystem C:/msys64/uctr64/include										# Headers
 LIB := -LC:/msys64/ucrt64/lib -Lcommon/lib -lglew32 -lfreeglut -lopengl32 -lglu32 -lwinmm -lgdi32  					# Libraries	    
 
@@ -27,6 +26,9 @@ PUB_DIR ?= publish
 SAV_DIR := saves
 CUR_DIR := cursor
 
+# Directory Groups 
+DIRS_COMMON := $(BIN_DIR) $(BIN_D_DIR) $(BIN_R_DIR) $(BUILD_DIR) $(BUILD_D_DIR) $(BUILD_R_DIR)
+
 # Files
 MAIN_SRC = main.cpp
 MAIN_BIN = main.o
@@ -42,7 +44,9 @@ R_BINS += $(BIN_R_DIR)/$(MAIN_BIN)													# Adds main to binary list for re
 
 .PHONY: debug release clean publish
 
+debug: | $(DIRS_COMMON)
 debug: $(BUILD_D_DIR)/$(OUTPUT)	
+release: | $(DIRS_COMMON)
 release: $(BUILD_R_DIR)/$(OUTPUT)
 publish: release | make_publish_dir
 	@cmd /c "if exist $(PUB_DIR) rd /s /q $(PUB_DIR) && md $(PUB_DIR)"
@@ -64,9 +68,6 @@ publish: release | make_publish_dir
 # Debug Linking	
 $(BUILD_D_DIR)/$(OUTPUT): $(D_BINS) | $(IMG_DIR) $(BUILD_D_DIR)
 	$(CXX) $(D_BINS) $(LIB) -o $@
-	@copy "$(DLL_DIR)\irrKlang.dll" "$(BUILD_D_DIR)"
-	@copy "$(DLL_DIR)\ikpMP3.dll" "$(BUILD_D_DIR)"
-	@copy "$(DLL_DIR)\ikpFlac.dll" "$(BUILD_D_DIR)"
 	@echo --------------------- DEBUG ------------------------
 	@echo            Binaries Linked Successfully!            
 	@echo ----------------------------------------------------
@@ -88,9 +89,6 @@ $(BIN_D_DIR)/$(MAIN_BIN): $(MAIN_SRC) | $(BIN_D_DIR)
 # Release Linking
 $(BUILD_R_DIR)/$(OUTPUT): $(R_BINS) | $(IMG_DIR) $(BUILD_R_DIR)
 	$(CXX) $(R_BINS) $(LIB) -mwindows -o $@
-	@copy "$(DLL_DIR)\irrKlang.dll" "$(BUILD_R_DIR)"
-	@copy "$(DLL_DIR)\ikpMP3.dll" "$(BUILD_R_DIR)"
-	@copy "$(DLL_DIR)\ikpFlac.dll" "$(BUILD_R_DIR)"
 	@echo -------------------- RELEASE -----------------------
 	@echo            Binaries Linked Successfully!            
 	@echo ----------------------------------------------------
@@ -106,7 +104,6 @@ $(BIN_R_DIR)/%.o: $(SRC_DIR)/%.cpp | $(BIN_R_DIR)
 $(BIN_R_DIR)/$(MAIN_BIN): $(MAIN_SRC) | $(BIN_R_DIR)
 	$(CXX) -c $^ $(INCLUDE) $(R_FLAGS) -o $@
 	@echo Compiled $^ Successfully!
-
 
 # -- DIRECTORS -- #
 
@@ -147,12 +144,10 @@ $(BUILD_R_DIR): | $(BUILD_DIR)
 	@if not exist "$@" md "$@"
 
 # Removes .o files
+clean: | $(DIRS_COMMON)			# Force folders if missing
 clean:
-	@if exist bin\debug\*.o del /Q bin\debug\*.o
-	@echo -- Debug Binaries cleaned successfully --
-	@if exist $(BIN_R_DIR) rd /s /q $(BIN_R_DIR)
-	@echo -- Release Binaries cleaned successfully --
-	@if exist $(BUILD_D_DIR) rd /s /q $(BUILD_D_DIR)
-	@echo -- Debug build folder cleaned successfully --
-	@if exist $(BUILD_R_DIR) rd /s /q $(BUILD_R_DIR)
-	@echo -- Release build folder cleaned successfully --
+	@del /q "bin\debug\*.*"
+	@del /q "bin\release\*.*"
+	@del /q "build\debug\*.*"
+	@del /q "build\release\*.*"
+	@echo "-- Build Artifacts Cleaned Successfully --"
