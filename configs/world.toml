@@ -6,15 +6,15 @@
 # - blend radius values are measured in tiles
 
 [world]
-num_chunks = 64
+num_chunks = 4096
 
-outer_cutoff = 0.85
-middle_cutoff = 0.55
-inner_cutoff = 0.25
+outer_cutoff = 0.8
+middle_cutoff = 0.5
+inner_cutoff = 0.08
 
-outer_biome_blend_radius = 20.0
-middle_biome_blend_radius = 20.0
-inner_biome_blend_radius = 15.0
+outer_biome_blend_radius = 50.0
+middle_biome_blend_radius = 50.0
+inner_biome_blend_radius = 55.0
 
 
 [world.wall_generation]

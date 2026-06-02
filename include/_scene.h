@@ -33,7 +33,7 @@
 #include <glm/gtc/matrix_transform.hpp>     // Matrix ops like transform, scale, ortho, etc
 #include <glm/gtc/type_ptr.hpp>             // Send GLM datatypes (matrix) to GPU
 
-#define TOML_HEADER_ONLY 0
+#define TOML_HEADER_ONLY 1
 #include <toml.hpp>
 
 class _scene
@@ -199,6 +199,8 @@ class _scene
         void keyboardHandler(WPARAM wParam); 
         // Applies camera position zoom, etc
         void applyCamera();
+
+        bool loadGenerationConfig(const toml::table &config, const std::string &tablePath, generation_config &outConfig);
 
         // -- DEBUGGING -- //
         _timerPlusPlus debugTimer;          // Timer to track time between updates for the scene
