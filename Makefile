@@ -51,11 +51,11 @@ release: $(BUILD_R_DIR)/$(OUTPUT)
 publish: release | make_publish_dir
 	@cmd /c "if exist $(PUB_DIR) rd /s /q $(PUB_DIR) && md $(PUB_DIR)"
 	@copy "$(BUILD_R_DIR)\$(OUTPUT)" "$(PUB_DIR)\$(PUBLISH_OUTPUT)"
-	@xcopy "$(DLL_DIR)\*" "$(PUB_DIR)" /Y
-	@xcopy "$(IMG_DIR)" "$(PUB_DIR)" /E /I /Y
-	@xcopy "$(SHD_DIR)" "$(PUB_DIR)" /E /I /Y
-	@xcopy "$(SND_DIR)" "$(PUB_DIR)" /E /I /Y
-	@xcopy "$(CUR_DIR)" "$(PUB_DIR)" /E /I /Y
+	@xcopy "$(DLL_DIR)\*" "$(PUB_DIR)" /E /I /Y
+	@xcopy "$(IMG_DIR)" "$(PUB_DIR)\$(IMG_DIR)" /E /I /Y
+	@xcopy "$(SHD_DIR)" "$(PUB_DIR)\$(SHD_DIR)" /E /I /Y
+	@xcopy "$(SND_DIR)" "$(PUB_DIR)\$(SND_DIR)" /E /I /Y
+	@xcopy "$(CUR_DIR)" "$(PUB_DIR)\$(CUR_DIR)" /E /I /Y
 	@md "$(PUB_DIR)\$(SAV_DIR)"
 	@echo --------------------- PUBLISH ------------------------
 	@echo            GLUT Gladiator Published Successfully!     
