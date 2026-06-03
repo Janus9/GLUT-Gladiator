@@ -7,6 +7,7 @@ _scene::_scene() : rng(std::random_device{}())
     toml::table config;
     try {
         config = toml::parse_file(worldConfigPath);
+        std::cout << config << "\n";
     } catch (const toml::parse_error &err) {
         std::cerr << "ERROR: Failed to parse TOML file: " << worldConfigPath << "\n";
         std::cerr << err << "\n";
@@ -23,8 +24,8 @@ _scene::_scene() : rng(std::random_device{}())
     world_configuration.middle_biome_blend_radius = static_cast<float>(config["world"]["middle_biome_blend_radius"].value_or(0.0f));
     world_configuration.inner_biome_blend_radius = static_cast<float>(config["world"]["inner_biome_blend_radius"].value_or(0.0f));
 
-    loadGenerationConfig(config, "world.wall_generation",world_configuration.wall_generation);
-    loadGenerationConfig(config, "world.wet_generation",world_configuration.wet_generation);
+    loadGenerationConfig(config, "world", "wall_generation", world_configuration.wall_generation);
+    loadGenerationConfig(config, "world", "wet_generation", world_configuration.wet_generation);
 
     // world_configuration.num_chunks = 4096;
 
@@ -1746,14 +1747,29 @@ void _scene::setupTextures() {
 }
 
 
-bool _scene::loadGenerationConfig(const toml::table &config, const std::string &tablePath, generation_config &outConfig) {
-    outConfig.random_distribution = static_cast<float>(config[tablePath]["random_distribution"].value_or(0.0f));
+bool _scene::loadGenerationConfig(
+    const toml::table &config, 
+    const std::string &tableParentPath, 
+    const std::string &tableChildPath, 
+    generation_config &outConfig
+) {
+    outConfig.random_distribution = static_cast<float>(
+        config[tableParentPath][tableChildPath]["random_distribution"].value_or(0.0f)
+    );
 
-    outConfig.num_iterations = static_cast<uint32_t>(config[tablePath]["num_iterations"].value_or(0));
-    outConfig.survival_requirement = static_cast<uint32_t>(config[tablePath]["survival_requirement"].value_or(0));
-    outConfig.birth_requirement = static_cast<uint32_t>(config[tablePath]["birth_requirement"].value_or(0));
+    outConfig.num_iterations = static_cast<uint32_t>(
+        config[tableParentPath][tableChildPath]["num_iterations"].value_or(0)
+    );
+    outConfig.survival_requirement = static_cast<uint32_t>(
+        config[tableParentPath][tableChildPath]["survival_requirement"].value_or(0)
+    );
+    outConfig.birth_requirement = static_cast<uint32_t>(
+        config[tableParentPath][tableChildPath]["birth_requirement"].value_or(0)
+    );
 
-    outConfig.out_of_bounds_is_alive = static_cast<bool>(config[tablePath]["out_of_bounds_is_alive"].value_or(false));
+    outConfig.out_of_bounds_is_alive = static_cast<bool>(
+        config[tableParentPath][tableChildPath]["out_of_bounds_is_alive"].value_or(false)
+    );
     
     return true;
 }

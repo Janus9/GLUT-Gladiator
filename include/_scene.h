@@ -200,7 +200,13 @@ class _scene
         // Applies camera position zoom, etc
         void applyCamera();
 
-        bool loadGenerationConfig(const toml::table &config, const std::string &tablePath, generation_config &outConfig);
+        
+        bool loadGenerationConfig(
+            const toml::table &config, 
+            const std::string &tableParentPath, 
+            const std::string &tableChildPath, 
+            generation_config &outConfig
+        );
 
         // -- DEBUGGING -- //
         _timerPlusPlus debugTimer;          // Timer to track time between updates for the scene
