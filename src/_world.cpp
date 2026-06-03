@@ -561,6 +561,8 @@ void _world::initTiles() {
 
     setTileInAtlas(26,10, world_tiles[TILE_COSMETIC_ROCK_1]);        
     world_tiles[TILE_COSMETIC_ROCK_1].name = "rock_1";
+    setTileInAtlas(26,11, world_tiles[TILE_COSMETIC_GRASS_1]);        
+    world_tiles[TILE_COSMETIC_GRASS_1].name = "grass_1";
 }
 
 bool _world::setTileInAtlas(int xIndex, int yIndex, _tile &tile) {
@@ -783,6 +785,16 @@ void _world::postProcessWorld() {
         if (dist(rng) > 0.95f) {
             world_noise[LAYER_COSMETIC_1][i] = TILE_COSMETIC_ROCK_1;
         }
+    }
+
+    // COSMETIC 2 //bg
+    for (int i = 0; i < world_noise[LAYER_COSMETIC_2].size(); i++) {
+        // Spawns a grass randomly ONLY on wet tiles
+        if (wet_noise[i]) {
+            if (dist(rng) > 0.80f) {
+                world_noise[LAYER_COSMETIC_2][i] = TILE_COSMETIC_GRASS_1;
+            }
+        } 
     }
 
     // PRIMARY TILE //

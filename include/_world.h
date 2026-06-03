@@ -177,6 +177,7 @@ enum TileId : uint8_t {
     TILE_WALL_COLUMN_SIDE,
 
     TILE_COSMETIC_ROCK_1,
+    TILE_COSMETIC_GRASS_1,
 
     // Special //
     TILE_NULL, // Special undefined tile
