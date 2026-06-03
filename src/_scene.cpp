@@ -1773,7 +1773,7 @@ bool _scene::loadWorldConfig(const std::string &configPath, world_config &outCon
     outConfig.num_chunks = static_cast<uint32_t>(config["world"]["num_chunks"].value_or(4096));
     
     // Check to make sure num_chunks is non-zero and a perfect square
-    const uint32_t sqrVal = static_cast<int>(sqrt(outConfig.num_chunks));
+    const uint32_t sqrVal = static_cast<uint32_t>(sqrt(outConfig.num_chunks));
     if (sqrVal * sqrVal != outConfig.num_chunks || sqrVal == 0) {
         std::cerr << "ERROR: Num Chunks must be non-zero and an even square, current value given: [" << outConfig.num_chunks << "]\n";
         return false;
@@ -1786,7 +1786,6 @@ bool _scene::loadWorldConfig(const std::string &configPath, world_config &outCon
     outConfig.outer_biome_blend_radius = static_cast<float>(config["world"]["outer_biome_blend_radius"].value_or(0.0f));
     outConfig.middle_biome_blend_radius = static_cast<float>(config["world"]["middle_biome_blend_radius"].value_or(0.0f));
     outConfig.inner_biome_blend_radius = static_cast<float>(config["world"]["inner_biome_blend_radius"].value_or(0.0f));
-
 
     status = loadGenerationConfig(config, "world", "wall_generation", outConfig.wall_generation);
     if (!status) {
@@ -1811,10 +1810,52 @@ bool _scene::loadGenerationConfig(
     const std::string &tableChildPath, 
     generation_config &outConfig
 ) {
+    // ERROR CHECKING //
+    // Random Distribution
+    {
+        auto check = config[tableParentPath][tableChildPath]["random_distribution"];
+        if (!check.is_number()) {
+            std::cerr << "ERROR: Random Distribution must be a float type\n"; 
+            return false;
+        } 
+    }
+    // Num Iterations
+    {
+        auto check = config[tableParentPath][tableChildPath]["num_iterations"];
+        if (!check.is_integer()) {
+            std::cerr << "ERROR: Num Iterations must be an integer type\n"; 
+            return false;
+        } 
+    }
+    // Survival Requirement
+    {
+        auto check = config[tableParentPath][tableChildPath]["survival_requirement"];
+        if (!check.is_integer()) {
+            std::cerr << "ERROR: Survival Requirement must be an integer type\n"; 
+            return false;
+        } 
+    }
+    // Birth Requirement
+    {
+        auto check = config[tableParentPath][tableChildPath]["birth_requirement"];
+        if (!check.is_integer()) {
+            std::cerr << "ERROR: Birth Requirement must be an integer type\n"; 
+            return false;
+        } 
+    }
+    // Out of Bounds is Alive
+    {
+        auto check = config[tableParentPath][tableChildPath]["out_of_bounds_is_alive"];
+        if (!check.is_boolean()) {
+            std::cerr << "ERROR: Out of Bounds is Alive must be a boolean type\n"; 
+            return false;
+        } 
+    }
+
+    // VALUE ASSIGNMENT //
     outConfig.random_distribution = static_cast<float>(
         config[tableParentPath][tableChildPath]["random_distribution"].value_or(0.0f)
     );
-
     outConfig.num_iterations = static_cast<uint32_t>(
         config[tableParentPath][tableChildPath]["num_iterations"].value_or(0)
     );
@@ -1824,7 +1865,6 @@ bool _scene::loadGenerationConfig(
     outConfig.birth_requirement = static_cast<uint32_t>(
         config[tableParentPath][tableChildPath]["birth_requirement"].value_or(0)
     );
-
     outConfig.out_of_bounds_is_alive = static_cast<bool>(
         config[tableParentPath][tableChildPath]["out_of_bounds_is_alive"].value_or(false)
     );

@@ -762,16 +762,16 @@ void _world::postProcessWorld() {
                         world_noise[LAYER_FLOOR][i] = middle_dist(rng); // Blend toward middle tiles
                     } else {
                         if (wet_noise[i]) {
-                            world_noise[LAYER_FLOOR][i] = outer_dist_dry(rng);
-                        } else {
                             world_noise[LAYER_FLOOR][i] = outer_dist_wet(rng);
+                        } else {
+                            world_noise[LAYER_FLOOR][i] = outer_dist_dry(rng);
                         }
                     }
                 } else {
                     if (wet_noise[i]) {
-                        world_noise[LAYER_FLOOR][i] = outer_dist_dry(rng);
-                    } else {
                         world_noise[LAYER_FLOOR][i] = outer_dist_wet(rng);
+                    } else {
+                        world_noise[LAYER_FLOOR][i] = outer_dist_dry(rng);
                     }
                 }
                 break;
