@@ -201,6 +201,16 @@ class _scene
         void applyCamera();
 
         
+        bool loadWorldConfig(const std::string &configPath, world_config &outConfig);
+
+        /**
+         * Loads a world generation configuration object from a TOML configuration file
+         * 
+         * @param config TOML Table input from read file
+         * @param tableParentPath Name of parent TOML table (ex/ "world")
+         * @param tableChildPath Name of the child TOML table (ex/ "wall_generation")
+         * @param outConfig Configuration struct object to mutate
+         */
         bool loadGenerationConfig(
             const toml::table &config, 
             const std::string &tableParentPath, 

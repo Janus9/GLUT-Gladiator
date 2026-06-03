@@ -2,60 +2,9 @@
 
 _scene::_scene() : rng(std::random_device{}())
 {
-    // Test world configuration //
-    const std::string worldConfigPath = "configs/world.toml";
-    toml::table config;
-    try {
-        config = toml::parse_file(worldConfigPath);
-        std::cout << config << "\n";
-    } catch (const toml::parse_error &err) {
-        std::cerr << "ERROR: Failed to parse TOML file: " << worldConfigPath << "\n";
-        std::cerr << err << "\n";
-        return;
+    if (!loadWorldConfig("configs/world.toml",world_configuration)) {
+        std::cerr << "ERROR loading configuration file for [world.toml], please check logs for errors\n";
     }
-    
-    world_configuration.num_chunks = static_cast<uint32_t>(config["world"]["num_chunks"].value_or(4096));
-
-    world_configuration.outer_cutoff = static_cast<float>(config["world"]["outer_cutoff"].value_or(0.0f));
-    world_configuration.middle_cutoff = static_cast<float>(config["world"]["middle_cutoff"].value_or(0.0f));
-    world_configuration.inner_cutoff = static_cast<float>(config["world"]["inner_cutoff"].value_or(0.0f));
-
-    world_configuration.outer_biome_blend_radius = static_cast<float>(config["world"]["outer_biome_blend_radius"].value_or(0.0f));
-    world_configuration.middle_biome_blend_radius = static_cast<float>(config["world"]["middle_biome_blend_radius"].value_or(0.0f));
-    world_configuration.inner_biome_blend_radius = static_cast<float>(config["world"]["inner_biome_blend_radius"].value_or(0.0f));
-
-    loadGenerationConfig(config, "world", "wall_generation", world_configuration.wall_generation);
-    loadGenerationConfig(config, "world", "wet_generation", world_configuration.wet_generation);
-
-    // world_configuration.num_chunks = 4096;
-
-    // world_configuration.outer_cutoff = 0.8f;
-    // world_configuration.middle_cutoff = 0.5f;
-    // world_configuration.inner_cutoff = 0.08f;
-
-    // world_configuration.outer_biome_blend_radius = 50.0f;
-    // world_configuration.middle_biome_blend_radius = 50.0f;
-    // world_configuration.inner_biome_blend_radius = 50.0f;
-
-    // // Walls //
-    // generation_config wall_config;
-    // wall_config.random_distribution = 0.6;
-    // wall_config.num_iterations = 7;
-    // wall_config.survival_requirement = 5;
-    // wall_config.birth_requirement = 4;
-    // wall_config.out_of_bounds_is_alive = true;
-
-    // world_configuration.wall_generation = wall_config;
-
-    // // Wet Biome //
-    // generation_config wet_config;
-    // wet_config.random_distribution = 0.65;
-    // wet_config.num_iterations = 7;
-    // wet_config.survival_requirement = 5;
-    // wet_config.birth_requirement = 4;
-    // wet_config.out_of_bounds_is_alive = false;
-
-    // world_configuration.wet_generation = wet_config;
 }
 
 _scene::~_scene()
@@ -1746,6 +1695,115 @@ void _scene::setupTextures() {
     textureManager->addTexture("images/enemy/enemy_particles.png");
 }
 
+// Add logging to an output file at some point to help user out
+bool _scene::loadWorldConfig(const std::string &configPath, world_config &outConfig) {
+    // Test world configuration //
+    toml::table config;
+    bool status = false;
+
+    try {
+        config = toml::parse_file(configPath);
+        std::cout << config << "\n";
+    } catch (const toml::parse_error &err) {
+        std::cerr << "ERROR: Failed to parse TOML file: " << configPath << "\n";
+        std::cerr << err << "\n";
+        return false;
+    }
+
+    // ERROR CHECKING //
+    // Num Chunks
+    {
+        auto check = config["world"]["num_chunks"];
+        if (!check.is_integer()) {
+            std::cerr << "ERROR: Num Chunks must be an integer type\n"; 
+            return false;
+        } 
+    }
+    // Outer Cutoff
+    {
+        auto check = config["world"]["outer_cutoff"];
+        if (!check.is_number()) {
+            std::cerr << "ERROR: Outer Cutoff must be a float type\n"; 
+            return false;
+        } 
+    }
+    // Middle Cutoff
+    {
+        auto check = config["world"]["middle_cutoff"];
+        if (!check.is_number()) {
+            std::cerr << "ERROR: Middle Cutoff must be a float type\n"; 
+            return false;
+        } 
+    }
+    // Inner Cutoff
+    {
+        auto check = config["world"]["inner_cutoff"];
+        if (!check.is_number()) {
+            std::cerr << "ERROR: Inner Cutoff must be a float type\n"; 
+            return false;
+        } 
+    }
+    // Outer Biome Blend Radius
+    {
+        auto check = config["world"]["outer_biome_blend_radius"];
+        if (!check.is_number()) {
+            std::cerr << "ERROR: Outer Biome Blend Radius must be a float type\n"; 
+            return false;
+        } 
+    }
+    // Middle Biome Blend Radius
+    {
+        auto check = config["world"]["middle_biome_blend_radius"];
+        if (!check.is_number()) {
+            std::cerr << "ERROR: Middle Biome Blend Radius must be a float type\n"; 
+            return false;
+        } 
+    }
+
+    // Inner Biome Blend Radius
+    {
+        auto check = config["world"]["inner_biome_blend_radius"];
+        if (!check.is_number()) {
+            std::cerr << "ERROR: Inner Biome Blend Radius must be a float type\n"; 
+            return false;
+        } 
+    }
+
+    // VALUE ASSIGNMENT //
+    outConfig.num_chunks = static_cast<uint32_t>(config["world"]["num_chunks"].value_or(4096));
+    
+    // Check to make sure num_chunks is non-zero and a perfect square
+    const uint32_t sqrVal = static_cast<int>(sqrt(outConfig.num_chunks));
+    if (sqrVal * sqrVal != outConfig.num_chunks || sqrVal == 0) {
+        std::cerr << "ERROR: Num Chunks must be non-zero and an even square, current value given: [" << outConfig.num_chunks << "]\n";
+        return false;
+    }
+
+    outConfig.outer_cutoff = static_cast<float>(config["world"]["outer_cutoff"].value_or(0.0f));
+    outConfig.middle_cutoff = static_cast<float>(config["world"]["middle_cutoff"].value_or(0.0f));
+    outConfig.inner_cutoff = static_cast<float>(config["world"]["inner_cutoff"].value_or(0.0f));
+
+    outConfig.outer_biome_blend_radius = static_cast<float>(config["world"]["outer_biome_blend_radius"].value_or(0.0f));
+    outConfig.middle_biome_blend_radius = static_cast<float>(config["world"]["middle_biome_blend_radius"].value_or(0.0f));
+    outConfig.inner_biome_blend_radius = static_cast<float>(config["world"]["inner_biome_blend_radius"].value_or(0.0f));
+
+
+    status = loadGenerationConfig(config, "world", "wall_generation", outConfig.wall_generation);
+    if (!status) {
+        std::cerr << "ERROR reading [" << configPath << "]\n"
+                  << " - Ensure configuration file is setup correctly\n";
+        return false;
+    }
+
+    status = loadGenerationConfig(config, "world", "wet_generation", outConfig.wet_generation);
+    if (!status) {
+        std::cerr << "ERROR reading [" << configPath << "]\n"
+                  << " - Ensure configuration file is setup correctly\n";
+        return false;
+    }
+
+    return true;
+}
 
 bool _scene::loadGenerationConfig(
     const toml::table &config, 
