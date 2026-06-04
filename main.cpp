@@ -7,6 +7,8 @@
 #  include <windows.h>
 #endif
 
+#include <SDL3/SDL.h>
+
 #define UPDATE_DELAY (1000.0f / 60.0f)	// Delay in milliseconds for 60 updates per second
 
 //Find these libraries within the project folders
