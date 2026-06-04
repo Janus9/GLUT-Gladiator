@@ -1,0 +1,604 @@
+
+#pragma once 
+
+#ifdef _WIN32
+#  define WINDOWS_LEAN_AND_MEAN
+#  define NOMINMAX
+#  include <windows.h>
+#endif
+
+#define UPDATE_DELAY (1000.0f / 60.0f)	// Delay in milliseconds for 60 updates per second
+
+//Find these libraries within the project folders
+//Exact paths may not be found but the libraries will be
+#pragma comment(lib, "opengl32.lib")
+#pragma comment(lib, "glu32.lib")
+
+#include <_common.h>         // For common headers
+#include <_scene.h>          // My scene context
+#include <_timerPlusPlus.h>   // For the timer class
+#include <_menuManager.h>
+#include <_sounds.h>         // Shared audio engine (owned here, not by _scene)
+
+HDC			hDC=NULL;		// Private GDI Device Context
+HGLRC		hRC=NULL;		// Permanent Rendering Context
+HWND		hWnd=NULL;		// Holds Our Window Handle
+HINSTANCE	hInstance;		// Holds The Instance Of The Application
+
+bool	keys[256];			// Array Used For The Keyboard Routine
+bool	active=TRUE;		// Foreground-focus flag. False while the window is not the user's active window.
+bool	minimized=FALSE;	// True while the window is minimized. Combined with !active to drive the suspended state.
+bool	fullscreen=TRUE;	// Fullscreen Flag Set To Fullscreen Mode By Default (is the screen full-screen or not)
+
+LRESULT	CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);	// Declaration For WndProc. Passing parameters into system
+HCURSOR hCursor = NULL;
+
+int wWidth;					// Window width
+int wHeight;				// Window height
+Vec2f mouseScreenClipPos;	// Mouse position (screen coordinates as 0-1 where 0,0 is bottom left)
+Vec2f mouseScreenPos;		// Mouse position (screen coordinates as pixels where 0,0 is top left)
+bool LMB = false;			// Left mouse button held
+
+// CLASS INSTANCE DECLARATIONS //
+_logger Logger; //New instance of logger to be used in the program. Logger will be used to track specific values and print them to the console for debugging purposes
+std::unique_ptr<_scene> myScene = std::make_unique<_scene>(); //handling memory to point to specific scene values. makes an instance of scene
+std::unique_ptr<_timerPlusPlus> timer = std::make_unique<_timerPlusPlus>();
+std::unique_ptr<_menuManager> menuManager = std::make_unique<_menuManager>();
+_sounds* sharedSounds = new _sounds(); // Shared irrKlang engine used by both menus and scene
+
+//An option to parallel-check each individual function would be loops to handle interrupts
+//Parallel while loops to be able to handle in program is handled by the callback function
+
+/*
+Top-Layer System: Application Layer
+Operating System
+Kernel: Communication Layer between OS and Hardware
+Bottom-Layer System: Hardware
+--Drivers follow through the system and translate the hardware to be controlled by the software
+--Driver handling occurs in the hardware
+--Keyboard, Mouse, and other peripherals should interrupt the signal to trigger a process
+--Interrupt Handling allows for the interrupts needed to be processed properly
+*/
+
+#include <windows.h>
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+//										THE KILL GL WINDOW
+/////////////////////////////////////////////////////////////////////////////////////////////////
+void KillGLWindow()								// Properly Kill The Window
+{
+	if (fullscreen)										// Are We In Fullscreen Mode?
+	{
+		ChangeDisplaySettings(NULL,0);					// If So Switch Back To The Desktop
+		ShowCursor(TRUE);								// Show Mouse Pointer
+	}
+
+	if (hRC)											// Do We Have A Rendering Context?
+	{
+		if (!wglMakeCurrent(NULL,NULL))					// Are We Able To Release The DC And RC Contexts?
+		{
+			MessageBox(NULL,"Release Of DC And RC Failed.","SHUTDOWN ERROR",MB_OK | MB_ICONINFORMATION);
+		}
+
+		if (!wglDeleteContext(hRC))						// Are We Able To Delete The RC?
+		{
+			MessageBox(NULL,"Release Rendering Context Failed.","SHUTDOWN ERROR",MB_OK | MB_ICONINFORMATION);
+		}
+		hRC=NULL;										// Set RC To NULL
+	}
+
+	if (hDC && !ReleaseDC(hWnd,hDC))					// Are We Able To Release The DC
+	{
+		MessageBox(NULL,"Release Device Context Failed.","SHUTDOWN ERROR",MB_OK | MB_ICONINFORMATION);
+		hDC=NULL;										// Set DC To NULL
+	}
+
+	if (hWnd && !DestroyWindow(hWnd))					// Are We Able To Destroy The Window?
+	{
+		MessageBox(NULL,"Could Not Release hWnd.","SHUTDOWN ERROR",MB_OK | MB_ICONINFORMATION);
+		hWnd=NULL;										// Set hWnd To NULL
+	}
+
+	if (!UnregisterClass("OpenGL",hInstance))			// Are We Able To Unregister Class
+	{
+		MessageBox(NULL,"Could Not Unregister Class.","SHUTDOWN ERROR",MB_OK | MB_ICONINFORMATION);
+		hInstance=NULL;									// Set hInstance To NULL
+	}
+}
+
+/*	This Code Creates Our OpenGL Window.  Parameters Are:					*
+ *	title			- Title To Appear At The Top Of The Window				*
+ *	width			- Width Of The GL Window Or Fullscreen Mode				*
+ *	height			- Height Of The GL Window Or Fullscreen Mode			*
+ *	bits			- Number Of Bits To Use For Color (8/16/24/32)			*
+ *	fullscreenflag	- Use Fullscreen Mode (TRUE) Or Windowed Mode (FALSE)	*/
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+//										THE CREATE GL WINDOW
+/////////////////////////////////////////////////////////////////////////////////////////////////
+BOOL CreateGLWindow(char* title, int width, int height, int bits, bool fullscreenflag) //title of window, width/height of window space, amount of bits on window, and whether or not a fullscreen is live
+{
+//OpenGL center of the window is (0,0). Mouse pointer coordinates need to match the instruction set of the window itself
+//Width/2 and height/2 is the center of the window with a translation
+//Mouse can act weird given rationale between structure windows and OpenGL (matched to meet windows specification)
+
+	int		PixelFormat;			// Holds The Results After Searching For A Match
+	WNDCLASS	wc;						// Windows Class Structure
+	DWORD		dwExStyle;				// Window Extended Style
+	DWORD		dwStyle;				// Window Style
+	RECT		WindowRect;				// Grabs Rectangle Upper Left / Lower Right Values
+	WindowRect.left=(long)0;			// Set Left Value To 0
+	WindowRect.right=(long)width;		// Set Right Value To Requested Width
+	WindowRect.top=(long)0;				// Set Top Value To 0
+	WindowRect.bottom=(long)height;		// Set Bottom Value To Requested Height
+
+	fullscreen=fullscreenflag;			// Set The Global Fullscreen Flag
+
+	hInstance			= GetModuleHandle(NULL);				// Grab An Instance For Our Window
+	wc.style			= CS_HREDRAW | CS_VREDRAW | CS_OWNDC;	// Redraw On Size, And Own DC For Window.
+	wc.lpfnWndProc		= (WNDPROC) WndProc;					// WndProc Handles Messages
+	wc.cbClsExtra		= 0;									// No Extra Window Data
+	wc.cbWndExtra		= 0;									// No Extra Window Data
+	wc.hInstance		= hInstance;							// Set The Instance
+	wc.hIcon			= LoadIcon(NULL, IDI_WINLOGO);			// Load The Default Icon
+	wc.hCursor			= LoadCursor(NULL, IDC_ARROW);			// Load The Arrow Pointer
+	wc.hbrBackground	= NULL;									// No Background Required For GL
+	wc.lpszMenuName		= NULL;									// We Don't Want A Menu
+	wc.lpszClassName	= "OpenGL";								// Set The Class Name
+
+	if (!RegisterClass(&wc))									// Attempt To Register The Window Class
+	{
+		MessageBox(NULL,"Failed To Register The Window Class.","ERROR",MB_OK|MB_ICONEXCLAMATION); //Message Box specific to pop-ups
+		return FALSE;											// Return FALSE
+	}
+
+	if (fullscreen)												// Attempt Fullscreen Mode?
+	{
+		DEVMODE dmScreenSettings;								// Device Mode
+		memset(&dmScreenSettings,0,sizeof(dmScreenSettings));	// Makes Sure Memory's Cleared
+		dmScreenSettings.dmSize=sizeof(dmScreenSettings);		// Size Of The Devmode Structure
+		dmScreenSettings.dmPelsWidth	= width;				// Selected Screen Width
+		dmScreenSettings.dmPelsHeight	= height;				// Selected Screen Height
+		dmScreenSettings.dmBitsPerPel	= bits;					// Selected Bits Per Pixel
+		dmScreenSettings.dmFields=DM_BITSPERPEL|DM_PELSWIDTH|DM_PELSHEIGHT;
+
+		dwExStyle=WS_EX_APPWINDOW;								// Window Extended Style
+		dwStyle= WS_POPUP;			// must handle Gsync situations: Windows Style
+		
+		hCursor = LoadCursorFromFile("cursor/normal.cur");
+		if (hCursor == NULL) {
+			std::cout << "ERROR: cannot load cursor!\n";
+		}
+		SetCursor(hCursor);
+		ShowCursor(TRUE);									
+	}
+	else
+	{
+		dwExStyle=WS_EX_APPWINDOW | WS_EX_WINDOWEDGE;			// Window Extended Style
+		dwStyle=WS_OVERLAPPEDWINDOW;							// Windows Style
+	}
+
+	AdjustWindowRectEx(&WindowRect, dwStyle, FALSE, dwExStyle);		// Adjust Window To True Requested Size
+
+	// Create The Window
+	if (!(hWnd=CreateWindowEx(	dwExStyle,							// Extended Style For The Window
+								"OpenGL",							// Class Name
+								title,								// Window Title
+								dwStyle |							// Defined Window Style
+								WS_CLIPSIBLINGS |					// Required Window Style
+								WS_CLIPCHILDREN,					// Required Window Style
+								0, 0,								// Window Position
+								WindowRect.right-WindowRect.left,	// Calculate Window Width
+								WindowRect.bottom-WindowRect.top,	// Calculate Window Height
+								NULL,								// No Parent Window
+								NULL,								// No Menu
+								hInstance,							// Instance
+								NULL)))								// Dont Pass Anything To WM_CREATE
+	{
+		KillGLWindow();								// Reset The Display
+		MessageBox(NULL,"Window Creation Error.","ERROR",MB_OK|MB_ICONEXCLAMATION);
+		return FALSE;								// Return FALSE
+	}
+
+//Pixels are handled by the buffer to process each of the elements of the image
+//Animation, for instance, shifts between the buffers based on whichever one is loaded or loading
+//
+	static	PIXELFORMATDESCRIPTOR pfd=				// pfd Tells Windows How We Want Things To Be
+	{
+		sizeof(PIXELFORMATDESCRIPTOR),				// Size Of This Pixel Format Descriptor
+		1,											// Version Number
+		PFD_DRAW_TO_WINDOW |						// Format Must Support Window
+		PFD_SUPPORT_OPENGL |						// Format Must Support OpenGL
+		PFD_DOUBLEBUFFER,							// Must Support Double Buffering
+		PFD_TYPE_RGBA,								// Request An RGBA Format
+		bits,										// Select Our Color Depth
+		0, 0, 0, 0, 0, 0,							// Color Bits Ignored
+		0,											// No Alpha Buffer
+		0,											// Shift Bit Ignored
+		0,											// No Accumulation Buffer
+		0, 0, 0, 0,									// Accumulation Bits Ignored
+		16,											// 16Bit Z-Buffer (Depth Buffer)
+		0,											// No Stencil Buffer
+		0,											// No Auxiliary Buffer
+		PFD_MAIN_PLANE,								// Main Drawing Layer
+		0,											// Reserved
+		0, 0, 0										// Layer Masks Ignored
+	};
+
+	if (!(hDC=GetDC(hWnd)))							// Did We Get A Device Context?
+	{
+		KillGLWindow();								// Reset The Display
+		MessageBox(NULL,"Can't Create A GL Device Context.","ERROR",MB_OK|MB_ICONEXCLAMATION);
+		return FALSE;								// Return FALSE
+	}
+
+	if (!(PixelFormat=ChoosePixelFormat(hDC,&pfd)))	// Did Windows Find A Matching Pixel Format?
+	{
+		KillGLWindow();								// Reset The Display
+		MessageBox(NULL,"Can't Find A Suitable PixelFormat.","ERROR",MB_OK|MB_ICONEXCLAMATION);
+		return FALSE;								// Return FALSE
+	}
+
+	if(!SetPixelFormat(hDC,PixelFormat,&pfd))		// Are We Able To Set The Pixel Format?
+	{
+		KillGLWindow();								// Reset The Display
+		MessageBox(NULL,"Can't Set The PixelFormat.","ERROR",MB_OK|MB_ICONEXCLAMATION);
+		return FALSE;								// Return FALSE
+	}
+
+	if (!(hRC=wglCreateContext(hDC)))				// Are We Able To Get A Rendering Context?
+	{
+		KillGLWindow();								// Reset The Display
+		MessageBox(NULL,"Can't Create A GL Rendering Context.","ERROR",MB_OK|MB_ICONEXCLAMATION);
+		return FALSE;								// Return FALSE
+	}
+
+	if(!wglMakeCurrent(hDC,hRC))					// Try To Activate The Rendering Context
+	{
+		KillGLWindow();								// Reset The Display
+		MessageBox(NULL,"Can't Activate The GL Rendering Context.","ERROR",MB_OK|MB_ICONEXCLAMATION);
+		return FALSE;								// Return FALSE
+	}
+
+	ShowWindow(hWnd,SW_SHOW);						// Show The Window
+	SetForegroundWindow(hWnd);						// Slightly Higher Priority. Temporary screen until front window arrives
+	SetFocus(hWnd);									// Sets Keyboard Focus To The Window. Main Active Window
+
+	if(!myScene->initGL())                          //If scene does not initialize
+    {
+		KillGLWindow();    //Kills window if game does not initialize
+        MessageBox(NULL,"Can't Initialize GL.", "ERROR", MB_OK|MB_ICONEXCLAMATION); //Message Box declares that OpenGL crashed
+		return FALSE;
+	}
+    glewInit();
+
+	myScene->setSounds(sharedSounds); // Inject shared audio engine before initScene so SFX registration works
+	myScene->reSize(width,height);  // Intended to resize the scene to match the width and height
+	wWidth = width;
+	wHeight = height;
+	_menuManager::setWindowDimensions({wWidth,wHeight});
+
+	Logger.InitLogger("logs/main.log");
+	timer->reset();
+
+	sharedSounds->registerSfx("MENU_HOVER", "sounds/menu_hover.wav", 0.4f);
+	sharedSounds->registerSfx("MENU_CLICK", "sounds/menu_click.ogg", 0.6f);
+	sharedSounds->registerSfx("GAME_START", "sounds/level_start.ogg", 0.6f);
+
+	menuManager->initMenuManager(sharedSounds, myScene.get());
+	menuManager->loadMenu(MENU_HOME); 
+	sharedSounds->playBackgroundMusic("sounds/main_menu_music.ogg", 0.3f);
+	return TRUE;									// Success
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+//										THE WINDOW PROCEDURE
+/////////////////////////////////////////////////////////////////////////////////////////////////
+LRESULT CALLBACK WndProc(	HWND	hWnd,			// Handle For This Window
+							UINT	uMsg,			// Message For This Window
+							WPARAM	wParam,			// Additional Message Information
+							LPARAM	lParam)			// Additional Message Information
+{
+	if (menuManager->getLoadedMenu() == MENU_GAME) {
+		myScene->winMsg(hWnd, uMsg, wParam, lParam); //Passes the message to the scene to be handled by the scene class. This allows for the scene to handle specific messages related to the scene itself (such as mouse movement and key presses)
+	}
+	switch (uMsg)									// Check For Windows Messages
+	{
+		case WM_SETCURSOR:
+			if (hCursor != NULL) {
+				SetCursor(hCursor);
+				return TRUE;  // Tell Windows we handled it
+			}
+			break;
+		case WM_MOUSEMOVE:
+			mouseScreenPos = {LOWORD(lParam), HIWORD(lParam)};
+			if (wWidth > 0.0f && wHeight > 0.0) { // Divide by 0 check
+				mouseScreenClipPos = {mouseScreenPos.x / wWidth, 1.0f - (mouseScreenPos.y / wHeight)};
+			}
+			break;
+
+		case WM_LBUTTONDOWN:
+			LMB = true;
+			break;
+		
+		case WM_LBUTTONUP:
+			LMB = false;
+			break;
+
+	    //Is Window Currently Active?
+		case WM_ACTIVATE:							// Watch For Window Activate Message
+		{
+			active    = (LOWORD(wParam) != WA_INACTIVE);
+			minimized = (HIWORD(wParam) != 0);
+			return 0;								// Return To The Message Loop
+		}
+
+		case WM_SYSCOMMAND:							// Intercept System Commands
+		{
+			switch (wParam)							// Check System Calls
+			{
+				case SC_SCREENSAVE:					// Screensaver Trying To Start?
+				case SC_MONITORPOWER:				// Monitor Trying To Enter Powersave?
+				return 0;							// Prevent From Happening
+			}
+			break;									// Exit
+		}
+
+
+        //Is the window closed?
+		case WM_CLOSE:								// Did We Receive A Close Message?
+		{
+			PostQuitMessage(0);						// Send A Quit Message
+			return 0;								// Jump Back
+		}
+
+		//Was a Key Pressed?
+		case WM_KEYDOWN:							// Is A Key Being Held Down?
+		{
+			keys[wParam] = TRUE;					// If So, Mark It As TRUE
+			if (wParam == VK_ESCAPE && menuManager->getLoadedMenu() == MENU_GAME) {
+				std::cout << "Escape key pressed -- pausing game!\n";
+				sharedSounds->playBackgroundMusic("sounds/main_menu_music.ogg", 0.3f);
+				menuManager->loadMenu(MENU_PAUSE);
+			}
+			if (wParam == VK_END) {
+				DebugBreak();	// Force breakpoint for debugging
+			}
+			return 0;								// Jump Back
+		}
+
+		//Was a Key-Released
+		//Wparam: Windows Parameter refers to the specific type of key that it is
+		//A specific parameter based on the key that was pressed
+		case WM_KEYUP:								// Has A Key Been Released?
+		{
+			keys[wParam] = FALSE;					// If So, Mark It As FALSE
+
+			return 0;								// Jump Back
+		}
+
+		//Glut Resize Window function to change the size of the window
+		//All includes and prototype allocation starts a program and then goes to main
+		case WM_SIZE:								// Resize The OpenGL Window
+		{
+			if (wParam == SIZE_MINIMIZED) {
+				// Skip reSize on minimize — width/height arrive as 0 and would
+				// produce a degenerate viewport. Suspension handles the pause.
+				minimized = TRUE;
+				return 0;
+			}
+
+			minimized = FALSE;
+			int newW = LOWORD(lParam);
+			int newH = HIWORD(lParam);
+			if (newW <= 0 || newH <= 0) return 0;	// Defensive: ignore zero-sized restores.
+
+			wWidth = newW;
+			wHeight = newH;
+            myScene->reSize(wWidth, wHeight);
+			_menuManager::setWindowDimensions({wWidth,wHeight});
+
+			return 0;								// Jump Back
+		}
+	}
+
+	// Pass All Unhandled Messages To DefWindowProc
+	return DefWindowProc(hWnd,uMsg,wParam,lParam);
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+//										THE WINMAIN
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+//Main program for game
+int WINAPI WinMain(	HINSTANCE	hInstance,			// Instance
+					HINSTANCE	hPrevInstance,		// Previous Instance
+					LPSTR		lpCmdLine,			// Command Line Parameters
+					int			nCmdShow)			// Window Show State
+{
+	MSG		msg;									// Windows Message Structure
+	BOOL	done=FALSE;								// Bool Variable To Exit Loop
+	bool	wasSuspended = false;					// Tracks suspended-state transitions across iterations
+
+	//If a message arrives it will arrive in this manner
+
+	int	fullscreenWidth  = GetSystemMetrics(SM_CXSCREEN); //Whenever a window is created, the size of the window is maintained
+    int	fullscreenHeight = GetSystemMetrics(SM_CYSCREEN);
+
+	// Ask The User Which Screen Mode They Prefer
+	//First message shown
+
+	if (MessageBox(NULL,"Would You Like To Run In Fullscreen Mode?", "Start FullScreen?",MB_YESNO|MB_ICONQUESTION)==IDNO) 	//Message, Title, Buttons
+	{
+		fullscreen=FALSE;							// Windowed Mode
+	}
+	// Create Our OpenGL Window
+	if (!CreateGLWindow("GLUT Gladiator",fullscreenWidth,fullscreenHeight,256,fullscreen))
+	{
+		return 0;									// Quit If Window Was Not Created, Program is exited
+	}
+
+	int argc = 1;
+	char appName[] = "GLUT Gladiator";
+	char* argv[] = { appName, nullptr };
+
+	glutInit(&argc, argv);
+
+	while(!done)									// Loop That Runs While done=FALSE
+        //Program will run in a while loop until the user states it is done
+        //Parallel ideas interlinking together
+	{
+		if (PeekMessage(&msg,NULL,0,0,PM_REMOVE))	// Is There A Message Waiting?
+		{
+			if (msg.message==WM_QUIT)				// Have We Received A Quit Message?
+			{
+				done=TRUE;							// If So done=TRUE
+			}
+			else									// If Not, Deal With Window Messages
+			{
+				TranslateMessage(&msg);				// Translate The Message
+				DispatchMessage(&msg);				// Dispatch The Message
+			}
+		}
+		else										// If There Are No Messages
+		{
+			bool suspended = !active || minimized;
+
+			if (suspended != wasSuspended) {
+				if (sharedSounds) sharedSounds->setEnginePaused(suspended);
+				if (!suspended) timer->reset();		// Avoid a giant dt spike on resume
+				wasSuspended = suspended;
+			}
+
+			if (suspended) {
+				WaitMessage();						// Block until the OS posts another message — keeps CPU at ~0% while away
+				continue;
+			}
+
+			// Draw The Scene.  Watch For ESC Key And Quit Messages From DrawGLScene()
+			if (menuManager->getLoadedMenu() == MENU_GAME) {
+				if (menuManager->loadGame) {
+					// myScene->initGL();
+					std::cout << "ENTERING GAME MODE\n";
+					timer->reset();
+					myScene->reSize(wWidth,wHeight);
+					menuManager->loadGame = false;
+				}
+
+				// Loads up the menu on game completion
+				if (myScene->gameWon && myScene->gameEndedTimeElapsed > 4.0) {
+					menuManager->loadMenu(MENU_WIN);
+				}
+
+				// Loads up the menu on game completion
+				if (!myScene->gameWon && myScene->gameEndedTimeElapsed > 4.0) {
+					menuManager->loadMenu(MENU_LOOSE);
+				}
+
+				// Show Scene //
+				glViewport(0,0,wWidth,wHeight);
+				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+				if (timer->getMilliseconds() > UPDATE_DELAY) // If the time since the last update is greater than 16.67ms (60fps), update the scene
+				{
+					double dt = timer->getSeconds();
+					if (myScene->isInitialized()) {
+						myScene->updateScene(dt,keys); //Update the scene with the time since the last update
+						myScene->updateAudio(dt); // Tick audio fades
+					}
+					timer->reset(); // Reset the timer for the next update
+				}
+				myScene->drawScene(); //So long as the key is not escaping (quitting), keep drawing the scene
+			} else {
+				// Show Menu //
+				glViewport(0,0,wWidth,wHeight);
+				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+				if (timer->getMilliseconds() > UPDATE_DELAY) // If the time since the last update is greater than 16.67ms (60fps), update the scene
+				{
+					const double dt = timer->getSeconds();
+					
+					if (menuManager->closeGameEvent) {
+						// Closes the game
+						PostMessage(hWnd, WM_CLOSE, 0, 0);
+					}
+					
+					menuManager->updateMenuManager(dt,mouseScreenClipPos,LMB); //Update the scene with the time since the last update
+					myScene->updateAudio(dt); // Tick audio fades while on the main menu so music ramps up before entering game
+					timer->reset(); // Reset the timer for the next update
+				}
+				menuManager->drawMenuManager();
+			}
+			SwapBuffers(hDC);				// Swap Buffers (Double Buffering)
+		}
+
+		if (keys[VK_F1])						// Is F1 Being Pressed?
+		{
+			keys[VK_F1]=FALSE;					// If So Make Key FALSE
+
+			// Toggle fullscreen in-place: flip window style + size without destroying
+			// the GL context, so textures, game state, and timers all survive.
+			static RECT savedWindowedRect = {0, 0, 0, 0};
+			static bool haveSavedWindowedRect = false;
+
+			if (!fullscreen) {
+				GetWindowRect(hWnd, &savedWindowedRect);
+				haveSavedWindowedRect = true;
+			}
+
+			fullscreen = !fullscreen;
+
+			MONITORINFO mi = { sizeof(mi) };
+			GetMonitorInfo(MonitorFromWindow(hWnd, MONITOR_DEFAULTTONEAREST), &mi);
+
+			DWORD newStyle, newExStyle;
+			int x, y, w, h;
+
+			if (fullscreen) {
+				newStyle   = WS_POPUP | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_VISIBLE;
+				newExStyle = WS_EX_APPWINDOW;
+				x = mi.rcMonitor.left;
+				y = mi.rcMonitor.top;
+				w = mi.rcMonitor.right  - mi.rcMonitor.left;
+				h = mi.rcMonitor.bottom - mi.rcMonitor.top;
+
+				hCursor = LoadCursorFromFile("cursor/normal.cur");
+				if (hCursor) SetCursor(hCursor);
+			} else {
+				newStyle   = WS_OVERLAPPEDWINDOW | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_VISIBLE;
+				newExStyle = WS_EX_APPWINDOW | WS_EX_WINDOWEDGE;
+
+				if (haveSavedWindowedRect) {
+					x = savedWindowedRect.left;
+					y = savedWindowedRect.top;
+					w = savedWindowedRect.right  - savedWindowedRect.left;
+					h = savedWindowedRect.bottom - savedWindowedRect.top;
+				} else {
+					int cw = 1280, ch = 720;
+					RECT r = { 0, 0, cw, ch };
+					AdjustWindowRectEx(&r, newStyle, FALSE, newExStyle);
+					w = r.right - r.left;
+					h = r.bottom - r.top;
+					x = mi.rcWork.left + ((mi.rcWork.right  - mi.rcWork.left) - w) / 2;
+					y = mi.rcWork.top  + ((mi.rcWork.bottom - mi.rcWork.top ) - h) / 2;
+				}
+
+				hCursor = NULL; // fall back to the class arrow cursor
+			}
+
+			SetWindowLongPtr(hWnd, GWL_STYLE,   newStyle);
+			SetWindowLongPtr(hWnd, GWL_EXSTYLE, newExStyle);
+			SetWindowPos(hWnd, HWND_TOP, x, y, w, h,
+				SWP_NOZORDER | SWP_FRAMECHANGED | SWP_SHOWWINDOW);
+			// WM_SIZE fires from SetWindowPos and drives wWidth/wHeight + reSize.
+		}
+	}
+
+	// Shutdown
+	KillGLWindow();									// Kill The Window
+	
+	delete sharedSounds;
+	sharedSounds = nullptr;
+	return (msg.wParam);							// Exit The Program. Program is then exited after the parameter has been fulfilled
+}
+
