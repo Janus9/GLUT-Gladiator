@@ -17,6 +17,9 @@
 
 // GLOBAL VARIABLES //
 
+const int windowSpawnWidth = 800;
+const int windowSpawnHeight = 600;
+
 bool keys[256];				// Keyboard input array
 bool active = true;			// Foreground-focus flag. False while the window is not the user's active window.
 bool minimized = false;		// True while the window is minimized. Combined with !active to drive the suspended state.
@@ -30,9 +33,9 @@ bool LMB = false;			// Left mouse button held
 
 // CLASS INSTANCE DECLARATIONS //
 _logger Logger; 																// DEPRICATED -- Delete later
-// std::unique_ptr<_scene> myScene = std::make_unique<_scene>(); 					// Singleton Scene
-// std::unique_ptr<_timerPlusPlus> timer = std::make_unique<_timerPlusPlus>();		// Wont likely be used
-// std::unique_ptr<_menuManager> menuManager = std::make_unique<_menuManager>();	// Singleton Menu Manager
+std::unique_ptr<_scene> gameScene; 												// Singleton Scene
+// std::unique_ptr<_timerPlusPlus> timer = std::make_unique<_timerPlusPlus>();  // Wont likely be used
+std::unique_ptr<_menuManager> menuManager;										// Singleton Menu Manager
 // std::unique_ptr<_sounds> sharedSounds = std::make_unique<_sounds>();			// DEPRICATED -- Delete later
 
 int main(int argc, char *argv[])
@@ -45,7 +48,7 @@ int main(int argc, char *argv[])
 	}
 
 	// Window Creation //
-	SDL_Window* window = SDL_CreateWindow("GLUT Gladiator", 800, 600, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
+	SDL_Window* window = SDL_CreateWindow("GLUT Gladiator", windowSpawnWidth, windowSpawnHeight, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
 	if (!window) {
 		const std::string errorMessage = std::string("ERROR: Window failed") + SDL_GetError(); 
 		SDL_Log(errorMessage.c_str());
@@ -74,6 +77,16 @@ int main(int argc, char *argv[])
 		SDL_Quit();
 		return EXIT_FAILURE;
 	}
+
+	gameScene = std::make_unique<_scene>();
+	gameScene->initGL();
+
+	gameScene->reSize(windowSpawnWidth, windowSpawnHeight);
+	
+	_menuManager::setWindowDimensions({windowSpawnWidth, windowSpawnHeight});
+	menuManager = std::make_unique<_menuManager>();
+	menuManager->initMenuManager(nullptr, gameScene.get());
+	menuManager->loadMenu(MENU_HOME);
 
 	bool running = true;
 	while (running) {
