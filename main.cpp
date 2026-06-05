@@ -38,6 +38,34 @@ std::unique_ptr<_scene> gameScene; 												// Singleton Scene
 std::unique_ptr<_menuManager> menuManager;										// Singleton Menu Manager
 // std::unique_ptr<_sounds> sharedSounds = std::make_unique<_sounds>();			// DEPRICATED -- Delete later
 
+// SCREEN RESIZE HANDLER //
+void handleWindowResize(SDL_Window* window) {
+	int newWindowW = 0;
+    int newWindowH = 0;
+
+    int drawableW = 0;
+    int drawableH = 0;
+
+    SDL_GetWindowSize(window, &newWindowW, &newWindowH);
+    SDL_GetWindowSizeInPixels(window, &drawableW, &drawableH);
+
+    if (newWindowW <= 0 || newWindowH <= 0) {
+        return;
+    }
+
+    if (drawableW <= 0 || drawableH <= 0) {
+        return;
+    }
+
+    wWidth = newWindowW;
+    wHeight = newWindowH;
+
+    glViewport(0, 0, drawableW, drawableH);
+
+    _menuManager::setWindowDimensions({windowSpawnWidth, windowSpawnHeight});
+}
+
+// MAIN ENTRY POINT //
 int main(int argc, char *argv[])
 {
 	// Initialization //
@@ -81,9 +109,10 @@ int main(int argc, char *argv[])
 	gameScene = std::make_unique<_scene>();
 	gameScene->initGL();
 
-	gameScene->reSize(windowSpawnWidth, windowSpawnHeight);
+	handleWindowResize(window);	// Force resize event to sit window dimension parameters + OpenGL window params				
+
+	gameScene->reSize(wWidth, wHeight);
 	
-	_menuManager::setWindowDimensions({windowSpawnWidth, windowSpawnHeight});
 	menuManager = std::make_unique<_menuManager>();
 	menuManager->initMenuManager(nullptr, gameScene.get());
 	menuManager->loadMenu(MENU_HOME);
@@ -93,11 +122,24 @@ int main(int argc, char *argv[])
 		SDL_Event event;
 
 		while (SDL_PollEvent(&event)) {
-			// Exit Game //
-			if (event.type == SDL_EVENT_QUIT) {
-				running = false;
+			switch (event.type) {
+				// Exit Game //
+				case SDL_EVENT_QUIT:
+					running = false;
+					break;
+				// Window Resize //
+				case SDL_EVENT_WINDOW_RESIZED:
+					handleWindowResize(window);
+					break;
+				default:
+					break;
 			}
 		}
+
+		// DRAW //
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		menuManager->drawMenuManager();
 
 		SDL_GL_SwapWindow(window);			// Double buffering - Swap buffer
     }
