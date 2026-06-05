@@ -434,4 +434,10 @@ enum class _team : uint8_t {
     NEUTRAL
 };
 
+enum GameLogCategory {
+    LOG_MAIN = SDL_LOG_CATEGORY_APPLICATION,
+    LOG_SCENE,
+    LOG_MENU_MANAGER
+};
+
 #endif // _COMMON_H

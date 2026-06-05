@@ -105,6 +105,11 @@ void handleUpdate() {
 	if (dt >= UPDATE_DELAY) {
 		if (menuManager->getLoadedMenu() == MENU_GAME) {
 			// Update Game
+			if (menuManager->loadGame) {
+				SDL_LogInfo(LOG_MAIN, "Entering Game State");
+				gameScene->reSize(wWidth, wHeight);
+				menuManager->loadGame = false;
+			}
 			gameScene->updateScene(dt, inputState);
 		} else {
 			// Update Menu
@@ -121,7 +126,7 @@ int main(int argc, char *argv[])
 	// Initialization //
 	if (!SDL_Init(SDL_INIT_VIDEO)) {
 		const std::string errorMessage = std::string("ERROR: SDL_Init failed") + SDL_GetError(); 
-		SDL_Log(errorMessage.c_str());
+		SDL_LogError(LOG_MAIN, errorMessage.c_str());
 		return EXIT_FAILURE;
 	}
 
@@ -129,7 +134,7 @@ int main(int argc, char *argv[])
 	SDL_Window* window = SDL_CreateWindow("GLUT Gladiator", windowSpawnWidth, windowSpawnHeight, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
 	if (!window) {
 		const std::string errorMessage = std::string("ERROR: Window failed") + SDL_GetError(); 
-		SDL_Log(errorMessage.c_str());
+		SDL_LogError(LOG_MAIN, errorMessage.c_str());
 		SDL_Quit();
 		return EXIT_FAILURE;
 	}
@@ -138,7 +143,7 @@ int main(int argc, char *argv[])
 	SDL_GLContext glContext = SDL_GL_CreateContext(window);
 	if (!glContext) {
 		const std::string errorMessage = std::string("ERROR: GL Context failed") + SDL_GetError(); 
-		SDL_Log(errorMessage.c_str());
+		SDL_LogError(LOG_MAIN, errorMessage.c_str());
 		SDL_Quit();
 		return EXIT_FAILURE;
 	}
@@ -199,7 +204,6 @@ int main(int argc, char *argv[])
 					handleMouseButton(event,false);
 					break;
 				case SDL_EVENT_MOUSE_WHEEL:
-					SDL_Log("wheel y: %f", event.wheel.y);
 					inputState.mouseWheelY = event.wheel.y;
 					gameScene->mouseScrollEvent(inputState);
 					break;
