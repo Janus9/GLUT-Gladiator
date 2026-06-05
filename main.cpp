@@ -1,6 +1,3 @@
-
-#pragma once 
-
 // INCLUDES //
 
 #include <SDL3/SDL.h>
@@ -13,7 +10,7 @@
 
 // DEFINES //
 
-#define UPDATE_DELAY (1000.0f / 60.0f)	// Delay in milliseconds for 60 updates per second
+#define UPDATE_DELAY (1000.0 / 60.0)	// Delay in milliseconds for 60 updates per second
 
 // GLOBAL VARIABLES //
 
@@ -29,7 +26,9 @@ int wWidth;					// Window width
 int wHeight;				// Window height
 Vec2f mouseScreenClipPos;	// Mouse position (screen coordinates as 0-1 where 0,0 is bottom left)
 Vec2f mouseScreenPos;		// Mouse position (screen coordinates as pixels where 0,0 is top left)
+
 bool LMB = false;			// Left mouse button held
+bool RMB = false;			// Right mouse button held
 
 // CLASS INSTANCE DECLARATIONS //
 _logger Logger; 																// DEPRICATED -- Delete later
@@ -63,6 +62,24 @@ void handleWindowResize(SDL_Window* window) {
     glViewport(0, 0, drawableW, drawableH);
 
     _menuManager::setWindowDimensions({windowSpawnWidth, windowSpawnHeight});
+}
+
+// MOUSE MOVE HANDLER //
+void handleMouseMove(const SDL_Event &event) {
+	mouseScreenPos = {event.motion.x, event.motion.y};
+	mouseScreenClipPos = {mouseScreenPos.x / wWidth, 1.0f - (mouseScreenPos.y / wHeight)};
+}
+
+// MOUSE BUTTON HANDLER //
+void handleMouseButton(const SDL_Event &event, bool buttonDown) {
+	switch (event.button.button) {
+		case SDL_BUTTON_LEFT:
+			LMB = buttonDown;
+			break;
+		case SDL_BUTTON_RIGHT:
+			RMB = buttonDown;
+			break;
+	}
 }
 
 // MAIN ENTRY POINT //
@@ -117,6 +134,8 @@ int main(int argc, char *argv[])
 	menuManager->initMenuManager(nullptr, gameScene.get());
 	menuManager->loadMenu(MENU_HOME);
 
+	uint64_t previousTime = SDL_GetTicksNS();
+
 	bool running = true;
 	while (running) {
 		SDL_Event event;
@@ -131,9 +150,27 @@ int main(int argc, char *argv[])
 				case SDL_EVENT_WINDOW_RESIZED:
 					handleWindowResize(window);
 					break;
+				case SDL_EVENT_MOUSE_MOTION:
+					handleMouseMove(event);
+					break;
+				case SDL_EVENT_MOUSE_BUTTON_DOWN:
+					handleMouseButton(event,true);
+					break;
+				case SDL_EVENT_MOUSE_BUTTON_UP:
+					handleMouseButton(event,false);
+					break;
 				default:
 					break;
 			}
+		}
+
+		// UPDATE //
+		const uint64_t currentTime = SDL_GetTicksNS();
+		const double dt = static_cast<double>(currentTime - previousTime) / 1000000.0;	// Delta time (ms)
+
+		if (dt >= UPDATE_DELAY) {
+			menuManager->updateMenuManager(dt,mouseScreenClipPos, LMB);
+			previousTime = currentTime;
 		}
 
 		// DRAW //
