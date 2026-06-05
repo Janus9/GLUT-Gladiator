@@ -67,10 +67,9 @@ class _menuManager {
 
         /**
          * @param dt Deleta Time (in seconds)
-         * @param mousePos Position of the mouse in the window
-         * @param mouseClicked LMB click condition
+         * @param inputState Input state container
          */
-        void updateMenuManager(double dt, const Vec2f &mousePos, bool mouseClicked);
+        void updateMenuManager(double dt, const InputState &inputState);
 
         // Loads a given menu
         void loadMenu(menu_type type);

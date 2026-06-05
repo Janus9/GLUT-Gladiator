@@ -346,6 +346,17 @@ struct TilePosI
     uint8_t col;
 };
 
+struct InputState {
+	bool LMB;
+	bool RMB;
+
+	Vec2f mouseScreenPos;
+	Vec2f mouseScreenClipPos;
+
+	bool keys[512] = { false };
+};
+
+
 /**
  * Negate helper for floats
  * 

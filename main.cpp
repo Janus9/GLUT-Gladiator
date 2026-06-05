@@ -17,18 +17,14 @@
 const int windowSpawnWidth = 800;
 const int windowSpawnHeight = 600;
 
-bool keys[SDL_SCANCODE_COUNT] = { false };
 bool active = true;			// Foreground-focus flag. False while the window is not the user's active window.
 bool minimized = false;		// True while the window is minimized. Combined with !active to drive the suspended state.
 bool fullscreen = true;		// True while application is fullscreened
 
 int wWidth;					// Window width
 int wHeight;				// Window height
-Vec2f mouseScreenClipPos;	// Mouse position (screen coordinates as 0-1 where 0,0 is bottom left)
-Vec2f mouseScreenPos;		// Mouse position (screen coordinates as pixels where 0,0 is top left)
 
-bool LMB = false;			// Left mouse button held
-bool RMB = false;			// Right mouse button held
+InputState inputState;
 
 // CLASS INSTANCE DECLARATIONS //
 _logger Logger; 																// DEPRICATED -- Delete later
@@ -66,18 +62,18 @@ void handleWindowResize(SDL_Window* window) {
 
 // MOUSE MOVE HANDLER //
 void handleMouseMove(const SDL_Event &event) {
-	mouseScreenPos = {event.motion.x, event.motion.y};
-	mouseScreenClipPos = {mouseScreenPos.x / wWidth, 1.0f - (mouseScreenPos.y / wHeight)};
+	inputState.mouseScreenPos = {event.motion.x, event.motion.y};
+	inputState.mouseScreenClipPos = {inputState.mouseScreenPos.x / wWidth, 1.0f - (inputState.mouseScreenPos.y / wHeight)};
 }
 
 // MOUSE BUTTON HANDLER //
 void handleMouseButton(const SDL_Event &event, bool buttonDown) {
 	switch (event.button.button) {
 		case SDL_BUTTON_LEFT:
-			LMB = buttonDown;
+			inputState.LMB = buttonDown;
 			break;
 		case SDL_BUTTON_RIGHT:
-			RMB = buttonDown;
+			inputState.RMB = buttonDown;
 			break;
 	}
 }
@@ -110,7 +106,6 @@ int main(int argc, char *argv[])
 		return EXIT_FAILURE;
 	}
 
-	// Dont know what these do
 	SDL_GL_MakeCurrent(window, glContext);		// Tells OpenGL our window is the given OpenGL context (to apply API calls into)
     SDL_GL_SetSwapInterval(1);					// Enable VSync
 
@@ -160,10 +155,10 @@ int main(int argc, char *argv[])
 					handleMouseButton(event,false);
 					break;
 				case SDL_EVENT_KEY_DOWN:
-					keys[event.key.scancode] = true;
+					inputState.keys[event.key.scancode] = true;
 					break;
 				case SDL_EVENT_KEY_UP:
-					keys[event.key.scancode] = false;
+					inputState.keys[event.key.scancode] = false;
 					break;
 				default:
 					break;
@@ -175,7 +170,7 @@ int main(int argc, char *argv[])
 		const double dt = static_cast<double>(currentTime - previousTime) / 1000000.0;	// Delta time (ms)
 
 		if (dt >= UPDATE_DELAY) {
-			menuManager->updateMenuManager(dt,mouseScreenClipPos, LMB);
+			menuManager->updateMenuManager(dt, inputState);
 			previousTime = currentTime;
 		}
 

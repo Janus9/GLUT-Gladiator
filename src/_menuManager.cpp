@@ -263,11 +263,11 @@ void _menuManager::drawMenuManager() {
     menuList[selectedMenu].drawMenu(windowDimensions);
 }
 
-void _menuManager::updateMenuManager(double dt, const Vec2f &mousePos, bool mouseClicked) {
+void _menuManager::updateMenuManager(double dt, const InputState &inputState) {
     _menu* menu = &menuList[selectedMenu];
-    mouseScreenClipPosition = mousePos;
+    mouseScreenClipPosition = inputState.mouseScreenClipPos;
 
-    menu->updateMenu(dt,mousePos,mouseClicked,sounds);
+    menu->updateMenu(dt,inputState.mouseScreenClipPos,inputState.LMB,sounds);
 
     if (menu->generateWorldEvent) {
         std::cout << "Generate World Event!\n";
