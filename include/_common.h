@@ -35,7 +35,7 @@
 #include <unordered_map> // Hashtable
 #include <map>
 #include <memory>
-#include <SDL3/SDL_log.h>
+#include <_loggerSDL.h>
 
 // DEFINITIONS //
 
@@ -433,12 +433,6 @@ enum class _team : uint8_t {
     FRIENDLY,
     ENEMY,
     NEUTRAL
-};
-
-enum GameLogCategory {
-    LOG_MAIN = SDL_LOG_CATEGORY_APPLICATION,
-    LOG_SCENE,
-    LOG_MENU_MANAGER
 };
 
 #endif // _COMMON_H

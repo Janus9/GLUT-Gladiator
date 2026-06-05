@@ -132,6 +132,8 @@ void handleUpdate() {
 // MAIN ENTRY POINT //
 int main(int argc, char *argv[])
 {
+	initSDLLogger();  // Setup logging functionality
+	
 	// Initialization //
 	if (!SDL_Init(SDL_INIT_VIDEO)) {
 		const std::string errorMessage = std::string("ERROR: SDL_Init failed") + SDL_GetError(); 
