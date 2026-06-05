@@ -270,17 +270,17 @@ void _menuManager::updateMenuManager(double dt, const InputState &inputState) {
     menu->updateMenu(dt,inputState,sounds);
 
     if (menu->generateWorldEvent) {
-        std::cout << "Generate World Event!\n";
+        SDL_LogInfo(LOG_MENU_MANAGER, "Generate World Event");
         menu->generateWorldEvent = false;
         // Dont load world as it gets generated
         scene->initScene(false);            // Setup scene to generate world
     }
     
     if (menu->loadWorldEvent) {
-        std::cout << "Load World Event!\n";
+        SDL_LogInfo(LOG_MENU_MANAGER, "Load World Event");
         menu->loadWorldEvent = false;
         if (!scene->loadSceneFromFile("saves/game")) {
-            std::cout << "ERROR: Save failed to load correctly\n";
+            SDL_LogError(LOG_MENU_MANAGER, "ERROR: Save failed to load correctly");
             return;
         }
         scene->initScene(true);             // Setup scene to load world
@@ -583,7 +583,7 @@ void _menuManager::_menu::updateMenu(double dt, const InputState &inputState, _s
             if (sounds) sounds->playSfx("MENU_HOVER");
         }
         if (menuObject->getMouseState() && inputState.LMB && timeSinceRedirect > 0.5) {
-            SDL_LogDebug(LOG_MENU_MANAGER, "Mouse clicked on ID: %s", menuObject->getID());
+            SDL_LogDebug(LOG_MENU_MANAGER, "Mouse clicked on ID: %s", menuObject->getID().c_str());
             if (menuObject->getID() == "saves_generate_button") {
                 generateWorldEvent = true;
             } else if (menuObject->getID() == "saves_load_button") {
