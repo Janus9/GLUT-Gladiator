@@ -267,7 +267,7 @@ void _menuManager::updateMenuManager(double dt, const InputState &inputState) {
     _menu* menu = &menuList[selectedMenu];
     mouseScreenClipPosition = inputState.mouseScreenClipPos;
 
-    menu->updateMenu(dt,inputState.mouseScreenClipPos,inputState.LMB,sounds);
+    menu->updateMenu(dt,inputState,sounds);
 
     if (menu->generateWorldEvent) {
         std::cout << "Generate World Event!\n";
@@ -421,7 +421,9 @@ void _menuManager::_menuObject::drawMenuObject(const Vec2i &wDim) {
     glUseProgram(0);
 }
 
-void _menuManager::_menuObject::updateMenuObject(double dt, const Vec2f &mousePos) {
+void _menuManager::_menuObject::updateMenuObject(double dt, const InputState &inputState) {
+    const Vec2f mousePos = inputState.mouseScreenClipPos;
+    
     float halfWidth = size.x * 0.5f;
     float halfHeight = size.y * 0.5f;
 
@@ -571,15 +573,15 @@ void _menuManager::_menu::drawMenu(const Vec2i &wDim) {
     }
 }
 
-void _menuManager::_menu::updateMenu(double dt, const Vec2f &mousePos, bool mouseClicked, _sounds* sounds) {
+void _menuManager::_menu::updateMenu(double dt, const InputState &inputState, _sounds* sounds) {
     timeSinceRedirect += dt;
     for (int i = 0; i < menuObjects.size(); i++) {
         _menuObject* menuObject = menuObjects[i].get();
-        menuObject->updateMenuObject(dt, mousePos);
+        menuObject->updateMenuObject(dt, inputState);
         if (menuObject->justEnteredHover()) {
             if (sounds) sounds->playSfx("MENU_HOVER");
         }
-        if (menuObject->getMouseState() && mouseClicked && timeSinceRedirect > 0.5) {
+        if (menuObject->getMouseState() && inputState.LMB && timeSinceRedirect > 0.5) {
             std::cout << "Mouse clicked on ID: " << menuObject->getID() << "\n";
             if (menuObject->getID() == "saves_generate_button") {
                 generateWorldEvent = true;

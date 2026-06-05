@@ -106,7 +106,7 @@ class _menuManager {
                 void drawMenuObject(const Vec2i &wDim);
 
                 // Update Menu Object
-                void updateMenuObject(double dt, const Vec2f &mousePos);
+                void updateMenuObject(double dt, const InputState &inputState);
                 
                 // Returns true if mouse is hovering the object
                 bool getMouseState() const;
@@ -188,7 +188,7 @@ class _menuManager {
                 void drawMenu(const Vec2i &wDim);
 
                 // Update menu
-                void updateMenu(double dt, const Vec2f &mousePos, bool mouseClicked, _sounds* sounds);
+                void updateMenu(double dt, const InputState &inputState, _sounds* sounds);
                 
                 menu_type redirectTo = MENU_NULL;   // If not null will redirect on next update by menuManager
 
