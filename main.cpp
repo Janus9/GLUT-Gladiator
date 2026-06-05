@@ -212,6 +212,20 @@ int main(int argc, char *argv[])
 					const uint64_t inputCurrentTime = SDL_GetTicks();
 					const uint64_t dt = (inputCurrentTime - inputPreviousTime);
 					if (dt > 100) {
+						// Pause Event //
+						if (inputState.keys[SDL_SCANCODE_ESCAPE]) {
+							if (menuManager->getLoadedMenu() == MENU_GAME) {
+								// In game - pause
+								SDL_LogInfo(LOG_MAIN, "Pause game event");
+								menuManager->loadMenu(MENU_PAUSE);
+							} else {
+								// In menu - unpause (if game loaded)
+								if (gameScene->isInitialized()) {
+									SDL_LogInfo(LOG_MAIN, "Unpause game event");
+									menuManager->loadMenu(MENU_GAME);
+								}
+							}
+						}
 						gameScene->keyboardHandler(inputState);
 						inputPreviousTime = inputCurrentTime;
 					}
