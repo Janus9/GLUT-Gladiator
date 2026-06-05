@@ -354,8 +354,9 @@ struct InputState {
 	Vec2f mouseScreenClipPos;
 
 	bool keys[512] = { false };
-};
 
+    float mouseWheelY;              /// 1.0 means scroll UP :: -1.0 means scroll DOWN :: 0.0 means no scroll event
+};
 
 /**
  * Negate helper for floats

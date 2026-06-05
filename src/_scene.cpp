@@ -1446,62 +1446,50 @@ void _scene::debugPrintFPS()
     fpsTimer->reset(); // Reset the timer for the next FPS calculation
 }
 
-void _scene::keyboardHandler(WPARAM wParam)
+void _scene::keyboardHandler(const InputState &inputState)
 {
     if (inputTimer.getMilliseconds() > 200) // 200 ms debounce time for toggle keys
     {
-        switch (wParam)
-        {
-        case 192: // "~"
-            break;
-        case 49: // "1"
+        if (inputState.keys[SDL_SCANCODE_GRAVE]) {
+            // Nothing
+        }
+        if (inputState.keys[SDL_SCANCODE_1]) {
             enemyManager->addEnemy(mouseWorldPos, default_turret_config);
-            break;
-        case 50: // "2"
+        }
+        if (inputState.keys[SDL_SCANCODE_2]) {
             enemyManager->addEnemy(mouseWorldPos, gatling_turret_config);
-            break;
-        case 51: // "3"
+        }
+        if (inputState.keys[SDL_SCANCODE_3]) {
             enemyManager->addEnemy(mouseWorldPos, orc_config);
-            break;
-        case 52: // "4"
+        }
+        if (inputState.keys[SDL_SCANCODE_4]) {
             enemyManager->addEnemy(mouseWorldPos, vampire_config);
-            break;
-        case 53: // "5"
+        }
+        if (inputState.keys[SDL_SCANCODE_5]) {
             enemyManager->addEnemy(mouseWorldPos, vampire_minion1_config);
-            break;
-        case 54: // "6"
+        }
+        if (inputState.keys[SDL_SCANCODE_6]) {
             enemyManager->addEnemy(mouseWorldPos, vampire_minion2_config);
-            break;
-        case 55: // "7"
+        }
+        if (inputState.keys[SDL_SCANCODE_7]) {
             pickupManager->addPickup(mouseWorldPos, speed_pickup);
-            break;
-        case 56: // "8"
+        }
+        if (inputState.keys[SDL_SCANCODE_8]) {
             pickupManager->addPickup(mouseWorldPos, max_health_pickup);
-            break;
-        case 57: // "9"
+        }
+        if (inputState.keys[SDL_SCANCODE_9]) {
             pickupManager->addPickup(mouseWorldPos, fire_rate_pickup);
-            break;
-        case 58: // "0"
+        }
+        if (inputState.keys[SDL_SCANCODE_0]) {
             pickupManager->addPickup(mouseWorldPos, xp_pickup);
-            break;
-
-        case 97: // "NUM 1"
-            break;
-
-        case ' ': // SPACE
-            break;
-        case 82: // R
+        }
+        if (inputState.keys[SDL_SCANCODE_SPACE]) {
+            // Nothing
+        }
+        if (inputState.keys[SDL_SCANCODE_R]) {
             player->procReload();
-            break;
-        case 221: // "]"
-            debugEnabled = !debugEnabled;
-            Logger.LogInfo("Toggled debug mode: " + std::string(debugEnabled ? "ON" : "OFF"), LOG_CONSOLE);
-            break;
-        case 219: // "["
-            inputDebugEnabled = !inputDebugEnabled;
-            Logger.LogInfo("Toggled input debug mode: " + std::string(inputDebugEnabled ? "ON" : "OFF"), LOG_CONSOLE);
-            break;
-        case 220: // "\"
+        }
+        if (inputState.keys[SDL_SCANCODE_BACKSLASH]) {
             cameraFree = !cameraFree;
             Logger.LogInfo("Toggled camera free mode: " + std::string(cameraFree ? "ON" : "OFF"), LOG_CONSOLE);
             if (!cameraFree && cameraZoom < 3.0f) {
@@ -1514,13 +1502,27 @@ void _scene::keyboardHandler(WPARAM wParam)
                 player_light.radius = 400.0f;
             }
             *lightManager->getLightRadius("PLAYER_LIGHT") = player_light.radius;
-            break;
-        case 122: // "F11"
-            myWorld->DEBUG_displayChunkBorders = !myWorld->DEBUG_displayChunkBorders;
-            Logger.LogInfo("Toggled chunk border display: " + std::string(myWorld->DEBUG_displayChunkBorders ? "ON" : "OFF"), LOG_CONSOLE);
-            break;
         }
         inputTimer.reset(); // Reset the timer after handling a toggle key
+    }
+}
+
+void _scene::mouseScrollEvent(const InputState &inputState) {
+    // Safe float equals check since input handler sets to 0.0f exactly
+    if (inputState.mouseWheelY != 0.0f) {
+        // Mouse scroll event //
+        if (inputState.mouseWheelY > 0.0f) {
+            // Scroll UP //
+            if (cameraZoom < 9.0f) {
+                cameraZoom*=1.1; 
+            }
+        } else {
+            // Scroll DOWN //
+            const float maxZoom = cameraFree ? 0.05f : 3.0f;
+            if (cameraZoom > maxZoom) {
+                cameraZoom*=0.9f;
+            } 
+        }
     }
 }
 
@@ -1532,7 +1534,7 @@ int _scene::winMsg(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     case WM_KEYDOWN:
         if (inputDebugEnabled)
             Logger.LogDebug("Key Pressed: " + std::to_string(wParam), LOG_CONSOLE); // Log the key that was pressed
-        keyboardHandler(wParam);
+        // keyboardHandler(wParam);
         break;
     // Key release
     case WM_KEYUP:

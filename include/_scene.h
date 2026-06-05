@@ -77,7 +77,10 @@ class _scene
         void updateAudio(double dt);
         // Handles input messsages send from windows -- used for controls etc
         int winMsg(HWND	hWnd, UINT uMsg, WPARAM	wParam, LPARAM lParam);
-
+        // Handles keyboard inputs for toggle keys. Function regulated by a timer
+        void keyboardHandler(const InputState &inputState); 
+        // Handles mouse scroll wheel events
+        void mouseScrollEvent(const InputState &inputState);
         // Returns true if the scene is initialized and ready
         bool isInitialized() const;
 
@@ -187,16 +190,13 @@ class _scene
 
         bool playerDeathSfxFired = false;   // Ensures PLAYER_DEATH SFX plays once per death, not every frame while dead
 
-        // -- FUNCTIONS -- //
+        // -- FUNCTIONS -- //     
         // Function that runs every [debugPrintInterval] ms for dubuggin purposes
         void debugPrint();
         // Function that runs every [fpsPrintInterval] ms to calculate and print the FPS of the scene
         void debugPrintFPS();
-        // Handles keyboard inputs for toggle keys. Function regulated by a timer
-        void keyboardHandler(WPARAM wParam); 
         // Applies camera position zoom, etc
         void applyCamera();
-
         
         bool loadWorldConfig(const std::string &configPath, world_config &outConfig);
 

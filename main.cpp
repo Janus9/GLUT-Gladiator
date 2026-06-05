@@ -175,6 +175,7 @@ int main(int argc, char *argv[])
 	bool running = true;
 	while (running) {
 		SDL_Event event;
+		inputState.mouseWheelY = 0.0f;	// Reset mouse scroll event
 
 		while (SDL_PollEvent(&event)) {
 			switch (event.type) {
@@ -195,11 +196,18 @@ int main(int argc, char *argv[])
 				case SDL_EVENT_MOUSE_BUTTON_UP:
 					handleMouseButton(event,false);
 					break;
+				case SDL_EVENT_MOUSE_WHEEL:
+					SDL_Log("wheel y: %f", event.wheel.y);
+					inputState.mouseWheelY = event.wheel.y;
+					gameScene->mouseScrollEvent(inputState);
+					break;
 				case SDL_EVENT_KEY_DOWN:
 					inputState.keys[event.key.scancode] = true;
+					gameScene->keyboardHandler(inputState);
 					break;
 				case SDL_EVENT_KEY_UP:
 					inputState.keys[event.key.scancode] = false;
+					gameScene->keyboardHandler(inputState);
 					break;
 				default:
 					break;
