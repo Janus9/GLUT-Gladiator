@@ -75,8 +75,6 @@ class _scene
         void updateScene(double dt, const InputState &inputState);
         // Runs audio ramps every frame regardless of menu state, so music fade-in still progresses while on the main menu
         void updateAudio(double dt);
-        // Handles input messsages send from windows -- used for controls etc
-        int winMsg(HWND	hWnd, UINT uMsg, WPARAM	wParam, LPARAM lParam);
         // Handles keyboard inputs for toggle keys. Function regulated by a timer
         void keyboardHandler(const InputState &inputState); 
         // Handles mouse scroll wheel events

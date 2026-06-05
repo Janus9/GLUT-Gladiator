@@ -35,6 +35,7 @@
 #include <unordered_map> // Hashtable
 #include <map>
 #include <memory>
+#include <SDL3/SDL_log.h>
 
 // DEFINITIONS //
 
