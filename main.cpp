@@ -17,7 +17,7 @@
 const int windowSpawnWidth = 800;
 const int windowSpawnHeight = 600;
 
-bool keys[256];				// Keyboard input array
+bool keys[SDL_SCANCODE_COUNT] = { false };
 bool active = true;			// Foreground-focus flag. False while the window is not the user's active window.
 bool minimized = false;		// True while the window is minimized. Combined with !active to drive the suspended state.
 bool fullscreen = true;		// True while application is fullscreened
@@ -158,6 +158,12 @@ int main(int argc, char *argv[])
 					break;
 				case SDL_EVENT_MOUSE_BUTTON_UP:
 					handleMouseButton(event,false);
+					break;
+				case SDL_EVENT_KEY_DOWN:
+					keys[event.key.scancode] = true;
+					break;
+				case SDL_EVENT_KEY_UP:
+					keys[event.key.scancode] = false;
 					break;
 				default:
 					break;
