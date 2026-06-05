@@ -185,12 +185,9 @@ class _scene
 
         float miningSpeed = 2.5f; // In seconds
 
-        bool LMB = false;
-
         bool playerDeathSfxFired = false;   // Ensures PLAYER_DEATH SFX plays once per death, not every frame while dead
 
         // -- FUNCTIONS -- //
-        void mouseMove(LPARAM lParam);
         // Function that runs every [debugPrintInterval] ms for dubuggin purposes
         void debugPrint();
         // Function that runs every [fpsPrintInterval] ms to calculate and print the FPS of the scene

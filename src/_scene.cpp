@@ -986,6 +986,7 @@ void _scene::updateScene(double dt, const InputState &inputState)
     const bool S = inputState.keys[SDL_SCANCODE_S];
     const bool D = inputState.keys[SDL_SCANCODE_D];
     const bool SPACE = inputState.keys[SDL_SCANCODE_SPACE];
+    const bool LMB = inputState.LMB;
 
     mouseScreenPos = inputState.mouseScreenPos;
 
@@ -1523,14 +1524,6 @@ void _scene::keyboardHandler(WPARAM wParam)
     }
 }
 
-void _scene::mouseMove(LPARAM lParam)
-{
-    mouseScreenPos = {LOWORD(lParam), HIWORD(lParam)};
-    if (inputDebugEnabled)
-        Logger.LogDebug("Mouse Move at " + mouseScreenPos.toString("px"), LOG_CONSOLE); // Log the position of the mouse when it moves
-    // Adjusted to be -width to +width and +height to -height plus offset of the camera
-}
-
 int _scene::winMsg(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     switch (uMsg)
@@ -1551,7 +1544,6 @@ int _scene::winMsg(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
         if (inputDebugEnabled)
             Logger.LogDebug("Left Mouse Button Down at (" + std::to_string(LOWORD(lParam)) + ", " + std::to_string(HIWORD(lParam)) + ")", LOG_CONSOLE); // Log the position of the mouse when left button is pressed
-        LMB = true;
         interactionTimer->reset();
         break;
     }
@@ -1564,7 +1556,6 @@ int _scene::winMsg(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     case WM_LBUTTONUP:
         if (inputDebugEnabled)
             Logger.LogDebug("Left Mouse Button Up at (" + std::to_string(LOWORD(lParam)) + ", " + std::to_string(HIWORD(lParam)) + ")", LOG_CONSOLE); // Log the position of the mouse when left button is released
-        LMB = false;
         break;
     // Right Mouse button up
     case WM_RBUTTONUP:
@@ -1573,7 +1564,6 @@ int _scene::winMsg(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         break;
     // Mouse move
     case WM_MOUSEMOVE:
-        mouseMove(lParam);
         break;
     // Mouse wheel
     case WM_MOUSEWHEEL:
