@@ -24,7 +24,8 @@ bool fullscreen = true;		// True while application is fullscreened
 int wWidth;					// Window width
 int wHeight;				// Window height
 
-uint64_t previousTime;
+uint64_t updatePreviousTime;
+uint64_t inputPreviousTime;
 
 InputState inputState;
 
@@ -99,7 +100,7 @@ void handleDraw(SDL_Window* window) {
 
 void handleUpdate() {
 	const uint64_t currentTime = SDL_GetTicksNS();
-	const double dt = static_cast<double>(currentTime - previousTime) / 1000000000.0;	// Delta time (s)
+	const double dt = static_cast<double>(currentTime - updatePreviousTime) / 1000000000.0;	// Delta time (s)
 
 	if (dt >= UPDATE_DELAY) {
 		if (menuManager->getLoadedMenu() == MENU_GAME) {
@@ -110,7 +111,7 @@ void handleUpdate() {
 			menuManager->updateMenuManager(dt, inputState);
 		}
 
-		previousTime = currentTime;
+		updatePreviousTime = currentTime;
 	}
 }
 
@@ -170,7 +171,8 @@ int main(int argc, char *argv[])
 	menuManager->initMenuManager(nullptr, gameScene.get());
 	menuManager->loadMenu(MENU_HOME);
 
-	previousTime = SDL_GetTicksNS();
+	updatePreviousTime = SDL_GetTicksNS();
+	inputPreviousTime = SDL_GetTicks();
 
 	bool running = true;
 	while (running) {
@@ -201,13 +203,18 @@ int main(int argc, char *argv[])
 					inputState.mouseWheelY = event.wheel.y;
 					gameScene->mouseScrollEvent(inputState);
 					break;
-				case SDL_EVENT_KEY_DOWN:
+				case SDL_EVENT_KEY_DOWN: {
 					inputState.keys[event.key.scancode] = true;
-					gameScene->keyboardHandler(inputState);
+					const uint64_t inputCurrentTime = SDL_GetTicks();
+					const uint64_t dt = (inputCurrentTime - inputPreviousTime);
+					if (dt > 100) {
+						gameScene->keyboardHandler(inputState);
+						inputPreviousTime = inputCurrentTime;
+					}
 					break;
+				}
 				case SDL_EVENT_KEY_UP:
 					inputState.keys[event.key.scancode] = false;
-					gameScene->keyboardHandler(inputState);
 					break;
 				default:
 					break;

@@ -1448,62 +1448,58 @@ void _scene::debugPrintFPS()
 
 void _scene::keyboardHandler(const InputState &inputState)
 {
-    if (inputTimer.getMilliseconds() > 200) // 200 ms debounce time for toggle keys
-    {
-        if (inputState.keys[SDL_SCANCODE_GRAVE]) {
-            // Nothing
+    if (inputState.keys[SDL_SCANCODE_GRAVE]) {
+        // Nothing
+    }
+    if (inputState.keys[SDL_SCANCODE_1]) {
+        enemyManager->addEnemy(mouseWorldPos, default_turret_config);
+    }
+    if (inputState.keys[SDL_SCANCODE_2]) {
+        enemyManager->addEnemy(mouseWorldPos, gatling_turret_config);
+    }
+    if (inputState.keys[SDL_SCANCODE_3]) {
+        enemyManager->addEnemy(mouseWorldPos, orc_config);
+    }
+    if (inputState.keys[SDL_SCANCODE_4]) {
+        enemyManager->addEnemy(mouseWorldPos, vampire_config);
+    }
+    if (inputState.keys[SDL_SCANCODE_5]) {
+        enemyManager->addEnemy(mouseWorldPos, vampire_minion1_config);
+    }
+    if (inputState.keys[SDL_SCANCODE_6]) {
+        enemyManager->addEnemy(mouseWorldPos, vampire_minion2_config);
+    }
+    if (inputState.keys[SDL_SCANCODE_7]) {
+        pickupManager->addPickup(mouseWorldPos, speed_pickup);
+    }
+    if (inputState.keys[SDL_SCANCODE_8]) {
+        pickupManager->addPickup(mouseWorldPos, max_health_pickup);
+    }
+    if (inputState.keys[SDL_SCANCODE_9]) {
+        pickupManager->addPickup(mouseWorldPos, fire_rate_pickup);
+    }
+    if (inputState.keys[SDL_SCANCODE_0]) {
+        pickupManager->addPickup(mouseWorldPos, xp_pickup);
+    }
+    if (inputState.keys[SDL_SCANCODE_SPACE]) {
+        // Nothing
+    }
+    if (inputState.keys[SDL_SCANCODE_R]) {
+        player->procReload();
+    }
+    if (inputState.keys[SDL_SCANCODE_BACKSLASH]) {
+        cameraFree = !cameraFree;
+        Logger.LogInfo("Toggled camera free mode: " + std::string(cameraFree ? "ON" : "OFF"), LOG_CONSOLE);
+        if (!cameraFree && cameraZoom < 3.0f) {
+            // Reset camera on disabling free cam
+            cameraZoom = 3.0f;
         }
-        if (inputState.keys[SDL_SCANCODE_1]) {
-            enemyManager->addEnemy(mouseWorldPos, default_turret_config);
+        if (cameraFree) {
+            player_light.radius = 2400.0f;
+        } else {
+            player_light.radius = 400.0f;
         }
-        if (inputState.keys[SDL_SCANCODE_2]) {
-            enemyManager->addEnemy(mouseWorldPos, gatling_turret_config);
-        }
-        if (inputState.keys[SDL_SCANCODE_3]) {
-            enemyManager->addEnemy(mouseWorldPos, orc_config);
-        }
-        if (inputState.keys[SDL_SCANCODE_4]) {
-            enemyManager->addEnemy(mouseWorldPos, vampire_config);
-        }
-        if (inputState.keys[SDL_SCANCODE_5]) {
-            enemyManager->addEnemy(mouseWorldPos, vampire_minion1_config);
-        }
-        if (inputState.keys[SDL_SCANCODE_6]) {
-            enemyManager->addEnemy(mouseWorldPos, vampire_minion2_config);
-        }
-        if (inputState.keys[SDL_SCANCODE_7]) {
-            pickupManager->addPickup(mouseWorldPos, speed_pickup);
-        }
-        if (inputState.keys[SDL_SCANCODE_8]) {
-            pickupManager->addPickup(mouseWorldPos, max_health_pickup);
-        }
-        if (inputState.keys[SDL_SCANCODE_9]) {
-            pickupManager->addPickup(mouseWorldPos, fire_rate_pickup);
-        }
-        if (inputState.keys[SDL_SCANCODE_0]) {
-            pickupManager->addPickup(mouseWorldPos, xp_pickup);
-        }
-        if (inputState.keys[SDL_SCANCODE_SPACE]) {
-            // Nothing
-        }
-        if (inputState.keys[SDL_SCANCODE_R]) {
-            player->procReload();
-        }
-        if (inputState.keys[SDL_SCANCODE_BACKSLASH]) {
-            cameraFree = !cameraFree;
-            Logger.LogInfo("Toggled camera free mode: " + std::string(cameraFree ? "ON" : "OFF"), LOG_CONSOLE);
-            if (!cameraFree && cameraZoom < 3.0f) {
-                // Reset camera on disabling free cam
-                cameraZoom = 3.0f;
-            }
-            if (cameraFree) {
-                player_light.radius = 2400.0f;
-            } else {
-                player_light.radius = 400.0f;
-            }
-            *lightManager->getLightRadius("PLAYER_LIGHT") = player_light.radius;
-        }
-        inputTimer.reset(); // Reset the timer after handling a toggle key
+        *lightManager->getLightRadius("PLAYER_LIGHT") = player_light.radius;
     }
 }
 
