@@ -24,6 +24,8 @@ bool fullscreen = true;		// True while application is fullscreened
 int wWidth;					// Window width
 int wHeight;				// Window height
 
+uint64_t previousTime;
+
 InputState inputState;
 
 // CLASS INSTANCE DECLARATIONS //
@@ -78,6 +80,38 @@ void handleMouseButton(const SDL_Event &event, bool buttonDown) {
 	}
 }
 
+void handleDraw(SDL_Window* window) {
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	if (menuManager->getLoadedMenu() == MENU_GAME) {
+		// Draw Game
+		gameScene->drawScene();
+	} else {
+		// Draw Menu
+		menuManager->drawMenuManager();
+	}
+
+
+	SDL_GL_SwapWindow(window);			// Double buffering - Swap buffer
+}
+
+void handleUpdate() {
+	const uint64_t currentTime = SDL_GetTicksNS();
+	const double dt = static_cast<double>(currentTime - previousTime) / 1000000.0;	// Delta time (ms)
+
+	if (dt >= UPDATE_DELAY) {
+		if (menuManager->getLoadedMenu() == MENU_GAME) {
+			// Update Game
+			
+		} else {
+			// Update Menu
+			menuManager->updateMenuManager(dt, inputState);
+		}
+
+		previousTime = currentTime;
+	}
+}
+
 // MAIN ENTRY POINT //
 int main(int argc, char *argv[])
 {
@@ -129,7 +163,7 @@ int main(int argc, char *argv[])
 	menuManager->initMenuManager(nullptr, gameScene.get());
 	menuManager->loadMenu(MENU_HOME);
 
-	uint64_t previousTime = SDL_GetTicksNS();
+	previousTime = SDL_GetTicksNS();
 
 	bool running = true;
 	while (running) {
@@ -166,20 +200,10 @@ int main(int argc, char *argv[])
 		}
 
 		// UPDATE //
-		const uint64_t currentTime = SDL_GetTicksNS();
-		const double dt = static_cast<double>(currentTime - previousTime) / 1000000.0;	// Delta time (ms)
-
-		if (dt >= UPDATE_DELAY) {
-			menuManager->updateMenuManager(dt, inputState);
-			previousTime = currentTime;
-		}
-
+		handleUpdate();
+		
 		// DRAW //
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-		menuManager->drawMenuManager();
-
-		SDL_GL_SwapWindow(window);			// Double buffering - Swap buffer
+		handleDraw(window);
     }
 
 	SDL_Quit();
