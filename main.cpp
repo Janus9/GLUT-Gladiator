@@ -17,6 +17,7 @@ constexpr double UPDATE_DELAY = (1.0 / 60.0); // Delay in seconds for 60 updates
 const int windowSpawnWidth = 800;
 const int windowSpawnHeight = 600;
 
+bool running = true;
 bool active = true;			// Foreground-focus flag. False while the window is not the user's active window.
 bool minimized = false;		// True while the window is minimized. Combined with !active to drive the suspended state.
 bool fullscreen = true;		// True while application is fullscreened
@@ -104,14 +105,22 @@ void handleUpdate() {
 
 	if (dt >= UPDATE_DELAY) {
 		if (menuManager->getLoadedMenu() == MENU_GAME) {
-			// Update Game
+			// Load game
 			if (menuManager->loadGame) {
 				SDL_LogInfo(LOG_MAIN, "Entering Game State");
 				gameScene->reSize(wWidth, wHeight);
 				menuManager->loadGame = false;
 			}
+			// Update Game
 			gameScene->updateScene(dt, inputState);
 		} else {
+			// Exit game
+			if (menuManager->closeGameEvent) {
+				SDL_LogInfo(LOG_MAIN, "Close Game Event");
+				menuManager->closeGameEvent = false;
+				running = false;
+			}
+			
 			// Update Menu
 			menuManager->updateMenuManager(dt, inputState);
 		}
@@ -179,7 +188,7 @@ int main(int argc, char *argv[])
 	updatePreviousTime = SDL_GetTicksNS();
 	inputPreviousTime = SDL_GetTicks();
 
-	bool running = true;
+	running = true;
 	while (running) {
 		SDL_Event event;
 		inputState.mouseWheelY = 0.0f;	// Reset mouse scroll event

@@ -287,16 +287,17 @@ void _menuManager::updateMenuManager(double dt, const InputState &inputState) {
     }
 
     if (menu->saveGameEvent) {
-        std::cout << "Save Game Event!\n";
+        SDL_LogInfo(LOG_MENU_MANAGER, "Save Game Event");
+
         menu->saveGameEvent = false;
         if (!scene->saveSceneToFile("saves/game")) {
-            std::cout << "ERROR: Failed to save game correctly\n";
+            SDL_LogError(LOG_MENU_MANAGER, "ERROR: Failed to save game correctly");
             return;
         }
     }
 
     if (menu->endGameEvent) {
-        std::cout << "Exit Game Event!\n";
+        SDL_LogInfo(LOG_MENU_MANAGER, "End Game Event");
         menu->endGameEvent = false;
         closeGameEvent = true;
     }
