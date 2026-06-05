@@ -33,6 +33,8 @@
 #include <glm/gtc/matrix_transform.hpp>     // Matrix ops like transform, scale, ortho, etc
 #include <glm/gtc/type_ptr.hpp>             // Send GLM datatypes (matrix) to GPU
 
+#include <SDL3/SDL_scancode.h>
+
 #define TOML_HEADER_ONLY 1
 #include <toml.hpp>
 
@@ -70,7 +72,7 @@ class _scene
         // Draws the scene using a double-buffer. Runs as fast as the loop will let it. No time-based events should ever be added in here. Those are for the updateScene()
         void drawScene(); 
         // Updates the scene based on time of (60fps ~16.67ms per update). Time-based events should be added in here, such as movement and other time-based changes to the scene
-        void updateScene(double dt, bool* keysArray);
+        void updateScene(double dt, const InputState &inputState);
         // Runs audio ramps every frame regardless of menu state, so music fade-in still progresses while on the main menu
         void updateAudio(double dt);
         // Handles input messsages send from windows -- used for controls etc
@@ -182,8 +184,6 @@ class _scene
         float cameraZoom = 1.0f;
 
         float miningSpeed = 2.5f; // In seconds
-
-        bool *keysPtr = nullptr;    // Points to bool array of keys passed from main
 
         bool LMB = false;
 

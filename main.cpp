@@ -10,7 +10,7 @@
 
 // DEFINES //
 
-#define UPDATE_DELAY (1000.0 / 60.0)	// Delay in milliseconds for 60 updates per second
+constexpr double UPDATE_DELAY = (1.0 / 60.0); // Delay in seconds for 60 updates per second
 
 // GLOBAL VARIABLES //
 
@@ -57,9 +57,11 @@ void handleWindowResize(SDL_Window* window) {
     wWidth = newWindowW;
     wHeight = newWindowH;
 
-    glViewport(0, 0, drawableW, drawableH);
-
+	gameScene->reSize(wWidth, wHeight);
+    
     _menuManager::setWindowDimensions({windowSpawnWidth, windowSpawnHeight});
+
+	glViewport(0, 0, drawableW, drawableH);
 }
 
 // MOUSE MOVE HANDLER //
@@ -97,12 +99,12 @@ void handleDraw(SDL_Window* window) {
 
 void handleUpdate() {
 	const uint64_t currentTime = SDL_GetTicksNS();
-	const double dt = static_cast<double>(currentTime - previousTime) / 1000000.0;	// Delta time (ms)
+	const double dt = static_cast<double>(currentTime - previousTime) / 1000000000.0;	// Delta time (s)
 
 	if (dt >= UPDATE_DELAY) {
 		if (menuManager->getLoadedMenu() == MENU_GAME) {
 			// Update Game
-			
+			gameScene->updateScene(dt, inputState);
 		} else {
 			// Update Menu
 			menuManager->updateMenuManager(dt, inputState);
@@ -143,6 +145,13 @@ int main(int argc, char *argv[])
 	SDL_GL_MakeCurrent(window, glContext);		// Tells OpenGL our window is the given OpenGL context (to apply API calls into)
     SDL_GL_SetSwapInterval(1);					// Enable VSync
 
+	// OpenGL Glut Initialization // -- Depricate at some point
+	int argc2 = 1;
+	char appName[] = "GLUT Gladiator";
+	char* argv2[] = { appName, nullptr };
+
+	glutInit(&argc2, argv2);
+
 	// OpenGL Glew Initialization //
 	GLenum glewError = glewInit();
 	if (glewError != GLEW_OK) {
@@ -157,8 +166,6 @@ int main(int argc, char *argv[])
 
 	handleWindowResize(window);	// Force resize event to sit window dimension parameters + OpenGL window params				
 
-	gameScene->reSize(wWidth, wHeight);
-	
 	menuManager = std::make_unique<_menuManager>();
 	menuManager->initMenuManager(nullptr, gameScene.get());
 	menuManager->loadMenu(MENU_HOME);

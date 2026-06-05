@@ -979,10 +979,15 @@ static player_face faceFromAim(const Vec2f &aim)
 }
 
 // Runs in loop 60 times per second. dt is in ms.
-void _scene::updateScene(double dt, bool *keysArray)
+void _scene::updateScene(double dt, const InputState &inputState)
 {
-    // Copy data of keys array into keys
-    keysPtr = keysArray;
+    const bool W = inputState.keys[SDL_SCANCODE_W];
+    const bool A = inputState.keys[SDL_SCANCODE_A];
+    const bool S = inputState.keys[SDL_SCANCODE_S];
+    const bool D = inputState.keys[SDL_SCANCODE_D];
+    const bool SPACE = inputState.keys[SDL_SCANCODE_SPACE];
+
+    mouseScreenPos = inputState.mouseScreenPos;
 
     soundManager->setListenerPos(player->pos);
 
@@ -1179,12 +1184,6 @@ void _scene::updateScene(double dt, bool *keysArray)
     }
 
     // cout << "Collision Table: " << collisionTable[0] << ", " << collisionTable[1] << ", " << collisionTable[2] << ", " << collisionTable[3] << "\n";
-
-    bool W = keysPtr['W'];
-    bool A = keysPtr['A'];
-    bool S = keysPtr['S'];
-    bool D = keysPtr['D'];
-    bool SPACE = keysPtr[VK_SPACE];
 
     if (SPACE && player->magLevel > 0 && !player->isReloading())
     {
