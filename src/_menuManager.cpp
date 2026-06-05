@@ -7,7 +7,7 @@
 Vec2i _menuManager::windowDimensions = {0,0};
 
 void _menuManager::setWindowDimensions(const Vec2i &dim) {
-    std::cout << "Menu Manager dimensions resized to (" << dim.x << ", " << dim.y << ")\n";
+    SDL_LogDebug(LOG_MENU_MANAGER, "Menu Manager dimensions resized to: (%i, %i)", dim.x, dim.y);
     windowDimensions = dim;
 }
 
@@ -20,7 +20,7 @@ _menuManager::~_menuManager() {
 }
 
 void _menuManager::initMenuManager(_sounds* sharedSounds, _scene* _scene) {
-    std::cout << "Initializing the menu manager ...\n";
+    SDL_LogInfo(LOG_MENU_MANAGER, "Initializing the menu manager");
 
     sounds = sharedSounds;
     scene = _scene;
@@ -583,7 +583,7 @@ void _menuManager::_menu::updateMenu(double dt, const InputState &inputState, _s
             if (sounds) sounds->playSfx("MENU_HOVER");
         }
         if (menuObject->getMouseState() && inputState.LMB && timeSinceRedirect > 0.5) {
-            std::cout << "Mouse clicked on ID: " << menuObject->getID() << "\n";
+            SDL_LogDebug(LOG_MENU_MANAGER, "Mouse clicked on ID: %s", menuObject->getID());
             if (menuObject->getID() == "saves_generate_button") {
                 generateWorldEvent = true;
             } else if (menuObject->getID() == "saves_load_button") {
