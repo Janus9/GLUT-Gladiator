@@ -2,10 +2,8 @@
 #define _SCENE_H
 
 // INCLUDES //
-#include <windows.h>
 
 #include<_common.h> 
-
 #include<_texture.h>
 #include<_lightSettings.h>
 #include<_model.h>

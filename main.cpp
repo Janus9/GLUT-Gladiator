@@ -18,9 +18,9 @@ const int windowSpawnWidth = 800;
 const int windowSpawnHeight = 600;
 
 bool running = true;
-bool active = true;			// Foreground-focus flag. False while the window is not the user's active window.
-bool minimized = false;		// True while the window is minimized. Combined with !active to drive the suspended state.
-bool fullscreen = true;		// True while application is fullscreened
+bool active = true;				// Foreground-focus flag. False while the window is not the user's active window.
+bool minimized = false;			// True while the window is minimized. Combined with !active to drive the suspended state.
+bool fullscreen = false;		// True while application is fullscreened
 
 int wWidth;					// Window width
 int wHeight;				// Window height
@@ -181,7 +181,9 @@ int main(int argc, char *argv[])
 	gameScene = std::make_unique<_scene>();
 	gameScene->initGL();
 
-	handleWindowResize(window);	// Force resize event to sit window dimension parameters + OpenGL window params				
+	handleWindowResize(window);	// Force resize event to sit window dimension parameters + OpenGL window params		
+	SDL_SetWindowFullscreen(window, fullscreen); // Set fullscreen based on settings
+
 
 	menuManager = std::make_unique<_menuManager>();
 	menuManager->initMenuManager(nullptr, gameScene.get());
@@ -236,6 +238,12 @@ int main(int argc, char *argv[])
 									menuManager->loadMenu(MENU_GAME);
 								}
 							}
+						} else if (inputState.keys[SDL_SCANCODE_F11]) {
+							// Toggle Fullscreen //
+							fullscreen = !fullscreen;
+							const std::string msg = (fullscreen ? "TRUE" : "FALSE");
+							SDL_LogInfo(LOG_MAIN, "Fullscreen Mode: %s",msg.c_str());
+							SDL_SetWindowFullscreen(window, fullscreen);
 						}
 						gameScene->keyboardHandler(inputState);
 						inputPreviousTime = inputCurrentTime;
