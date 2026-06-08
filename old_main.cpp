@@ -1,4 +1,10 @@
 
+/**
+ * THIS FILE IS DEPRICATED -- REPLACED BY "main.cpp". 
+ * 
+ * This is kept to look over during migration to SDL3 for missed functionality.  
+ */
+
 #pragma once 
 
 #ifdef _WIN32
