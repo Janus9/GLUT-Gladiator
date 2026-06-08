@@ -2,10 +2,8 @@
 #define _SCENE_H
 
 // INCLUDES //
-#include <windows.h>
 
 #include<_common.h> 
-
 #include<_texture.h>
 #include<_lightSettings.h>
 #include<_model.h>
@@ -32,6 +30,8 @@
 #include <glm/glm.hpp>                      // Core library
 #include <glm/gtc/matrix_transform.hpp>     // Matrix ops like transform, scale, ortho, etc
 #include <glm/gtc/type_ptr.hpp>             // Send GLM datatypes (matrix) to GPU
+
+#include <SDL3/SDL_scancode.h>
 
 #define TOML_HEADER_ONLY 1
 #include <toml.hpp>
@@ -70,12 +70,13 @@ class _scene
         // Draws the scene using a double-buffer. Runs as fast as the loop will let it. No time-based events should ever be added in here. Those are for the updateScene()
         void drawScene(); 
         // Updates the scene based on time of (60fps ~16.67ms per update). Time-based events should be added in here, such as movement and other time-based changes to the scene
-        void updateScene(double dt, bool* keysArray);
+        void updateScene(double dt, const InputState &inputState);
         // Runs audio ramps every frame regardless of menu state, so music fade-in still progresses while on the main menu
         void updateAudio(double dt);
-        // Handles input messsages send from windows -- used for controls etc
-        int winMsg(HWND	hWnd, UINT uMsg, WPARAM	wParam, LPARAM lParam);
-
+        // Handles keyboard inputs for toggle keys. Function regulated by a timer
+        void keyboardHandler(const InputState &inputState); 
+        // Handles mouse scroll wheel events
+        void mouseScrollEvent(const InputState &inputState);
         // Returns true if the scene is initialized and ready
         bool isInitialized() const;
 
@@ -183,23 +184,15 @@ class _scene
 
         float miningSpeed = 2.5f; // In seconds
 
-        bool *keysPtr = nullptr;    // Points to bool array of keys passed from main
-
-        bool LMB = false;
-
         bool playerDeathSfxFired = false;   // Ensures PLAYER_DEATH SFX plays once per death, not every frame while dead
 
-        // -- FUNCTIONS -- //
-        void mouseMove(LPARAM lParam);
+        // -- FUNCTIONS -- //     
         // Function that runs every [debugPrintInterval] ms for dubuggin purposes
         void debugPrint();
         // Function that runs every [fpsPrintInterval] ms to calculate and print the FPS of the scene
         void debugPrintFPS();
-        // Handles keyboard inputs for toggle keys. Function regulated by a timer
-        void keyboardHandler(WPARAM wParam); 
         // Applies camera position zoom, etc
         void applyCamera();
-
         
         bool loadWorldConfig(const std::string &configPath, world_config &outConfig);
 

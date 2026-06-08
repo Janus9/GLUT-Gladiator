@@ -35,6 +35,7 @@
 #include <unordered_map> // Hashtable
 #include <map>
 #include <memory>
+#include <_loggerSDL.h>
 
 // DEFINITIONS //
 
@@ -344,6 +345,18 @@ struct TilePosI
 {
     uint8_t row;
     uint8_t col;
+};
+
+struct InputState {
+	bool LMB;
+	bool RMB;
+
+	Vec2f mouseScreenPos;
+	Vec2f mouseScreenClipPos;
+
+	bool keys[512] = { false };
+
+    float mouseWheelY;              /// 1.0 means scroll UP :: -1.0 means scroll DOWN :: 0.0 means no scroll event
 };
 
 /**

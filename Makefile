@@ -8,7 +8,7 @@ CXX := g++
 R_FLAGS := -std=c++20 -O0  																							# Release Flags
 D_FLAGS := -std=c++20 -g -O0 -Wall -Wextra -D_GLIBCXX_DEBUG 		 												# Debug Flags																		
 INCLUDE := -Iinclude -isystem common/include -isystem C:/msys64/uctr64/include										# Headers
-LIB := -LC:/msys64/ucrt64/lib -Lcommon/lib -lglew32 -lfreeglut -lopengl32 -lglu32 -lwinmm -lgdi32  					# Libraries	    
+LIB := -LC:/msys64/ucrt64/lib -lSDL3 -Lcommon/lib -lglew32 -lfreeglut -lopengl32 -lglu32 -lwinmm -lgdi32  			# Libraries	    
 
 # Directors
 SRC_DIR := src

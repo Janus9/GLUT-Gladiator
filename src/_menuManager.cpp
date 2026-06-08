@@ -7,7 +7,7 @@
 Vec2i _menuManager::windowDimensions = {0,0};
 
 void _menuManager::setWindowDimensions(const Vec2i &dim) {
-    std::cout << "Menu Manager dimensions resized to (" << dim.x << ", " << dim.y << ")\n";
+    SDL_LogDebug(LOG_MENU_MANAGER, "Menu Manager dimensions resized to: (%i, %i)", dim.x, dim.y);
     windowDimensions = dim;
 }
 
@@ -20,7 +20,7 @@ _menuManager::~_menuManager() {
 }
 
 void _menuManager::initMenuManager(_sounds* sharedSounds, _scene* _scene) {
-    std::cout << "Initializing the menu manager ...\n";
+    SDL_LogInfo(LOG_MENU_MANAGER, "Initializing the menu manager");
 
     sounds = sharedSounds;
     scene = _scene;
@@ -263,40 +263,41 @@ void _menuManager::drawMenuManager() {
     menuList[selectedMenu].drawMenu(windowDimensions);
 }
 
-void _menuManager::updateMenuManager(double dt, const Vec2f &mousePos, bool mouseClicked) {
+void _menuManager::updateMenuManager(double dt, const InputState &inputState) {
     _menu* menu = &menuList[selectedMenu];
-    mouseScreenClipPosition = mousePos;
+    mouseScreenClipPosition = inputState.mouseScreenClipPos;
 
-    menu->updateMenu(dt,mousePos,mouseClicked,sounds);
+    menu->updateMenu(dt,inputState,sounds);
 
     if (menu->generateWorldEvent) {
-        std::cout << "Generate World Event!\n";
+        SDL_LogInfo(LOG_MENU_MANAGER, "Generate World Event");
         menu->generateWorldEvent = false;
         // Dont load world as it gets generated
         scene->initScene(false);            // Setup scene to generate world
     }
     
     if (menu->loadWorldEvent) {
-        std::cout << "Load World Event!\n";
+        SDL_LogInfo(LOG_MENU_MANAGER, "Load World Event");
         menu->loadWorldEvent = false;
         if (!scene->loadSceneFromFile("saves/game")) {
-            std::cout << "ERROR: Save failed to load correctly\n";
+            SDL_LogError(LOG_MENU_MANAGER, "ERROR: Save failed to load correctly");
             return;
         }
         scene->initScene(true);             // Setup scene to load world
     }
 
     if (menu->saveGameEvent) {
-        std::cout << "Save Game Event!\n";
+        SDL_LogInfo(LOG_MENU_MANAGER, "Save Game Event");
+
         menu->saveGameEvent = false;
         if (!scene->saveSceneToFile("saves/game")) {
-            std::cout << "ERROR: Failed to save game correctly\n";
+            SDL_LogError(LOG_MENU_MANAGER, "ERROR: Failed to save game correctly");
             return;
         }
     }
 
     if (menu->endGameEvent) {
-        std::cout << "Exit Game Event!\n";
+        SDL_LogInfo(LOG_MENU_MANAGER, "End Game Event");
         menu->endGameEvent = false;
         closeGameEvent = true;
     }
@@ -421,7 +422,9 @@ void _menuManager::_menuObject::drawMenuObject(const Vec2i &wDim) {
     glUseProgram(0);
 }
 
-void _menuManager::_menuObject::updateMenuObject(double dt, const Vec2f &mousePos) {
+void _menuManager::_menuObject::updateMenuObject(double dt, const InputState &inputState) {
+    const Vec2f mousePos = inputState.mouseScreenClipPos;
+    
     float halfWidth = size.x * 0.5f;
     float halfHeight = size.y * 0.5f;
 
@@ -571,16 +574,16 @@ void _menuManager::_menu::drawMenu(const Vec2i &wDim) {
     }
 }
 
-void _menuManager::_menu::updateMenu(double dt, const Vec2f &mousePos, bool mouseClicked, _sounds* sounds) {
+void _menuManager::_menu::updateMenu(double dt, const InputState &inputState, _sounds* sounds) {
     timeSinceRedirect += dt;
     for (int i = 0; i < menuObjects.size(); i++) {
         _menuObject* menuObject = menuObjects[i].get();
-        menuObject->updateMenuObject(dt, mousePos);
+        menuObject->updateMenuObject(dt, inputState);
         if (menuObject->justEnteredHover()) {
             if (sounds) sounds->playSfx("MENU_HOVER");
         }
-        if (menuObject->getMouseState() && mouseClicked && timeSinceRedirect > 0.5) {
-            std::cout << "Mouse clicked on ID: " << menuObject->getID() << "\n";
+        if (menuObject->getMouseState() && inputState.LMB && timeSinceRedirect > 0.5) {
+            SDL_LogDebug(LOG_MENU_MANAGER, "Mouse clicked on ID: %s", menuObject->getID().c_str());
             if (menuObject->getID() == "saves_generate_button") {
                 generateWorldEvent = true;
             } else if (menuObject->getID() == "saves_load_button") {

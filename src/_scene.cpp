@@ -979,10 +979,16 @@ static player_face faceFromAim(const Vec2f &aim)
 }
 
 // Runs in loop 60 times per second. dt is in ms.
-void _scene::updateScene(double dt, bool *keysArray)
+void _scene::updateScene(double dt, const InputState &inputState)
 {
-    // Copy data of keys array into keys
-    keysPtr = keysArray;
+    const bool W = inputState.keys[SDL_SCANCODE_W];
+    const bool A = inputState.keys[SDL_SCANCODE_A];
+    const bool S = inputState.keys[SDL_SCANCODE_S];
+    const bool D = inputState.keys[SDL_SCANCODE_D];
+    const bool SPACE = inputState.keys[SDL_SCANCODE_SPACE];
+    const bool LMB = inputState.LMB;
+
+    mouseScreenPos = inputState.mouseScreenPos;
 
     soundManager->setListenerPos(player->pos);
 
@@ -1179,12 +1185,6 @@ void _scene::updateScene(double dt, bool *keysArray)
     }
 
     // cout << "Collision Table: " << collisionTable[0] << ", " << collisionTable[1] << ", " << collisionTable[2] << ", " << collisionTable[3] << "\n";
-
-    bool W = keysPtr['W'];
-    bool A = keysPtr['A'];
-    bool S = keysPtr['S'];
-    bool D = keysPtr['D'];
-    bool SPACE = keysPtr[VK_SPACE];
 
     if (SPACE && player->magLevel > 0 && !player->isReloading())
     {
@@ -1446,161 +1446,80 @@ void _scene::debugPrintFPS()
     fpsTimer->reset(); // Reset the timer for the next FPS calculation
 }
 
-void _scene::keyboardHandler(WPARAM wParam)
+void _scene::keyboardHandler(const InputState &inputState)
 {
-    if (inputTimer.getMilliseconds() > 200) // 200 ms debounce time for toggle keys
-    {
-        switch (wParam)
-        {
-        case 192: // "~"
-            break;
-        case 49: // "1"
-            enemyManager->addEnemy(mouseWorldPos, default_turret_config);
-            break;
-        case 50: // "2"
-            enemyManager->addEnemy(mouseWorldPos, gatling_turret_config);
-            break;
-        case 51: // "3"
-            enemyManager->addEnemy(mouseWorldPos, orc_config);
-            break;
-        case 52: // "4"
-            enemyManager->addEnemy(mouseWorldPos, vampire_config);
-            break;
-        case 53: // "5"
-            enemyManager->addEnemy(mouseWorldPos, vampire_minion1_config);
-            break;
-        case 54: // "6"
-            enemyManager->addEnemy(mouseWorldPos, vampire_minion2_config);
-            break;
-        case 55: // "7"
-            pickupManager->addPickup(mouseWorldPos, speed_pickup);
-            break;
-        case 56: // "8"
-            pickupManager->addPickup(mouseWorldPos, max_health_pickup);
-            break;
-        case 57: // "9"
-            pickupManager->addPickup(mouseWorldPos, fire_rate_pickup);
-            break;
-        case 58: // "0"
-            pickupManager->addPickup(mouseWorldPos, xp_pickup);
-            break;
-
-        case 97: // "NUM 1"
-            break;
-
-        case ' ': // SPACE
-            break;
-        case 82: // R
-            player->procReload();
-            break;
-        case 221: // "]"
-            debugEnabled = !debugEnabled;
-            Logger.LogInfo("Toggled debug mode: " + std::string(debugEnabled ? "ON" : "OFF"), LOG_CONSOLE);
-            break;
-        case 219: // "["
-            inputDebugEnabled = !inputDebugEnabled;
-            Logger.LogInfo("Toggled input debug mode: " + std::string(inputDebugEnabled ? "ON" : "OFF"), LOG_CONSOLE);
-            break;
-        case 220: // "\"
-            cameraFree = !cameraFree;
-            Logger.LogInfo("Toggled camera free mode: " + std::string(cameraFree ? "ON" : "OFF"), LOG_CONSOLE);
-            if (!cameraFree && cameraZoom < 3.0f) {
-                // Reset camera on disabling free cam
-                cameraZoom = 3.0f;
-            }
-            if (cameraFree) {
-                player_light.radius = 2400.0f;
-            } else {
-                player_light.radius = 400.0f;
-            }
-            *lightManager->getLightRadius("PLAYER_LIGHT") = player_light.radius;
-            break;
-        case 122: // "F11"
-            myWorld->DEBUG_displayChunkBorders = !myWorld->DEBUG_displayChunkBorders;
-            Logger.LogInfo("Toggled chunk border display: " + std::string(myWorld->DEBUG_displayChunkBorders ? "ON" : "OFF"), LOG_CONSOLE);
-            break;
+    if (inputState.keys[SDL_SCANCODE_GRAVE]) {
+        // Nothing
+    }
+    if (inputState.keys[SDL_SCANCODE_1]) {
+        enemyManager->addEnemy(mouseWorldPos, default_turret_config);
+    }
+    if (inputState.keys[SDL_SCANCODE_2]) {
+        enemyManager->addEnemy(mouseWorldPos, gatling_turret_config);
+    }
+    if (inputState.keys[SDL_SCANCODE_3]) {
+        enemyManager->addEnemy(mouseWorldPos, orc_config);
+    }
+    if (inputState.keys[SDL_SCANCODE_4]) {
+        enemyManager->addEnemy(mouseWorldPos, vampire_config);
+    }
+    if (inputState.keys[SDL_SCANCODE_5]) {
+        enemyManager->addEnemy(mouseWorldPos, vampire_minion1_config);
+    }
+    if (inputState.keys[SDL_SCANCODE_6]) {
+        enemyManager->addEnemy(mouseWorldPos, vampire_minion2_config);
+    }
+    if (inputState.keys[SDL_SCANCODE_7]) {
+        pickupManager->addPickup(mouseWorldPos, speed_pickup);
+    }
+    if (inputState.keys[SDL_SCANCODE_8]) {
+        pickupManager->addPickup(mouseWorldPos, max_health_pickup);
+    }
+    if (inputState.keys[SDL_SCANCODE_9]) {
+        pickupManager->addPickup(mouseWorldPos, fire_rate_pickup);
+    }
+    if (inputState.keys[SDL_SCANCODE_0]) {
+        pickupManager->addPickup(mouseWorldPos, xp_pickup);
+    }
+    if (inputState.keys[SDL_SCANCODE_SPACE]) {
+        // Nothing
+    }
+    if (inputState.keys[SDL_SCANCODE_R]) {
+        player->procReload();
+    }
+    if (inputState.keys[SDL_SCANCODE_BACKSLASH]) {
+        cameraFree = !cameraFree;
+        Logger.LogInfo("Toggled camera free mode: " + std::string(cameraFree ? "ON" : "OFF"), LOG_CONSOLE);
+        if (!cameraFree && cameraZoom < 3.0f) {
+            // Reset camera on disabling free cam
+            cameraZoom = 3.0f;
         }
-        inputTimer.reset(); // Reset the timer after handling a toggle key
+        if (cameraFree) {
+            player_light.radius = 2400.0f;
+        } else {
+            player_light.radius = 400.0f;
+        }
+        *lightManager->getLightRadius("PLAYER_LIGHT") = player_light.radius;
     }
 }
 
-void _scene::mouseMove(LPARAM lParam)
-{
-    mouseScreenPos = {LOWORD(lParam), HIWORD(lParam)};
-    if (inputDebugEnabled)
-        Logger.LogDebug("Mouse Move at " + mouseScreenPos.toString("px"), LOG_CONSOLE); // Log the position of the mouse when it moves
-    // Adjusted to be -width to +width and +height to -height plus offset of the camera
-}
-
-int _scene::winMsg(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
-{
-    switch (uMsg)
-    {
-    // Keypress
-    case WM_KEYDOWN:
-        if (inputDebugEnabled)
-            Logger.LogDebug("Key Pressed: " + std::to_string(wParam), LOG_CONSOLE); // Log the key that was pressed
-        keyboardHandler(wParam);
-        break;
-    // Key release
-    case WM_KEYUP:
-        if (inputDebugEnabled)
-            Logger.LogDebug("Key Released: " + std::to_string(wParam), LOG_CONSOLE); // Log the key that was released
-        break;
-    // Left Mouse button down
-    case WM_LBUTTONDOWN:
-    {
-        if (inputDebugEnabled)
-            Logger.LogDebug("Left Mouse Button Down at (" + std::to_string(LOWORD(lParam)) + ", " + std::to_string(HIWORD(lParam)) + ")", LOG_CONSOLE); // Log the position of the mouse when left button is pressed
-        LMB = true;
-        interactionTimer->reset();
-        break;
-    }
-    // Right Mouse button down
-    case WM_RBUTTONDOWN:
-        if (inputDebugEnabled)
-            Logger.LogDebug("Right Mouse Button Down at (" + std::to_string(LOWORD(lParam)) + ", " + std::to_string(HIWORD(lParam)) + ")", LOG_CONSOLE); // Log the position of the mouse when right button is pressed
-        break;
-    // Left Mouse button up
-    case WM_LBUTTONUP:
-        if (inputDebugEnabled)
-            Logger.LogDebug("Left Mouse Button Up at (" + std::to_string(LOWORD(lParam)) + ", " + std::to_string(HIWORD(lParam)) + ")", LOG_CONSOLE); // Log the position of the mouse when left button is released
-        LMB = false;
-        break;
-    // Right Mouse button up
-    case WM_RBUTTONUP:
-        if (inputDebugEnabled)
-            Logger.LogDebug("Right Mouse Button Up at (" + std::to_string(LOWORD(lParam)) + ", " + std::to_string(HIWORD(lParam)) + ")", LOG_CONSOLE); // Log the position of the mouse when right button is released
-        break;
-    // Mouse move
-    case WM_MOUSEMOVE:
-        mouseMove(lParam);
-        break;
-    // Mouse wheel
-    case WM_MOUSEWHEEL:
-        if (inputDebugEnabled)
-            Logger.LogDebug("Mouse Wheel: " + std::to_string((short)HIWORD(wParam)) + " at (" + std::to_string(LOWORD(lParam)) + ", " + std::to_string(HIWORD(lParam)) + ")", LOG_CONSOLE); // Log the amount of scroll and position of the mouse when the wheel is scrolled
-        if ((short)HIWORD(wParam) > 0) {
-            // Scroll up
+void _scene::mouseScrollEvent(const InputState &inputState) {
+    // Safe float equals check since input handler sets to 0.0f exactly
+    if (inputState.mouseWheelY != 0.0f) {
+        // Mouse scroll event //
+        if (inputState.mouseWheelY > 0.0f) {
+            // Scroll UP //
             if (cameraZoom < 9.0f) {
-                cameraZoom++; // Zoom in by increasing the zoom factor
+                cameraZoom*=1.1; 
             }
-        } else if ((short)HIWORD(wParam) < 0) {
+        } else {
+            // Scroll DOWN //
             const float maxZoom = cameraFree ? 0.05f : 3.0f;
             if (cameraZoom > maxZoom) {
-                if (cameraFree) {
-                    cameraZoom*=0.9f;
-                } else {
-                    cameraZoom--; // Zoom out by decreasing the zoom factor
-                }
+                cameraZoom*=0.9f;
             } 
-            // Scroll down
         }
-
-        // cout << "Camera Level: " << cameraZoom << "\n";
-        break;
     }
-    return 0;
 }
 
 bool _scene::isInitialized() const {
