@@ -154,7 +154,7 @@ void _scene::initScene(bool loadWorld)
     ParticleEngine = std::make_unique<particles::Engine>();
     ParticleEngine->init({textureManager.get(), lightManager.get()});
     test_config.particleCount = 15;
-    test_config.texturePath = "iamges/enemy/enemy_particles.png";
+    test_config.texturePath = "images/enemy/enemy_particles.png";
     test_config.sheetColumns = 6;
     test_config.sheetRows = 1;
 
@@ -963,6 +963,8 @@ void _scene::drawScene()
     drawEnemiesBenchmark.clickBenchmark();
     
     bulletManager->drawBulletManager();
+
+    ParticleEngine->draw(sceneViewProjectionMatrix);
     
     pickupManager->drawPickups();
 
@@ -1024,6 +1026,7 @@ void _scene::updateScene(double dt, const InputState &inputState)
 
     enemyManager->updateEnemies(dt);
     bulletManager->updateBulletManager(dt);
+    ParticleEngine->update(dt);
     myWorld->updateWorld(dt);
     player->updatePlayer(dt);
     FOB->updateFob(dt);
@@ -1513,6 +1516,7 @@ void _scene::keyboardHandler(const InputState &inputState)
     }
     if (inputState.keys[SDL_SCANCODE_SPACE]) {
         // Nothing
+        ParticleEngine->spawnEffect({mouseWorldPos.x, mouseWorldPos.y},test_config);
     }
     if (inputState.keys[SDL_SCANCODE_R]) {
         player->procReload();

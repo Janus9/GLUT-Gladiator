@@ -128,9 +128,9 @@ namespace particles {
         glBindVertexArray(vaoID);
 
         GLsizei offset = 0;
-        for (int layer = 0; layer < particleList.size(); layer++) {
+        for (size_t layer = 0; layer < particleList.size(); layer++) {
             const ParticleBatch &pBatch = particleList[layer];
-            if (pBatch.aliveParticles == 0) continue;;  // Skip layers of 0 particles
+            if (pBatch.aliveParticles == 0) continue;  // Skip layers of 0 particles
 
             glBindTexture(GL_TEXTURE_2D, pBatch.textureID);
 
@@ -147,9 +147,9 @@ namespace particles {
         t_value += dt;
         if (totalAliveParticles == 0) return; // No particles skip update loop
         
-        for (int layer = 0; layer < particleList.size(); layer++) {
+        for (size_t layer = 0; layer < particleList.size(); layer++) {
             ParticleBatch &pBatch = particleList[layer];
-            for (int i = 0; i < particleList[layer].particles.size(); i++) {
+            for (size_t i = 0; i < particleList[layer].particles.size(); i++) {
                 Particle &p = pBatch.particles[i];
                 p.age += dt; // Add delta time seconds to age
                 if (p.age >= p.death) {
@@ -212,33 +212,38 @@ namespace particles {
         } else {
             // New registration
             particleList.emplace_back(); // Create a new particle entry into the list
-            layerIndex = particleList.size();           
+            layerIndex = particleList.size() - 1; // Get the index of the new entry           
             particleTable[config.texturePath] = layerIndex; // Setup new entry in table
             registed = false;
             SDL_LogDebug(LOG_PARTICLE_ENGINE, "Effect: %s has not been registed", config.texturePath.c_str());
         }
         ParticleBatch &pBatch = particleList[layerIndex];
         if (!registed) {
-            bool divByZero = false;
-
+            
+            pBatch.aliveParticles = config.particleCount;
+            if (pBatch.aliveParticles <= 0) {
+                SDL_LogWarn(LOG_PARTICLE_ENGINE, "WARNING: Number of particles in config: %s is 0 or less. Should be greater than 0.", pBatch.texturePath.c_str());
+            }
+            
             pBatch.sheetColumns = config.sheetColumns;
             pBatch.sheetRows = config.sheetRows;
-
+            
             pBatch.texturePath = config.texturePath;
-
+            
+            bool divByZero = false;
             if (pBatch.sheetColumns <= 0) {
-                SDL_LogWarn(LOG_PARTICLE_ENGINE, "WARNING: Number of columns in config: %s is 0 or less. Should be greater than 0.", pBatch.texturePath);
+                SDL_LogWarn(LOG_PARTICLE_ENGINE, "WARNING: Number of columns in config: %s is 0 or less. Should be greater than 0.", pBatch.texturePath.c_str());
                 divByZero = true;
             }
 
             if (pBatch.sheetRows <= 0) {
-                SDL_LogWarn(LOG_PARTICLE_ENGINE, "WARNING: Number of rows in config: %s is 0 or less. Should be greater than 0.", pBatch.texturePath);
+                SDL_LogWarn(LOG_PARTICLE_ENGINE, "WARNING: Number of rows in config: %s is 0 or less. Should be greater than 0.", pBatch.texturePath.c_str());
                 divByZero = true;
             }
             
             // Values never change per registed animation sheet -- calculated once here
             if (divByZero) { // Protect against divide by 0
-                SDL_LogWarn(LOG_PARTICLE_ENGINE, "WARNING: Image: %s will have 0 image dimensions (not visible) due to bad row/column params", pBatch.texturePath);
+                SDL_LogWarn(LOG_PARTICLE_ENGINE, "WARNING: Image: %s will have 0 image dimensions (not visible) due to bad row/column params", pBatch.texturePath.c_str());
                 pBatch.c_uWidth = 0.0f;
                 pBatch.c_vWidth = 0.0f;
             } else {
@@ -248,7 +253,7 @@ namespace particles {
 
             const texture_entry &texture = textureManager->getTextureEntry(config.texturePath);
             if (texture.ID == 0) {
-                SDL_LogError(LOG_PARTICLE_ENGINE, "ERROR: Unable to load image: %s\n - Removing entry", config.texturePath);
+                SDL_LogError(LOG_PARTICLE_ENGINE, "ERROR: Unable to load image: %s\n - Removing entry", config.texturePath.c_str());
                 // Remove entries from bad insertion
                 particleList.erase(particleList.begin() + layerIndex);
                 particleTable.erase(config.texturePath);
@@ -305,12 +310,12 @@ namespace particles {
 
 
         int runningVertexOffset = 0;
-        for (int layer = 0; layer < particleList.size(); layer++) {
+        for (size_t layer = 0; layer < particleList.size(); layer++) {
             const ParticleBatch &pBatch = particleList[layer];
             
             std::vector<Vertex> vboData(pBatch.aliveParticles * VERTICIES_PER_PARTICLE);
             int vIndex = 0;
-            for (int layerIndex = 0; layerIndex < particleList[layer].particles.size(); layerIndex++) {
+            for (size_t layerIndex = 0; layerIndex < particleList[layer].particles.size(); layerIndex++) {
                 const Particle &p = particleList[layer].particles[layerIndex];
 
                 if (!p.alive) continue; // Skip dead particles
