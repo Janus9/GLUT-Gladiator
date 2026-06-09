@@ -132,26 +132,73 @@ namespace particles {
                 float waveFrequency;
                 float waveOffset; // Randomly chosen
     
-                int imageIndex;
+                int colIndex;
+                int rowIndex;
             };
     
             // Injections //
             _textureManager* textureManager = nullptr;  // Pointer to scene texture manager (non-owning)
             _lightManager* lightManager = nullptr;      // Pointer to scene light manager (non-owning)
     
+            // RNG //
+            std::mt19937 rng;   
+
             // Data Structures //
 
+            // Batch of particle data + image data
+            struct ParticleBatch {
+                std::string texturePath;
+                GLuint textureID = 0;
+
+                int sheetColumns = 1;
+                int sheetRows = 1;
+
+                std::vector<Particle> particles;
+
+                // Pre-calculated values per layer for optimzation
+                float c_uWidth;
+                float c_vWidth;
+
+                float aliveParticles;
+            };
+
+            std::vector<ParticleBatch> particleList;                      // Particles are batched by their texture in a list
+            std::unordered_map<std::string, size_t> particleTable;        // Lookup table to particleList index (for spawn effect)
+
             // -- Rendering -- //
+            struct Vertex {
+                float w;    // Width
+                float h;    // Height
+                float u;    // TexCoord X
+                float v;    // TexCoord Y
+                float x;    // Pos X
+                float y;    // Pos Y
+                float a;    // Angle    
+                float w_a;  // Wave Amplitude
+                float w_f;  // Wave Frequency
+                float w_o;  // Wave Offset
+            };
+
+            static constexpr int FLOATS_PER_VERTEX = 10;
+            static constexpr int VERTICIES_PER_PARTICLE = 4;
+            static constexpr int INDICIES_PER_PARTICLE = 6;
+
             // Builds dynamic VBO (EBO/VAO static & built in init)
             void buildVBO(); 
             GLuint vboID = 0;
             GLuint eboID = 0;
             GLuint vaoID = 0;
 
-            int aliveParticles = 0;
-            const int MAX_PARTICLES = 10000;    // May be moved into config read at some point
+            int totalAliveParticles = 0;
+            static constexpr int MAX_PARTICLES = 10000;    // May be moved into config read at some point
 
             // Shaders //
+            _shader particleShader;
+            // Uniforms
+            GLint u_viewProjectionMatrix = -1;
+            GLint u_texture = -1;
+            GLint u_t = -1;
+            float t_value = 0.0f;   // Value of u_t (dt)
     };
 }
 
