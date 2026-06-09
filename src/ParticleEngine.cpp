@@ -196,9 +196,7 @@ namespace particles {
         std::uniform_real_distribution<float> wave_freq_dist(config.waveFrequencyMin, config.waveFrequencyMax);
         std::uniform_real_distribution<float> wave_off_dist(0.0f, 2* PI);
 
-        totalAliveParticles += config.particleCount;
-
-        if (totalAliveParticles > MAX_PARTICLES) {
+        if (totalAliveParticles + config.particleCount > MAX_PARTICLES) {
             SDL_LogWarn(LOG_PARTICLE_ENGINE, "WARNING: Particle count of: %i exceeds max count of: %i", totalAliveParticles, MAX_PARTICLES);
         }
 
@@ -213,16 +211,50 @@ namespace particles {
             SDL_LogDebug(LOG_PARTICLE_ENGINE, "Effect: %s already registed", config.texturePath.c_str());
         } else {
             // New registration
-            particleList.emplace_back();
-            layerIndex = particleList.size();
+            particleList.emplace_back(); // Create a new particle entry into the list
+            layerIndex = particleList.size();           
+            particleTable[config.texturePath] = layerIndex; // Setup new entry in table
             registed = false;
             SDL_LogDebug(LOG_PARTICLE_ENGINE, "Effect: %s has not been registed", config.texturePath.c_str());
         }
         ParticleBatch &pBatch = particleList[layerIndex];
         if (!registed) {
+            bool divByZero = false;
+
+            pBatch.sheetColumns = config.sheetColumns;
+            pBatch.sheetRows = config.sheetRows;
+
+            pBatch.texturePath = config.texturePath;
+
+            if (pBatch.sheetColumns <= 0) {
+                SDL_LogWarn(LOG_PARTICLE_ENGINE, "WARNING: Number of columns in config: %s is 0 or less. Should be greater than 0.", pBatch.texturePath);
+                divByZero = true;
+            }
+
+            if (pBatch.sheetRows <= 0) {
+                SDL_LogWarn(LOG_PARTICLE_ENGINE, "WARNING: Number of rows in config: %s is 0 or less. Should be greater than 0.", pBatch.texturePath);
+                divByZero = true;
+            }
+            
             // Values never change per registed animation sheet -- calculated once here
-            pBatch.c_uWidth = 1.0f / static_cast<float>(config.sheetColumns);
-            pBatch.c_vWidth = 1.0f / static_cast<float>(config.sheetRows);
+            if (divByZero) { // Protect against divide by 0
+                SDL_LogWarn(LOG_PARTICLE_ENGINE, "WARNING: Image: %s will have 0 image dimensions (not visible) due to bad row/column params", pBatch.texturePath);
+                pBatch.c_uWidth = 0.0f;
+                pBatch.c_vWidth = 0.0f;
+            } else {
+                pBatch.c_uWidth = 1.0f / static_cast<float>(config.sheetColumns);
+                pBatch.c_vWidth = 1.0f / static_cast<float>(config.sheetRows);
+            }
+
+            const texture_entry &texture = textureManager->getTextureEntry(config.texturePath);
+            if (texture.ID == 0) {
+                SDL_LogError(LOG_PARTICLE_ENGINE, "ERROR: Unable to load image: %s\n - Removing entry", config.texturePath);
+                // Remove entries from bad insertion
+                particleList.erase(particleList.begin() + layerIndex);
+                particleTable.erase(config.texturePath);
+                return;
+            }
+            pBatch.textureID = texture.ID;
         }
 
         const int currentAliveParticles = pBatch.aliveParticles;
@@ -263,6 +295,7 @@ namespace particles {
             p.rowIndex = config.animationRow;
         }
 
+        totalAliveParticles += config.particleCount;
         pBatch.aliveParticles += config.particleCount;
     }
 

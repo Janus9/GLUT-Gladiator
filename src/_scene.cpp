@@ -150,6 +150,36 @@ void _scene::initScene(bool loadWorld)
     // TEXTURE LOADER //
     if (!loadWorld) setupTextures();
 
+    // Particle Manager //
+    ParticleEngine = std::make_unique<particles::Engine>();
+    ParticleEngine->init({textureManager.get(), lightManager.get()});
+    test_config.particleCount = 15;
+    test_config.texturePath = "iamges/enemy/enemy_particles.png";
+    test_config.sheetColumns = 6;
+    test_config.sheetRows = 1;
+
+    test_config.minVelX = -8.0f;
+    test_config.maxVelX = 8.0f;
+    test_config.minVelY = 10.0f;
+    test_config.maxVelY = 25.0f;
+    test_config.minRotation = -45.0f;
+    test_config.maxRotation = 45.0f;
+
+    test_config.minRadius = 1.0f;
+    test_config.maxRadius = 2.0f;
+
+    test_config.minLifeTime = 5.0f;
+    test_config.maxLifeTime = 5.0f;
+
+    test_config.minSpawnOffsetX = -3.0f;
+    test_config.maxSpawnOffsetX = 3.0f;
+    test_config.minSpawnOffsetY = -3.0f;
+    test_config.maxSpawnOffsetY = 3.0f;
+
+    test_config.hasGravity = true;
+    test_config.hasFloor = true;
+    test_config.floorOffset = -10.0f;
+
     // -- PLAYER -- //
     player->initPlayer(lightManager.get());
     player->hasGun = true;

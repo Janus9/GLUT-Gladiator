@@ -25,6 +25,7 @@
 #include<_lightManager.h>
 #include<_textureManager.h>
 #include<_pickupManager.h>
+#include <ParticleEngine.h>
 
 // Matrix math for shaders //
 #include <glm/glm.hpp>                      // Core library
@@ -131,7 +132,11 @@ class _scene
         _bullet_config turret_bullet;
         _bullet_config gatling_bullet;
 
-        _sounds* soundManager = nullptr; // Non-owning; set via setSounds() before initScene()
+        // Particle Engine //
+        std::unique_ptr<particles::Engine> ParticleEngine;
+        particles::Config test_config;
+        
+        _sounds* soundManager = nullptr; // DEPRICTED :: Non-owning; set via setSounds() before initScene()
 
         // Texture Manager //
         void setupTextures();

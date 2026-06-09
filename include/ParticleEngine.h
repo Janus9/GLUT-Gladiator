@@ -1,5 +1,5 @@
-#ifndef PARTICLE_ENGINE
-#define PARTICLE_ENGINE
+#ifndef PARTICLE_ENGINE_H
+#define PARTICLE_ENGINE_H
 
 #include <_common.h>
 #include <_textureManager.h>
@@ -202,4 +202,4 @@ namespace particles {
     };
 }
 
-#endif // PARTICLE_ENGINE
+#endif // PARTICLE_ENGINE_H
