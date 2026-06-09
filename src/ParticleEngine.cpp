@@ -151,6 +151,7 @@ namespace particles {
         
         for (size_t layer = 0; layer < particleList.size(); layer++) {
             ParticleBatch &pBatch = particleList[layer];
+
             for (size_t i = 0; i < particleList[layer].particles.size(); i++) {
                 Particle &p = pBatch.particles[i];
                 p.age += dt; // Add delta time seconds to age
@@ -178,6 +179,12 @@ namespace particles {
                 p.pos += p.vel * static_cast<float>(dt);
 
                 p.angle += p.rotationSpeed * dt;
+            }
+
+            SDL_LogDebug(LOG_PARTICLE_ENGINE, "Batch alive particles: %f",pBatch.aliveParticles);
+            if (pBatch.aliveParticles == 0) {
+                SDL_LogDebug(LOG_PARTICLE_ENGINE, "Clearing batch: %s as all particles are dead", pBatch.texturePath.c_str());
+                pBatch.particles.clear(); // Clear the memory since all particles are now dead
             }
         }
     }
@@ -309,7 +316,6 @@ namespace particles {
     // PRIVATE //
     void Engine::buildVBO() {
         glBindBuffer(GL_ARRAY_BUFFER, vboID);
-
 
         int runningVertexOffset = 0;
         for (size_t layer = 0; layer < particleList.size(); layer++) {
