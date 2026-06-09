@@ -165,8 +165,8 @@ void _scene::initScene(bool loadWorld)
     test_config.minRotation = -45.0f;
     test_config.maxRotation = 45.0f;
 
-    test_config.minRadius = 1.0f;
-    test_config.maxRadius = 2.0f;
+    test_config.minRadius = 5.0f;
+    test_config.maxRadius = 10.0f;
 
     test_config.minLifeTime = 5.0f;
     test_config.maxLifeTime = 5.0f;

@@ -116,6 +116,8 @@ namespace particles {
     void Engine::draw(const glm::mat4 &viewProjectionMatrix) {
         if (totalAliveParticles == 0) return;   // No particles to draw -- skipping
         
+        buildVBO();
+
         // Shader
         glUseProgram(particleShader.getProgram());
         lightManager->applyLights(particleShader.getProgram());
@@ -301,7 +303,7 @@ namespace particles {
         }
 
         totalAliveParticles += config.particleCount;
-        pBatch.aliveParticles += config.particleCount;
+        if(registed) pBatch.aliveParticles += config.particleCount; // Protect against double counting on first register
     }
 
     // PRIVATE //
@@ -383,7 +385,7 @@ namespace particles {
                 vIndex++;
             }
             const GLintptr offset = runningVertexOffset * sizeof(Vertex);
-            const GLsizeiptr size = vboData.size() * sizeof(Vertex);
+            const GLsizeiptr size = vIndex * sizeof(Vertex);
             glBufferSubData(GL_ARRAY_BUFFER,offset, size, vboData.data());
 
             runningVertexOffset += vIndex;
