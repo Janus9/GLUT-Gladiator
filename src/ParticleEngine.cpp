@@ -154,6 +154,8 @@ namespace particles {
 
             for (size_t i = 0; i < particleList[layer].particles.size(); i++) {
                 Particle &p = pBatch.particles[i];
+                if (!p.alive) continue; // First check -- skip dead particles (if they become dead this looped, handled below)
+
                 p.age += dt; // Add delta time seconds to age
                 if (p.age >= p.death) {
                     // Particle reached end of life
@@ -229,10 +231,10 @@ namespace particles {
         ParticleBatch &pBatch = particleList[layerIndex];
         if (!registed) {
             
-            pBatch.aliveParticles = config.particleCount;
-            if (pBatch.aliveParticles <= 0) {
-                SDL_LogWarn(LOG_PARTICLE_ENGINE, "WARNING: Number of particles in config: %s is 0 or less. Should be greater than 0.", pBatch.texturePath.c_str());
-            }
+            // pBatch.aliveParticles = config.particleCount;
+            // if (pBatch.aliveParticles <= 0) {
+            //     SDL_LogWarn(LOG_PARTICLE_ENGINE, "WARNING: Number of particles in config: %s is 0 or less. Should be greater than 0.", pBatch.texturePath.c_str());
+            // }
             
             pBatch.sheetColumns = config.sheetColumns;
             pBatch.sheetRows = config.sheetRows;
@@ -310,7 +312,7 @@ namespace particles {
         }
 
         totalAliveParticles += config.particleCount;
-        if(registed) pBatch.aliveParticles += config.particleCount; // Protect against double counting on first register
+        pBatch.aliveParticles += config.particleCount; 
     }
 
     // PRIVATE //
@@ -320,7 +322,21 @@ namespace particles {
         int runningVertexOffset = 0;
         for (size_t layer = 0; layer < particleList.size(); layer++) {
             const ParticleBatch &pBatch = particleList[layer];
-            
+
+            int realAliveCount = 0;
+
+            for (size_t i = 0; i < pBatch.particles.size(); i++) {
+                if (pBatch.particles[i].alive) {
+                    realAliveCount++;
+                }
+            }
+
+            if (realAliveCount != pBatch.aliveParticles) {
+                std::cout << "ERROR: aliveParticles mismatch on layer " << layer << "\n";
+                std::cout << "pBatch.aliveParticles: " << pBatch.aliveParticles << "\n";
+                std::cout << "realAliveCount: " << realAliveCount << "\n";
+            }
+                        
             std::vector<Vertex> vboData(pBatch.aliveParticles * VERTICIES_PER_PARTICLE);
             int vIndex = 0;
             for (size_t layerIndex = 0; layerIndex < particleList[layer].particles.size(); layerIndex++) {
