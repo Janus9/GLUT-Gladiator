@@ -165,6 +165,7 @@ namespace particles {
                 continue;
             }
 
+            // Config Reading //
             Config config;
 
             config.particleCount = static_cast<int>((*particleTable)["particleCount"].value_or<int64_t>(0));
@@ -208,6 +209,15 @@ namespace particles {
             config.waveFrequencyMin = static_cast<float>((*particleTable)["waveFrequencyMin"].value_or<double>(0.0));
             config.waveFrequencyMax = static_cast<float>((*particleTable)["waveFrequencyMax"].value_or<double>(0.0));
 
+            // Config Adjustments -- Protect bounds & warn odd values etc //
+            
+            // Death on animation forces max lifespan 
+            if (config.deathOnAnimationEnd) {
+                config.minLifeTime = std::numeric_limits<float>::max();
+                config.maxLifeTime = std::numeric_limits<float>::max();
+            }
+            
+            // Set to table //
             configTable[id] = config;
         }
     }

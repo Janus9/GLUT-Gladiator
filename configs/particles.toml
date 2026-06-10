@@ -24,8 +24,8 @@ minRadius = 30.0
 maxRadius = 45.0
 
 # Lifetime
-minLifeTime = 5.0
-maxLifeTime = 5.0
+minLifeTime = 0.0
+maxLifeTime = 0.0
 
 # Spawn Offset
 minSpawnOffsetX = 0.0
