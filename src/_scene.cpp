@@ -153,32 +153,60 @@ void _scene::initScene(bool loadWorld)
     // Particle Manager //
     ParticleEngine = std::make_unique<particles::Engine>();
     ParticleEngine->init({textureManager.get(), lightManager.get()});
-    test_config.particleCount = 15;
-    test_config.texturePath = "images/enemy/enemy_particles.png";
-    test_config.sheetColumns = 6;
-    test_config.sheetRows = 1;
 
-    test_config.minVelX = -8.0f;
-    test_config.maxVelX = 8.0f;
-    test_config.minVelY = 10.0f;
-    test_config.maxVelY = 25.0f;
-    test_config.minRotation = -45.0f;
-    test_config.maxRotation = 45.0f;
+    test_config1.particleCount = 15;
+    test_config1.texturePath = "images/enemy/enemy_particles.png";
+    test_config1.sheetColumns = 6;
+    test_config1.sheetRows = 1;
 
-    test_config.minRadius = 5.0f;
-    test_config.maxRadius = 10.0f;
+    test_config1.minVelX = -8.0f;
+    test_config1.maxVelX = 8.0f;
+    test_config1.minVelY = 10.0f;
+    test_config1.maxVelY = 25.0f;
+    test_config1.minRotation = -45.0f;
+    test_config1.maxRotation = 45.0f;
 
-    test_config.minLifeTime = 5.0f;
-    test_config.maxLifeTime = 5.0f;
+    test_config1.minRadius = 5.0f;
+    test_config1.maxRadius = 10.0f;
 
-    test_config.minSpawnOffsetX = -3.0f;
-    test_config.maxSpawnOffsetX = 3.0f;
-    test_config.minSpawnOffsetY = -3.0f;
-    test_config.maxSpawnOffsetY = 3.0f;
+    test_config1.minLifeTime = 5.0f;
+    test_config1.maxLifeTime = 5.0f;
 
-    test_config.hasGravity = true;
-    test_config.hasFloor = true;
-    test_config.floorOffset = -10.0f;
+    test_config1.minSpawnOffsetX = -3.0f;
+    test_config1.maxSpawnOffsetX = 3.0f;
+    test_config1.minSpawnOffsetY = -3.0f;
+    test_config1.maxSpawnOffsetY = 3.0f;
+
+    test_config1.hasGravity = true;
+    test_config1.hasFloor = true;
+    test_config1.floorOffset = -10.0f;
+
+    test_config2.particleCount = 15;
+    test_config2.texturePath = "images/pickups/pickup_sheet.png";
+    test_config2.sheetColumns = 6;
+    test_config2.sheetRows = 1;
+
+    test_config2.minVelX = -8.0f;
+    test_config2.maxVelX = 8.0f;
+    test_config2.minVelY = 10.0f;
+    test_config2.maxVelY = 25.0f;
+    test_config2.minRotation = -45.0f;
+    test_config2.maxRotation = 45.0f;
+
+    test_config2.minRadius = 5.0f;
+    test_config2.maxRadius = 10.0f;
+
+    test_config2.minLifeTime = 5.0f;
+    test_config2.maxLifeTime = 5.0f;
+
+    test_config2.minSpawnOffsetX = -3.0f;
+    test_config2.maxSpawnOffsetX = 3.0f;
+    test_config2.minSpawnOffsetY = -3.0f;
+    test_config2.maxSpawnOffsetY = 3.0f;
+
+    test_config2.hasGravity = true;
+    test_config2.hasFloor = true;
+    test_config2.floorOffset = -10.0f;
 
     // -- PLAYER -- //
     player->initPlayer(lightManager.get());
@@ -1516,7 +1544,12 @@ void _scene::keyboardHandler(const InputState &inputState)
     }
     if (inputState.keys[SDL_SCANCODE_SPACE]) {
         // Nothing
-        ParticleEngine->spawnEffect({mouseWorldPos.x, mouseWorldPos.y},test_config);
+    }
+    if (inputState.keys[SDL_SCANCODE_LEFTBRACKET]) {
+        ParticleEngine->spawnEffect({mouseWorldPos.x, mouseWorldPos.y},test_config1);
+    }
+    if (inputState.keys[SDL_SCANCODE_RIGHTBRACKET]) {
+        ParticleEngine->spawnEffect({mouseWorldPos.x, mouseWorldPos.y},test_config2);
     }
     if (inputState.keys[SDL_SCANCODE_R]) {
         player->procReload();
@@ -1646,6 +1679,7 @@ void _scene::setupTextures() {
     textureManager->addTexture("images/enemy/vampire/minion/Minion2_Death.png");
 
     textureManager->addTexture("images/enemy/enemy_particles.png");
+    textureManager->addTexture("images/pickups/pickup_sheet.png");
 }
 
 // Add logging to an output file at some point to help user out

@@ -166,8 +166,9 @@ namespace particles {
         
         for (size_t layer = 0; layer < particleList.size(); layer++) {
             ParticleBatch &pBatch = particleList[layer];
+            if (pBatch.particles.empty()) continue; // Skip layers of no particles to update
 
-            for (size_t i = 0; i < particleList[layer].particles.size(); i++) {
+            for (size_t i = 0; i < pBatch.particles.size(); i++) {
                 Particle &p = pBatch.particles[i];
                 if (!p.alive) continue; // First check -- skip dead particles (if they become dead this looped, handled below)
 
