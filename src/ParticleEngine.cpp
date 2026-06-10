@@ -184,8 +184,9 @@ namespace particles {
                 }
 
                 // Check for next frame event
-                if (p.deathOnAnimationEnd && p.colIndex >= pBatch.sheetColumns) {
-                    // Animation finished - kill
+                const float timePerFrame = 1 / static_cast<float>(p.fps);
+                if (p.deathOnAnimationEnd && p.colIndex >= (pBatch.sheetColumns-1) && p.animationTimer > timePerFrame) {
+                    // Animation finished and on last sheet -- kill
                     p.alive = false;
                 }
                 
@@ -196,7 +197,6 @@ namespace particles {
                     continue;
                 }
                 
-                const float timePerFrame = 1 / static_cast<float>(p.fps);
                 if (p.animationTimer > timePerFrame) {
                     if (p.pingPongAnimation) {
                         iterateAnimationFramePingPong(p, pBatch);
