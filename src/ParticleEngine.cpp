@@ -16,6 +16,9 @@
 #include <ParticleEngine.h>
 #include <SDL3/SDL_timer.h>
 
+#define TOML_HEADER_ONLY 1
+#include <toml.hpp>
+
 namespace particles {
     // PUBLIC //
 
@@ -126,6 +129,87 @@ namespace particles {
         glVertexAttribPointer(6,1,GL_FLOAT,GL_FALSE,stride,(void*)(9 * sizeof(float)));
 
         glBindVertexArray(0);
+
+        // -- CONFIG PARSING -- //
+        toml::table configFile;
+        try {
+            configFile = toml::parse_file("configs/particles.toml");
+        } catch (const toml::parse_error& err) {
+            SDL_LogError(LOG_PARTICLE_ENGINE,"ERROR: Cannot parse particles, reason: %s",err.what());
+            return;
+        }
+
+        toml::array* particles = configFile["particles"].as_array();
+        if (particles == nullptr) {
+            SDL_LogError(LOG_PARTICLE_ENGINE,"ERROR: Cannot parse particles config");
+            return;
+        }
+
+        SDL_LogDebug(LOG_PARTICLE_ENGINE, "Number of configs to parse: %i", static_cast<int>(particles->size()));
+
+        for (int i = 0; i < static_cast<int>(particles->size()); i++) {
+            toml::table* particleTable = particles->at(i).as_table();
+            if (particleTable == nullptr) {
+                SDL_LogError(LOG_PARTICLE_ENGINE,"ERROR: Particles [%i] must be a valid table",i);
+                continue;
+            }
+
+            const std::string id = (*particleTable)["id"].value_or<std::string>("");
+            if (id.empty()) {
+                SDL_LogError(LOG_PARTICLE_ENGINE,"ERROR: Particles [%i] is missing a valid ID",i);
+                continue;
+            }
+
+            if (configTable.find(id) != configTable.end()) {
+                SDL_LogError(LOG_PARTICLE_ENGINE,"ERROR: Particles [%i] is a duplicate for ID: %s",i,id.c_str());
+                continue;
+            }
+
+            Config config;
+
+            config.particleCount = static_cast<int>((*particleTable)["particleCount"].value_or<int64_t>(0));
+
+            config.texturePath = (*particleTable)["texturePath"].value_or<std::string>("");
+
+            config.sheetColumns = static_cast<int>((*particleTable)["sheetColumns"].value_or<int64_t>(0));
+            config.sheetRows = static_cast<int>((*particleTable)["sheetRows"].value_or<int64_t>(0));
+
+            config.animationRow = static_cast<int>((*particleTable)["animationRow"].value_or<int64_t>(0));
+            config.animationFPS = static_cast<int>((*particleTable)["animationFPS"].value_or<int64_t>(0));
+            config.pingPongAnimation = (*particleTable)["pingPongAnimation"].value_or<bool>(false);
+            config.deathOnAnimationEnd = (*particleTable)["deathOnAnimationEnd"].value_or<bool>(false);
+
+            config.minVelX = static_cast<float>((*particleTable)["minVelX"].value_or<double>(0.0));
+            config.maxVelX = static_cast<float>((*particleTable)["maxVelX"].value_or<double>(0.0));
+            config.minVelY = static_cast<float>((*particleTable)["minVelY"].value_or<double>(0.0));
+            config.maxVelY = static_cast<float>((*particleTable)["maxVelY"].value_or<double>(0.0));
+
+            config.minRadius = static_cast<float>((*particleTable)["minRadius"].value_or<double>(0.0));
+            config.maxRadius = static_cast<float>((*particleTable)["maxRadius"].value_or<double>(0.0));
+
+            config.minLifeTime = static_cast<float>((*particleTable)["minLifeTime"].value_or<double>(0.0));
+            config.maxLifeTime = static_cast<float>((*particleTable)["maxLifeTime"].value_or<double>(0.0));
+
+            config.minSpawnOffsetX = static_cast<float>((*particleTable)["minSpawnOffsetX"].value_or<double>(0.0));
+            config.maxSpawnOffsetX = static_cast<float>((*particleTable)["maxSpawnOffsetX"].value_or<double>(0.0));
+            config.minSpawnOffsetY = static_cast<float>((*particleTable)["minSpawnOffsetY"].value_or<double>(0.0));
+            config.maxSpawnOffsetY = static_cast<float>((*particleTable)["maxSpawnOffsetY"].value_or<double>(0.0));
+
+            config.minRotation = static_cast<float>((*particleTable)["minRotation"].value_or<double>(0.0));
+            config.maxRotation = static_cast<float>((*particleTable)["maxRotation"].value_or<double>(0.0));
+
+            config.hasGravity = (*particleTable)["hasGravity"].value_or<bool>(true);
+
+            config.hasFloor = (*particleTable)["hasFloor"].value_or<bool>(false);
+            config.floorOffset = static_cast<float>((*particleTable)["floorOffset"].value_or<double>(0.0));
+
+            config.waveAmplitudeMin = static_cast<float>((*particleTable)["waveAmplitudeMin"].value_or<double>(0.0));
+            config.waveAmplitudeMax = static_cast<float>((*particleTable)["waveAmplitudeMax"].value_or<double>(0.0));
+            config.waveFrequencyMin = static_cast<float>((*particleTable)["waveFrequencyMin"].value_or<double>(0.0));
+            config.waveFrequencyMax = static_cast<float>((*particleTable)["waveFrequencyMax"].value_or<double>(0.0));
+
+            configTable[id] = config;
+        }
     }
 
     void Engine::draw(const glm::mat4 &viewProjectionMatrix) {
@@ -254,10 +338,10 @@ namespace particles {
         bool registed;
 
         size_t layerIndex = -1;
-        auto it = particleTable.find(config.texturePath);
-        if (it != particleTable.end()) {
+        auto it2 = particleTable.find(config.texturePath);
+        if (it2 != particleTable.end()) {
             // Already registered
-            layerIndex = it->second;
+            layerIndex = it2->second;
             registed = true;
             SDL_LogDebug(LOG_PARTICLE_ENGINE, "Effect: %s already registed", config.texturePath.c_str());
         } else {
