@@ -1492,11 +1492,12 @@ void _scene::debugPrint()
 {
     Logger.LogDebug("World drawing took: " + std::to_string(drawWorldBenchmark.getAverageResult()) + "ms");
     Logger.LogDebug("Enemy drawing took: " + std::to_string(drawEnemiesBenchmark.getAverageResult()) + "ms");
-    std::cout << "-- LEFT: " << left << "\n"
-         << "-- RIGHT: " << right << "\n"
-         << "-- TOP: " << top << "\n"
-         << "-- BOTTOM: " << bottom << "\n";
+    // std::cout << "-- LEFT: " << left << "\n"
+    //      << "-- RIGHT: " << right << "\n"
+    //      << "-- TOP: " << top << "\n"
+    //      << "-- BOTTOM: " << bottom << "\n";
     myWorld->debugPrint();
+    ParticleEngine->logGpuMemoryUsage();
 }
 
 void _scene::debugPrintFPS()

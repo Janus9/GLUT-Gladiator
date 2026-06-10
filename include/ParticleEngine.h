@@ -104,6 +104,12 @@ namespace particles {
              * @param config Configuration for the effect
              */
             void spawnEffect(glm::vec2 pos, const Config &config);
+
+            // Debugging function that outputs GPU memory usage to console
+            void logGpuMemoryUsage() const;
+
+            // Debugging function that outputs GPU memory usage to console
+            void logCpuMemoryUsage() const;
         protected:
         private:
             // Single instance particle struct //

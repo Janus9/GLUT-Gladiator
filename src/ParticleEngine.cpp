@@ -325,6 +325,30 @@ namespace particles {
         pBatch.aliveParticles += config.particleCount; 
     }
 
+    void Engine::logGpuMemoryUsage() const {
+        size_t total = 0;
+
+        total += static_cast<size_t>(MAX_PARTICLES) * 
+            static_cast<size_t>(VERTICIES_PER_PARTICLE) * 
+            sizeof(Vertex);
+        
+        total += static_cast<size_t>(MAX_PARTICLES) *
+            static_cast<size_t>(INDICIES_PER_PARTICLE) *
+            sizeof(GLuint);
+
+        const std::string msg = std::string("\n") +
+            "| >> PARTICLE ENGINE DEBUG << |\n" + 
+            "|-----------------------------|\n" +
+            "| - GPU Memory Usage: " + std::to_string(total) + "B" + " (" + std::to_string(static_cast<double>(total) / 1000000.0) + "MB)\n" +
+            "|-----------------------------|\n";
+        
+        SDL_LogDebug(LOG_PARTICLE_ENGINE, msg.c_str());
+    }
+
+    void Engine::logCpuMemoryUsage() const {
+        
+    }
+
     // PRIVATE //
     void Engine::buildVBO() {
         glBindBuffer(GL_ARRAY_BUFFER, vboID);
