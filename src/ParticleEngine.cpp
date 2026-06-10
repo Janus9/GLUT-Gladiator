@@ -224,7 +224,14 @@ namespace particles {
         }
     }
 
-    void Engine::spawnEffect(glm::vec2 pos, const Config &config) {
+    void Engine::spawnEffect(glm::vec2 pos, const std::string &ID) {
+        auto it = configTable.find(ID);
+        if (it == configTable.end()) {
+            SDL_LogError(LOG_PARTICLE_ENGINE, "ERROR: Config ID: %s does not exist", ID.c_str());
+            return;
+        }
+        const Config &config = it->second;
+
         std::uniform_real_distribution<float> vel_x_dist(config.minVelX, config.maxVelX);
         std::uniform_real_distribution<float> vel_y_dist(config.minVelY, config.maxVelY);
         std::uniform_real_distribution<float> rot_dist(config.minRotation, config.maxRotation);

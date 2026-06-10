@@ -1,0 +1,103 @@
+#############
+[[particles]]
+id = "default_smoke"
+
+particleCount = 0
+
+# Animation
+texturePath = ""
+sheetColumns = 0
+sheetRows = 0
+animationRow = 0
+animationFPS = 0
+pingPongAnimation = false
+deathOnAnimationEnd = false
+
+# Velocity
+minVelX = 0.0
+maxVelX = 0.0
+minVelY = 0.0
+maxVelY = 0.0
+
+# Size
+minRadius = 0.0
+maxRadius = 0.0
+
+# Lifetime
+minLifeTime = 0.0
+maxLifeTime = 0.0
+
+# Spawn Offset
+minSpawnOffsetX = 0.0
+maxSpawnOffsetX = 0.0
+minSpawnOffsetY = 0.0
+maxSpawnOffsetY = 0.0
+
+# Rotation
+minRotation = 0.0
+maxRotation = 0.0
+
+# Gravity
+hasGravity = true
+
+# Floor Kill Plane
+hasFloor = false
+floorOffset = 0.0
+
+# Wave Motion
+waveAmplitudeMin = 0.0
+waveAmplitudeMax = 0.0
+waveFrequencyMin = 0.0
+waveFrequencyMax = 0.0
+
+#############
+[[particles]]
+id = "default_fire"
+
+particleCount = 0
+
+# Animation
+texturePath = ""
+sheetColumns = 0
+sheetRows = 0
+animationRow = 0
+animationFPS = 0
+pingPongAnimation = false
+deathOnAnimationEnd = false
+
+# Velocity
+minVelX = 0.0
+maxVelX = 0.0
+minVelY = 0.0
+maxVelY = 0.0
+
+# Size
+minRadius = 0.0
+maxRadius = 0.0
+
+# Lifetime
+minLifeTime = 0.0
+maxLifeTime = 0.0
+
+# Spawn Offset
+minSpawnOffsetX = 0.0
+maxSpawnOffsetX = 0.0
+minSpawnOffsetY = 0.0
+maxSpawnOffsetY = 0.0
+
+# Rotation
+minRotation = 0.0
+maxRotation = 0.0
+
+# Gravity
+hasGravity = true
+
+# Floor Kill Plane
+hasFloor = false
+floorOffset = 0.0
+
+# Wave Motion
+waveAmplitudeMin = 0.0
+waveAmplitudeMax = 0.0
+waveFrequencyMin = 0.0
+waveFrequencyMax = 0.0

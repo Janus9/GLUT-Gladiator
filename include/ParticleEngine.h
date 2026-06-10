@@ -105,7 +105,7 @@ namespace particles {
              * @param pos Position of where to spawn the effect
              * @param config Configuration for the effect
              */
-            void spawnEffect(glm::vec2 pos, const Config &config);
+            void spawnEffect(glm::vec2 pos, const std::string &ID);
 
             // Debugging function that outputs GPU memory usage to console
             void logGpuMemoryUsage() const;
@@ -176,6 +176,7 @@ namespace particles {
 
             std::vector<ParticleBatch> particleList;                      // Particles are batched by their texture in a list
             std::unordered_map<std::string, size_t> particleTable;        // Lookup table to particleList index (for spawn effect)
+            std::unordered_map<std::string, Config> configTable;          // Lookup table of configs by a unique string ID (name)
 
             // -- Rendering -- //
             struct Vertex {
