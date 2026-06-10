@@ -19,11 +19,11 @@ namespace particles {
     
         // Animation //
         std::string texturePath;       /// Required: particle sprite sheet image path.
-        int sheetColumns = 0;          /// Required: number of frame columns in the sprite sheet.
-        int sheetRows = 0;             /// Required: number of frame rows in the sprite sheet.
+        int sheetColumns = 0;          /// Required: number of frame columns in the sprite sheet. [1-255]
+        int sheetRows = 0;             /// Required: number of frame rows in the sprite sheet. [1-255]
     
-        int animationRow = 0;          /// Default 0: row of the sprite sheet used by this effect.
-        int animationFPS = 0;          /// Default 0: animation frame rate in frames/second. Use 0 for static particles.
+        int animationRow = 0;          /// Default 0: row of the sprite sheet used by this effect. [0-255]
+        int animationFPS = 0;          /// Default 0: animation frame rate in frames/second. Use 0 for static particles. [0-255]
     
         // Velocity //
         float minVelX = 0.0f;          /// Default 0.0f: minimum horizontal velocity.
@@ -114,32 +114,28 @@ namespace particles {
         private:
             // Single instance particle struct //
             struct Particle {
-                bool alive = false;
-    
-                // Physics //
                 glm::vec2 pos;              
                 glm::vec2 vel;              
                 glm::vec2 acc;
-                float rotationSpeed;
                 
+                float rotationSpeed;
                 float radius;
-    
-                float death;    // When the particle will die (an offset from birth decides this)
-                float age;      // Particles current age
-    
-                float angle;
-    
-                bool hasGravity;
-            
-                bool hasFloor;
                 float floorPosY;
-    
                 float waveAmplitude;
                 float waveFrequency;
-                float waveOffset; // Randomly chosen
+                float waveOffset;       // Randomly chosen
+                float death;            // When the particle will die (an offset from birth decides this)
+                float age;              // Particles current age
+                float angle;
+                float animationTimer;   // Time since last animation frame occured (resets after exceeding)
+
+                bool alive = false;
+                bool hasGravity;
+                bool hasFloor;
     
-                int colIndex;
-                int rowIndex;
+                uint8_t colIndex;
+                uint8_t rowIndex;
+                uint8_t fps;
             };
     
             // Injections //

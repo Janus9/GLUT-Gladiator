@@ -158,6 +158,7 @@ void _scene::initScene(bool loadWorld)
     test_config1.texturePath = "images/enemy/enemy_particles.png";
     test_config1.sheetColumns = 6;
     test_config1.sheetRows = 1;
+    test_config1.animationFPS = 4;
 
     test_config1.minVelX = -8.0f;
     test_config1.maxVelX = 8.0f;

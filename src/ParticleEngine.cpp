@@ -190,6 +190,19 @@ namespace particles {
                     continue;
                 }
 
+                // Check for next frame event
+                const float timePerFrame = 1 / static_cast<float>(p.fps);
+                if (p.animationTimer > timePerFrame) {
+                    if (p.colIndex < pBatch.sheetColumns) {
+                        // Next frame
+                        p.colIndex++;
+                    } else {
+                        // Loop around to beginning
+                        p.colIndex = 0;
+                    }
+                    p.animationTimer = 0.0f;
+                }
+
                 p.acc.x = 0.0f;
                 if (p.hasGravity) p.acc.y = -GRAVITY * 4;
 
@@ -197,6 +210,8 @@ namespace particles {
                 p.pos += p.vel * static_cast<float>(dt);
 
                 p.angle += p.rotationSpeed * dt;
+
+                p.animationTimer += static_cast<float>(dt);
             }
 
             if (pBatch.aliveParticles == 0) {
@@ -318,7 +333,9 @@ namespace particles {
             p.waveOffset = wave_off_dist(rng);
 
             p.colIndex = 0;
-            p.rowIndex = config.animationRow;
+            p.rowIndex = static_cast<uint8_t>(config.animationRow);
+            p.fps = static_cast<uint8_t>(config.animationFPS);
+            p.animationTimer = 0.0f;
         }
 
         totalAliveParticles += config.particleCount;
