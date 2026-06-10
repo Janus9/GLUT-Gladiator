@@ -1,3 +1,18 @@
+/**
+ * /summary
+ *  Particle Engine stores a vector of "Particle Batch" as memory storage. Despite have a max particle size, its memory is dynamic, memory is freed once all particles
+ *  of a given layer are marked as dead. However, video memory is fixed to the max particle size. It is buffered by sub data, but allocated by full. 
+ * 
+ * /ParticleBatch
+ *  This stores information relating to a "batch" of particles. A "batch" is simply a particle of a given texture. Thus particles using
+ *  the same texture path are in the same batch. The batch stores a GPU textureID, how many columns the animation sheet is. 
+ *  It includes c_uWidth and c_vWidth which are simply how many u/v units for textuing the sheet is per frame. 
+ *  The biggest piece is aliveParticles, this says how many ALIVE particles exist, the particles vector is not wiped until ALL PARTICLES ARE DEAD. 
+ *  
+ *  Invariants
+ *      particles.size() >= aliveParticles
+ */
+
 #include <ParticleEngine.h>
 #include <SDL3/SDL_timer.h>
 
