@@ -183,22 +183,25 @@ namespace particles {
                     p.alive = false;
                 }
 
+                // Check for next frame event
+                if (p.deathOnAnimationEnd && p.colIndex >= pBatch.sheetColumns) {
+                    // Animation finished - kill
+                    p.alive = false;
+                }
+                
                 if (!p.alive) {
                     // Particle death
                     pBatch.aliveParticles--;
                     totalAliveParticles--;
                     continue;
                 }
-
-                // Check for next frame event
+                
                 const float timePerFrame = 1 / static_cast<float>(p.fps);
                 if (p.animationTimer > timePerFrame) {
-                    if (p.colIndex < (pBatch.sheetColumns-1)) {
-                        // Next frame
-                        p.colIndex++;
+                    if (p.pingPongAnimation) {
+                        iterateAnimationFramePingPong(p, pBatch);
                     } else {
-                        // Loop around to beginning
-                        p.colIndex = 0;
+                        iterateAnimationFrameRegular(p, pBatch);
                     }
                     p.animationTimer = 0.0f;
                 }
@@ -336,6 +339,8 @@ namespace particles {
             p.rowIndex = static_cast<uint8_t>(config.animationRow);
             p.fps = static_cast<uint8_t>(config.animationFPS);
             p.animationTimer = 0.0f;
+            p.pingPongAnimation = config.pingPongAnimation;
+            p.deathOnAnimationEnd = config.deathOnAnimationEnd;            
         }
 
         totalAliveParticles += config.particleCount;
@@ -389,6 +394,35 @@ namespace particles {
     }
 
     // PRIVATE //
+    void Engine::iterateAnimationFrameRegular(Particle &p, const ParticleBatch &pBatch) {
+        if (p.colIndex < (pBatch.sheetColumns-1)) {
+            // Next frame
+            p.colIndex++;
+        } else {
+            // Loop around to beginning
+            p.colIndex = 0;
+        }
+    }
+
+    // PRIVATE //
+    void Engine::iterateAnimationFramePingPong(Particle &p, const ParticleBatch &pBatch) {
+        if (p.inReverseAnimation) {
+            if (p.colIndex <= 0) {
+                p.inReverseAnimation = false;
+                p.colIndex++;
+            } else {
+                p.colIndex--;
+            }
+        } else {
+            if (p.colIndex < (pBatch.sheetColumns-1)) {
+                p.colIndex++;
+            } else {
+                p.inReverseAnimation = true;
+                p.colIndex--;
+            }
+        }
+    }
+
     void Engine::buildVBO() {
         glBindBuffer(GL_ARRAY_BUFFER, vboID);
 

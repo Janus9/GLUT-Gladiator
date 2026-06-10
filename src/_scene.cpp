@@ -170,7 +170,7 @@ void _scene::initScene(bool loadWorld)
     test_config1.minRadius = 5.0f;
     test_config1.maxRadius = 10.0f;
 
-    test_config1.minLifeTime = 5.0f;
+    test_config1.minLifeTime = 4.0f;
     test_config1.maxLifeTime = 5.0f;
 
     test_config1.minSpawnOffsetX = -3.0f;
@@ -182,11 +182,13 @@ void _scene::initScene(bool loadWorld)
     test_config1.hasFloor = false;
     test_config1.floorOffset = -10.0f;
 
+
     test_config2.particleCount = 150;
     test_config2.texturePath = "images/pickups/pickup_sheet.png";
     test_config2.sheetColumns = 6;
     test_config2.sheetRows = 1;
-    test_config2.animationFPS = 4;
+    test_config2.animationFPS = 2;
+    test_config2.pingPongAnimation = true;
 
     test_config2.minVelX = -8.0f;
     test_config2.maxVelX = 8.0f;
@@ -198,8 +200,8 @@ void _scene::initScene(bool loadWorld)
     test_config2.minRadius = 5.0f;
     test_config2.maxRadius = 10.0f;
 
-    test_config2.minLifeTime = 5.0f;
-    test_config2.maxLifeTime = 5.0f;
+    test_config2.minLifeTime = 10.0f;
+    test_config2.maxLifeTime = 11.0f;
 
     test_config2.minSpawnOffsetX = -3.0f;
     test_config2.maxSpawnOffsetX = 3.0f;
