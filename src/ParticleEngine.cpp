@@ -346,7 +346,29 @@ namespace particles {
     }
 
     void Engine::logCpuMemoryUsage() const {
+        size_t total = 0;
+        total += sizeof(*this); // Size of engine itself
+        total += particleList.capacity() * sizeof(ParticleBatch);   // Estimation of particle list
+        // Vector //
+        for (size_t i = 0; i < particleList.size(); i++) {
+            const ParticleBatch &pBatch = particleList[i];
+            // Heap memory of batch
+            total += pBatch.particles.capacity() * sizeof(Particle);
+            total += pBatch.texturePath.capacity() * sizeof(char);
+        }
+        // Unordered Map //
+        for (auto it = particleTable.begin(); it != particleTable.end(); it++) {
+            total += sizeof(*it);
+            total += it->first.capacity() * sizeof(char);
+        }
+
+        const std::string msg = std::string("\n") +
+            "| >> PARTICLE ENGINE DEBUG << |\n" + 
+            "|-----------------------------|\n" +
+            "| - CPU Memory Usage: " + std::to_string(total) + "B" + " (" + std::to_string(static_cast<double>(total) / 1000000.0) + "MB)\n" +
+            "|-----------------------------|\n";
         
+        SDL_LogDebug(LOG_PARTICLE_ENGINE, msg.c_str());
     }
 
     // PRIVATE //

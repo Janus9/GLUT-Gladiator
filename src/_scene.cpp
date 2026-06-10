@@ -1498,6 +1498,7 @@ void _scene::debugPrint()
     //      << "-- BOTTOM: " << bottom << "\n";
     myWorld->debugPrint();
     ParticleEngine->logGpuMemoryUsage();
+    ParticleEngine->logCpuMemoryUsage();
 }
 
 void _scene::debugPrintFPS()
