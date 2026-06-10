@@ -1,17 +1,17 @@
 #############
 [[particles]]
-id = "default_smoke"
+id = "test_1"
 
-particleCount = 0
+particleCount = 1
 
 # Animation
-texturePath = ""
-sheetColumns = 0
-sheetRows = 0
+texturePath = "images/particles/explosion.png"
+sheetColumns = 65
+sheetRows = 1
 animationRow = 0
-animationFPS = 0
+animationFPS = 60
 pingPongAnimation = false
-deathOnAnimationEnd = false
+deathOnAnimationEnd = true
 
 # Velocity
 minVelX = 0.0
@@ -20,12 +20,12 @@ minVelY = 0.0
 maxVelY = 0.0
 
 # Size
-minRadius = 0.0
-maxRadius = 0.0
+minRadius = 30.0
+maxRadius = 45.0
 
 # Lifetime
-minLifeTime = 0.0
-maxLifeTime = 0.0
+minLifeTime = 5.0
+maxLifeTime = 5.0
 
 # Spawn Offset
 minSpawnOffsetX = 0.0
@@ -38,7 +38,7 @@ minRotation = 0.0
 maxRotation = 0.0
 
 # Gravity
-hasGravity = true
+hasGravity = false
 
 # Floor Kill Plane
 hasFloor = false
@@ -52,7 +52,7 @@ waveFrequencyMax = 0.0
 
 #############
 [[particles]]
-id = "default_fire"
+id = "test_2"
 
 particleCount = 0
 

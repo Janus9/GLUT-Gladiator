@@ -10,6 +10,8 @@
 #include <glm/gtc/matrix_transform.hpp>     // Matrix ops like transform, scale, ortho, etc
 #include <glm/gtc/type_ptr.hpp>             // Send GLM datatypes (matrix) to GPU
 
+
+
 namespace particles {
     /**
      * Particle Effect Configuration
