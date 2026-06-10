@@ -429,21 +429,6 @@ namespace particles {
         int runningVertexOffset = 0;
         for (size_t layer = 0; layer < particleList.size(); layer++) {
             const ParticleBatch &pBatch = particleList[layer];
-
-            int realAliveCount = 0;
-
-            for (size_t i = 0; i < pBatch.particles.size(); i++) {
-                if (pBatch.particles[i].alive) {
-                    realAliveCount++;
-                }
-            }
-
-            if (realAliveCount != pBatch.aliveParticles) {
-                std::cout << "ERROR: aliveParticles mismatch on layer " << layer << "\n";
-                std::cout << "pBatch.aliveParticles: " << pBatch.aliveParticles << "\n";
-                std::cout << "realAliveCount: " << realAliveCount << "\n";
-            }
-                        
             std::vector<Vertex> vboData(pBatch.aliveParticles * VERTICIES_PER_PARTICLE);
             int vIndex = 0;
             for (size_t layerIndex = 0; layerIndex < particleList[layer].particles.size(); layerIndex++) {
