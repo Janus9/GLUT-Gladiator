@@ -1654,38 +1654,39 @@ void _scene::applyCamera()
 }
 
 void _scene::setupTextures() {
-    // Regular Turret //
-    textureManager->addTexture("images/enemy/turret.png");
-    // Gatling Turrets //
-    textureManager->addTexture("images/enemy/gatling_gun/gatling_base.png");
-    textureManager->addTexture("images/enemy/gatling_gun/gatling_turret.png");
-    // Orc //
-    textureManager->addTexture("images/enemy/orc/orc_walk.png");
-    textureManager->addTexture("images/enemy/orc/orc_attack.png");
-    textureManager->addTexture("images/enemy/orc/orc_hurt.png");
-    textureManager->addTexture("images/enemy/orc/orc_death.png");
-    // Vampire (boss) //
-    textureManager->addTexture("images/enemy/vampire/Vampire_Idle.png");
-    textureManager->addTexture("images/enemy/vampire/Vampire_Walk.png");
-    textureManager->addTexture("images/enemy/vampire/Vampire_Attack.png");
-    textureManager->addTexture("images/enemy/vampire/Vampire_Hurt.png");
-    textureManager->addTexture("images/enemy/vampire/Vampire_Death.png");
-    // Vampire minions //
-    textureManager->addTexture("images/enemy/vampire/minion/Minion1_Idle.png");
-    textureManager->addTexture("images/enemy/vampire/minion/Minion1_Walk.png");
-    textureManager->addTexture("images/enemy/vampire/minion/Minion1_Attack.png");
-    textureManager->addTexture("images/enemy/vampire/minion/Minion1_Hurt.png");
-    textureManager->addTexture("images/enemy/vampire/minion/Minion1_Death.png");
-    textureManager->addTexture("images/enemy/vampire/minion/Minion2_Idle.png");
-    textureManager->addTexture("images/enemy/vampire/minion/Minion2_Walk.png");
-    textureManager->addTexture("images/enemy/vampire/minion/Minion2_Attack.png");
-    textureManager->addTexture("images/enemy/vampire/minion/Minion2_Hurt.png");
-    textureManager->addTexture("images/enemy/vampire/minion/Minion2_Death.png");
+    toml::table config;
+    try {
+        config = toml::parse_file("configs/textures.toml");
+    } catch (const toml::parse_error &err) {
+        SDL_LogError(LOG_SCENE, "ERROR: Failed to parse the textures: %s", err.what());
+        return;
+    }
 
-    textureManager->addTexture("images/enemy/enemy_particles.png");
-    textureManager->addTexture("images/pickups/pickup_sheet.png");
-    textureManager->addTexture("images/enemy/fire.png");
-    textureManager->addTexture("images/particles/explosion.png");
+    toml::array* textures = config["textures"].as_array();
+    if (!textures) {
+       SDL_LogError(LOG_SCENE,"ERROR: Cannot parse textures as textures.toml is missing"); 
+       return;
+    }
+
+    SDL_LogDebug(LOG_SCENE,"Read: %i images from textures.toml",static_cast<int>(textures->size()));
+
+    for (int i = 0; i < static_cast<int>(textures->size()); i++) {
+        toml::node& item = textures->at(i);
+
+        if (!item.is_string()) {
+            SDL_LogError(LOG_SCENE,"ERROR: textures[%i] must be a string path",i);
+            continue;
+        }
+
+        std::string path = item.value_or<std::string>("");
+
+        if (path.empty()) {
+            SDL_LogError(LOG_SCENE,"ERROR: textures[%i] is empty",i);
+            continue;
+        }
+
+        textureManager->addTexture(path);
+    }
 }
 
 // Add logging to an output file at some point to help user out

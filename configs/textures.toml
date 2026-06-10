@@ -1,0 +1,46 @@
+# GLUT Gladiator texture list
+#   These textures are loaded into the game via the texture manager.
+#   If a given texture path is bad or incorrect type, it is skipped.
+#   To add a texture, simple add another string below.
+#   * Texture paths are relative to project root, aka where the .EXE is *
+#   * DO NOT CHANGE THE "textures = []". That name is reserved and CANNOT be changed! *
+#
+
+textures = [
+    "images/enemy/turret.png",
+
+    # Gatling Turrets
+    "images/enemy/gatling_gun/gatling_base.png",
+    "images/enemy/gatling_gun/gatling_turret.png",
+
+    # Orc
+    "images/enemy/orc/orc_walk.png",
+    "images/enemy/orc/orc_attack.png",
+    "images/enemy/orc/orc_hurt.png",
+    "images/enemy/orc/orc_death.png",
+
+    # Vampire boss
+    "images/enemy/vampire/Vampire_Idle.png",
+    "images/enemy/vampire/Vampire_Walk.png",
+    "images/enemy/vampire/Vampire_Attack.png",
+    "images/enemy/vampire/Vampire_Hurt.png",
+    "images/enemy/vampire/Vampire_Death.png",
+
+    # Vampire minions
+    "images/enemy/vampire/minion/Minion1_Idle.png",
+    "images/enemy/vampire/minion/Minion1_Walk.png",
+    "images/enemy/vampire/minion/Minion1_Attack.png",
+    "images/enemy/vampire/minion/Minion1_Hurt.png",
+    "images/enemy/vampire/minion/Minion1_Death.png",
+
+    "images/enemy/vampire/minion/Minion2_Idle.png",
+    "images/enemy/vampire/minion/Minion2_Walk.png",
+    "images/enemy/vampire/minion/Minion2_Attack.png",
+    "images/enemy/vampire/minion/Minion2_Hurt.png",
+    "images/enemy/vampire/minion/Minion2_Death.png",
+
+    "images/enemy/enemy_particles.png",
+    "images/pickups/pickup_sheet.png",
+    "images/enemy/fire.png",
+    "images/particles/explosion.png"
+]
