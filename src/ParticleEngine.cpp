@@ -183,7 +183,6 @@ namespace particles {
                 p.angle += p.rotationSpeed * dt;
             }
 
-            SDL_LogDebug(LOG_PARTICLE_ENGINE, "Batch alive particles: %f",pBatch.aliveParticles);
             if (pBatch.aliveParticles == 0) {
                 SDL_LogDebug(LOG_PARTICLE_ENGINE, "Clearing batch: %s as all particles are dead", pBatch.texturePath.c_str());
                 pBatch.particles.clear(); // Clear the memory since all particles are now dead
@@ -231,11 +230,6 @@ namespace particles {
         ParticleBatch &pBatch = particleList[layerIndex];
         if (!registed) {
             
-            // pBatch.aliveParticles = config.particleCount;
-            // if (pBatch.aliveParticles <= 0) {
-            //     SDL_LogWarn(LOG_PARTICLE_ENGINE, "WARNING: Number of particles in config: %s is 0 or less. Should be greater than 0.", pBatch.texturePath.c_str());
-            // }
-            
             pBatch.sheetColumns = config.sheetColumns;
             pBatch.sheetRows = config.sheetRows;
             
@@ -273,11 +267,11 @@ namespace particles {
             pBatch.textureID = texture.ID;
         }
 
-        const int currentAliveParticles = pBatch.aliveParticles;
-        pBatch.particles.resize(config.particleCount + currentAliveParticles);  // Resize to fit the new elements
+        const int particlesInMemory = pBatch.particles.size();  // Count of particles in the current memory layer
+        pBatch.particles.resize(config.particleCount + particlesInMemory);  // Resize to fit the new elements
 
         for (int i = 0; i < config.particleCount; i++) {
-            const int index = currentAliveParticles + i;
+            const int index = particlesInMemory + i;
             Particle &p = pBatch.particles[index];
 
             p.pos = pos;
