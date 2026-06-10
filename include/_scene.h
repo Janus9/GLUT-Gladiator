@@ -141,7 +141,7 @@ class _scene
         _sounds* soundManager = nullptr; // DEPRICTED :: Non-owning; set via setSounds() before initScene()
 
         // Texture Manager //
-        void setupTextures();
+        void setupTextures();   // Sets up game texture assets via a TOML config file "configs/texture.toml"
         std::unique_ptr<_textureManager> textureManager = std::make_unique<_textureManager>();
 
         _lightSettings *myLight = new _lightSettings();     

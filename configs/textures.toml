@@ -4,6 +4,7 @@
 #   To add a texture, simple add another string below.
 #   * Texture paths are relative to project root, aka where the .EXE is *
 #   * DO NOT CHANGE THE "textures = []". That name is reserved and CANNOT be changed! *
+#   * DO NOT move this file or rename it *
 #
 
 textures = [
