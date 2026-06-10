@@ -154,7 +154,7 @@ void _scene::initScene(bool loadWorld)
     ParticleEngine = std::make_unique<particles::Engine>();
     ParticleEngine->init({textureManager.get(), lightManager.get()});
 
-    test_config1.particleCount = 15;
+    test_config1.particleCount = 150;
     test_config1.texturePath = "images/enemy/enemy_particles.png";
     test_config1.sheetColumns = 6;
     test_config1.sheetRows = 1;
@@ -178,10 +178,10 @@ void _scene::initScene(bool loadWorld)
     test_config1.maxSpawnOffsetY = 3.0f;
 
     test_config1.hasGravity = true;
-    test_config1.hasFloor = true;
+    test_config1.hasFloor = false;
     test_config1.floorOffset = -10.0f;
 
-    test_config2.particleCount = 15;
+    test_config2.particleCount = 150;
     test_config2.texturePath = "images/pickups/pickup_sheet.png";
     test_config2.sheetColumns = 6;
     test_config2.sheetRows = 1;
