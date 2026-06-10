@@ -193,7 +193,7 @@ namespace particles {
                 // Check for next frame event
                 const float timePerFrame = 1 / static_cast<float>(p.fps);
                 if (p.animationTimer > timePerFrame) {
-                    if (p.colIndex < pBatch.sheetColumns) {
+                    if (p.colIndex < (pBatch.sheetColumns-1)) {
                         // Next frame
                         p.colIndex++;
                     } else {

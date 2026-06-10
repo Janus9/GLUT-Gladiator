@@ -155,10 +155,10 @@ void _scene::initScene(bool loadWorld)
     ParticleEngine->init({textureManager.get(), lightManager.get()});
 
     test_config1.particleCount = 150;
-    test_config1.texturePath = "images/enemy/enemy_particles.png";
-    test_config1.sheetColumns = 6;
+    test_config1.texturePath = "images/enemy/fire.png";
+    test_config1.sheetColumns = 8;
     test_config1.sheetRows = 1;
-    test_config1.animationFPS = 4;
+    test_config1.animationFPS = 24;
 
     test_config1.minVelX = -8.0f;
     test_config1.maxVelX = 8.0f;
@@ -186,6 +186,7 @@ void _scene::initScene(bool loadWorld)
     test_config2.texturePath = "images/pickups/pickup_sheet.png";
     test_config2.sheetColumns = 6;
     test_config2.sheetRows = 1;
+    test_config2.animationFPS = 4;
 
     test_config2.minVelX = -8.0f;
     test_config2.maxVelX = 8.0f;
@@ -205,7 +206,7 @@ void _scene::initScene(bool loadWorld)
     test_config2.minSpawnOffsetY = -3.0f;
     test_config2.maxSpawnOffsetY = 3.0f;
 
-    test_config2.hasGravity = true;
+    test_config2.hasGravity = false;
     test_config2.hasFloor = true;
     test_config2.floorOffset = -10.0f;
 
@@ -1683,6 +1684,7 @@ void _scene::setupTextures() {
 
     textureManager->addTexture("images/enemy/enemy_particles.png");
     textureManager->addTexture("images/pickups/pickup_sheet.png");
+    textureManager->addTexture("images/enemy/fire.png");
 }
 
 // Add logging to an output file at some point to help user out
