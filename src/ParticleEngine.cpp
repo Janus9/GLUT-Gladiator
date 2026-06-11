@@ -210,7 +210,7 @@ namespace particles {
             config.waveFrequencyMax = static_cast<float>((*particleTable)["waveFrequencyMax"].value_or<double>(0.0));
 
             // Config Adjustments -- Protect bounds & warn odd values etc //
-            
+
             // Death on animation forces max lifespan 
             if (config.deathOnAnimationEnd) {
                 config.minLifeTime = std::numeric_limits<float>::max();
@@ -278,7 +278,9 @@ namespace particles {
                 }
 
                 // Check for next frame event
-                const float timePerFrame = 1 / static_cast<float>(p.fps);
+                const float timePerFrame = (p.fps > 0)  
+                    ? 1 / static_cast<float>(p.fps)
+                    : std::numeric_limits<float>::max();    // FPS of 0 or negative assumes no animation so time per frame is set impossibly high
                 if (p.deathOnAnimationEnd && p.colIndex >= (pBatch.sheetColumns-1) && p.animationTimer > timePerFrame) {
                     // Animation finished and on last sheet -- kill
                     p.alive = false;

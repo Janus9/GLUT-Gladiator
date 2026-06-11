@@ -1,3 +1,61 @@
+# GLUT Gladiator particle effect config
+#
+# Dictionary:
+# - "id": (string) Unique name given to the effect (duplicates are skipped)
+# - "particleCount": (int) Number of total particles for effect to spawn 
+# - "texturePath": (string) Path to the image source (relative to the root directory of the project, AKA where the .EXE is)
+# - "sheetColumns": (int) How many animation frames wide the image is (for a single image set as 1)
+# - "sheetRows": (int) How many animation frames tall the image is (set to 1 if one row or single image)
+# - "animationRow": (int) Which row for the animation to use (starts at 0 not 1, meaning 0 is the top-most row)
+# - "animationFPS": (int) Frame rate of the animation (0 or negative means no animation)
+# - "pingPongAnimation": (bool) If enabled then animation "bounces" through the sheet rather than resetting
+# - "deathOnAnimationEnd": (bool) If enabled then particle dies upon animation end. Automatically sets min/max lifetime to infinite
+# - "minVelX": (float) Minimum velocity in X direction (horizontal) given to the particle
+# - "maxVelX": (float) Maximum velocity in X direction (horizontal) given to the particle
+# - "minVelY": (float) Minimum velocity in Y direction (verticle) given to the particle
+# - "maxVelY": (float) Maximum velocity in Y direction (verticle) given to the particle
+# - "minRadius": (float) Miniumum radius of the particle (in world units)
+# - "maxRadius": (float) Maximum radius of the particle (in world units)
+# - "minLifeTime": (float) Minimum lifespan of the particle (in seconds)
+# - "maxLifeTime": (float) Maximum lifespan of the particle (in seconds)
+# - "minSpawnOffsetX": (float) Minimum offset from spawn location in the X direction (horizontal) of the particle
+# - "maxSpawnOffsetX": (float) Maximum offset from spawn location in the X direction (horizontal) of the particle
+# - "minSpawnOffsetY": (float) Minimum offset from spawn location in the Y direction (verticle) of the particle
+# - "maxSpawnOffsetY": (float) Maximum offset from spawn location in the Y direction (verticle) of the particle
+# - "minRotation": (float) Minimum rotational speed of the particle (in degrees/s)
+# - "maxRotation": (float) Maximum rotational speed of the particle (in degrees/s)
+# - "hasGravity": (bool) If enabled then particle will fall downwards
+# - "hasFloor": (bool) If enabled then particle will die upon collision with the "floor" (see below)
+# - "floorOffset": (float) The "floor" is the point of particle spawn, this offset is where the floor is moved to (should be negative) (in world units)
+# - "waveAmplitudeMin": (float) Minimum wave height of the particle (in world units) use 0.0 for no wave motion
+# - "waveAmplitudeMax": (float) Maximum wave height of the particle (in world units) use 0.0 for no wave motion
+# - "waveFrequencyMin": (float) Minimum wave frequency (in cycles/second) use 0.0 for no wave motion
+# - "waveFrequencyMax": (float) Maximum wave frequency (in cycles/second) use 0.0 for no wave motion
+#
+# Data Types Explained:
+# - (string): Text data type using "" around it. 
+# - (float): Numeric type allowing for non-whole numbers and decimals (always denote w/ a decimal place for saftey) (ex/ 3 = 3.0)
+# - (int): Numberic type of whole numbers only (do not use a decimal place) (ex/ 3 NOT 3.0)
+# - (bool): On/off type denoted by [true/false]
+#
+# Clarifications:
+# - If deathOnAnimationEnd is enabled then the min/max life time are ignored and set to infinite
+# - The min/max variables are randomly assigned a value based on the min/max bounds
+#   - For min/max variables, never set the min higher than the max, it will crash the game. 
+# - For the "hasFloor" if enabled the floorOffset must be less than 0.0. The particle spawns on the "floor" so setting floorOffset to 0.0 or any positive number
+#   means it spawns inside of or below the floor causing it to be killed on creation. Thus this value should never be 0.0 or positive
+# - The animation handler can only play one animation per row. Thus if your animation sheet occupies multiple rows, you must modify the image onto one row, sorry.
+#   - I recommend Aseprite for modifiying images
+#
+# How To:
+#  - Adding a new particle effect is simple. Simply copy the "templay_example", make sure to get the [[particles]] as it denotes a new entry.
+#  - After copying the template, change the ID to something unique, and modify it however you want it to behave. For the texturePath, the texture
+#    must be registered in the "configs/textures.toml" by simply adding the path to the list. An un-registered texture will simply not render.
+#
+# For default particle effects in the game, do not change the "id" as they are hardcoded. For custom-made user particle effects then it doesnt matter. 
+#
+#
+
 #############
 [[particles]]
 id = "test_1"
@@ -52,12 +110,12 @@ waveFrequencyMax = 0.0
 
 #############
 [[particles]]
-id = "test_2"
+id = "template_example"
 
 particleCount = 0
 
 # Animation
-texturePath = ""
+texturePath = "path/to/image.png"
 sheetColumns = 0
 sheetRows = 0
 animationRow = 0
