@@ -154,62 +154,6 @@ void _scene::initScene(bool loadWorld)
     ParticleEngine = std::make_unique<particles::Engine>();
     ParticleEngine->init({textureManager.get(), lightManager.get()});
 
-    test_config1.particleCount = 1;
-    test_config1.texturePath = "images/particles/explosion.png";
-    test_config1.sheetColumns = 65;
-    test_config1.sheetRows = 1;
-    test_config1.animationFPS = 60;
-    test_config1.deathOnAnimationEnd = true;
-
-    test_config1.minVelX = 0.0f;
-    test_config1.maxVelX = 0.0f;
-    test_config1.minVelY = 0.0f;
-    test_config1.maxVelY = 0.0f;
-    test_config1.minRotation = 0.0f;
-    test_config1.maxRotation = 0.0f;
-
-    test_config1.minRadius = 30.0f;
-    test_config1.maxRadius = 45.0f;
-
-    test_config1.minLifeTime = 5.0f;
-    test_config1.maxLifeTime = 5.0f;
-
-    test_config1.minSpawnOffsetX = 0.0f;
-    test_config1.maxSpawnOffsetX = 0.0f;
-    test_config1.minSpawnOffsetY = 0.0f;
-    test_config1.maxSpawnOffsetY = 0.0f;
-
-    test_config1.hasGravity = false;
-
-    test_config2.particleCount = 1;
-    test_config2.texturePath = "images/particles/explosion.png";
-    test_config2.sheetColumns = 65;
-    test_config2.sheetRows = 1;
-    test_config2.animationFPS = 60;
-    test_config2.deathOnAnimationEnd = true;
-
-    test_config2.minVelX = -8.0f;
-    test_config2.maxVelX = 8.0f;
-    test_config2.minVelY = 10.0f;
-    test_config2.maxVelY = 25.0f;
-    test_config2.minRotation = -45.0f;
-    test_config2.maxRotation = 45.0f;
-
-    test_config2.minRadius = 5.0f;
-    test_config2.maxRadius = 10.0f;
-
-    test_config2.minLifeTime = 10.0f;
-    test_config2.maxLifeTime = 11.0f;
-
-    test_config2.minSpawnOffsetX = -3.0f;
-    test_config2.maxSpawnOffsetX = 3.0f;
-    test_config2.minSpawnOffsetY = -3.0f;
-    test_config2.maxSpawnOffsetY = 3.0f;
-
-    test_config2.hasGravity = false;
-    test_config2.hasFloor = true;
-    test_config2.floorOffset = -10.0f;
-
     // -- PLAYER -- //
     player->initPlayer(lightManager.get());
     player->hasGun = true;

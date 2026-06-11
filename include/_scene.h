@@ -134,9 +134,6 @@ class _scene
 
         // Particle Engine //
         std::unique_ptr<particles::Engine> ParticleEngine;
-        particles::Config test_config1;
-        particles::Config test_config2;
-        particles::Config test_config3;
         
         _sounds* soundManager = nullptr; // DEPRICTED :: Non-owning; set via setSounds() before initScene()
 
