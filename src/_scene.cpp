@@ -72,12 +72,19 @@ void _scene::initScene(bool loadWorld)
 
     std::cout << "Running Scene Class Initialization ... \n";
 
+    // TEXTURE LOADER //
+    if (!loadWorld) setupTextures();
+
+    // Particle Manager //
+    ParticleEngine = std::make_unique<particles::Engine>();
+    ParticleEngine->init({textureManager.get(), lightManager.get()});
+
     inputTimer.reset();
     fpsTimer->reset();
     interactionTimer->reset();
     fireRateTimer.reset();
     
-    myWorld->initWorld(loadWorld, world_configuration, lightManager.get());         // Initialize the world
+    myWorld->initWorld(loadWorld, world_configuration, lightManager.get(), ParticleEngine.get());         // Initialize the world
 
     // PICKUPS //
     pickupManager->initPickupManager("images/pickups/pickup_sheet.png",6,player.get(),lightManager.get());
@@ -146,13 +153,6 @@ void _scene::initScene(bool loadWorld)
     fire_rate_pickup.speed = 0.0f;
     fire_rate_pickup.fireRate = 5.0f;
     fire_rate_pickup.xp = 0.0f;
-
-    // TEXTURE LOADER //
-    if (!loadWorld) setupTextures();
-
-    // Particle Manager //
-    ParticleEngine = std::make_unique<particles::Engine>();
-    ParticleEngine->init({textureManager.get(), lightManager.get()});
 
     // -- PLAYER -- //
     player->initPlayer(lightManager.get());

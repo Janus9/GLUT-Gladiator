@@ -201,7 +201,7 @@ void _world::setCameraPosition(const Vec2f &_cameraPosition) {
 
 _world::_world()
 {
-    cellParticles = std::make_unique<_particleManager>();
+
 }
 
 _world::~_world()
@@ -232,8 +232,12 @@ _world::~_world()
     worldChunks.clear();
 }
 
-void _world::initWorld(bool loadWorld, const world_config &_configuration, _lightManager* lightManager)
+void _world::initWorld(bool loadWorld, const world_config &_configuration, _lightManager* lightManager, particles::Engine* _ParticleEngine)
 {
+    if (!_ParticleEngine) {
+        SDL_LogError(LOG_WORLD, "ERROR: Particle Engine is nullptr");
+    }
+    ParticleEngine = _ParticleEngine;
     sceneLightManager = lightManager;
 
     configuration = _configuration;
@@ -285,44 +289,44 @@ void _world::initWorld(bool loadWorld, const world_config &_configuration, _ligh
 
     // PARTICLE EFFECTS //
 
-    cellParticles->initParticleManager("images/particle.png",1, sceneLightManager, 10000); // Particles for cell usage
-    // wall_break_effect
-    wall_break_effect.amount = 100;
+    // cellParticles->initParticleManager("images/particle.png",1, sceneLightManager, 10000); // Particles for cell usage
+    // // wall_break_effect
+    // wall_break_effect.amount = 100;
 
-    wall_break_effect.minVelX = -3.0f;
-    wall_break_effect.maxVelX = 3.0f;
-    wall_break_effect.minVelY = 5.0f;
-    wall_break_effect.maxVelY = 20.0f;
+    // wall_break_effect.minVelX = -3.0f;
+    // wall_break_effect.maxVelX = 3.0f;
+    // wall_break_effect.minVelY = 5.0f;
+    // wall_break_effect.maxVelY = 20.0f;
 
-    wall_break_effect.minRadius = 1.0f;
-    wall_break_effect.maxRadius = 3.0f;
+    // wall_break_effect.minRadius = 1.0f;
+    // wall_break_effect.maxRadius = 3.0f;
 
-    wall_break_effect.minLifeTime = 0.6f;
-    wall_break_effect.maxLifeTime = 1.3f;
+    // wall_break_effect.minLifeTime = 0.6f;
+    // wall_break_effect.maxLifeTime = 1.3f;
 
-    wall_break_effect.minSpawnOffsetX = -8.0f;
-    wall_break_effect.maxSpawnOffsetX = 8.0f;
-    wall_break_effect.minSpawnOffsetY = -8.0f;
-    wall_break_effect.maxSpawnOffsetY = 8.0f;
+    // wall_break_effect.minSpawnOffsetX = -8.0f;
+    // wall_break_effect.maxSpawnOffsetX = 8.0f;
+    // wall_break_effect.minSpawnOffsetY = -8.0f;
+    // wall_break_effect.maxSpawnOffsetY = 8.0f;
 
-    // _wall_damage_effect
-    wall_damage_effect.amount = 10;
+    // // _wall_damage_effect
+    // wall_damage_effect.amount = 10;
 
-    wall_damage_effect.minVelX = -3.0f;
-    wall_damage_effect.maxVelX = 3.0f;
-    wall_damage_effect.minVelY = 5.0f;
-    wall_damage_effect.maxVelY = 15.0f;
+    // wall_damage_effect.minVelX = -3.0f;
+    // wall_damage_effect.maxVelX = 3.0f;
+    // wall_damage_effect.minVelY = 5.0f;
+    // wall_damage_effect.maxVelY = 15.0f;
 
-    wall_damage_effect.minRadius = 1.0f;
-    wall_damage_effect.maxRadius = 3.0f;
+    // wall_damage_effect.minRadius = 1.0f;
+    // wall_damage_effect.maxRadius = 3.0f;
 
-    wall_damage_effect.minLifeTime = 0.4f;
-    wall_damage_effect.maxLifeTime = 1.1f;
+    // wall_damage_effect.minLifeTime = 0.4f;
+    // wall_damage_effect.maxLifeTime = 1.1f;
 
-    wall_damage_effect.minSpawnOffsetX = -4.0f;
-    wall_damage_effect.maxSpawnOffsetX = 4.0f;
-    wall_damage_effect.minSpawnOffsetY = -4.0f;
-    wall_damage_effect.maxSpawnOffsetY = 4.0f;
+    // wall_damage_effect.minSpawnOffsetX = -4.0f;
+    // wall_damage_effect.maxSpawnOffsetX = 4.0f;
+    // wall_damage_effect.minSpawnOffsetY = -4.0f;
+    // wall_damage_effect.maxSpawnOffsetY = 4.0f;
 
     // -- BUFFER SETUP -- //
     glGenBuffers(1, &vboID); 
@@ -666,12 +670,12 @@ void _world::drawWorld(float left, float right, float top, float bottom)
     glUseProgram(0);
 
     // Draw everything else before image bind of world
-    cellParticles->drawParticleManager();
+    // cellParticles->drawParticleManager();
 }
 
 void _world::updateWorld(double dt) {
     time += dt;
-    cellParticles->updateParticleManger(dt);
+    // cellParticles->updateParticleManger(dt);
 }
 
 bool _world::isChunkLoaded(int chunkX, int chunkY) {
@@ -1083,14 +1087,9 @@ bool _world::isCellWall(const _cell* cell) const {
 
 bool _world::damageCell(_cell* cell, float amount) {
     if (!cell) return false;
-
-    if (cellParticles == nullptr) {
-        std::cerr << "ERROR: cellParticles is null\n";
-        return false;
-    }
-
     cell->impluseHealth(-amount); // Reverse sign since function expects healing
-    cellParticles->spawnEffect(cell->pos, wall_damage_effect);
+    // cellParticles->spawnEffect(cell->pos, wall_damage_effect);
+    ParticleEngine->spawnEffect({cell->pos.x, cell->pos.y}, "wall_damage");
     if (!cell->isAlive()) {
         level_pos level = getLevelFromPos(cell->pos);
         switch (level) {
@@ -1104,7 +1103,8 @@ bool _world::damageCell(_cell* cell, float amount) {
                 setCellTile(cell,TILE_FLOOR_BROKEN_OUTER);
                 break;
         }
-        cellParticles->spawnEffect(cell->pos,wall_break_effect);
+        // cellParticles->spawnEffect(cell->pos,wall_break_effect);
+        ParticleEngine->spawnEffect({cell->pos.x, cell->pos.y}, "wall_break");
     }
     
     return true;

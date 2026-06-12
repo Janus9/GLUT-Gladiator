@@ -43,5 +43,6 @@ textures = [
     "images/enemy/enemy_particles.png",
     "images/pickups/pickup_sheet.png",
     "images/enemy/fire.png",
-    "images/particles/explosion.png"
+    "images/particles/explosion.png",
+    "images/particles/wall.png"
 ]

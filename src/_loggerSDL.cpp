@@ -31,9 +31,11 @@ static const char* getCategoryName(int category) {
         case LOG_MENU_MANAGER:
             return "MENU_MANAGER";
         case LOG_PARTICLE_ENGINE:
-            return "PARTICLE_MANAGER";
+            return "PARTICLE_ENGINE";
         case LOG_BULLET_ENGINE:
             return "BULLET_MANAGER";
+        case LOG_WORLD:
+            return "WORLD";
         default:
             return "UNKNOWN";
     }

@@ -27,6 +27,7 @@
 #include <_texture.h>
 #include <_benchmark.h>
 #include <_particleManager.h>
+#include <ParticleEngine.h>
 #include <_shader.h>
 #include <_lightManager.h>
 
@@ -350,7 +351,7 @@ class _world
          * @param loadWorld If true world is loaded and NOT generated
          * @param lightManager Pointer to the scene owned light manager (non-owning)
          */
-        void initWorld(bool loadWorld, const world_config &_configuration, _lightManager* lightManager);
+        void initWorld(bool loadWorld, const world_config &_configuration, _lightManager* lightManager, particles::Engine* _ParticleEngine);
 
         /**
          * Draw function for the world. 
@@ -501,10 +502,11 @@ class _world
         world_config configuration;     // Configuration for the world generation
         float worldBounds;              // Width from origin to edge of world
 
-        // -- PARTICLE MANAGER -- //
-        std::unique_ptr<_particleManager> cellParticles;
-        particle_effect wall_break_effect;
-        particle_effect wall_damage_effect;
+        // -- PARTICLE ENGINE -- //
+        particles::Engine* ParticleEngine;  // Pointer to Particle Engine owned by scene (non-owning)
+        // std::unique_ptr<_particleManager> cellParticles;
+        // particle_effect wall_break_effect;
+        // particle_effect wall_damage_effect;
 
         // -- RNG -- //
         uint32_t seed; 
