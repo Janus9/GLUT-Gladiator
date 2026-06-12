@@ -66,7 +66,6 @@ struct enemy_config {
     float detectionRadius;
 };
 
-
 class _enemy : public _unit {
     public:
         _enemy();
@@ -111,21 +110,63 @@ class _enemy : public _unit {
         static int nextId;
 };
 
+struct enemyManagerContext {
+    _player* player; 
+    _world* world; 
+    _bulletManager* bullets; 
+    _sounds* sounds; 
+    _lightManager* lights; 
+    _textureManager* textures; 
+    _pickupManager* pickups;
+    particles::Engine* particles;
+
+    /**
+     * Validates the context for nullptr types
+     * 
+     * @return True if context passed all checks
+     */
+    bool validate() {
+        if (!player) {
+            SDL_LogError(LOG_ENEMY_MANAGER, "ERROR: Player is nullptr");
+            return false;
+        }
+        if (!world) {
+            SDL_LogError(LOG_ENEMY_MANAGER, "ERROR: World is nullptr");
+            return false;
+        }
+        if (!bullets) {
+            SDL_LogError(LOG_ENEMY_MANAGER, "ERROR: Bullet Manager is nullptr");
+            return false;
+        }
+        if (!sounds) {
+            SDL_LogError(LOG_ENEMY_MANAGER, "ERROR: Sounds is nullptr");
+            return false;
+        }
+        if (!lights) {
+            SDL_LogError(LOG_ENEMY_MANAGER, "ERROR: Light Manager is nullptr");
+            return false;
+        }
+        if (!textures) {
+            SDL_LogError(LOG_ENEMY_MANAGER, "ERROR: Texture Manager is nullptr");
+            return false;
+        }
+        if (!pickups) {
+            SDL_LogError(LOG_ENEMY_MANAGER, "ERROR: Pickup Manager is nullptr");
+            return false;
+        }
+        if (!particles) {
+            SDL_LogError(LOG_ENEMY_MANAGER, "ERROR: Particle Engine is nullptr");
+            return false;
+        }
+    }
+};
+
 class _enemyManager {
     public:
         _enemyManager();
         virtual ~_enemyManager();
 
-        void initEnemyManager(
-            _player* currentPlayer, 
-            _world* currentWorld, 
-            _bulletManager* currentBulletManager, 
-            _sounds* currentSounds, 
-            _lightManager* lightManager, 
-            _textureManager* textureManager, 
-            _pickupManager* pickupManager,
-            particles::Engine* _ParticleEngine
-        );
+        void initEnemyManager(enemyManagerContext &context);
 
         /**
          * Update function for enemies

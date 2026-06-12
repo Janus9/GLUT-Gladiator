@@ -150,24 +150,19 @@ _enemyManager::~_enemyManager() {
     }
 }
 
-void _enemyManager::initEnemyManager(
-    _player* currentPlayer, 
-    _world* currentWorld, 
-    _bulletManager* currentBulletManager, 
-    _sounds* currentSounds, 
-    _lightManager* lightManager, 
-    _textureManager* textureManager, 
-    _pickupManager* pickupManager,
-    particles::Engine* _ParticleEngine
-) {
-    player = currentPlayer;
-    world = currentWorld;
-    bulletManager = currentBulletManager;
-    sounds = currentSounds;
-    sceneLightManager = lightManager;
-    sceneTextureManager = textureManager;
-    scenePickupManager = pickupManager;
-    ParticleEngine = _ParticleEngine;
+void _enemyManager::initEnemyManager(enemyManagerContext& context) {
+    if (!context.validate()) {
+        SDL_LogError(LOG_ENEMY_MANAGER, "ERROR: Enemy Manager Context was not able to be validated");
+    }
+    
+    player = context.player;
+    world = context.world;
+    bulletManager = context.bullets;
+    sounds = context.sounds;
+    sceneLightManager = context.lights;
+    sceneTextureManager = context.textures;
+    scenePickupManager = context.pickups;
+    ParticleEngine = context.particles;
 
     // -- SHADER SETUP -- //
     shader.initShader("shaders/enemy_manager/vertex.vs","shaders/enemy_manager/fragment.fs");

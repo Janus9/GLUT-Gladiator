@@ -213,16 +213,18 @@ void _scene::initScene(bool loadWorld)
     drawWorldBenchmark.startBenchmark();
     drawEnemiesBenchmark.startBenchmark();
 
-    if(!loadWorld) enemyManager->initEnemyManager(
-        player.get(), 
-        myWorld.get(), 
-        bulletManager.get(), 
-        soundManager, 
-        lightManager.get(), 
-        textureManager.get(),
-        pickupManager.get(),
-        ParticleEngine.get()
-    );
+    enemyManagerContext contex {
+        .player = player.get(),
+        .world = myWorld.get(),
+        .bullets = bulletManager.get(),
+        .sounds = soundManager,
+        .lights = lightManager.get(),
+        .textures = textureManager.get(),
+        .pickups = pickupManager.get(),
+        .particles = ParticleEngine.get()
+    };
+
+    if(!loadWorld) enemyManager->initEnemyManager(contex);
     enemyManager->bullet_1 = &turret_bullet;
     enemyManager->bullet_2 = &gatling_bullet;
 
@@ -812,16 +814,18 @@ bool _scene::loadSceneFromFile(const std::string &fileName) {
 
     // Setup enemy manager before adding enemies
     setupTextures();
-    enemyManager->initEnemyManager(
-        player.get(), 
-        myWorld.get(), 
-        bulletManager.get(), 
-        soundManager, 
-        lightManager.get(), 
-        textureManager.get(), 
-        pickupManager.get(),
-        ParticleEngine.get()
-    );
+    enemyManagerContext contex {
+        .player = player.get(),
+        .world = myWorld.get(),
+        .bullets = bulletManager.get(),
+        .sounds = soundManager,
+        .lights = lightManager.get(),
+        .textures = textureManager.get(),
+        .pickups = pickupManager.get(),
+        .particles = ParticleEngine.get()
+    };
+
+    enemyManager->initEnemyManager(contex);
 
     std::vector<enemy_serial_data> enemy_data;
     enemy_data.resize(enemy_count);

@@ -9,7 +9,8 @@ enum GameLogCategory {
     LOG_MENU_MANAGER,
     LOG_PARTICLE_ENGINE,
     LOG_BULLET_ENGINE,
-    LOG_WORLD
+    LOG_WORLD,
+    LOG_ENEMY_MANAGER
 };
 
 void initSDLLogger();
