@@ -5,7 +5,6 @@
 #include <_player.h>
 #include <_world.h>
 #include <_bulletManager.h>
-#include <_particleManager.h>
 #include <_sounds.h>
 #include <_shader.h>
 #include <_lightManager.h>
@@ -233,15 +232,6 @@ class _enemyManager {
         _sounds* sounds = nullptr;                  // Pointer to sounds instance instantiated in scene (non-owning)
 
         std::vector<std::unique_ptr<_enemy>> enemyList;   // List of enemy instances
-
-        // std::unique_ptr<_particleManager> particleManager = std::make_unique<_particleManager>();
-        // particle_effect turret_hit_effect;
-        // particle_effect turret_death_effect;
-        // particle_effect gatling_death_effect;
-        // particle_effect gatling_death_effect_smoke;
-
-        // particle_effect turret_bullet_casing;
-        // particle_effect gatling_bullet_casing;
 
         // -- SHADERS -- //
         std::map<int, std::unordered_map<GLuint, std::vector<_sprite*>>> layerMap;

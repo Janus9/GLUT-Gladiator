@@ -180,152 +180,6 @@ void _enemyManager::initEnemyManager(enemyManagerContext& context) {
     glGenVertexArrays(1, &vaoID);
 
     buildVAO();
-
-    // particleManager->initParticleManager("images/enemy/enemy_particles.png",6, sceneLightManager, 10000);
-    // // Turret Hit Effect //
-    // turret_hit_effect.amount = 15;
-    // turret_hit_effect.imageIndex = 3;
-
-    // turret_hit_effect.minVelX = -8.0f;
-    // turret_hit_effect.maxVelX = 8.0f;
-    // turret_hit_effect.minVelY = 10.0f;
-    // turret_hit_effect.maxVelY = 25.0f;
-    // turret_hit_effect.minRotation = -45.0f;
-    // turret_hit_effect.maxRotation = 45.0f;
-
-    // turret_hit_effect.minRadius = 1.0f;
-    // turret_hit_effect.maxRadius = 2.0f;
-
-    // turret_hit_effect.minLifeTime = 5.0f;
-    // turret_hit_effect.maxLifeTime = 5.0f;
-
-    // turret_hit_effect.minSpawnOffsetX = -3.0f;
-    // turret_hit_effect.maxSpawnOffsetX = 3.0f;
-    // turret_hit_effect.minSpawnOffsetY = -3.0f;
-    // turret_hit_effect.maxSpawnOffsetY = 3.0f;
-
-    // turret_hit_effect.hasGravity = true;
-    // turret_hit_effect.hasFloor = true;
-    // turret_hit_effect.floorOffset = -10.0f;
-
-    // // Turret Death Effect //
-    // turret_death_effect.amount = 45;
-    // turret_death_effect.imageIndex = 0;
-
-    // turret_death_effect.minVelX = -12.0f;
-    // turret_death_effect.maxVelX = 12.0f;
-    // turret_death_effect.minVelY = 14.0f;
-    // turret_death_effect.maxVelY = 30.0f;
-    // turret_death_effect.minRotation = -45.0f;
-    // turret_death_effect.maxRotation = 45.0f;
-
-    // turret_death_effect.minRadius = 1.8f;
-    // turret_death_effect.maxRadius = 3.2f;
-
-    // turret_death_effect.minLifeTime = 5.0f;
-    // turret_death_effect.maxLifeTime = 5.0f;
-
-    // turret_death_effect.minSpawnOffsetX = -4.5f;
-    // turret_death_effect.maxSpawnOffsetX = 4.5f;
-    // turret_death_effect.minSpawnOffsetY = -4.5f;
-    // turret_death_effect.maxSpawnOffsetY = 4.5f;
-
-    // turret_death_effect.hasGravity = true;
-    // turret_death_effect.hasFloor = true;
-    // turret_death_effect.floorOffset = -10.0f;
-
-    // // Gatling Death Effect //
-    // gatling_death_effect.amount = 100;
-    // gatling_death_effect.imageIndex = 1;
-
-    // gatling_death_effect.minVelX = -7.0f;
-    // gatling_death_effect.maxVelX = 7.0f;
-    // gatling_death_effect.minVelY = 30.0f;
-    // gatling_death_effect.maxVelY = 55.0f;
-    // gatling_death_effect.minRotation = -65.0f;
-    // gatling_death_effect.maxRotation = 65.0f;
-
-    // gatling_death_effect.minRadius = 2.5f;
-    // gatling_death_effect.maxRadius = 4.5f;
-
-    // gatling_death_effect.minLifeTime = 5.0f;
-    // gatling_death_effect.maxLifeTime = 5.0f;
-
-    // gatling_death_effect.minSpawnOffsetX = -16.0f;
-    // gatling_death_effect.maxSpawnOffsetX = 16.0f;
-    // gatling_death_effect.minSpawnOffsetY = -16.0f;
-    // gatling_death_effect.maxSpawnOffsetY = 16.0f;
-
-    // gatling_death_effect.hasGravity = true;
-    // gatling_death_effect.hasFloor = true;
-    // gatling_death_effect.floorOffset = -10.0f;
-
-    // // Gatling Death Smoke Effect //
-    // gatling_death_effect_smoke.amount = 250;
-    // gatling_death_effect_smoke.imageIndex = 2;
-
-    // gatling_death_effect_smoke.minVelX = -3.0f;
-    // gatling_death_effect_smoke.maxVelX = 3.0f;
-    // gatling_death_effect_smoke.minVelY = 15.0f;
-    // gatling_death_effect_smoke.maxVelY = 25.0f;
-
-    // gatling_death_effect_smoke.minRadius = 2.9f;
-    // gatling_death_effect_smoke.maxRadius = 5.1f;
-
-    // gatling_death_effect_smoke.minLifeTime = 3.5f;
-    // gatling_death_effect_smoke.maxLifeTime = 6.0f;
-
-    // gatling_death_effect_smoke.minSpawnOffsetX = -6.0f;
-    // gatling_death_effect_smoke.maxSpawnOffsetX = 6.0f;
-    // gatling_death_effect_smoke.minSpawnOffsetY = -6.0f;
-    // gatling_death_effect_smoke.maxSpawnOffsetY = 6.0f;
-
-    // gatling_death_effect_smoke.hasGravity = false;
-
-    // gatling_death_effect_smoke.waveAmplitudeMin = 2.0f;
-    // gatling_death_effect_smoke.waveAmplitudeMax = 3.0f;
-    // gatling_death_effect_smoke.waveFrequencyMin = 0.5f;
-    // gatling_death_effect_smoke.waveFrequencyMax = 1.2f;
-
-    // // Turret Bullet Casing Effect //
-    // turret_bullet_casing.amount = 1;
-    // turret_bullet_casing.imageIndex = 5;
-
-    // turret_bullet_casing.minVelX = 5.5f;
-    // turret_bullet_casing.maxVelX = 10.5f;
-    // turret_bullet_casing.minVelY = 15.0f;
-    // turret_bullet_casing.maxVelY = 28.0f;
-    // turret_bullet_casing.minRotation = 240.0f;
-    // turret_bullet_casing.maxRotation = 280.0f;
-
-    // turret_bullet_casing.minRadius = 2.0f;
-    // turret_bullet_casing.maxRadius = 2.0f;
-
-    // turret_bullet_casing.minLifeTime = 5.0f;
-    // turret_bullet_casing.maxLifeTime = 5.0f;
-
-    // turret_bullet_casing.hasFloor = true;
-    // turret_bullet_casing.floorOffset = -24.0f;
-
-    // // Gatling Bullet Casing Effect //
-    // gatling_bullet_casing.amount = 1;
-    // gatling_bullet_casing.imageIndex = 4;
-
-    // gatling_bullet_casing.minVelX = 5.5f;
-    // gatling_bullet_casing.maxVelX = 10.5f;
-    // gatling_bullet_casing.minVelY = 15.0f;
-    // gatling_bullet_casing.maxVelY = 28.0f;
-    // gatling_bullet_casing.minRotation = 240.0f;
-    // gatling_bullet_casing.maxRotation = 280.0f;
-
-    // gatling_bullet_casing.minRadius = 3.0f;
-    // gatling_bullet_casing.maxRadius = 3.0f;
-
-    // gatling_bullet_casing.minLifeTime = 5.0f;
-    // gatling_bullet_casing.maxLifeTime = 5.0f;
-
-    // gatling_bullet_casing.hasFloor = true;
-    // gatling_bullet_casing.floorOffset = -24.0f;
 }
 
 void _enemyManager::updateEnemies(double dt) {
@@ -335,7 +189,6 @@ void _enemyManager::updateEnemies(double dt) {
     std::uniform_real_distribution<float> pos_dist(-8.0f,8.0f);
 
     // Iterate backwards to removal safety
-    // particleManager->updateParticleManger(dt);
     if (enemyList.size() <= 0) return; // Empty list - no need to run loop
     if (!player) return; 
     for (int i = enemyList.size()-1; i >= 0; i--) {
@@ -397,7 +250,6 @@ void _enemyManager::updateEnemies(double dt) {
                     sprite->setIdleFrame(3,1);
                     sprite->playAction("DEATH");
                     enemy->deathTime = 0.0;
-                    // particleManager->spawnEffect(enemy->pos,turret_death_effect);
                     ParticleEngine->spawnEffect({enemy->pos.x, enemy->pos.y}, "turret_death");
                     if (sounds) sounds->playSfx("ENEMY_DEATH");
                     continue;
@@ -428,7 +280,6 @@ void _enemyManager::updateEnemies(double dt) {
                         enemy->firingTime += dt;
                         if (enemy->firingTime > 1.0f/(enemy->fireRate/60.0f)) {
                             bulletManager->spawnBulletEffect(enemy->pos,player->pos,_team::ENEMY,*bullet_1);
-                            // particleManager->spawnEffect(enemy->pos,turret_bullet_casing);
                             ParticleEngine->spawnEffect({enemy->pos.x, enemy->pos.y}, "turret_bullet_casing");
                             if (sounds) sounds->playSfx3D("ENEMY_SHOOT", enemy->pos);
                             sprite->setFPS(enemy->fireRate / 60.0f);
@@ -538,8 +389,6 @@ void _enemyManager::updateEnemies(double dt) {
                     sprite->playAction("DEATH");
                     enemy->deathTime = 0.0;
                     if (sounds) sounds->playSfx("ENEMY_DEATH");
-                    // particleManager->spawnEffect(enemy->pos,gatling_death_effect);
-                    // particleManager->spawnEffect(enemy->pos,gatling_death_effect_smoke);
                     ParticleEngine->spawnEffect({enemy->pos.x, enemy->pos.y}, "gatling_death");
                     ParticleEngine->spawnEffect({enemy->pos.x, enemy->pos.y}, "gatling_death_smoke");
                     continue;
@@ -591,7 +440,6 @@ void _enemyManager::updateEnemies(double dt) {
                         enemy->firingTime += dt;
                         if (enemy->firingTime > 1.0f/(enemy->fireRate/60.0f)) {
                             bulletManager->spawnBulletEffect(enemy->pos,player->pos,_team::ENEMY,*bullet_2);
-                            // particleManager->spawnEffect(enemy->pos,gatling_bullet_casing);
                             ParticleEngine->spawnEffect({enemy->pos.x, enemy->pos.y}, "gatling_bullet_casing");
                             enemy->firingTime = 0;
                         }
@@ -626,7 +474,6 @@ void _enemyManager::drawEnemies() {
 
     if (spriteCount <= 0) {
         // No enemies to draw
-        // particleManager->drawParticleManager();
         return;
     }
 
@@ -708,8 +555,6 @@ void _enemyManager::drawEnemies() {
     glBindVertexArray(0);
 
     glUseProgram(0);
-
-    // particleManager->drawParticleManager();
 }
 
 void _enemyManager::addEnemy(const Vec2f &_pos, const enemy_config &config) {
@@ -796,7 +641,6 @@ _enemy* _enemyManager::isColliding(const Vec2f &pos, float registerDistance) con
             hit = enemy->pos.distance(pos) <= registerDistance;
         }
         if (hit) {
-            // particleManager->spawnEffect(enemy->pos,turret_hit_effect);
             ParticleEngine->spawnEffect({enemy->pos.x, enemy->pos.y}, "turret_hit");
             return enemy;
         }
