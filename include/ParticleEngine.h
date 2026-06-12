@@ -25,6 +25,7 @@ namespace particles {
         int sheetRows = 0;                  /// Required: number of frame rows in the sprite sheet. [1-255]
     
         int animationRow = 0;               /// Default 0: row of the sprite sheet used by this effect. [0-255]
+        int startingColumn = 0;             /// Default 0: column of the sprite sheet that animation starts at [0-255]
         int animationFPS = 0;               /// Default 0: animation frame rate in frames/second. Use 0 for static particles. [0-255]
         bool pingPongAnimation = false;     /// Default false: True means animation does not loop to beginning, it bounces
         bool deathOnAnimationEnd = false;   /// Default false: True means particle is destroyed once animation completes one full loop

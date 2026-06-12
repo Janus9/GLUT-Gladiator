@@ -213,7 +213,16 @@ void _scene::initScene(bool loadWorld)
     drawWorldBenchmark.startBenchmark();
     drawEnemiesBenchmark.startBenchmark();
 
-    if(!loadWorld) enemyManager->initEnemyManager(player.get(), myWorld.get(), bulletManager.get(), soundManager, lightManager.get(), textureManager.get(),pickupManager.get());
+    if(!loadWorld) enemyManager->initEnemyManager(
+        player.get(), 
+        myWorld.get(), 
+        bulletManager.get(), 
+        soundManager, 
+        lightManager.get(), 
+        textureManager.get(),
+        pickupManager.get(),
+        ParticleEngine.get()
+    );
     enemyManager->bullet_1 = &turret_bullet;
     enemyManager->bullet_2 = &gatling_bullet;
 
@@ -803,7 +812,16 @@ bool _scene::loadSceneFromFile(const std::string &fileName) {
 
     // Setup enemy manager before adding enemies
     setupTextures();
-    enemyManager->initEnemyManager(player.get(), myWorld.get(), bulletManager.get(), soundManager, lightManager.get(), textureManager.get(), pickupManager.get());
+    enemyManager->initEnemyManager(
+        player.get(), 
+        myWorld.get(), 
+        bulletManager.get(), 
+        soundManager, 
+        lightManager.get(), 
+        textureManager.get(), 
+        pickupManager.get(),
+        ParticleEngine.get()
+    );
 
     std::vector<enemy_serial_data> enemy_data;
     enemy_data.resize(enemy_count);

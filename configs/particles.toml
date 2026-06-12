@@ -8,6 +8,7 @@
 # - "sheetRows": (int) How many animation frames tall the image is (set to 1 if one row or single image)
 # - "animationRow": (int) Which row for the animation to use (starts at 0 not 1, meaning 0 is the top-most row)
 # - "animationFPS": (int) Frame rate of the animation (0 or negative means no animation)
+# - "startingColumn": (int) Frame of the animation to start at (starts at 0 not 1). This can be used to keep all different particles in one file if FPS is 0
 # - "pingPongAnimation": (bool) If enabled then animation "bounces" through the sheet rather than resetting
 # - "deathOnAnimationEnd": (bool) If enabled then particle dies upon animation end. Automatically sets min/max lifetime to infinite
 # - "minVelX": (float) Minimum velocity in X direction (horizontal) given to the particle
@@ -68,6 +69,7 @@ sheetColumns = 0
 sheetRows = 0
 animationRow = 0
 animationFPS = 0
+startingColumn = 0
 pingPongAnimation = false
 deathOnAnimationEnd = false
 
@@ -120,6 +122,7 @@ sheetColumns = 65
 sheetRows = 1
 animationRow = 0
 animationFPS = 60
+startingColumn = 0
 pingPongAnimation = false
 deathOnAnimationEnd = true
 
@@ -172,6 +175,7 @@ sheetColumns = 1
 sheetRows = 1
 animationRow = 0
 animationFPS = 0
+startingColumn = 0
 pingPongAnimation = false
 deathOnAnimationEnd = false
 
@@ -224,6 +228,7 @@ sheetColumns = 1
 sheetRows = 1
 animationRow = 0
 animationFPS = 0
+startingColumn = 0
 pingPongAnimation = false
 deathOnAnimationEnd = false
 
@@ -257,6 +262,329 @@ hasGravity = true
 # Floor Kill Plane
 hasFloor = false
 floorOffset = 0.0
+
+# Wave Motion
+waveAmplitudeMin = 0.0
+waveAmplitudeMax = 0.0
+waveFrequencyMin = 0.0
+waveFrequencyMax = 0.0
+
+#############
+[[particles]]
+id = "turret_hit"
+
+particleCount = 15
+
+# Animation
+texturePath = "images/particles/enemy_particles.png"
+sheetColumns = 6
+sheetRows = 1
+animationRow = 0
+animationFPS = 0
+startingColumn = 3
+pingPongAnimation = false
+deathOnAnimationEnd = false
+
+# Velocity
+minVelX = -8.0
+maxVelX = 8.0
+minVelY = 10.0
+maxVelY = 25.0
+
+# Size
+minRadius = 1.0
+maxRadius = 2.0
+
+# Lifetime
+minLifeTime = 5.0
+maxLifeTime = 5.0
+
+# Spawn Offset
+minSpawnOffsetX = -3.0
+maxSpawnOffsetX = 3.0
+minSpawnOffsetY = -3.0
+maxSpawnOffsetY = 3.0
+
+# Rotation
+minRotation = -45.0
+maxRotation = 45.0
+
+# Gravity
+hasGravity = true
+
+# Floor Kill Plane
+hasFloor = true
+floorOffset = -10.0
+
+# Wave Motion
+waveAmplitudeMin = 0.0
+waveAmplitudeMax = 0.0
+waveFrequencyMin = 0.0
+waveFrequencyMax = 0.0
+
+
+#############
+[[particles]]
+id = "turret_death"
+
+particleCount = 45
+
+# Animation
+texturePath = "images/particles/enemy_particles.png"
+sheetColumns = 6
+sheetRows = 1
+animationRow = 0
+animationFPS = 0
+startingColumn = 0
+pingPongAnimation = false
+deathOnAnimationEnd = false
+
+# Velocity
+minVelX = -12.0
+maxVelX = 12.0
+minVelY = 14.0
+maxVelY = 30.0
+
+# Size
+minRadius = 1.8
+maxRadius = 3.2
+
+# Lifetime
+minLifeTime = 5.0
+maxLifeTime = 5.0
+
+# Spawn Offset
+minSpawnOffsetX = -4.5
+maxSpawnOffsetX = 4.5
+minSpawnOffsetY = -4.5
+maxSpawnOffsetY = 4.5
+
+# Rotation
+minRotation = -45.0
+maxRotation = 45.0
+
+# Gravity
+hasGravity = true
+
+# Floor Kill Plane
+hasFloor = true
+floorOffset = -10.0
+
+# Wave Motion
+waveAmplitudeMin = 0.0
+waveAmplitudeMax = 0.0
+waveFrequencyMin = 0.0
+waveFrequencyMax = 0.0
+
+
+#############
+[[particles]]
+id = "gatling_death"
+
+particleCount = 100
+
+# Animation
+texturePath = "images/particles/enemy_particles.png"
+sheetColumns = 6
+sheetRows = 1
+animationRow = 0
+animationFPS = 0
+startingColumn = 1
+pingPongAnimation = false
+deathOnAnimationEnd = false
+
+# Velocity
+minVelX = -7.0
+maxVelX = 7.0
+minVelY = 30.0
+maxVelY = 55.0
+
+# Size
+minRadius = 2.5
+maxRadius = 4.5
+
+# Lifetime
+minLifeTime = 5.0
+maxLifeTime = 5.0
+
+# Spawn Offset
+minSpawnOffsetX = -16.0
+maxSpawnOffsetX = 16.0
+minSpawnOffsetY = -16.0
+maxSpawnOffsetY = 16.0
+
+# Rotation
+minRotation = -65.0
+maxRotation = 65.0
+
+# Gravity
+hasGravity = true
+
+# Floor Kill Plane
+hasFloor = true
+floorOffset = -10.0
+
+# Wave Motion
+waveAmplitudeMin = 0.0
+waveAmplitudeMax = 0.0
+waveFrequencyMin = 0.0
+waveFrequencyMax = 0.0
+
+
+#############
+[[particles]]
+id = "gatling_death_smoke"
+
+particleCount = 250
+
+# Animation
+texturePath = "images/particles/enemy_particles.png"
+sheetColumns = 6
+sheetRows = 1
+animationRow = 0
+animationFPS = 0
+startingColumn = 2
+pingPongAnimation = false
+deathOnAnimationEnd = false
+
+# Velocity
+minVelX = -3.0
+maxVelX = 3.0
+minVelY = 15.0
+maxVelY = 25.0
+
+# Size
+minRadius = 2.9
+maxRadius = 5.1
+
+# Lifetime
+minLifeTime = 3.5
+maxLifeTime = 6.0
+
+# Spawn Offset
+minSpawnOffsetX = -6.0
+maxSpawnOffsetX = 6.0
+minSpawnOffsetY = -6.0
+maxSpawnOffsetY = 6.0
+
+# Rotation
+minRotation = 0.0
+maxRotation = 0.0
+
+# Gravity
+hasGravity = false
+
+# Floor Kill Plane
+hasFloor = false
+floorOffset = 0.0
+
+# Wave Motion
+waveAmplitudeMin = 2.0
+waveAmplitudeMax = 3.0
+waveFrequencyMin = 0.5
+waveFrequencyMax = 1.2
+
+
+#############
+[[particles]]
+id = "turret_bullet_casing"
+
+particleCount = 1
+
+# Animation
+texturePath = "images/particles/enemy_particles.png"
+sheetColumns = 6
+sheetRows = 1
+animationRow = 0
+animationFPS = 0
+startingColumn = 5
+pingPongAnimation = false
+deathOnAnimationEnd = false
+
+# Velocity
+minVelX = 5.5
+maxVelX = 10.5
+minVelY = 15.0
+maxVelY = 28.0
+
+# Size
+minRadius = 2.0
+maxRadius = 2.0
+
+# Lifetime
+minLifeTime = 5.0
+maxLifeTime = 5.0
+
+# Spawn Offset
+minSpawnOffsetX = 0.0
+maxSpawnOffsetX = 0.0
+minSpawnOffsetY = 0.0
+maxSpawnOffsetY = 0.0
+
+# Rotation
+minRotation = 240.0
+maxRotation = 280.0
+
+# Gravity
+hasGravity = true
+
+# Floor Kill Plane
+hasFloor = true
+floorOffset = -24.0
+
+# Wave Motion
+waveAmplitudeMin = 0.0
+waveAmplitudeMax = 0.0
+waveFrequencyMin = 0.0
+waveFrequencyMax = 0.0
+
+
+#############
+[[particles]]
+id = "gatling_bullet_casing"
+
+particleCount = 1
+
+# Animation
+texturePath = "images/particles/enemy_particles.png"
+sheetColumns = 6
+sheetRows = 1
+animationRow = 0
+animationFPS = 0
+startingColumn = 4
+pingPongAnimation = false
+deathOnAnimationEnd = false
+
+# Velocity
+minVelX = 5.5
+maxVelX = 10.5
+minVelY = 15.0
+maxVelY = 28.0
+
+# Size
+minRadius = 3.0
+maxRadius = 3.0
+
+# Lifetime
+minLifeTime = 5.0
+maxLifeTime = 5.0
+
+# Spawn Offset
+minSpawnOffsetX = 0.0
+maxSpawnOffsetX = 0.0
+minSpawnOffsetY = 0.0
+maxSpawnOffsetY = 0.0
+
+# Rotation
+minRotation = 240.0
+maxRotation = 280.0
+
+# Gravity
+hasGravity = true
+
+# Floor Kill Plane
+hasFloor = true
+floorOffset = -24.0
 
 # Wave Motion
 waveAmplitudeMin = 0.0

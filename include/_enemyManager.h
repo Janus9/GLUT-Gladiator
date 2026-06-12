@@ -11,6 +11,7 @@
 #include <_lightManager.h>
 #include <_textureManager.h>
 #include <_pickupManager.h>
+#include <ParticleEngine.h>
 
 // Matrix math for shaders //
 #include <glm/glm.hpp>                      // Core library
@@ -115,7 +116,16 @@ class _enemyManager {
         _enemyManager();
         virtual ~_enemyManager();
 
-        void initEnemyManager(_player* currentPlayer, _world* currentWorld, _bulletManager* currentBulletManager, _sounds* currentSounds, _lightManager* lightManager, _textureManager* textureManager, _pickupManager* pickupManager);
+        void initEnemyManager(
+            _player* currentPlayer, 
+            _world* currentWorld, 
+            _bulletManager* currentBulletManager, 
+            _sounds* currentSounds, 
+            _lightManager* lightManager, 
+            _textureManager* textureManager, 
+            _pickupManager* pickupManager,
+            particles::Engine* _ParticleEngine
+        );
 
         /**
          * Update function for enemies
@@ -177,19 +187,20 @@ class _enemyManager {
         _bulletManager* bulletManager = nullptr;        // Pointer to bulletManager instance instantiated in scene (non-owning)
         _textureManager* sceneTextureManager = nullptr; // Pointer to the texture manager instance instantiated in scene (non-owning)
         _pickupManager* scenePickupManager = nullptr;   // Pointer to the pickup manager instance instantiated in scene (non-owning)
+        particles::Engine* ParticleEngine = nullptr;    // Pointer to the particle manager instance instantiated in scene (non-owning)
 
         _sounds* sounds = nullptr;                  // Pointer to sounds instance instantiated in scene (non-owning)
 
         std::vector<std::unique_ptr<_enemy>> enemyList;   // List of enemy instances
 
-        std::unique_ptr<_particleManager> particleManager = std::make_unique<_particleManager>();
-        particle_effect turret_hit_effect;
-        particle_effect turret_death_effect;
-        particle_effect gatling_death_effect;
-        particle_effect gatling_death_effect_smoke;
+        // std::unique_ptr<_particleManager> particleManager = std::make_unique<_particleManager>();
+        // particle_effect turret_hit_effect;
+        // particle_effect turret_death_effect;
+        // particle_effect gatling_death_effect;
+        // particle_effect gatling_death_effect_smoke;
 
-        particle_effect turret_bullet_casing;
-        particle_effect gatling_bullet_casing;
+        // particle_effect turret_bullet_casing;
+        // particle_effect gatling_bullet_casing;
 
         // -- SHADERS -- //
         std::map<int, std::unordered_map<GLuint, std::vector<_sprite*>>> layerMap;

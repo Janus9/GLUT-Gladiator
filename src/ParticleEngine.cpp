@@ -176,6 +176,7 @@ namespace particles {
             config.sheetRows = static_cast<int>((*particleTable)["sheetRows"].value_or<int64_t>(0));
 
             config.animationRow = static_cast<int>((*particleTable)["animationRow"].value_or<int64_t>(0));
+            config.startingColumn = static_cast<int>((*particleTable)["startingColumn"].value_or<int64_t>(0));
             config.animationFPS = static_cast<int>((*particleTable)["animationFPS"].value_or<int64_t>(0));
             config.pingPongAnimation = (*particleTable)["pingPongAnimation"].value_or<bool>(false);
             config.deathOnAnimationEnd = (*particleTable)["deathOnAnimationEnd"].value_or<bool>(false);
@@ -438,7 +439,7 @@ namespace particles {
             p.waveFrequency = wave_freq_dist(rng);
             p.waveOffset = wave_off_dist(rng);
 
-            p.colIndex = 0;
+            p.colIndex = static_cast<uint8_t>(config.startingColumn);
             p.rowIndex = static_cast<uint8_t>(config.animationRow);
             p.fps = static_cast<uint8_t>(config.animationFPS);
             p.animationTimer = 0.0f;
