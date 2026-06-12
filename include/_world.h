@@ -26,7 +26,6 @@
 #include <_common.h>
 #include <_texture.h>
 #include <_benchmark.h>
-#include <_particleManager.h>
 #include <ParticleEngine.h>
 #include <_shader.h>
 #include <_lightManager.h>
@@ -504,9 +503,6 @@ class _world
 
         // -- PARTICLE ENGINE -- //
         particles::Engine* ParticleEngine;  // Pointer to Particle Engine owned by scene (non-owning)
-        // std::unique_ptr<_particleManager> cellParticles;
-        // particle_effect wall_break_effect;
-        // particle_effect wall_damage_effect;
 
         // -- RNG -- //
         uint32_t seed; 
