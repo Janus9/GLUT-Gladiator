@@ -931,25 +931,22 @@ void _scene::drawScene()
     myWorld->drawWorld(left, right, top, bottom); // Draw the world
     drawWorldBenchmark.clickBenchmark();
 
-    
     drawEnemiesBenchmark.startBenchmark();
     enemyManager->drawEnemies();
     drawEnemiesBenchmark.clickBenchmark();
     
     bulletManager->drawBulletManager();
 
-    ParticleEngine->draw(sceneViewProjectionMatrix);
-    
     pickupManager->drawPickups();
-
-    FOB->drawFob();
     
-    if (!gameEnded) {
-        
-        player->drawPlayer();
-        hud->drawHud();
-    }
+    FOB->drawFob();
 
+    if (!gameEnded) player->drawPlayer();
+
+    ParticleEngine->draw(sceneViewProjectionMatrix);
+
+    if (!gameEnded) hud->drawHud();
+        
     // For FPS measuring
     frameCount++;
 

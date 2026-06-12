@@ -9,8 +9,6 @@
  *  Chunk position is used for placement of chunks. It uses the same scheme for x,y and starts at (0,0). However, these 
  *  are integers. More detail in the "_chunk" class. 
  * 
- *  
- * 
  */
 #ifndef _WORLD_H
 #define _WORLD_H
