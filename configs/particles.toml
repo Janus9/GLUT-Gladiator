@@ -127,18 +127,18 @@ waveFrequencyMax = 0.0
 
 #############
 [[particles]]
-id = "test_1"
+id = "test_2"
 
 particleCount = 1
 
 # Animation
 texturePath = "images/particles/explosion.png"
-sheetColumns = 65
-sheetRows = 1
+sheetColumns = 10
+sheetRows = 8
 animationRow = 0
 animationFPS = 60
 startingColumn = 0
-useEntireSheet = false
+useEntireSheet = true
 pingPongAnimation = false
 deathOnAnimationEnd = true
 stopColumn = 0
@@ -350,50 +350,50 @@ waveFrequencyMax = 0.0
 [[particles]]
 id = "turret_death"
 
-particleCount = 45
+particleCount = 3
 
 # Animation
-texturePath = "images/particles/enemy_particles.png"
-sheetColumns = 6
-sheetRows = 1
+texturePath = "images/particles/explosion.png"
+sheetColumns = 10
+sheetRows = 8
 animationRow = 0
-animationFPS = 0
+animationFPS = 60
 startingColumn = 0
-useEntireSheet = false
+useEntireSheet = true
 pingPongAnimation = false
-deathOnAnimationEnd = false
+deathOnAnimationEnd = true
 stopColumn = 0
 
 # Velocity
-minVelX = -12.0
-maxVelX = 12.0
-minVelY = 14.0
-maxVelY = 30.0
+minVelX = 0.0
+maxVelX = 0.0
+minVelY = 0.0
+maxVelY = 0.0
 
 # Size
-minRadius = 1.8
-maxRadius = 3.2
+minRadius = 20.0
+maxRadius = 35.0
 
 # Lifetime
-minLifeTime = 5.0
-maxLifeTime = 5.0
+minLifeTime = 0.0
+maxLifeTime = 0.0
 
 # Spawn Offset
-minSpawnOffsetX = -4.5
-maxSpawnOffsetX = 4.5
-minSpawnOffsetY = -4.5
-maxSpawnOffsetY = 4.5
+minSpawnOffsetX = -12.5
+maxSpawnOffsetX = 12.5
+minSpawnOffsetY = -12.5
+maxSpawnOffsetY = 12.5
 
 # Rotation
-minRotation = -45.0
-maxRotation = 45.0
+minRotation = 0.0
+maxRotation = 0.0
 
 # Gravity
-hasGravity = true
+hasGravity = false
 
 # Floor Kill Plane
-hasFloor = true
-floorOffset = -10.0
+hasFloor = false
+floorOffset = 0.0
 
 # Wave Motion
 waveAmplitudeMin = 0.0

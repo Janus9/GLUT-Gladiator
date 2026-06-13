@@ -315,9 +315,16 @@ namespace particles {
                 const float timePerFrame = (p.fps > 0)  
                     ? 1 / static_cast<float>(p.fps)
                     : std::numeric_limits<float>::max();    // FPS of 0 or negative assumes no animation so time per frame is set impossibly high
-                if (p.deathOnAnimationEnd && p.colIndex >= (pBatch.sheetColumns-1) && p.animationTimer > timePerFrame) {
-                    // Animation finished and on last sheet -- kill
-                    p.alive = false;
+                if (p.deathOnAnimationEnd && p.animationTimer > timePerFrame) {
+                    if (p.useEntireSheet) {
+                        if (p.rowIndex >= (pBatch.sheetRows-1) && p.colIndex >= p.stopColumn) {
+                            p.alive = false;
+                        }
+                    } else {
+                        if (p.colIndex >= (pBatch.sheetColumns-1)) {
+                            p.alive = false;
+                        }
+                    }
                 }
                 
                 if (!p.alive) {
@@ -564,17 +571,20 @@ namespace particles {
     }
 
     // PRIVATE //
+
     void Engine::iterateAnimationFrameRegular(Particle &p, const ParticleBatch &pBatch) {
         if (p.colIndex < (pBatch.sheetColumns-1)) {
             // Next frame
             p.colIndex++;
         } else {
             // Loop around to beginning
+            if (p.useEntireSheet) {
+                p.rowIndex++;
+            }
             p.colIndex = 0;
         }
     }
 
-    // PRIVATE //
     void Engine::iterateAnimationFramePingPong(Particle &p, const ParticleBatch &pBatch) {
         if (p.inReverseAnimation) {
             if (p.colIndex <= 0) {
