@@ -40,19 +40,24 @@ _bulletManager::~_bulletManager() {
     // no timers
 }
 
-void _bulletManager::initBulletManager(const std::string &fileName, _world* currentWorld, _player* currentPlayer, _enemyManager* currentEnemyManager, _sounds* currentSounds, _lightManager* lightManager) {
+void _bulletManager::initBulletManager(_bulletManagerContext &context) {
+    if (!context.validate()) {
+        SDL_LogError(LOG_ENEMY_MANAGER, "ERROR: Unable to valid the bullet manager context");
+    }
+
+    texture->loadTexture(context.fileName);
+
+    world = context.world;
+    player = context.player;
+    enemyManager = context.enemies;
+    sounds = context.sounds;
+    sceneLightManager = context.lights;
+    ParticleEngine = context.particles;
+
     // Generate new buffers
     glGenBuffers(1,&vboID);
     glGenBuffers(1,&eboID);
     glGenVertexArrays(1,&vaoID);
-
-    texture->loadTexture(fileName);
-
-    world = currentWorld;
-    player = currentPlayer;
-    enemyManager = currentEnemyManager;
-    sounds = currentSounds;
-    sceneLightManager = lightManager;
     
     // -- SHADER SETUP -- //
     bulletShader.initShader("shaders/bullet_manager/vertex.vs","shaders/bullet_manager/fragment.fs");

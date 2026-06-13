@@ -265,7 +265,16 @@ void _scene::initScene(bool loadWorld)
 
 
     // -- BULLETS -- //
-    bulletManager->initBulletManager("images/test_bullet.png", myWorld.get(), player.get(), enemyManager.get(), soundManager, lightManager.get());
+    _bulletManagerContext bulletManagerContext {
+        .fileName = "images/test_bullet.png",
+        .world = myWorld.get(),
+        .player = player.get(),
+        .enemies = enemyManager.get(),
+        .sounds = soundManager,
+        .lights = lightManager.get(),
+        .particles = ParticleEngine.get()
+    };
+    bulletManager->initBulletManager(bulletManagerContext);
     
     // Player //
     player_bullet.amount = 1;

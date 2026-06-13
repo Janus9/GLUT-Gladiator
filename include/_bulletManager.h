@@ -10,7 +10,7 @@
 #include <_player.h>
 #include <_sounds.h>
 #include <_lightManager.h>
-
+#include <ParticleEngine.h>
 
 #include <glm/glm.hpp>                      // Core library
 #include <glm/gtc/matrix_transform.hpp>     // Matrix ops like transform, scale, ortho, etc
@@ -49,6 +49,47 @@ struct _bullet_config {
     float penetration = 0.0f; // How many tiles (or units) it penetrates
 };
 
+struct _bulletManagerContext {
+    std::string fileName; 
+    _world* world; 
+    _player* player; 
+    _enemyManager* enemies; 
+    _sounds* sounds; 
+    _lightManager* lights;
+    particles::Engine* particles;
+
+    bool validate() {
+        if (fileName.empty()) {
+            SDL_LogError(LOG_ENEMY_MANAGER, "ERROR: Filename is empty");
+            return false;
+        }
+        if (!world) {
+            SDL_LogError(LOG_ENEMY_MANAGER, "ERROR: World is nullptr");
+            return false;
+        }
+        if (!player) {
+            SDL_LogError(LOG_ENEMY_MANAGER, "ERROR: Player is nullptr");
+            return false;
+        }
+        if (!enemies) {
+            SDL_LogError(LOG_ENEMY_MANAGER, "ERROR: Enemy Manager is nullptr");
+            return false;
+        }
+        if (!sounds) {
+            SDL_LogError(LOG_ENEMY_MANAGER, "ERROR: Sound Manager is nullptr");
+            return false;
+        }
+        if (!lights) {
+            SDL_LogError(LOG_ENEMY_MANAGER, "ERROR: Light Manager is nullptr");
+            return false;
+        }
+        if (!particles) {
+            SDL_LogError(LOG_ENEMY_MANAGER, "ERROR: Particle Engine is nullptr");
+            return false;
+        }
+    }
+};
+
 class _bulletManager {
     public:
         _bulletManager();
@@ -61,7 +102,7 @@ class _bulletManager {
          * @param fileName Name of file for bullet image
          * @param world Pointer to world where manager operates
          */
-        void initBulletManager(const std::string &fileName, _world* currentWorld, _player* currentPlayer, _enemyManager* currentEnemyManager, _sounds* currentSounds, _lightManager* lightManager);
+        void initBulletManager(_bulletManagerContext &context);
        
         /**
          * Draw function
@@ -92,6 +133,7 @@ class _bulletManager {
         _enemyManager* enemyManager = nullptr;      // Pointer to enemyManager instance instantiated in scene (non-owning)
         _sounds* sounds = nullptr;                  // Pointer to sounds instance instantiated in scene (non-owning)
         _lightManager* sceneLightManager = nullptr; // Pointer to light manager instantiated in scne (non-owning)
+        particles::Engine* ParticleEngine = nullptr;// Pointer to Particle Engine instantiated in scene (non-owning) 
 
         _texture* texture = new _texture();
         _particleManager* bulletDrops = new _particleManager();
