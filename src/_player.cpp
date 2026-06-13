@@ -8,94 +8,13 @@ _player::~_player() {
     // dtor
 }
 
-void _player::initPlayer(_lightManager* lightManager) {
+void _player::initPlayer(_lightManager* lightManager, particles::Engine* particles) {
+    ParticleEngine = particles;
     sceneLightManager = lightManager;
     scale = {0.8f, 0.8f};
 
     // AABB used by enemies (e.g. _orc) to prevent overlap and decide melee contact.
     setCollisionBox({18.0f, 24.0f});
-
-    particleManger->initParticleManager("images/player/particles.png",3, sceneLightManager, 1000);
-
-    // Player Hit Blood Effect //
-    player_hit_effect.amount = 35;
-    player_hit_effect.imageIndex = 2;
-
-    player_hit_effect.minVelX = -8.0f;
-    player_hit_effect.maxVelX = 8.0f;
-    player_hit_effect.minVelY = 10.0f;
-    player_hit_effect.maxVelY = 25.0f;
-
-    player_hit_effect.minRadius = 2.0f;
-    player_hit_effect.maxRadius = 3.5f;
-
-    player_hit_effect.minLifeTime = 4.0f;
-    player_hit_effect.maxLifeTime = 5.0f;
-
-    player_hit_effect.minSpawnOffsetX = -3.0f;
-    player_hit_effect.maxSpawnOffsetX = 3.0f;
-    player_hit_effect.minSpawnOffsetY = -3.0f;
-    player_hit_effect.maxSpawnOffsetY = 3.0f;
-
-    player_hit_effect.minRotation = 30.0f;
-    player_hit_effect.maxRotation = 180.0f;
-
-    player_hit_effect.hasFloor = true;
-    player_hit_effect.floorOffset = -4.0f;
-
-    // Resupply Health Effect //
-    resupply_health_effect.amount = 35;
-    resupply_health_effect.imageIndex = 0;
-
-    resupply_health_effect.minVelX = -3.0f;
-    resupply_health_effect.maxVelX = 3.0f;
-    resupply_health_effect.minVelY = 3.0f;
-    resupply_health_effect.maxVelY = 5.0f;
-
-    resupply_health_effect.minRadius = 2.0f;
-    resupply_health_effect.maxRadius = 4.0f;
-
-    resupply_health_effect.minLifeTime = 2.0f;
-    resupply_health_effect.maxLifeTime = 3.0f;
-
-    resupply_health_effect.minSpawnOffsetX = -12.0f;
-    resupply_health_effect.maxSpawnOffsetX = 12.0f;
-    resupply_health_effect.minSpawnOffsetY = -6.0f;
-    resupply_health_effect.maxSpawnOffsetY = 8.0f;
-
-    resupply_health_effect.hasGravity = false;
-
-    resupply_health_effect.waveAmplitudeMin = 1.0f;
-    resupply_health_effect.waveAmplitudeMax = 3.3f;
-    resupply_health_effect.waveFrequencyMin = 0.2f;
-    resupply_health_effect.waveFrequencyMax = 1.0f;
-
-    // Resupply Ammo Effect //
-    resupply_ammo_effect.amount = 35;
-    resupply_ammo_effect.imageIndex = 1;
-
-    resupply_ammo_effect.minVelX = -3.0f;
-    resupply_ammo_effect.maxVelX = 3.0f;
-    resupply_ammo_effect.minVelY = 3.0f;
-    resupply_ammo_effect.maxVelY = 5.0f;
-
-    resupply_ammo_effect.minRadius = 2.0f;
-    resupply_ammo_effect.maxRadius = 4.0f;
-
-    resupply_ammo_effect.minLifeTime = 2.0f;
-    resupply_ammo_effect.maxLifeTime = 3.0f;
-
-    resupply_ammo_effect.minSpawnOffsetX = -12.0f;
-    resupply_ammo_effect.maxSpawnOffsetX = 12.0f;
-    resupply_ammo_effect.minSpawnOffsetY = -6.0f;
-    resupply_ammo_effect.maxSpawnOffsetY = 8.0f;
-
-    resupply_ammo_effect.hasGravity = false;
-
-    resupply_ammo_effect.waveAmplitudeMin = 1.0f;
-    resupply_ammo_effect.waveAmplitudeMax = 3.3f;
-    resupply_ammo_effect.waveFrequencyMin = 0.2f;
-    resupply_ammo_effect.waveFrequencyMax = 1.0f;
 
     // -- ANIMATIONS -- //
 
@@ -362,10 +281,9 @@ void _player::updatePlayer(double dt) {
 
     // Damage Event //
     if (playerTookDamage) {
-        particleManger->spawnEffect(pos,player_hit_effect);
+        ParticleEngine->spawnEffect({pos.x, pos.y}, "player_blood");
         playerTookDamage = false;
     }
-    particleManger->updateParticleManger(dt);
     
     // Death Event //
     if (inDeathAnimation) {
@@ -446,7 +364,6 @@ void _player::drawPlayer() {
     if (isRealDead) return; // Player dead skip drawing
     drawUnitSingular();
     navSprite->drawSprite();
-    particleManger->drawParticleManager();
 }
 
 void _player::setAction(player_action action, player_face face) {
@@ -591,10 +508,10 @@ void _player::resupply(float health, int ammo) {
     if (reserveLevel > reserveCapacity) {
         reserveLevel = reserveCapacity;
     }
-    resupply_health_effect.amount = numHealthParticles;
-    particleManger->spawnEffect(pos,resupply_health_effect);
-    resupply_ammo_effect.amount = numAmmoParticles;
-    particleManger->spawnEffect(pos,resupply_ammo_effect);
+    // resupply_health_effect.amount = numHealthParticles;
+    // resupply_ammo_effect.amount = numAmmoParticles;
+    ParticleEngine->spawnEffect({pos.x, pos.y}, "player_heal");
+    ParticleEngine->spawnEffect({pos.x, pos.y}, "player_ammo");
 }
 
 void _player::procReload() {

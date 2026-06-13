@@ -3,7 +3,7 @@
 
 #include <_common.h>
 #include <_unit.h>
-#include <_particleManager.h>
+#include <ParticleEngine.h>
 #include <_lightManager.h>
 
 struct player_serial_data {
@@ -79,7 +79,7 @@ class _player : public _unit {
         /**
          * Sets up player sprites, animations, etc.
          */
-        void initPlayer(_lightManager* lightManager);
+        void initPlayer(_lightManager* lightManager, particles::Engine* particles);
 
         /**
          * Update loop for player including inputs/animations/movement/etc
@@ -154,7 +154,8 @@ class _player : public _unit {
     protected:
     private:
         Vec2f previousPos = {0.0f, 0.0f};
-        _lightManager* sceneLightManager = nullptr; // Pointer to light manager instantiated in scne (non-owning)
+        _lightManager* sceneLightManager = nullptr;  // Pointer to light manager instantiated in scene (non-owning)
+        particles::Engine* ParticleEngine = nullptr; // Pointer to the particle Engine instantiated in scene (non-owning)
 
         int FPS = 12;
 
@@ -180,11 +181,6 @@ class _player : public _unit {
 
         // Gets animation with error checking + NULL handling
         PlayerAnimationResult getAnimationResult(player_action action, player_face face);
-
-        std::unique_ptr<_particleManager> particleManger = std::make_unique<_particleManager>();
-        particle_effect player_hit_effect;
-        particle_effect resupply_health_effect;
-        particle_effect resupply_ammo_effect;
 
         std::unique_ptr<_sprite> navSprite = std::make_unique<_sprite>();
 };

@@ -155,7 +155,7 @@ void _scene::initScene(bool loadWorld)
     fire_rate_pickup.xp = 0.0f;
 
     // -- PLAYER -- //
-    player->initPlayer(lightManager.get());
+    player->initPlayer(lightManager.get(), ParticleEngine.get());
     player->hasGun = true;
 
     // -- FOB -- //

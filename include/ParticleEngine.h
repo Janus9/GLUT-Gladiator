@@ -110,6 +110,8 @@ namespace particles {
              */
             void spawnEffect(glm::vec2 pos, const std::string &ID);
 
+            // Config* getConfig(const std::string &ID);
+
             // Debugging function that outputs GPU memory usage to console
             void logGpuMemoryUsage() const;
 

@@ -652,7 +652,7 @@ id = "player_blood"
 particleCount = 35
 
 # Animation
-texturePath = "images/player/particles.png"
+texturePath = "images/particles/player_particles.png"
 sheetColumns = 3
 sheetRows = 1
 animationRow = 0
@@ -700,12 +700,12 @@ waveFrequencyMax = 0.0
 
 #############
 [[particles]]
-id = "player_healing"
+id = "player_heal"
 
 particleCount = 35
 
 # Animation
-texturePath = "images/player/particles.png"
+texturePath = "images/particles/player_particles.png"
 sheetColumns = 3
 sheetRows = 1
 animationRow = 0
@@ -758,7 +758,7 @@ id = "player_ammo"
 particleCount = 35
 
 # Animation
-texturePath = "images/player/particles.png"
+texturePath = "images/particles/player_particles.png"
 sheetColumns = 3
 sheetRows = 1
 animationRow = 0
