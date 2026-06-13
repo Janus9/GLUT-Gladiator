@@ -129,7 +129,7 @@ waveFrequencyMax = 0.0
 [[particles]]
 id = "test_2"
 
-particleCount = 1
+particleCount = 45
 
 # Animation
 texturePath = "images/particles/explosion.png"
@@ -158,10 +158,10 @@ minLifeTime = 0.0
 maxLifeTime = 0.0
 
 # Spawn Offset
-minSpawnOffsetX = 0.0
-maxSpawnOffsetX = 0.0
-minSpawnOffsetY = 0.0
-maxSpawnOffsetY = 0.0
+minSpawnOffsetX = -40.0
+maxSpawnOffsetX = 40.0
+minSpawnOffsetY = -40.0
+maxSpawnOffsetY = 40.0
 
 # Rotation
 minRotation = 0.0

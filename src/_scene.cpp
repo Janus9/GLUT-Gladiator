@@ -1541,7 +1541,7 @@ void _scene::keyboardHandler(const InputState &inputState)
             cameraZoom = 3.0f;
         }
         if (cameraFree) {
-            player_light.radius = 2400.0f;
+            player_light.radius = 24000.0f;
         } else {
             player_light.radius = 400.0f;
         }
