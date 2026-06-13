@@ -159,7 +159,7 @@ void _scene::initScene(bool loadWorld)
     player->hasGun = true;
 
     // -- FOB -- //
-    FOB->initFob(player.get(),lightManager.get(),soundManager);
+    FOB->initFob(player.get(),lightManager.get(),soundManager,ParticleEngine.get());
     // -- HUD -- //
 
     hud->addHudText("FPS");

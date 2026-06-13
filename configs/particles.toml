@@ -803,3 +803,217 @@ waveAmplitudeMin = 1.0
 waveAmplitudeMax = 3.3
 waveFrequencyMin = 0.2
 waveFrequencyMax = 1.0
+
+#############
+[[particles]]
+id = "fob_death_1"
+
+particleCount = 45
+
+# Animation
+texturePath = "images/particles/fob_particles.png"
+sheetColumns = 4
+sheetRows = 1
+animationRow = 0
+animationFPS = 0
+startingColumn = 0
+pingPongAnimation = false
+deathOnAnimationEnd = false
+
+# Velocity
+minVelX = -16.0
+maxVelX = 16.0
+minVelY = 50.0
+maxVelY = 85.0
+
+# Size
+minRadius = 4.0
+maxRadius = 6.5
+
+# Lifetime
+minLifeTime = 7.0
+maxLifeTime = 7.0
+
+# Spawn Offset
+minSpawnOffsetX = -12.0
+maxSpawnOffsetX = 12.0
+minSpawnOffsetY = -12.0
+maxSpawnOffsetY = 12.0
+
+# Rotation
+minRotation = 30.0
+maxRotation = 720.0
+
+# Gravity
+hasGravity = true
+
+# Floor Kill Plane
+hasFloor = true
+floorOffset = -4.0
+
+# Wave Motion
+waveAmplitudeMin = 0.0
+waveAmplitudeMax = 0.0
+waveFrequencyMin = 0.0
+waveFrequencyMax = 0.0
+
+
+#############
+[[particles]]
+id = "fob_death_2"
+
+particleCount = 45
+
+# Animation
+texturePath = "images/particles/fob_particles.png"
+sheetColumns = 4
+sheetRows = 1
+animationRow = 0
+animationFPS = 0
+startingColumn = 1
+pingPongAnimation = false
+deathOnAnimationEnd = false
+
+# Velocity
+minVelX = -16.0
+maxVelX = 16.0
+minVelY = 50.0
+maxVelY = 85.0
+
+# Size
+minRadius = 4.0
+maxRadius = 6.5
+
+# Lifetime
+minLifeTime = 7.0
+maxLifeTime = 7.0
+
+# Spawn Offset
+minSpawnOffsetX = -12.0
+maxSpawnOffsetX = 12.0
+minSpawnOffsetY = -12.0
+maxSpawnOffsetY = 12.0
+
+# Rotation
+minRotation = 30.0
+maxRotation = 720.0
+
+# Gravity
+hasGravity = true
+
+# Floor Kill Plane
+hasFloor = true
+floorOffset = -4.0
+
+# Wave Motion
+waveAmplitudeMin = 0.0
+waveAmplitudeMax = 0.0
+waveFrequencyMin = 0.0
+waveFrequencyMax = 0.0
+
+
+#############
+[[particles]]
+id = "fob_death_3"
+
+particleCount = 45
+
+# Animation
+texturePath = "images/particles/fob_particles.png"
+sheetColumns = 4
+sheetRows = 1
+animationRow = 0
+animationFPS = 0
+startingColumn = 2
+pingPongAnimation = false
+deathOnAnimationEnd = false
+
+# Velocity
+minVelX = -16.0
+maxVelX = 16.0
+minVelY = 50.0
+maxVelY = 85.0
+
+# Size
+minRadius = 5.0
+maxRadius = 7.5
+
+# Lifetime
+minLifeTime = 7.0
+maxLifeTime = 7.0
+
+# Spawn Offset
+minSpawnOffsetX = -12.0
+maxSpawnOffsetX = 12.0
+minSpawnOffsetY = -12.0
+maxSpawnOffsetY = 12.0
+
+# Rotation
+minRotation = 30.0
+maxRotation = 720.0
+
+# Gravity
+hasGravity = true
+
+# Floor Kill Plane
+hasFloor = true
+floorOffset = -4.0
+
+# Wave Motion
+waveAmplitudeMin = 0.0
+waveAmplitudeMax = 0.0
+waveFrequencyMin = 0.0
+waveFrequencyMax = 0.0
+
+#############
+[[particles]]
+id = "fob_death_4"
+
+particleCount = 18
+
+# Animation
+texturePath = "images/particles/fob_particles.png"
+sheetColumns = 4
+sheetRows = 1
+animationRow = 0
+animationFPS = 0
+startingColumn = 3
+pingPongAnimation = false
+deathOnAnimationEnd = false
+
+# Velocity
+minVelX = -16.0
+maxVelX = 16.0
+minVelY = 40.0
+maxVelY = 75.0
+
+# Size
+minRadius = 7.0
+maxRadius = 10.5
+
+# Lifetime
+minLifeTime = 7.0
+maxLifeTime = 7.0
+
+# Spawn Offset
+minSpawnOffsetX = -12.0
+maxSpawnOffsetX = 12.0
+minSpawnOffsetY = -12.0
+maxSpawnOffsetY = 12.0
+
+# Rotation
+minRotation = 15.0
+maxRotation = 90.0
+
+# Gravity
+hasGravity = true
+
+# Floor Kill Plane
+hasFloor = true
+floorOffset = -4.0
+
+# Wave Motion
+waveAmplitudeMin = 0.0
+waveAmplitudeMax = 0.0
+waveFrequencyMin = 0.0
+waveFrequencyMax = 0.0

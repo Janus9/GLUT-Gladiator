@@ -4,9 +4,9 @@
 #include <_common.h>
 #include <_unit.h>
 #include <_player.h>
-#include <_particleManager.h>
 #include <_lightManager.h>
 #include <_sounds.h>
+#include <ParticleEngine.h>
 
 class _fob : public _unit {
     public:
@@ -14,7 +14,12 @@ class _fob : public _unit {
         virtual ~_fob();
 
         // Initializes the given FOB
-        void initFob(_player* currentPlayer, _lightManager* currentLightManager, _sounds* currentSoundManager);
+        void initFob(
+            _player* currentPlayer, 
+            _lightManager* currentLightManager, 
+            _sounds* currentSoundManager, 
+            particles::Engine* particles
+        );
 
         /** Update loop */
         void updateFob(double dt);
@@ -29,15 +34,10 @@ class _fob : public _unit {
         const float resupplyTime = 3.0; // Time for resupply event
         float resupplyDt = 0.0;
 
-        _player* player = nullptr;                  // Pointer to existing player instance (non-owning)
-        _lightManager* sceneLightManager = nullptr; // Pointer to existing light manager instance (non-owning)
-        _sounds* sceneSoundManager = nullptr;            // Pointer to existing sound maanger instance (non-owning)
-
-        std::unique_ptr<_particleManager> particleManager = std::make_unique<_particleManager>();
-        particle_effect death_1_effect;
-        particle_effect death_2_effect;
-        particle_effect death_3_effect;
-        particle_effect death_4_effect;
+        _player* player = nullptr;                      // Pointer to existing player instance (non-owning)
+        _lightManager* sceneLightManager = nullptr;     // Pointer to existing light manager instance (non-owning)
+        _sounds* sceneSoundManager = nullptr;           // Pointer to existing sound maanger instance (non-owning)
+        particles::Engine* ParticleEngine = nullptr;    // Pointer to existing particle engine instance (non-owning)
 };
 
 #endif // _FOB_H
