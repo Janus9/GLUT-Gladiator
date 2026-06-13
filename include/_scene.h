@@ -16,7 +16,6 @@
 #include<_sounds.h>
 #include<_world.h>
 #include<_hud.h>
-#include<_particleManager.h>
 #include<_bulletManager.h>
 #include<_shader.h>
 #include<_player.h>

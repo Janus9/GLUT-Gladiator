@@ -1598,7 +1598,6 @@ void _scene::applyCamera()
     sceneViewProjectionMatrix = sceneProjectionMatrix * sceneViewMatix;
 
     _bulletManager::setViewProjectionMatrix(sceneViewProjectionMatrix);
-    _particleManager::setViewProjectionMatrix(sceneViewProjectionMatrix);
     _pickupManager::setViewProjectionMatrix(sceneViewProjectionMatrix);
     _enemyManager::setViewProjectionMatrix(sceneViewProjectionMatrix);
     _world::setViewProjectionMatrix(sceneViewProjectionMatrix);
