@@ -644,3 +644,162 @@ waveAmplitudeMin = 0.0
 waveAmplitudeMax = 0.0
 waveFrequencyMin = 0.0
 waveFrequencyMax = 0.0
+
+#############
+[[particles]]
+id = "player_blood"
+
+particleCount = 35
+
+# Animation
+texturePath = "images/player/particles.png"
+sheetColumns = 3
+sheetRows = 1
+animationRow = 0
+animationFPS = 0
+startingColumn = 2
+pingPongAnimation = false
+deathOnAnimationEnd = false
+
+# Velocity
+minVelX = -8.0
+maxVelX = 8.0
+minVelY = 10.0
+maxVelY = 25.0
+
+# Size
+minRadius = 2.0
+maxRadius = 3.5
+
+# Lifetime
+minLifeTime = 4.0
+maxLifeTime = 5.0
+
+# Spawn Offset
+minSpawnOffsetX = -3.0
+maxSpawnOffsetX = 3.0
+minSpawnOffsetY = -3.0
+maxSpawnOffsetY = 3.0
+
+# Rotation
+minRotation = 30.0
+maxRotation = 180.0
+
+# Gravity
+hasGravity = true
+
+# Floor Kill Plane
+hasFloor = true
+floorOffset = -4.0
+
+# Wave Motion
+waveAmplitudeMin = 0.0
+waveAmplitudeMax = 0.0
+waveFrequencyMin = 0.0
+waveFrequencyMax = 0.0
+
+#############
+[[particles]]
+id = "player_healing"
+
+particleCount = 35
+
+# Animation
+texturePath = "images/player/particles.png"
+sheetColumns = 3
+sheetRows = 1
+animationRow = 0
+animationFPS = 0
+startingColumn = 0
+pingPongAnimation = false
+deathOnAnimationEnd = false
+
+# Velocity
+minVelX = -3.0
+maxVelX = 3.0
+minVelY = 3.0
+maxVelY = 5.0
+
+# Size
+minRadius = 2.0
+maxRadius = 4.0
+
+# Lifetime
+minLifeTime = 2.0
+maxLifeTime = 3.0
+
+# Spawn Offset
+minSpawnOffsetX = -12.0
+maxSpawnOffsetX = 12.0
+minSpawnOffsetY = -6.0
+maxSpawnOffsetY = 8.0
+
+# Rotation
+minRotation = 0.0
+maxRotation = 0.0
+
+# Gravity
+hasGravity = false
+
+# Floor Kill Plane
+hasFloor = false
+floorOffset = 0.0
+
+# Wave Motion
+waveAmplitudeMin = 1.0
+waveAmplitudeMax = 3.3
+waveFrequencyMin = 0.2
+waveFrequencyMax = 1.0
+
+#############
+[[particles]]
+id = "player_ammo"
+
+particleCount = 35
+
+# Animation
+texturePath = "images/player/particles.png"
+sheetColumns = 3
+sheetRows = 1
+animationRow = 0
+animationFPS = 0
+startingColumn = 1
+pingPongAnimation = false
+deathOnAnimationEnd = false
+
+# Velocity
+minVelX = -3.0
+maxVelX = 3.0
+minVelY = 3.0
+maxVelY = 5.0
+
+# Size
+minRadius = 2.0
+maxRadius = 4.0
+
+# Lifetime
+minLifeTime = 2.0
+maxLifeTime = 3.0
+
+# Spawn Offset
+minSpawnOffsetX = -12.0
+maxSpawnOffsetX = 12.0
+minSpawnOffsetY = -6.0
+maxSpawnOffsetY = 8.0
+
+# Rotation
+minRotation = 0.0
+maxRotation = 0.0
+
+# Gravity
+hasGravity = false
+
+# Floor Kill Plane
+hasFloor = false
+floorOffset = 0.0
+
+# Wave Motion
+waveAmplitudeMin = 1.0
+waveAmplitudeMax = 3.3
+waveFrequencyMin = 0.2
+waveFrequencyMax = 1.0
