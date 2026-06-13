@@ -9,8 +9,10 @@
 # - "animationRow": (int) Which row for the animation to use (starts at 0 not 1, meaning 0 is the top-most row)
 # - "animationFPS": (int) Frame rate of the animation (0 or negative means no animation)
 # - "startingColumn": (int) Frame of the animation to start at (starts at 0 not 1). This can be used to keep all different particles in one file if FPS is 0
+# - "useEntireSheet": (boolean) If enabled, animation uses entire sheet (one animation per image) this also requires "stopColumn" is set.
 # - "pingPongAnimation": (bool) If enabled then animation "bounces" through the sheet rather than resetting
 # - "deathOnAnimationEnd": (bool) If enabled then particle dies upon animation end. Automatically sets min/max lifetime to infinite
+# - "stopColumn": (int) Which column to stop the animation on (only applies if useEntireSheet is true) (starts at 0 not 1)
 # - "minVelX": (float) Minimum velocity in X direction (horizontal) given to the particle
 # - "maxVelX": (float) Maximum velocity in X direction (horizontal) given to the particle
 # - "minVelY": (float) Minimum velocity in Y direction (verticle) given to the particle
@@ -40,11 +42,22 @@
 # - (bool): On/off type denoted by [true/false]
 #
 # Clarifications:
-# - If deathOnAnimationEnd is enabled then the min/max life time are ignored and set to infinite
+# - If deathOnAnimationEnd is enabled 
+#   - The min/max life time are ignored and set to infinite
+#   - PingPong animation is automaticaly disabled (since it wouldn't do anything)
+#
+# - If useEntireSheet is enabled
+#   - The entire image is used for one animation (instead of one row)
+#   - The stop column MUST be set (defaults to 0), this is for most animations that dont stop at the end of the image
+#   - The stop row is not set as it is the last row of the image
+#   - This requires deathOnAnimationEnd to be enabled, otherwise the particle effect will not be created.
+#
 # - The min/max variables are randomly assigned a value based on the min/max bounds
 #   - For min/max variables, never set the min higher than the max, it will crash the game. 
+#
 # - For the "hasFloor" if enabled the floorOffset must be less than 0.0. The particle spawns on the "floor" so setting floorOffset to 0.0 or any positive number
 #   means it spawns inside of or below the floor causing it to be killed on creation. Thus this value should never be 0.0 or positive
+#
 # - The animation handler can only play one animation per row. Thus if your animation sheet occupies multiple rows, you must modify the image onto one row, sorry.
 #   - I recommend Aseprite for modifiying images
 #
@@ -70,8 +83,10 @@ sheetRows = 0
 animationRow = 0
 animationFPS = 0
 startingColumn = 0
+useEntireSheet = false
 pingPongAnimation = false
 deathOnAnimationEnd = false
+stopColumn = 0
 
 # Velocity
 minVelX = 0.0
@@ -123,8 +138,10 @@ sheetRows = 1
 animationRow = 0
 animationFPS = 60
 startingColumn = 0
+useEntireSheet = false
 pingPongAnimation = false
 deathOnAnimationEnd = true
+stopColumn = 0
 
 # Velocity
 minVelX = 0.0
@@ -176,8 +193,10 @@ sheetRows = 1
 animationRow = 0
 animationFPS = 0
 startingColumn = 0
+useEntireSheet = false
 pingPongAnimation = false
 deathOnAnimationEnd = false
+stopColumn = 0
 
 # Velocity
 minVelX = -3.0
@@ -229,8 +248,10 @@ sheetRows = 1
 animationRow = 0
 animationFPS = 0
 startingColumn = 0
+useEntireSheet = false
 pingPongAnimation = false
 deathOnAnimationEnd = false
+stopColumn = 0
 
 # Velocity
 minVelX = -3.0
@@ -282,8 +303,10 @@ sheetRows = 1
 animationRow = 0
 animationFPS = 0
 startingColumn = 3
+useEntireSheet = false
 pingPongAnimation = false
 deathOnAnimationEnd = false
+stopColumn = 0
 
 # Velocity
 minVelX = -8.0
@@ -336,8 +359,10 @@ sheetRows = 1
 animationRow = 0
 animationFPS = 0
 startingColumn = 0
+useEntireSheet = false
 pingPongAnimation = false
 deathOnAnimationEnd = false
+stopColumn = 0
 
 # Velocity
 minVelX = -12.0
@@ -390,8 +415,10 @@ sheetRows = 1
 animationRow = 0
 animationFPS = 0
 startingColumn = 1
+useEntireSheet = false
 pingPongAnimation = false
 deathOnAnimationEnd = false
+stopColumn = 0
 
 # Velocity
 minVelX = -7.0
@@ -444,8 +471,10 @@ sheetRows = 1
 animationRow = 0
 animationFPS = 0
 startingColumn = 2
+useEntireSheet = false
 pingPongAnimation = false
 deathOnAnimationEnd = false
+stopColumn = 0
 
 # Velocity
 minVelX = -3.0
@@ -498,8 +527,10 @@ sheetRows = 1
 animationRow = 0
 animationFPS = 0
 startingColumn = 5
+useEntireSheet = false
 pingPongAnimation = false
 deathOnAnimationEnd = false
+stopColumn = 0
 
 # Velocity
 minVelX = 5.5
@@ -552,8 +583,10 @@ sheetRows = 1
 animationRow = 0
 animationFPS = 0
 startingColumn = 4
+useEntireSheet = false
 pingPongAnimation = false
 deathOnAnimationEnd = false
+stopColumn = 0
 
 # Velocity
 minVelX = 5.5
@@ -605,8 +638,10 @@ sheetRows = 1
 animationRow = 0
 animationFPS = 0
 startingColumn = 0
+useEntireSheet = false
 pingPongAnimation = false
 deathOnAnimationEnd = false
+stopColumn = 0
 
 # Velocity
 minVelX = 5.5
@@ -658,8 +693,10 @@ sheetRows = 1
 animationRow = 0
 animationFPS = 30
 startingColumn = 0
+useEntireSheet = false
 pingPongAnimation = false
 deathOnAnimationEnd = true
+stopColumn = 0
 
 # Velocity
 minVelX = 0.0
@@ -711,8 +748,10 @@ sheetRows = 1
 animationRow = 0
 animationFPS = 0
 startingColumn = 0
+useEntireSheet = false
 pingPongAnimation = false
 deathOnAnimationEnd = false
+stopColumn = 0
 
 # Velocity
 minVelX = -3.0
@@ -764,8 +803,10 @@ sheetRows = 1
 animationRow = 0
 animationFPS = 0
 startingColumn = 1
+useEntireSheet = false
 pingPongAnimation = false
 deathOnAnimationEnd = false
+stopColumn = 0
 
 # Velocity
 minVelX = -3.0
@@ -817,8 +858,10 @@ sheetRows = 1
 animationRow = 0
 animationFPS = 0
 startingColumn = 0
+useEntireSheet = false
 pingPongAnimation = false
 deathOnAnimationEnd = false
+stopColumn = 0
 
 # Velocity
 minVelX = -16.0
@@ -871,8 +914,10 @@ sheetRows = 1
 animationRow = 0
 animationFPS = 0
 startingColumn = 1
+useEntireSheet = false
 pingPongAnimation = false
 deathOnAnimationEnd = false
+stopColumn = 0
 
 # Velocity
 minVelX = -16.0
@@ -925,8 +970,10 @@ sheetRows = 1
 animationRow = 0
 animationFPS = 0
 startingColumn = 2
+useEntireSheet = false
 pingPongAnimation = false
 deathOnAnimationEnd = false
+stopColumn = 0
 
 # Velocity
 minVelX = -16.0
@@ -978,8 +1025,10 @@ sheetRows = 1
 animationRow = 0
 animationFPS = 0
 startingColumn = 3
+useEntireSheet = false
 pingPongAnimation = false
 deathOnAnimationEnd = false
+stopColumn = 0
 
 # Velocity
 minVelX = -16.0

@@ -17,6 +17,8 @@ namespace particles {
      * Particle Effect Configuration
      */
     struct Config {
+        bool valid;                         /// Marker of whether given config was created succefully (False means it will not be drawn)
+
         int particleCount = 0;              /// Required: number of particles to spawn.
     
         // Animation //
@@ -27,8 +29,12 @@ namespace particles {
         int animationRow = 0;               /// Default 0: row of the sprite sheet used by this effect. [0-255]
         int startingColumn = 0;             /// Default 0: column of the sprite sheet that animation starts at [0-255]
         int animationFPS = 0;               /// Default 0: animation frame rate in frames/second. Use 0 for static particles. [0-255]
+        
+        bool useEntireSheet = false;        /// Default false: True means animation uses entire sheet instead of just one row
         bool pingPongAnimation = false;     /// Default false: True means animation does not loop to beginning, it bounces
         bool deathOnAnimationEnd = false;   /// Default false: True means particle is destroyed once animation completes one full loop
+
+        int stopColumn = 0;                 /// Default 0: Which column to stop the animation on (only applies for useEntireSheet as true)
 
         // Velocity //
         float minVelX = 0.0f;               /// Default 0.0f: minimum horizontal velocity.
@@ -156,12 +162,14 @@ namespace particles {
                 bool hasFloor;
                 bool pingPongAnimation;
                 bool deathOnAnimationEnd;
+                bool useEntireSheet;
                 
                 bool inReverseAnimation = false;
     
                 uint8_t colIndex;
                 uint8_t rowIndex;
                 uint8_t fps;
+                uint8_t stopColumn;
             };
 
             // Injections //

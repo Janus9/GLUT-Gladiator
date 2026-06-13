@@ -168,6 +168,8 @@ namespace particles {
             // Config Reading //
             Config config;
 
+            config.valid = true; // Assume valid, and check below
+
             config.particleCount = static_cast<int>((*particleTable)["particleCount"].value_or<int64_t>(0));
 
             config.texturePath = (*particleTable)["texturePath"].value_or<std::string>("");
@@ -178,8 +180,12 @@ namespace particles {
             config.animationRow = static_cast<int>((*particleTable)["animationRow"].value_or<int64_t>(0));
             config.startingColumn = static_cast<int>((*particleTable)["startingColumn"].value_or<int64_t>(0));
             config.animationFPS = static_cast<int>((*particleTable)["animationFPS"].value_or<int64_t>(0));
+
+            config.useEntireSheet = (*particleTable)["useEntireSheet"].value_or<bool>(false);
             config.pingPongAnimation = (*particleTable)["pingPongAnimation"].value_or<bool>(false);
             config.deathOnAnimationEnd = (*particleTable)["deathOnAnimationEnd"].value_or<bool>(false);
+
+            config.stopColumn = static_cast<int>((*particleTable)["stopColumn"].value_or<int64_t>(0));
 
             config.minVelX = static_cast<float>((*particleTable)["minVelX"].value_or<double>(0.0));
             config.maxVelX = static_cast<float>((*particleTable)["maxVelX"].value_or<double>(0.0));
@@ -212,10 +218,37 @@ namespace particles {
 
             // Config Adjustments -- Protect bounds & warn odd values etc //
 
-            // Death on animation forces max lifespan 
+            // Particle Count Check
+            if (config.particleCount <= 0) {
+                config.valid = false;
+                SDL_LogDebug(
+                    LOG_PARTICLE_ENGINE, 
+                    "Skipping effect ID: %s as the particle count of %i is invalid",
+                    id.c_str(),
+                    config.particleCount
+                );
+            }
+
+            // Death On Animation End Check
             if (config.deathOnAnimationEnd) {
+                // Force max lifespan
                 config.minLifeTime = std::numeric_limits<float>::max();
                 config.maxLifeTime = std::numeric_limits<float>::max();
+                config.pingPongAnimation = false;   // Does nothing, disable for clarity
+            }
+
+            // Use Entire Sheet Check
+            if (config.useEntireSheet) {
+                // Use entire sheet requires the death on animation end
+                if (!config.deathOnAnimationEnd) {
+                    config.valid = false;
+                    SDL_LogDebug(
+                        LOG_PARTICLE_ENGINE, 
+                        "Skipping effect ID: %s as useEntireSheet requires deathOnAnimationEnd to be enabled",
+                        id.c_str(),
+                        config.particleCount
+                    );
+                }
             }
             
             // Set to table //
@@ -329,8 +362,9 @@ namespace particles {
         }
         const Config &config = it->second;
 
-        if (config.particleCount <= 0) {
-            // No particles to spawn in effect, skip
+        if (!config.valid) {
+            // Invalid config -- skip
+            SDL_LogDebug(LOG_PARTICLE_ENGINE, "Skipping effect: %s as it is invalid",ID.c_str());
             return;
         }
 
@@ -446,10 +480,19 @@ namespace particles {
 
             p.colIndex = static_cast<uint8_t>(config.startingColumn);
             p.rowIndex = static_cast<uint8_t>(config.animationRow);
+            if (config.useEntireSheet) {
+                // Use designated starting column
+                p.stopColumn = static_cast<uint8_t>(config.stopColumn);
+            } else {
+                // Use end of the sheet
+                p.stopColumn = static_cast<uint8_t>(config.sheetColumns-1);
+            }
+
             p.fps = static_cast<uint8_t>(config.animationFPS);
             p.animationTimer = 0.0f;
             p.pingPongAnimation = config.pingPongAnimation;
-            p.deathOnAnimationEnd = config.deathOnAnimationEnd;            
+            p.deathOnAnimationEnd = config.deathOnAnimationEnd;    
+            p.useEntireSheet = config.useEntireSheet;       
         }
 
         totalAliveParticles += config.particleCount;
