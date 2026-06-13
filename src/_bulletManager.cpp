@@ -33,11 +33,6 @@ _bulletManager::~_bulletManager() {
 
     delete texture;
     texture = nullptr;
-
-    delete bulletDrops;
-    bulletDrops = nullptr;
-
-    // no timers
 }
 
 void _bulletManager::initBulletManager(_bulletManagerContext &context) {
@@ -70,25 +65,6 @@ void _bulletManager::initBulletManager(_bulletManagerContext &context) {
     u_viewProjectionMatrix = glGetUniformLocation(program,"u_viewProjectionMatrix");
     u_texture = glGetUniformLocation(program,"u_texture");
 
-    bulletDrops->initParticleManager("images/bullet_casing.png", 1, sceneLightManager, 1000);
-    bullet_shell_effect.amount = 1;
-
-    bullet_shell_effect.minVelX = 5.5f;
-    bullet_shell_effect.maxVelX = 10.5f;
-    bullet_shell_effect.minVelY = 15.0f;
-    bullet_shell_effect.maxVelY = 28.0f;
-    bullet_shell_effect.minRotation = 30.0f;
-    bullet_shell_effect.maxRotation = 45.0f;
-
-    bullet_shell_effect.minRadius = 2.0f;
-    bullet_shell_effect.maxRadius = 2.0f;
-
-    bullet_shell_effect.minLifeTime = 5.0f;
-    bullet_shell_effect.maxLifeTime = 5.0f;
-
-    bullet_shell_effect.hasFloor = true;
-    bullet_shell_effect.floorOffset = -24.0f;
-
     // 7 entries per vertex, 4 vertex per primitive (quad), MAX_BULLETS amount, ~4 bytes per float (may change)
     int maxSizeBytes = 7 * 4 * MAX_BULLETS * sizeof(float);
 
@@ -106,8 +82,7 @@ void _bulletManager::drawBulletManager() {
     buildVbo();
 
     if (aliveBullets <= 0) {
-        // Skip drawing if now bullets, but particle manager still needs to run
-        bulletDrops->drawParticleManager();
+        // Skip drawing if now bullets
         return;
     }
 
@@ -131,13 +106,9 @@ void _bulletManager::drawBulletManager() {
     glUseProgram(0); // Stop using program (prevent using on bullet particle drops)
 
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-    bulletDrops->drawParticleManager();
 }
 
 void _bulletManager::updateBulletManager(double dt) {
-    bulletDrops->updateParticleManger(dt);
-
     if (aliveBullets <= 0) return; // Skip update loops when no bullets are alive
     for (int i = 0; i < MAX_BULLETS; i++) {
         _bullet* b = &bulletPool[i];
@@ -227,8 +198,6 @@ void _bulletManager::spawnBulletEffect(const Vec2f &pos, const Vec2f &dest, _tea
 
         currentBullets++;
     }
-
-    // bulletDrops->spawnEffect(pos,bullet_shell_effect);
 }
 
 // -- PRIVATE -- //

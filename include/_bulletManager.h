@@ -5,7 +5,6 @@
 
 #include <_common.h>
 #include <_world.h>
-#include <_particleManager.h>
 #include <_shader.h>
 #include <_player.h>
 #include <_sounds.h>
@@ -56,7 +55,7 @@ struct _bulletManagerContext {
     _enemyManager* enemies; 
     _sounds* sounds; 
     _lightManager* lights;
-    particles::Engine* particles;
+    particles::Engine* particles;   // Unused
 
     bool validate() {
         if (fileName.empty()) {
@@ -87,6 +86,7 @@ struct _bulletManagerContext {
             SDL_LogError(LOG_ENEMY_MANAGER, "ERROR: Particle Engine is nullptr");
             return false;
         }
+        return true;
     }
 };
 
@@ -136,8 +136,6 @@ class _bulletManager {
         particles::Engine* ParticleEngine = nullptr;// Pointer to Particle Engine instantiated in scene (non-owning) 
 
         _texture* texture = new _texture();
-        _particleManager* bulletDrops = new _particleManager();
-        particle_effect bullet_shell_effect;
 
         _shader bulletShader;
         

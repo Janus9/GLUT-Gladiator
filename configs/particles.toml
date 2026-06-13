@@ -591,3 +591,56 @@ waveAmplitudeMin = 0.0
 waveAmplitudeMax = 0.0
 waveFrequencyMin = 0.0
 waveFrequencyMax = 0.0
+
+#############
+[[particles]]
+id = "player_bullet_drop"
+
+particleCount = 1
+
+# Animation
+texturePath = "images/bullet_casing.png"
+sheetColumns = 1
+sheetRows = 1
+animationRow = 0
+animationFPS = 0
+startingColumn = 0
+pingPongAnimation = false
+deathOnAnimationEnd = false
+
+# Velocity
+minVelX = 5.5
+maxVelX = 10.5
+minVelY = 15.0
+maxVelY = 28.0
+
+# Size
+minRadius = 2.0
+maxRadius = 2.0
+
+# Lifetime
+minLifeTime = 5.0
+maxLifeTime = 5.0
+
+# Spawn Offset
+minSpawnOffsetX = 0.0
+maxSpawnOffsetX = 0.0
+minSpawnOffsetY = 0.0
+maxSpawnOffsetY = 0.0
+
+# Rotation
+minRotation = 30.0
+maxRotation = 45.0
+
+# Gravity
+hasGravity = true
+
+# Floor Kill Plane
+hasFloor = false
+floorOffset = 0.0
+
+# Wave Motion
+waveAmplitudeMin = 0.0
+waveAmplitudeMax = 0.0
+waveFrequencyMin = 0.0
+waveFrequencyMax = 0.0
