@@ -106,11 +106,19 @@ namespace particles {
              * Spawns a given effect based on a provided config
              * 
              * @param pos Position of where to spawn the effect
-             * @param config Configuration for the effect
+             * @param ID Unique string ID of the effect
              */
             void spawnEffect(glm::vec2 pos, const std::string &ID);
 
-            // Config* getConfig(const std::string &ID);
+            /**
+             * Gets a mutable pointer of a given config to alter it manually through code. 
+             * 
+             * > Warning, this is a permanent change until the game is restarted <
+             * 
+             * @param ID Unique string ID of the effect
+             * @return Mutable pointer to the config (nullptr if not found) 
+             */
+            Config* getConfig(const std::string &ID);
 
             // Debugging function that outputs GPU memory usage to console
             void logGpuMemoryUsage() const;

@@ -329,6 +329,11 @@ namespace particles {
         }
         const Config &config = it->second;
 
+        if (config.particleCount <= 0) {
+            // No particles to spawn in effect, skip
+            return;
+        }
+
         std::uniform_real_distribution<float> vel_x_dist(config.minVelX, config.maxVelX);
         std::uniform_real_distribution<float> vel_y_dist(config.minVelY, config.maxVelY);
         std::uniform_real_distribution<float> rot_dist(config.minRotation, config.maxRotation);
@@ -449,6 +454,15 @@ namespace particles {
 
         totalAliveParticles += config.particleCount;
         pBatch.aliveParticles += config.particleCount; 
+    }
+
+    Config* Engine::getConfig(const std::string &ID) {
+        auto it = configTable.find(ID);
+        if (it == configTable.end()) {
+            // Config was not found
+            return nullptr;
+        }
+        return &it->second;
     }
 
     void Engine::logGpuMemoryUsage() const {

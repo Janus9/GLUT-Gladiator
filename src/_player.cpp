@@ -508,8 +508,9 @@ void _player::resupply(float health, int ammo) {
     if (reserveLevel > reserveCapacity) {
         reserveLevel = reserveCapacity;
     }
-    // resupply_health_effect.amount = numHealthParticles;
-    // resupply_ammo_effect.amount = numAmmoParticles;
+    ParticleEngine->getConfig("player_heal")->particleCount = numHealthParticles;
+    ParticleEngine->getConfig("player_ammo")->particleCount = numAmmoParticles;
+
     ParticleEngine->spawnEffect({pos.x, pos.y}, "player_heal");
     ParticleEngine->spawnEffect({pos.x, pos.y}, "player_ammo");
 }
