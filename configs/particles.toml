@@ -649,48 +649,48 @@ waveFrequencyMax = 0.0
 [[particles]]
 id = "player_blood"
 
-particleCount = 35
+particleCount = 4
 
 # Animation
-texturePath = "images/particles/player_particles.png"
-sheetColumns = 3
+texturePath = "images/particles/player_blood.png"
+sheetColumns = 14
 sheetRows = 1
 animationRow = 0
-animationFPS = 0
-startingColumn = 2
+animationFPS = 30
+startingColumn = 0
 pingPongAnimation = false
-deathOnAnimationEnd = false
+deathOnAnimationEnd = true
 
 # Velocity
-minVelX = -8.0
-maxVelX = 8.0
-minVelY = 10.0
-maxVelY = 25.0
+minVelX = 0.0
+maxVelX = 0.0
+minVelY = 0.0
+maxVelY = 0.0
 
 # Size
-minRadius = 2.0
-maxRadius = 3.5
+minRadius = 8.0
+maxRadius = 11.0
 
 # Lifetime
-minLifeTime = 4.0
-maxLifeTime = 5.0
+minLifeTime = 0.0
+maxLifeTime = 0.0
 
 # Spawn Offset
 minSpawnOffsetX = -3.0
 maxSpawnOffsetX = 3.0
 minSpawnOffsetY = -3.0
-maxSpawnOffsetY = 3.0
+maxSpawnOffsetY = 12.0
 
 # Rotation
-minRotation = 30.0
-maxRotation = 180.0
+minRotation = 0.0
+maxRotation = 0.0
 
 # Gravity
-hasGravity = true
+hasGravity = false
 
 # Floor Kill Plane
-hasFloor = true
-floorOffset = -4.0
+hasFloor = false
+floorOffset = 0.0
 
 # Wave Motion
 waveAmplitudeMin = 0.0
