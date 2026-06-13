@@ -1521,8 +1521,11 @@ void _scene::keyboardHandler(const InputState &inputState)
     if (inputState.keys[SDL_SCANCODE_SPACE]) {
         // Nothing
     }
-    if (inputState.keys[SDL_SCANCODE_LEFTBRACKET]) {
-        ParticleEngine->spawnEffect({mouseWorldPos.x, mouseWorldPos.y},"test_1");
+    if (inputState.keys[SDL_SCANCODE_SPACE]) {
+        // Nothing
+    }
+    if (inputState.keys[SDL_SCANCODE_F5]) {
+        ParticleEngine->reload();
     }
     if (inputState.keys[SDL_SCANCODE_RIGHTBRACKET]) {
         ParticleEngine->spawnEffect({mouseWorldPos.x, mouseWorldPos.y},"test_2");

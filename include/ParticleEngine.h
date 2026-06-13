@@ -120,6 +120,13 @@ namespace particles {
              */
             Config* getConfig(const std::string &ID);
 
+            /**
+             * Allows for config files to be re-read to update the engine without restarting the application.
+             * 
+             * This clears the memory, but does not free it.
+             */
+            void reload();
+
             // Debugging function that outputs GPU memory usage to console
             void logGpuMemoryUsage() const;
 

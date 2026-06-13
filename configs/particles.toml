@@ -649,7 +649,7 @@ waveFrequencyMax = 0.0
 [[particles]]
 id = "player_blood"
 
-particleCount = 4
+particleCount = 7
 
 # Animation
 texturePath = "images/particles/player_blood.png"

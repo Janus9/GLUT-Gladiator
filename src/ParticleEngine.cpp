@@ -465,6 +465,15 @@ namespace particles {
         return &it->second;
     }
 
+    void Engine::reload() {
+        SDL_LogInfo(LOG_PARTICLE_ENGINE, "Reloading the Particle Engine");
+        particleList.clear();
+        particleTable.clear();
+        configTable.clear();
+        init({textureManager, lightManager});
+        SDL_LogInfo(LOG_PARTICLE_ENGINE, "Finished reloading the Particle Engine");
+    }
+
     void Engine::logGpuMemoryUsage() const {
         size_t total = 0;
 
