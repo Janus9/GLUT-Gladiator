@@ -2,7 +2,6 @@
 #define _PICKUP_MANAGER_H
 
 #include <_common.h>
-#include <_particleManager.h>
 #include <_player.h>
 #include <_lightManager.h>
 #include <_texture.h>
@@ -80,7 +79,6 @@ class _pickupManager {
         std::vector<_pickup> pickupList;
 
         _player* player = nullptr;  // Pointer to player instance in scene (non-owning) 
-        std::unique_ptr<_particleManager> particleManager = std::make_unique<_particleManager>();
 
         // Rendering //
         void buildVBO();
