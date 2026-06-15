@@ -27,8 +27,8 @@ namespace menu {
         }
     
         //  -- Landing --  //
-        menuList[MENU_LANDING].init(MENU_LANDING);
-        menuList[MENU_LANDING].addRenderObject({
+        pageList[MENU_LANDING].init(MENU_LANDING);
+        pageList[MENU_LANDING].addRenderObject({
             "images/menu/landing_page.png",
             {1.0f, 1.0f},
             {0.5f, 0.5f},
@@ -37,7 +37,7 @@ namespace menu {
             MENU_LANDING,
             MENU_NULL
         });
-        menuList[MENU_LANDING].addRenderObject({
+        pageList[MENU_LANDING].addRenderObject({
             "images/menu/continue_button.png",
             {0.2f, 0.2f},
             {0.5f, 0.2f},
@@ -48,8 +48,8 @@ namespace menu {
         });
     
         // -- Home -- //
-        menuList[MENU_HOME].init(MENU_HOME);
-        menuList[MENU_HOME].addRenderObject({
+        pageList[MENU_HOME].init(MENU_HOME);
+        pageList[MENU_HOME].addRenderObject({
             "images/menu/home_page.png",
             {1.0f, 1.0f},
             {0.5f, 0.5f},
@@ -58,7 +58,7 @@ namespace menu {
             MENU_HOME,
             MENU_NULL
         });
-        menuList[MENU_HOME].addRenderObject({
+        pageList[MENU_HOME].addRenderObject({
             "images/menu/play_button.png",
             {0.2f, 0.2f},
             {0.75f, 0.2f},
@@ -67,7 +67,7 @@ namespace menu {
             MENU_HOME,
             MENU_SAVES
         });
-        menuList[MENU_HOME].addRenderObject({
+        pageList[MENU_HOME].addRenderObject({
             "images/menu/help_button.png",
             {0.2f, 0.2f},
             {0.25f, 0.2f},
@@ -76,7 +76,7 @@ namespace menu {
             MENU_HOME,
             MENU_HELP
         });
-        // menuList[MENU_HOME].addRenderObject({
+        // pageList[MENU_HOME].addRenderObject({
         //     "images/menu/landing_button.png",
         //     {0.2f, 0.2f},
         //     {0.85f, 0.2f},
@@ -87,8 +87,8 @@ namespace menu {
         // });
     
         // -- Saves -- //
-        menuList[MENU_SAVES].init(MENU_SAVES);
-        menuList[MENU_SAVES].addRenderObject({
+        pageList[MENU_SAVES].init(MENU_SAVES);
+        pageList[MENU_SAVES].addRenderObject({
             "images/menu/landing_page.png",
             {1.0f, 1.0f},
             {0.5f, 0.5f},
@@ -97,7 +97,7 @@ namespace menu {
             MENU_SAVES,
             MENU_NULL
         });
-        menuList[MENU_SAVES].addRenderObject({
+        pageList[MENU_SAVES].addRenderObject({
             "images/menu/new_game_button.png",
             {0.2f, 0.2f},
             {0.15f, 0.2f},
@@ -106,7 +106,7 @@ namespace menu {
             MENU_SAVES,
             MENU_INFO
         });
-        menuList[MENU_SAVES].addRenderObject({
+        pageList[MENU_SAVES].addRenderObject({
             "images/menu/load_game_button.png",
             {0.2f, 0.2f},
             {0.85f, 0.2f},
@@ -117,8 +117,8 @@ namespace menu {
         });
     
         // -- Help -- //
-        menuList[MENU_HELP].init(MENU_HELP);
-        menuList[MENU_HELP].addRenderObject({
+        pageList[MENU_HELP].init(MENU_HELP);
+        pageList[MENU_HELP].addRenderObject({
             "images/menu/help_page.png",
             {1.0f, 1.0f},
             {0.5f, 0.5f},
@@ -127,7 +127,7 @@ namespace menu {
             MENU_HELP,
             MENU_NULL
         });
-        menuList[MENU_HELP].addRenderObject({
+        pageList[MENU_HELP].addRenderObject({
             "images/menu/back_button.png",
             {0.2f, 0.2f},
             {0.5f, 0.2f},
@@ -138,8 +138,8 @@ namespace menu {
         });
     
         // -- Pause -- //
-        menuList[MENU_PAUSE].init(MENU_PAUSE);
-        menuList[MENU_PAUSE].addRenderObject({
+        pageList[MENU_PAUSE].init(MENU_PAUSE);
+        pageList[MENU_PAUSE].addRenderObject({
             "images/menu/help_page.png",
             {1.0f, 1.0f},
             {0.5f, 0.5f},
@@ -148,7 +148,7 @@ namespace menu {
             MENU_PAUSE,
             MENU_NULL
         });
-        menuList[MENU_PAUSE].addRenderObject({
+        pageList[MENU_PAUSE].addRenderObject({
             "images/menu/continue_button.png",
             {0.2f, 0.2f},
             {0.60f, 0.2f},
@@ -157,16 +157,16 @@ namespace menu {
             MENU_PAUSE,
             MENU_GAME
         });
-        menuList[MENU_PAUSE].addRenderObject({
+        pageList[MENU_PAUSE].addRenderObject({
             "images/menu/menu_button.png",
             {0.2f, 0.2f},
             {0.8f, 0.2f},
             true,
-            "pausePage_button",
+            "pause_menu_button",
             MENU_PAUSE,
             MENU_HOME
         });
-        menuList[MENU_PAUSE].addRenderObject({
+        pageList[MENU_PAUSE].addRenderObject({
             "images/menu/save_button.png",
             {0.2f, 0.2f},
             {0.6f, 0.5f},
@@ -176,7 +176,7 @@ namespace menu {
             MENU_NULL
         });
     
-        menuList[MENU_PAUSE].addRenderObject({
+        pageList[MENU_PAUSE].addRenderObject({
             "images/menu/exit_game_button.png",
             {0.2f, 0.2f},
             {0.8f, 0.5f},
@@ -186,7 +186,7 @@ namespace menu {
             MENU_NULL
         });
     
-        menuList[MENU_PAUSE].addRenderObject({
+        pageList[MENU_PAUSE].addRenderObject({
             "images/menu/info_button.png",
             {0.2f, 0.2f},
             {0.5f, 0.8f},
@@ -197,8 +197,8 @@ namespace menu {
         });
     
         // -- WIN -- //
-        menuList[MENU_WIN].init(MENU_WIN);
-        menuList[MENU_WIN].addRenderObject({
+        pageList[MENU_WIN].init(MENU_WIN);
+        pageList[MENU_WIN].addRenderObject({
             "images/menu/win_page.png",
             {1.0f, 1.0f},
             {0.5f, 0.5f},
@@ -207,7 +207,7 @@ namespace menu {
             MENU_WIN,
             MENU_NULL
         });
-        menuList[MENU_WIN].addRenderObject({
+        pageList[MENU_WIN].addRenderObject({
             "images/menu/exit_game_button.png",
             {0.2f, 0.2f},
             {0.6f, 0.1f},
@@ -218,8 +218,8 @@ namespace menu {
         });
     
         // -- LOOSE -- //
-        menuList[MENU_LOOSE].init(MENU_LOOSE);
-        menuList[MENU_LOOSE].addRenderObject({
+        pageList[MENU_LOOSE].init(MENU_LOOSE);
+        pageList[MENU_LOOSE].addRenderObject({
             "images/menu/loose_page.png",
             {1.0f, 1.0f},
             {0.5f, 0.5f},
@@ -228,7 +228,7 @@ namespace menu {
             MENU_LOOSE,
             MENU_NULL
         });
-        menuList[MENU_LOOSE].addRenderObject({
+        pageList[MENU_LOOSE].addRenderObject({
             "images/menu/loose_game_button.png",
             {0.2f, 0.2f},
             {0.65f, 0.1f},
@@ -239,8 +239,8 @@ namespace menu {
         });
     
         // -- INFO -- //
-        menuList[MENU_INFO].init(MENU_INFO);
-        menuList[MENU_INFO].addRenderObject({
+        pageList[MENU_INFO].init(MENU_INFO);
+        pageList[MENU_INFO].addRenderObject({
             "images/menu/intro_page.png",
             {1.0f, 1.0f},
             {0.5f, 0.5f},
@@ -249,7 +249,7 @@ namespace menu {
             MENU_INFO,
             MENU_NULL
         });
-        menuList[MENU_INFO].addRenderObject({
+        pageList[MENU_INFO].addRenderObject({
             "images/menu/continue_button.png",
             {0.15f, 0.10f},
             {0.5f, 0.09f},
@@ -261,11 +261,11 @@ namespace menu {
     }
     
     void Manager::draw(const Vec2i &dim) {
-        menuList[selectedPage].draw(dim);
+        pageList[selectedPage].draw(dim);
     }
     
     void Manager::update(double dt, const InputState &inputState) {
-        Page* page = &menuList[selectedPage];
+        Page* page = &pageList[selectedPage];
         mouseScreenClipPosition = inputState.mouseScreenClipPos;
     
         page->update(dt,inputState,sounds);
@@ -367,7 +367,7 @@ namespace menu {
         parent = config.parent;
         destination = config.destination;
         
-        menuObjectID = config.ID;
+        ID = config.ID;
         texture->loadTexture(config.fileName);
     
         size = config.size;
@@ -540,7 +540,7 @@ namespace menu {
     }
     
     std::string Manager::RenderObject::getID() const {
-        return menuObjectID;
+        return ID;
     }
     
     type Manager::RenderObject::getParent() const {
@@ -553,7 +553,7 @@ namespace menu {
     
     
     bool Manager::RenderObject::operator==(const RenderObject &other) const {
-        return menuObjectID == other.menuObjectID;
+        return ID == other.ID;
     }
     
     // ============ MENU ============ //
@@ -576,19 +576,19 @@ namespace menu {
     void Manager::Page::addRenderObject(const RenderObjectConfig &config) {
         std::unique_ptr<RenderObject> newObject = std::make_unique<RenderObject>();
         newObject->init(config);
-        menuObjects.push_back(move(newObject));
+        renderObjects.push_back(move(newObject));
     }
     
     void Manager::Page::draw(const Vec2i &wDim) {
-        for (int i = 0; i < menuObjects.size(); i++) {
-            menuObjects[i]->draw(wDim);
+        for (int i = 0; i < renderObjects.size(); i++) {
+            renderObjects[i]->draw(wDim);
         }
     }
     
     void Manager::Page::update(double dt, const InputState &inputState, _sounds* sounds) {
         timeSinceRedirect += dt;
-        for (int i = 0; i < menuObjects.size(); i++) {
-            RenderObject* renderObject = menuObjects[i].get();
+        for (int i = 0; i < renderObjects.size(); i++) {
+            RenderObject* renderObject = renderObjects[i].get();
             renderObject->update(dt, inputState);
             if (renderObject->justEnteredHover()) {
                 if (sounds) sounds->playSfx("MENU_HOVER");
@@ -603,6 +603,8 @@ namespace menu {
                     saveGameEvent = true;
                 } else if (renderObject->getID() == "exit_game_button") {
                     endGameEvent = true;
+                } else if (renderObject->getID() == "pause_menu_button") {
+                    unloadWorldEvent = true;
                 }
                 if (sounds) sounds->playSfx("MENU_CLICK");
                 redirectTo = renderObject->getDestination();

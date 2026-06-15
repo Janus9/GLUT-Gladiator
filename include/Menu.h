@@ -170,7 +170,7 @@ namespace menu {
                     GLint u_model = -1;
                     GLint u_isHovering = -1;
     
-                    std::string menuObjectID;
+                    std::string ID;
                     
                     type parent;
                     type destination;
@@ -190,27 +190,27 @@ namespace menu {
                     Page();
                     virtual ~Page();
     
-                    // Initializes a menu
+                    // Initializes a page
                     void init(type _type);
     
                     /**
-                     * Adds a new menu object to the menu
+                     * Adds a new page object to the page
                      * 
-                     * @param config Configuration for new menu (see struct for implementation details)
+                     * @param config Configuration for new page (see struct for implementation details)
                      */
                     void addRenderObject(const RenderObjectConfig &config);
     
                     /**
-                     * Draws all menuObjects in the menu
+                     * Draws all Render Objects in the page
                      * 
                      * @param wDim Windowm Dimensions (width/height in pixels).
                      */
                     void draw(const Vec2i &wDim);
     
-                    // Update menu
+                    // Update page
                     void update(double dt, const InputState &inputState, _sounds* sounds);
                     
-                    type redirectTo = MENU_NULL;   // If not null will redirect on next update by menuManager
+                    type redirectTo = MENU_NULL;   // If not null will redirect on next update by Manager
     
                     bool generateWorldEvent = false;
                     bool loadWorldEvent = false;
@@ -220,14 +220,14 @@ namespace menu {
     
                 protected:
                 private:
-                    std::vector<std::unique_ptr<RenderObject>> menuObjects;
+                    std::vector<std::unique_ptr<RenderObject>> renderObjects;
     
                     type type;
     
                     double timeSinceRedirect = 0.0; // Timer to prevent redirect spamming
             };
     
-            Page menuList[MENU_COUNT]; // List of menus up to COUNT amount
+            Page pageList[MENU_COUNT]; // List of menus up to COUNT amount
             type selectedPage = MENU_LANDING;
     
             _sounds* sounds = nullptr; // Non-owning; provided by main via initMenuManager
