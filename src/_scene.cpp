@@ -37,9 +37,9 @@ void _scene::setSounds(_sounds *sounds)
     soundManager = sounds;
 }
 
-GLint _scene::initGL()
+bool _scene::initGL()
 {
-    std::cout << "Running Scene initGL Initialization ... \n";
+    SDL_LogInfo(LOG_SCENE, "Running Scene OpenGL Initialization");
 
     glClearColor(0.0, 0.0, 0.0, 1.0); // Intended to change the background color. 0001 is black
     glClearDepth(1.0);                // Gives depth to the environment by having color both in the front and back. Depth-test value

@@ -269,43 +269,46 @@ void _menuManager::updateMenuManager(double dt, const InputState &inputState) {
 
     menu->updateMenu(dt,inputState,sounds);
 
+    // Generate World Event
     if (menu->generateWorldEvent) {
-        SDL_LogInfo(LOG_MENU_MANAGER, "Generate World Event");
+        SDL_LogInfo(LOG_MENU_MANAGER, "Generate world event");
         menu->generateWorldEvent = false;
-        // Dont load world as it gets generated
-        scene->initScene(false);            // Setup scene to generate world
+        generateWorldEvent = true;
     }
     
+    // Load World Event
     if (menu->loadWorldEvent) {
-        SDL_LogInfo(LOG_MENU_MANAGER, "Load World Event");
+        SDL_LogInfo(LOG_MENU_MANAGER, "Load world event");
         menu->loadWorldEvent = false;
-        if (!scene->loadSceneFromFile("saves/game")) {
-            SDL_LogError(LOG_MENU_MANAGER, "ERROR: Save failed to load correctly");
-            return;
-        }
-        scene->initScene(true);             // Setup scene to load world
+        loadWorldEvent = true;
     }
 
+    // Save Game Event
     if (menu->saveGameEvent) {
-        SDL_LogInfo(LOG_MENU_MANAGER, "Save Game Event");
-
+        SDL_LogInfo(LOG_MENU_MANAGER, "Save world event");
         menu->saveGameEvent = false;
-        if (!scene->saveSceneToFile("saves/game")) {
-            SDL_LogError(LOG_MENU_MANAGER, "ERROR: Failed to save game correctly");
-            return;
-        }
+        saveWorldEvent = true;
     }
 
+    // End Game Event
     if (menu->endGameEvent) {
-        SDL_LogInfo(LOG_MENU_MANAGER, "End Game Event");
+        SDL_LogInfo(LOG_MENU_MANAGER, "End game event");
         menu->endGameEvent = false;
         closeGameEvent = true;
+    }
+
+    // Unload World Event
+    if (menu->unloadWorldEvent) {
+        SDL_LogInfo(LOG_MENU_MANAGER, "Unload world event");
+        menu->unloadWorldEvent = false;
+        unloadWorldEvent = true;
+
     }
 
     if (menu->redirectTo != MENU_NULL) {
         if (menu->redirectTo == MENU_GAME) {
             if (!scene->isInitialized()) return; // Scene must be initialized if were trying to load the game
-            loadGame = true;
+            loadGameEvent = true;
             if (sounds) sounds->playSfx("GAME_START");
             scene->gameUnPausedEvent = true;
             // if (sounds) sounds->playBackgroundMusic("sounds/gameplay_music.wav", 0.2f);
@@ -584,6 +587,7 @@ void _menuManager::_menu::updateMenu(double dt, const InputState &inputState, _s
         }
         if (menuObject->getMouseState() && inputState.LMB && timeSinceRedirect > 0.5) {
             SDL_LogDebug(LOG_MENU_MANAGER, "Mouse clicked on ID: %s", menuObject->getID().c_str());
+
             if (menuObject->getID() == "saves_generate_button") {
                 generateWorldEvent = true;
             } else if (menuObject->getID() == "saves_load_button") {
@@ -592,6 +596,8 @@ void _menuManager::_menu::updateMenu(double dt, const InputState &inputState, _s
                 saveGameEvent = true;
             } else if (menuObject->getID() == "exit_game_button") {
                 endGameEvent = true;
+            } else if (menuObject->getID() == "pause_menu_button") {
+                unloadWorldEvent = true;
             }
             if (sounds) sounds->playSfx("MENU_CLICK");
             redirectTo = menuObject->getDestination();

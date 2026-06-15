@@ -78,12 +78,16 @@ class _menuManager {
 
         menu_type getLoadedMenu() const;
 
-        bool loadGame = false;  // If true main runs the scene initGL once, then resets the state
-
         // Sets window dimensions for menu drawing
         static void setWindowDimensions(const Vec2i &dim);
-
+        
+        bool loadGameEvent = false;  // If true main reloads back into the game
         bool closeGameEvent = false;
+
+        bool loadWorldEvent = false;
+        bool saveWorldEvent = false;
+        bool generateWorldEvent = false;
+        bool unloadWorldEvent = false;
     protected:
     private:
         /**
@@ -196,6 +200,8 @@ class _menuManager {
                 bool loadWorldEvent = false;
                 bool saveGameEvent = false;
                 bool endGameEvent = false;
+                bool unloadWorldEvent = false;
+
             protected:
             private:
                 std::vector<std::unique_ptr<_menuObject>> menuObjects;

@@ -42,8 +42,8 @@ class _scene
         _scene();
         virtual ~_scene();
 
-        // Initialization of the scene openGL content (runs every time scene is reopened from menu)
-        GLint initGL(); 
+        // Initialization of the scene openGL content
+        bool initGL(); 
 
         // Initialization of scene objects
         void initScene(bool loadWorld);

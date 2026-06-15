@@ -106,10 +106,10 @@ void handleUpdate() {
 	if (dt >= UPDATE_DELAY) {
 		if (menuManager->getLoadedMenu() == MENU_GAME) {
 			// Load game
-			if (menuManager->loadGame) {
+			if (menuManager->loadGameEvent) {
 				SDL_LogInfo(LOG_MAIN, "Entering Game State");
 				gameScene->reSize(wWidth, wHeight);
-				menuManager->loadGame = false;
+				menuManager->loadGameEvent = false;
 			}
 			// Update Game
 			gameScene->updateScene(dt, inputState);
@@ -121,6 +121,40 @@ void handleUpdate() {
 				running = false;
 			}
 			
+			// Generate World
+			if (menuManager->generateWorldEvent) {
+        		SDL_LogInfo(LOG_MAIN, "Generate World Event");
+				menuManager->generateWorldEvent = false;
+				gameScene->initScene(false);
+			}
+
+			// Load World
+			if (menuManager->loadWorldEvent) {
+        		SDL_LogInfo(LOG_MAIN, "Load World Event");
+				menuManager->loadWorldEvent = false;
+				if (!gameScene->loadSceneFromFile("saves/game")) {
+				    SDL_LogError(LOG_MAIN, "ERROR: Save failed to load correctly");
+				    return;
+				}
+				gameScene->initScene(true);             // Setup scene to load world
+			}	
+
+			// Save World
+			if (menuManager->saveWorldEvent) {
+        		SDL_LogInfo(LOG_MAIN, "Save World Event");
+				menuManager->saveWorldEvent = false;
+				if (!gameScene->saveSceneToFile("saves/game")) {
+				    SDL_LogError(LOG_MAIN, "ERROR: Failed to save game correctly");
+				    return;
+				}
+			}
+
+			// Unload World Event
+			if (menuManager->unloadWorldEvent) {
+				SDL_LogInfo(LOG_MAIN, "Unload world event");
+				menuManager->unloadWorldEvent = false;
+			}
+
 			// Update Menu
 			menuManager->updateMenuManager(dt, inputState);
 		}
