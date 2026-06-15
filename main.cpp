@@ -5,7 +5,7 @@
 #include <_common.h>         // For common headers
 #include <_scene.h>          // My scene context
 #include <_timerPlusPlus.h>   // For the timer class
-#include <_menuManager.h>
+#include <Menu.h>
 #include <_sounds.h>         // Shared audio engine (owned here, not by _scene)
 
 // DEFINES //
@@ -34,7 +34,7 @@ InputState inputState;
 _logger Logger; 																// DEPRICATED -- Delete later
 std::unique_ptr<_scene> gameScene; 												// Singleton Scene
 // std::unique_ptr<_timerPlusPlus> timer = std::make_unique<_timerPlusPlus>();  // Wont likely be used
-std::unique_ptr<_menuManager> menuManager;										// Singleton Menu Manager
+std::unique_ptr<menu::Manager> menuManager;										// Singleton Menu Manager
 // std::unique_ptr<_sounds> sharedSounds = std::make_unique<_sounds>();			// DEPRICATED -- Delete later
 
 // SCREEN RESIZE HANDLER //
@@ -61,7 +61,7 @@ void handleWindowResize(SDL_Window* window) {
 
 	gameScene->reSize(wWidth, wHeight);
     
-    _menuManager::setWindowDimensions({windowSpawnWidth, windowSpawnHeight});
+    // _menuManager::setWindowDimensions({windowSpawnWidth, windowSpawnHeight});
 
 	glViewport(0, 0, drawableW, drawableH);
 }
@@ -87,12 +87,12 @@ void handleMouseButton(const SDL_Event &event, bool buttonDown) {
 void handleDraw(SDL_Window* window) {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	if (menuManager->getLoadedMenu() == MENU_GAME) {
+	if (menuManager->getLoadedPage() == menu::MENU_GAME) {
 		// Draw Game
 		gameScene->drawScene();
 	} else {
 		// Draw Menu
-		menuManager->drawMenuManager();
+		menuManager->draw({windowSpawnWidth, windowSpawnHeight});
 	}
 
 
@@ -100,7 +100,8 @@ void handleDraw(SDL_Window* window) {
 }
 
 void handleUpdate(double dt) {
-	if (menuManager->getLoadedMenu() == MENU_GAME) {
+	// In Game Update //
+	if (menuManager->getLoadedPage() == menu::MENU_GAME) {
 		// Load game
 		if (menuManager->loadGameEvent) {
 			SDL_LogInfo(LOG_MAIN, "Entering Game State");
@@ -110,6 +111,7 @@ void handleUpdate(double dt) {
 		// Update Game
 		gameScene->updateScene(dt, inputState);
 	} else {
+	// In Menu Update //
 		// Exit game
 		if (menuManager->closeGameEvent) {
 			SDL_LogInfo(LOG_MAIN, "Close Game Event");
@@ -155,7 +157,7 @@ void handleUpdate(double dt) {
 		}
 
 		// Update Menu
-		menuManager->updateMenuManager(dt, inputState);
+		menuManager->update(dt, inputState);
 	}
 }
 
@@ -215,10 +217,10 @@ int main(int argc, char *argv[])
 	SDL_SetWindowFullscreen(window, fullscreen); // Set fullscreen based on settings
 
 
-	menuManager = std::make_unique<_menuManager>();
+	menuManager = std::make_unique<menu::Manager>();
 	menuManager->injectContext({ nullptr, gameScene.get() });
-	menuManager->initMenuManager();
-	menuManager->loadMenu(MENU_HOME);
+	menuManager->init();
+	menuManager->loadPage(menu::MENU_HOME);
 
 	updatePreviousTime = SDL_GetTicksNS();
 	inputPreviousTime = SDL_GetTicks();
@@ -265,15 +267,15 @@ int main(int argc, char *argv[])
 					if (dt > 100) {
 						// Pause Event //
 						if (inputState.keys[SDL_SCANCODE_ESCAPE]) {
-							if (menuManager->getLoadedMenu() == MENU_GAME) {
+							if (menuManager->getLoadedPage() == menu::MENU_GAME) {
 								// In game - pause
 								SDL_LogInfo(LOG_MAIN, "Pause game event");
-								menuManager->loadMenu(MENU_PAUSE);
+								menuManager->loadPage(menu::MENU_PAUSE);
 							} else {
 								// In menu - unpause (if game loaded)
 								if (gameScene->isInitialized()) {
 									SDL_LogInfo(LOG_MAIN, "Unpause game event");
-									menuManager->loadMenu(MENU_GAME);
+									menuManager->loadPage(menu::MENU_GAME);
 								}
 							}
 						} else if (inputState.keys[SDL_SCANCODE_F11]) {
