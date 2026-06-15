@@ -19,11 +19,20 @@ _menuManager::_menuManager() {
 _menuManager::~_menuManager() {
 }
 
-void _menuManager::initMenuManager(_sounds* sharedSounds, _scene* _scene) {
+void _menuManager::injectContext(const menuManagerContext &context) {
+    if (!context.validate()) {
+        SDL_LogError(LOG_MENU_MANAGER, "ERROR: Unable to validate the context");
+    }
+    sounds = context.sounds;
+    scene = context.scene;
+}
+
+void _menuManager::initMenuManager() {
     SDL_LogInfo(LOG_MENU_MANAGER, "Initializing the menu manager");
 
-    sounds = sharedSounds;
-    scene = _scene;
+    if (!sounds || !scene) {
+        SDL_LogWarn(LOG_MENU_MANAGER, "WARNING: Sounds or Scene is nullptr");
+    }
 
     //  -- Landing --  //
     menuList[MENU_LANDING].initMenu(MENU_LANDING);
@@ -306,8 +315,12 @@ void _menuManager::updateMenuManager(double dt, const InputState &inputState) {
     }
 
     if (menu->redirectTo != MENU_NULL) {
+        SDL_LogDebug(LOG_MENU_MANAGER, "Redirecting to menu: %i", static_cast<int>(menu->redirectTo));
         if (menu->redirectTo == MENU_GAME) {
-            if (!scene->isInitialized()) return; // Scene must be initialized if were trying to load the game
+            if (!scene->isInitialized()) {
+                SDL_LogError(LOG_MENU_MANAGER, "ERROR: Cannot redirect to GAME as scene is not initialized");
+                return; // Scene must be initialized if were trying to load the game
+            } 
             loadGameEvent = true;
             if (sounds) sounds->playSfx("GAME_START");
             scene->gameUnPausedEvent = true;

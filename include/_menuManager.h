@@ -46,21 +46,39 @@ struct menu_object_config {
     menu_type destination = MENU_NULL;
 };
 
+struct menuManagerContext {
+    _sounds* sounds;
+    _scene* scene;
+
+    bool validate() const {
+        if (!sounds) {
+            SDL_LogError(LOG_MENU_MANAGER, "ERROR: Unable to validate the Sound Manager");
+            return false;
+        }
+        if (!scene) {
+            SDL_LogError(LOG_MENU_MANAGER, "ERROR: Unable to validate the Scene");
+            return false;
+        }
+    }
+};
+
 class _menuManager {
     public:
         _menuManager();
         virtual ~_menuManager();
 
+        void injectContext(const menuManagerContext &context);
+
         /**
+         * injectContext MUST be ran prior to initialization
+         * 
          * Sets up:
          *  - Landing menu
          *  - Home menu
          *  - Help menu
          *  - Pause menu
-         *
-         * @param sounds Shared sound engine used for MENU_HOVER / MENU_CLICK SFX. Non-owning; may be nullptr to disable audio.
          */
-        void initMenuManager(_sounds* sounds, _scene* _scene);
+        void initMenuManager();
 
         // Draw function -- Loads selected menu (or none if inMenu false)
         void drawMenuManager();

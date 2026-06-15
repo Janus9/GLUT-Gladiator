@@ -153,6 +153,9 @@ void handleUpdate() {
 			if (menuManager->unloadWorldEvent) {
 				SDL_LogInfo(LOG_MAIN, "Unload world event");
 				menuManager->unloadWorldEvent = false;
+				gameScene = std::make_unique<_scene>();
+				gameScene->initGL();
+				menuManager->injectContext({ nullptr, gameScene.get() });
 			}
 
 			// Update Menu
@@ -220,7 +223,8 @@ int main(int argc, char *argv[])
 
 
 	menuManager = std::make_unique<_menuManager>();
-	menuManager->initMenuManager(nullptr, gameScene.get());
+	menuManager->injectContext({ nullptr, gameScene.get() });
+	menuManager->initMenuManager();
 	menuManager->loadMenu(MENU_HOME);
 
 	updatePreviousTime = SDL_GetTicksNS();
