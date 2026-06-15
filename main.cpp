@@ -99,70 +99,63 @@ void handleDraw(SDL_Window* window) {
 	SDL_GL_SwapWindow(window);			// Double buffering - Swap buffer
 }
 
-void handleUpdate() {
-	const uint64_t currentTime = SDL_GetTicksNS();
-	const double dt = static_cast<double>(currentTime - updatePreviousTime) / 1000000000.0;	// Delta time (s)
-
-	if (dt >= UPDATE_DELAY) {
-		if (menuManager->getLoadedMenu() == MENU_GAME) {
-			// Load game
-			if (menuManager->loadGameEvent) {
-				SDL_LogInfo(LOG_MAIN, "Entering Game State");
-				gameScene->reSize(wWidth, wHeight);
-				menuManager->loadGameEvent = false;
-			}
-			// Update Game
-			gameScene->updateScene(dt, inputState);
-		} else {
-			// Exit game
-			if (menuManager->closeGameEvent) {
-				SDL_LogInfo(LOG_MAIN, "Close Game Event");
-				menuManager->closeGameEvent = false;
-				running = false;
-			}
-			
-			// Generate World
-			if (menuManager->generateWorldEvent) {
-        		SDL_LogInfo(LOG_MAIN, "Generate World Event");
-				menuManager->generateWorldEvent = false;
-				gameScene->initScene(false);
-			}
-
-			// Load World
-			if (menuManager->loadWorldEvent) {
-        		SDL_LogInfo(LOG_MAIN, "Load World Event");
-				menuManager->loadWorldEvent = false;
-				if (!gameScene->loadSceneFromFile("saves/game")) {
-				    SDL_LogError(LOG_MAIN, "ERROR: Save failed to load correctly");
-				    return;
-				}
-				gameScene->initScene(true);             // Setup scene to load world
-			}	
-
-			// Save World
-			if (menuManager->saveWorldEvent) {
-        		SDL_LogInfo(LOG_MAIN, "Save World Event");
-				menuManager->saveWorldEvent = false;
-				if (!gameScene->saveSceneToFile("saves/game")) {
-				    SDL_LogError(LOG_MAIN, "ERROR: Failed to save game correctly");
-				    return;
-				}
-			}
-
-			// Unload World Event
-			if (menuManager->unloadWorldEvent) {
-				SDL_LogInfo(LOG_MAIN, "Unload world event");
-				menuManager->unloadWorldEvent = false;
-				gameScene = std::make_unique<_scene>();
-				gameScene->initGL();
-				menuManager->injectContext({ nullptr, gameScene.get() });
-			}
-
-			// Update Menu
-			menuManager->updateMenuManager(dt, inputState);
+void handleUpdate(double dt) {
+	if (menuManager->getLoadedMenu() == MENU_GAME) {
+		// Load game
+		if (menuManager->loadGameEvent) {
+			SDL_LogInfo(LOG_MAIN, "Entering Game State");
+			gameScene->reSize(wWidth, wHeight);
+			menuManager->loadGameEvent = false;
+		}
+		// Update Game
+		gameScene->updateScene(dt, inputState);
+	} else {
+		// Exit game
+		if (menuManager->closeGameEvent) {
+			SDL_LogInfo(LOG_MAIN, "Close Game Event");
+			menuManager->closeGameEvent = false;
+			running = false;
+		}
+		
+		// Generate World
+		if (menuManager->generateWorldEvent) {
+			SDL_LogInfo(LOG_MAIN, "Generate World Event");
+			menuManager->generateWorldEvent = false;
+			gameScene->initScene(false);
 		}
 
-		updatePreviousTime = currentTime;
+		// Load World
+		if (menuManager->loadWorldEvent) {
+			SDL_LogInfo(LOG_MAIN, "Load World Event");
+			menuManager->loadWorldEvent = false;
+			if (!gameScene->loadSceneFromFile("saves/game")) {
+				SDL_LogError(LOG_MAIN, "ERROR: Save failed to load correctly");
+				return;
+			}
+			gameScene->initScene(true);             // Setup scene to load world
+		}	
+
+		// Save World
+		if (menuManager->saveWorldEvent) {
+			SDL_LogInfo(LOG_MAIN, "Save World Event");
+			menuManager->saveWorldEvent = false;
+			if (!gameScene->saveSceneToFile("saves/game")) {
+				SDL_LogError(LOG_MAIN, "ERROR: Failed to save game correctly");
+				return;
+			}
+		}
+
+		// Unload World Event
+		if (menuManager->unloadWorldEvent) {
+			SDL_LogInfo(LOG_MAIN, "Unload world event");
+			menuManager->unloadWorldEvent = false;
+			gameScene = std::make_unique<_scene>();
+			gameScene->initGL();
+			menuManager->injectContext({ nullptr, gameScene.get() });
+		}
+
+		// Update Menu
+		menuManager->updateMenuManager(dt, inputState);
 	}
 }
 
@@ -230,11 +223,13 @@ int main(int argc, char *argv[])
 	updatePreviousTime = SDL_GetTicksNS();
 	inputPreviousTime = SDL_GetTicks();
 
+	// -- PRIMARY GAME THREAD -- //
 	running = true;
 	while (running) {
 		SDL_Event event;
 		inputState.mouseWheelY = 0.0f;	// Reset mouse scroll event
-
+		
+		// Input Handling //
 		while (SDL_PollEvent(&event)) {
 			switch (event.type) {
 				// Exit Game //
@@ -245,19 +240,24 @@ int main(int argc, char *argv[])
 				case SDL_EVENT_WINDOW_RESIZED:
 					handleWindowResize(window);
 					break;
+				// Mouse Move //
 				case SDL_EVENT_MOUSE_MOTION:
 					handleMouseMove(event);
 					break;
+				// Mouse Button Down //
 				case SDL_EVENT_MOUSE_BUTTON_DOWN:
 					handleMouseButton(event,true);
 					break;
+				// Mouse Button Up //
 				case SDL_EVENT_MOUSE_BUTTON_UP:
 					handleMouseButton(event,false);
 					break;
+				// Mouse Wheel //
 				case SDL_EVENT_MOUSE_WHEEL:
 					inputState.mouseWheelY = event.wheel.y;
 					gameScene->mouseScrollEvent(inputState);
 					break;
+				// Key Down//
 				case SDL_EVENT_KEY_DOWN: {
 					inputState.keys[event.key.scancode] = true;
 					const uint64_t inputCurrentTime = SDL_GetTicks();
@@ -288,6 +288,7 @@ int main(int argc, char *argv[])
 					}
 					break;
 				}
+				// Key Up //
 				case SDL_EVENT_KEY_UP:
 					inputState.keys[event.key.scancode] = false;
 					break;
@@ -297,12 +298,19 @@ int main(int argc, char *argv[])
 		}
 
 		// UPDATE //
-		handleUpdate();
+		const uint64_t currentTime = SDL_GetTicksNS();
+		const double dt = static_cast<double>(currentTime - updatePreviousTime) / 1000000000.0;	// Delta time (s)
+
+		if (dt >= UPDATE_DELAY) {
+			handleUpdate(dt);
+			updatePreviousTime = currentTime;
+		}
 		
 		// DRAW //
 		handleDraw(window);
     }
 
+	// -- GAME EXIT -- //
 	SDL_Quit();
 
 	return EXIT_SUCCESS;
