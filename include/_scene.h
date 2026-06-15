@@ -109,15 +109,15 @@ class _scene
         float top = 0.0f;
 
         // Player
-        std::unique_ptr<_player> player = std::make_unique<_player>();                        
+        std::unique_ptr<_player> player;                        
         player_action action = PLAYER_ACTION_NULL;
         player_face face = PLAYER_FACE_NULL;
 
         // FOB //
-        std::unique_ptr<_fob> FOB = std::make_unique<_fob>();
+        std::unique_ptr<_fob> FOB;
 
         // Enemies
-        std::unique_ptr<_enemyManager> enemyManager = std::make_unique<_enemyManager>();
+        std::unique_ptr<_enemyManager> enemyManager;
         enemy_config default_turret_config;
         enemy_config gatling_turret_config;
         enemy_config orc_config;
@@ -126,7 +126,7 @@ class _scene
         enemy_config vampire_minion2_config;
         
         // Bullets (Projectiles)
-        std::unique_ptr<_bulletManager> bulletManager = std::make_unique<_bulletManager>();
+        std::unique_ptr<_bulletManager> bulletManager;
         _bullet_config player_bullet;
         _bullet_config turret_bullet;
         _bullet_config gatling_bullet;
@@ -138,12 +138,12 @@ class _scene
 
         // Texture Manager //
         void setupTextures();   // Sets up game texture assets via a TOML config file "configs/texture.toml"
-        std::unique_ptr<_textureManager> textureManager = std::make_unique<_textureManager>();
+        std::unique_ptr<_textureManager> textureManager;
 
         _lightSettings *myLight = new _lightSettings();     
         _model* myModel = new _model();
 
-        std::unique_ptr<_world> myWorld = std::make_unique<_world>();
+        std::unique_ptr<_world> myWorld;
 
         _unit* testUnit = new _unit();
 
@@ -162,7 +162,7 @@ class _scene
         _shader* sh = new _shader();
 
         // Pickups //
-        std::unique_ptr<_pickupManager> pickupManager = std::make_unique<_pickupManager>();
+        std::unique_ptr<_pickupManager> pickupManager;
         pickup_config health_pickup;
         pickup_config ammo_pickup;
         pickup_config speed_pickup;
@@ -240,7 +240,7 @@ class _scene
         glm::mat4 sceneViewProjectionMatrix;
 
         // Lighting //
-        std::unique_ptr<_lightManager> lightManager = std::make_unique<_lightManager>();
+        std::unique_ptr<_lightManager> lightManager;
         light_config player_light;
         light_config boss_light;
         light_config fob_light;

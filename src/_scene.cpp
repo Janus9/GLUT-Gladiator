@@ -5,6 +5,16 @@ _scene::_scene() : rng(std::random_device{}())
     if (!loadWorldConfig("configs/world.toml",world_configuration)) {
         std::cerr << "ERROR loading configuration file for [world.toml], please check logs for errors\n";
     }
+
+    ParticleEngine = std::make_unique<particles::Engine>();
+    bulletManager = std::make_unique<_bulletManager>();
+    enemyManager = std::make_unique<_enemyManager>();
+    FOB = std::make_unique<_fob>();
+    player = std::make_unique<_player>();
+    myWorld = std::make_unique<_world>();
+    pickupManager = std::make_unique<_pickupManager>();
+    lightManager = std::make_unique<_lightManager>();
+    textureManager = std::make_unique<_textureManager>();
 }
 
 _scene::~_scene()
@@ -76,7 +86,6 @@ void _scene::initScene(bool loadWorld)
     if (!loadWorld) setupTextures();
 
     // Particle Manager //
-    ParticleEngine = std::make_unique<particles::Engine>();
     ParticleEngine->init({textureManager.get(), lightManager.get()});
 
     inputTimer.reset();
@@ -623,6 +632,7 @@ std::        uniform_real_distribution<float> orc_pos_dist(-orcBounds, orcBounds
 
     // player->setAction(PLAYER_ACTION_IDLE_GUN, PLAYER_FACE_S);
 
+    SDL_LogInfo(LOG_SCENE, "Scene has been initialized");
     sceneInitialized = true;
 }
 
