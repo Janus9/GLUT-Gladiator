@@ -129,7 +129,7 @@ waveFrequencyMax = 0.0
 [[particles]]
 id = "test_2"
 
-particleCount = 45
+particleCount = 25
 
 # Animation
 texturePath = "images/particles/explosion.png"
