@@ -253,7 +253,7 @@ int main(int argc, char *argv[])
 				case SDL_EVENT_KEY_UP:
 					inputState.keys[event.key.scancode] = false;
 					break;
-				default:`
+				default:
 					break;
 			}
 		}
