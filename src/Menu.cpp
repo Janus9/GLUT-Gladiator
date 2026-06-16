@@ -265,62 +265,62 @@ namespace menu {
     }
     
     void Manager::update(double dt, const InputState &inputState) {
-        Page* page = &pageList[selectedPage];
+        Page &page = pageList[selectedPage];
         mouseScreenClipPosition = inputState.mouseScreenClipPos;
     
-        page->update(dt,inputState,sounds);
-    
-        // Generate World Event
-        if (page->generateWorldEvent) {
-            SDL_LogInfo(LOG_MENU_MANAGER, "Generate world event");
-            page->generateWorldEvent = false;
-            generateWorldEvent = true;
-        }
+        page.update(dt,inputState,sounds);
         
-        // Load World Event
-        if (page->loadWorldEvent) {
-            SDL_LogInfo(LOG_MENU_MANAGER, "Load world event");
-            page->loadWorldEvent = false;
-            loadWorldEvent = true;
-        }
-    
-        // Save Game Event
-        if (page->saveGameEvent) {
-            SDL_LogInfo(LOG_MENU_MANAGER, "Save world event");
-            page->saveGameEvent = false;
-            saveWorldEvent = true;
-        }
-    
-        // End Game Event
-        if (page->endGameEvent) {
-            SDL_LogInfo(LOG_MENU_MANAGER, "End game event");
-            page->endGameEvent = false;
-            closeGameEvent = true;
-        }
-    
-        // Unload World Event
-        if (page->unloadWorldEvent) {
-            SDL_LogInfo(LOG_MENU_MANAGER, "Unload world event");
-            page->unloadWorldEvent = false;
-            unloadWorldEvent = true;
-    
-        }
-    
-        if (page->redirectTo != PAGE_NULL) {
-            const type targetPage = page->redirectTo;
-            page->redirectTo = PAGE_NULL;   // Reset page redirection state
-            SDL_LogDebug(LOG_MENU_MANAGER, "Redirecting to page: %i", static_cast<int>(targetPage));
-            if (targetPage == PAGE_GAME) {
-                if (!scene->isInitialized()) {
-                    SDL_LogError(LOG_MENU_MANAGER, "ERROR: Cannot redirect to GAME as scene is not initialized");
-                    return; // Scene must be initialized if were trying to load the game
-                } 
-                loadGameEvent = true;
-                if (sounds) sounds->playSfx("GAME_START");
-                scene->gameUnPausedEvent = true;
-                // if (sounds) sounds->playBackgroundMusic("sounds/gameplay_music.wav", 0.2f);
+        // // Move event from page event queue to the manager to enact it
+        // if (!page.eventQueue.empty()) {
+        //     eventQueue.push(page.eventQueue.front());
+        //     page.eventQueue.pop();
+        // }
+        
+        // Events are not destroyed here, main.cpp must handle them
+        if (!page.eventQueue.empty()) {
+            Event &event = page.eventQueue.front();
+
+            SDL_LogDebug(LOG_MENU_MANAGER, "Loaded event: %s from the event queue",event.ID.c_str());
+
+            // Generate World Event
+            if (event.ID == "saves_generate_button") {
+                SDL_LogInfo(LOG_MENU_MANAGER, "Generate world event");
+                generateWorldEvent = true;
+            // Load World Event
+            } else if (event.ID == "saves_load_button") {
+                SDL_LogInfo(LOG_MENU_MANAGER, "Load world event");
+                loadWorldEvent = true;
+            // Save Game Event
+            } else if (event.ID == "pause_save_button") {
+                SDL_LogInfo(LOG_MENU_MANAGER, "Save world event");
+                saveWorldEvent = true;
+            // End Game Event
+            } else if (event.ID == "exit_game_button") {
+                SDL_LogInfo(LOG_MENU_MANAGER, "End game event");
+                closeGameEvent = true;
+            // Unload World Event
+            } else if (event.ID == "pause_menu_button") {
+                SDL_LogInfo(LOG_MENU_MANAGER, "Unload world event");
+                unloadWorldEvent = true;
             }
-            loadPage(targetPage);     // Load page
+
+            if (event.redirectTo != PAGE_NULL) {
+                const type targetPage = event.redirectTo;
+                SDL_LogDebug(LOG_MENU_MANAGER, "Redirecting to page: %i", static_cast<int>(targetPage));
+                if (targetPage == PAGE_GAME) {
+                    if (!scene->isInitialized()) {
+                        SDL_LogError(LOG_MENU_MANAGER, "ERROR: Cannot redirect to GAME as scene is not initialized");
+                        return; // Scene must be initialized if were trying to load the game
+                    } 
+                    loadGameEvent = true;
+                    if (sounds) sounds->playSfx("GAME_START");
+                    scene->gameUnPausedEvent = true;
+                    // if (sounds) sounds->playBackgroundMusic("sounds/gameplay_music.wav", 0.2f);
+                }
+                loadPage(targetPage);     // Load page
+            }
+
+            page.eventQueue.pop(); // Remove the event
         }
     }
     
@@ -595,19 +595,13 @@ namespace menu {
             }
             if (renderObject->getMouseState() && inputState.LMB && timeSinceRedirect > 0.5) {
                 SDL_LogDebug(LOG_MENU_MANAGER, "Mouse clicked on ID: %s", renderObject->getID().c_str());
-                if (renderObject->getID() == "saves_generate_button") {
-                    generateWorldEvent = true;
-                } else if (renderObject->getID() == "saves_load_button") {
-                    loadWorldEvent = true;
-                } else if (renderObject->getID() == "pause_save_button") {
-                    saveGameEvent = true;
-                } else if (renderObject->getID() == "exit_game_button") {
-                    endGameEvent = true;
-                } else if (renderObject->getID() == "pause_menu_button") {
-                    unloadWorldEvent = true;
-                }
-                if (sounds) sounds->playSfx("MENU_CLICK");
-                redirectTo = renderObject->getDestination();
+                
+                Event event {
+                    .ID = renderObject->getID(),
+                    .redirectTo = renderObject->getDestination()
+                };
+                eventQueue.push(event);
+
                 timeSinceRedirect = 0.0;
             }
         }

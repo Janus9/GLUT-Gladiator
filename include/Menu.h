@@ -6,6 +6,7 @@
 #include <_shader.h>
 #include <_sounds.h>
 #include <_scene.h>
+#include <queue>
 
 // Math library for matrices and vectors etc -- https://github.com/g-truc/glm
 #include <glm/glm.hpp>
@@ -29,6 +30,11 @@ namespace menu {
         PAGE_LOOSE,
         PAGE_INFO,
         PAGE_COUNT // DO NOT MOVE -- KEEP AT BACK
+    };
+    
+    struct Event {
+        std::string ID;
+        type redirectTo; 
     };
     
     /**
@@ -129,7 +135,7 @@ namespace menu {
                     // Draw function for a given page
                     void draw(const Vec2i &wDim);
     
-                    // Update Menu Object
+                    // Update Render Object
                     void update(double dt, const InputState &inputState);
                     
                     // Returns true if mouse is hovering the object
@@ -214,24 +220,25 @@ namespace menu {
                     // Update page
                     void update(double dt, const InputState &inputState, _sounds* sounds);
                     
-                    type redirectTo = PAGE_NULL;   // If not null will redirect on next update by Manager
-    
                     bool generateWorldEvent = false;
                     bool loadWorldEvent = false;
                     bool saveGameEvent = false;
                     bool endGameEvent = false;
                     bool unloadWorldEvent = false;
     
+                    std::queue<Event> eventQueue;   // Since the page class is private, its ok for event queue to be public
                 protected:
                 private:
-                    std::vector<std::unique_ptr<RenderObject>> renderObjects;
-    
+                    std::vector<std::unique_ptr<RenderObject>> renderObjects;   
+
                     type type;
     
                     double timeSinceRedirect = 0.0; // Timer to prevent redirect spamming
             };
     
+            std::queue<Event> eventQueue; 
             Page pageList[PAGE_COUNT]; // List of pages up to COUNT amount
+
             type selectedPage = PAGE_LANDING;
     
             _sounds* sounds = nullptr;  // Non-owning; 
