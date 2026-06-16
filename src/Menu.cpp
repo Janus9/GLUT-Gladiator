@@ -274,7 +274,6 @@ namespace menu {
         // Events are not destroyed here, main.cpp must handle them
         if (!page.eventQueue.empty()) {
             Event &event = page.eventQueue.front();
-
             SDL_LogDebug(LOG_MENU_MANAGER, "Loaded event: %s from the event queue",event.ID.c_str());
 
             // Handle event callback onto main.cpp
@@ -286,17 +285,6 @@ namespace menu {
                 const type targetPage = event.redirectTo;
                 SDL_LogDebug(LOG_MENU_MANAGER, "Redirecting to page: %i", static_cast<int>(targetPage));
                
-                // if (targetPage == PAGE_GAME) {
-                //     if (!scene->isInitialized()) {
-                //         SDL_LogError(LOG_MENU_MANAGER, "ERROR: Cannot redirect to GAME as scene is not initialized");
-                //         return; // Scene must be initialized if were trying to load the game
-                //     } 
-                //     loadGameEvent = true;
-                //     if (sounds) sounds->playSfx("GAME_START");
-                //     scene->gameUnPausedEvent = true;
-                //     // if (sounds) sounds->playBackgroundMusic("sounds/gameplay_music.wav", 0.2f);
-                // }
-
                 loadPage(targetPage);     // Load page
             }
 
