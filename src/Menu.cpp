@@ -17,6 +17,7 @@ namespace menu {
         }
         sounds = context.sounds;
         scene = context.scene;
+        eventCallback = context.callback;
     }
     
     void Manager::init() {
@@ -270,38 +271,15 @@ namespace menu {
     
         page.update(dt,inputState,sounds);
         
-        // // Move event from page event queue to the manager to enact it
-        // if (!page.eventQueue.empty()) {
-        //     eventQueue.push(page.eventQueue.front());
-        //     page.eventQueue.pop();
-        // }
-        
         // Events are not destroyed here, main.cpp must handle them
         if (!page.eventQueue.empty()) {
             Event &event = page.eventQueue.front();
 
             SDL_LogDebug(LOG_MENU_MANAGER, "Loaded event: %s from the event queue",event.ID.c_str());
 
-            // Generate World Event
-            if (event.ID == "saves_generate_button") {
-                SDL_LogInfo(LOG_MENU_MANAGER, "Generate world event");
-                generateWorldEvent = true;
-            // Load World Event
-            } else if (event.ID == "saves_load_button") {
-                SDL_LogInfo(LOG_MENU_MANAGER, "Load world event");
-                loadWorldEvent = true;
-            // Save Game Event
-            } else if (event.ID == "pause_save_button") {
-                SDL_LogInfo(LOG_MENU_MANAGER, "Save world event");
-                saveWorldEvent = true;
-            // End Game Event
-            } else if (event.ID == "exit_game_button") {
-                SDL_LogInfo(LOG_MENU_MANAGER, "End game event");
-                closeGameEvent = true;
-            // Unload World Event
-            } else if (event.ID == "pause_menu_button") {
-                SDL_LogInfo(LOG_MENU_MANAGER, "Unload world event");
-                unloadWorldEvent = true;
+            // Handle event callback onto main.cpp
+            if (eventCallback) {
+                eventCallback(event);
             }
 
             if (event.redirectTo != PAGE_NULL) {

@@ -8,6 +8,8 @@
 #include <Menu.h>
 #include <_sounds.h>         // Shared audio engine (owned here, not by _scene)
 
+#include <functional>
+
 // DEFINES //
 
 constexpr double UPDATE_DELAY = (1.0 / 60.0); // Delay in seconds for 60 updates per second
@@ -99,6 +101,54 @@ void handleDraw(SDL_Window* window) {
 	SDL_GL_SwapWindow(window);			// Double buffering - Swap buffer
 }
 
+void menuEventHandler(const menu::Event &event) {
+	SDL_LogInfo(LOG_MAIN, "Event callback called for event: %s", event.ID.c_str());
+
+	// Exit game
+	if (event.ID == "exit_game_button") {
+		SDL_LogInfo(LOG_MAIN, "Close Game Event");
+		running = false;
+	}
+	
+	// Generate World
+	if (event.ID == "saves_generate_button") {
+		SDL_LogInfo(LOG_MAIN, "Generate World Event");
+		gameScene->initScene(false);
+	}
+
+	// Load World
+	if (event.ID == "saves_load_button") {
+		SDL_LogInfo(LOG_MAIN, "Load World Event");
+		if (!gameScene->loadSceneFromFile("saves/game")) {
+			SDL_LogError(LOG_MAIN, "ERROR: Save failed to load correctly");
+			return;
+		}
+		gameScene->initScene(true);             // Setup scene to load world
+	}	
+
+	// Save World
+	if (event.ID == "pause_save_button") {
+		SDL_LogInfo(LOG_MAIN, "Save World Event");
+		if (!gameScene->saveSceneToFile("saves/game")) {
+			SDL_LogError(LOG_MAIN, "ERROR: Failed to save game correctly");
+			return;
+		}
+	}
+
+	// Unload World Event
+	if (event.ID == "pause_menu_button") {
+		SDL_LogInfo(LOG_MAIN, "Unload world event");
+		gameScene = std::make_unique<_scene>();
+		gameScene->initGL();
+		auto callback = menuEventHandler;
+		menuManager->injectContext({ 
+			nullptr, 
+			gameScene.get(), 
+			callback 
+		});
+	}
+}
+
 void handleUpdate(double dt) {
 	// In Game Update //
 	if (menuManager->getLoadedPage() == menu::PAGE_GAME) {
@@ -112,49 +162,7 @@ void handleUpdate(double dt) {
 		gameScene->updateScene(dt, inputState);
 	} else {
 	// In Menu Update //
-		// Exit game
-		if (menuManager->closeGameEvent) {
-			SDL_LogInfo(LOG_MAIN, "Close Game Event");
-			menuManager->closeGameEvent = false;
-			running = false;
-		}
 		
-		// Generate World
-		if (menuManager->generateWorldEvent) {
-			SDL_LogInfo(LOG_MAIN, "Generate World Event");
-			menuManager->generateWorldEvent = false;
-			gameScene->initScene(false);
-		}
-
-		// Load World
-		if (menuManager->loadWorldEvent) {
-			SDL_LogInfo(LOG_MAIN, "Load World Event");
-			menuManager->loadWorldEvent = false;
-			if (!gameScene->loadSceneFromFile("saves/game")) {
-				SDL_LogError(LOG_MAIN, "ERROR: Save failed to load correctly");
-				return;
-			}
-			gameScene->initScene(true);             // Setup scene to load world
-		}	
-
-		// Save World
-		if (menuManager->saveWorldEvent) {
-			SDL_LogInfo(LOG_MAIN, "Save World Event");
-			menuManager->saveWorldEvent = false;
-			if (!gameScene->saveSceneToFile("saves/game")) {
-				SDL_LogError(LOG_MAIN, "ERROR: Failed to save game correctly");
-				return;
-			}
-		}
-
-		// Unload World Event
-		if (menuManager->unloadWorldEvent) {
-			SDL_LogInfo(LOG_MAIN, "Unload world event");
-			menuManager->unloadWorldEvent = false;
-			gameScene = std::make_unique<_scene>();
-			gameScene->initGL();
-			menuManager->injectContext({ nullptr, gameScene.get() });
-		}
 
 		// Update Menu
 		menuManager->update(dt, inputState);
@@ -218,7 +226,13 @@ int main(int argc, char *argv[])
 
 
 	menuManager = std::make_unique<menu::Manager>();
-	menuManager->injectContext({ nullptr, gameScene.get() });
+
+	auto callback = menuEventHandler;
+	menuManager->injectContext({ 
+		nullptr, 
+		gameScene.get(), 
+		callback
+	});
 	menuManager->init();
 	menuManager->loadPage(menu::PAGE_HOME);
 

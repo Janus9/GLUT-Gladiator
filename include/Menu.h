@@ -6,7 +6,9 @@
 #include <_shader.h>
 #include <_sounds.h>
 #include <_scene.h>
+
 #include <queue>
+#include <functional>
 
 // Math library for matrices and vectors etc -- https://github.com/g-truc/glm
 #include <glm/glm.hpp>
@@ -57,6 +59,7 @@ namespace menu {
     struct Context {
         _sounds* sounds;
         _scene* scene;
+        const std::function<void(const Event&)> &callback;
     
         bool validate() const {
             if (!sounds) {
@@ -65,6 +68,10 @@ namespace menu {
             }
             if (!scene) {
                 SDL_LogError(LOG_MENU_MANAGER, "ERROR: Unable to validate the Scene");
+                return false;
+            }
+            if (!callback) {
+                SDL_LogError(LOG_MENU_MANAGER, "ERROR: Unable to validate the event callback");
                 return false;
             }
         }
@@ -220,12 +227,6 @@ namespace menu {
                     // Update page
                     void update(double dt, const InputState &inputState, _sounds* sounds);
                     
-                    bool generateWorldEvent = false;
-                    bool loadWorldEvent = false;
-                    bool saveGameEvent = false;
-                    bool endGameEvent = false;
-                    bool unloadWorldEvent = false;
-    
                     std::queue<Event> eventQueue;   // Since the page class is private, its ok for event queue to be public
                 protected:
                 private:
@@ -236,7 +237,8 @@ namespace menu {
                     double timeSinceRedirect = 0.0; // Timer to prevent redirect spamming
             };
     
-            std::queue<Event> eventQueue; 
+            std::function<void(const Event&)> eventCallback;
+
             Page pageList[PAGE_COUNT]; // List of pages up to COUNT amount
 
             type selectedPage = PAGE_LANDING;
