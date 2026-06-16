@@ -13,40 +13,41 @@
 #include <glm/gtc/type_ptr.hpp>
 
 namespace menu {
+
+    /**
+     * Type of page enum
+     */
     enum type {
-        MENU_NULL,
-        MENU_GAME, // Load game instead of menu
-        MENU_LANDING,
-        MENU_HOME,
-        MENU_HELP,
-        MENU_PAUSE,
-        MENU_SAVES,
-        MENU_WIN,
-        MENU_LOOSE,
-        MENU_INFO,
-        MENU_COUNT // DO NOT MOVE -- KEEP AT BACK
+        PAGE_NULL,
+        PAGE_GAME,      // Load game instead of menu
+        PAGE_LANDING,
+        PAGE_HOME,
+        PAGE_HELP,
+        PAGE_PAUSE,
+        PAGE_SAVES,
+        PAGE_WIN,
+        PAGE_LOOSE,
+        PAGE_INFO,
+        PAGE_COUNT // DO NOT MOVE -- KEEP AT BACK
     };
     
     /**
-     * @param fileName Filename for image
-     * @param size Size in % from 0-1 (Ex/ 0.5 is 50%)
-     * @param pos Position of center (bottom-left is (0,0) and top right is (1,1))
-     * @param hasMouseState Condition if object reacts to mouse or not (disable for backgrounds)
-     * @param ID Unique std::string ID to lookup object by
-     * @param parent Which menu owns this object
-     * @param destination Which menu should we redirect to on mouse event? (Leave as MENU_NULL if no redirection)
+     * Configuration struct for a page
      */
     struct RenderObjectConfig {
-        std::string fileName;
-        Vec2f size;
-        Vec2f pos;
-        bool hasMouseState;
-    
-        std::string ID;
-        type parent;
-        type destination = MENU_NULL;
+        std::string fileName;               /// Image path
+        Vec2f size;                         /// Size in % from 0-1 (Ex/ 0.5 is 50%)
+        Vec2f pos;                          /// Position of center (bottom-left is (0,0) and top right is (1,1))
+        bool hasMouseState;                 /// Condition if object reacts to mouse or not (disable for backgrounds)
+
+        std::string ID;                     /// Unique string ID for lookups
+        type parent;                        /// Which page owns this object
+        type destination = PAGE_NULL;       /// Which page should we redirect to on mouse event? (Leave as PAGE_NULL if no redirection)
     };
     
+    /**
+     * Context injection
+     */
     struct Context {
         _sounds* sounds;
         _scene* scene;
@@ -63,6 +64,9 @@ namespace menu {
         }
     };
     
+    /**
+     * Manages the all the pages update/draw etc 
+     */
     class Manager {
         public:
             Manager();
@@ -74,14 +78,14 @@ namespace menu {
              * injectContext MUST be ran prior to initialization
              * 
              * Sets up:
-             *  - Landing menu
-             *  - Home menu
-             *  - Help menu
-             *  - Pause menu
+             *  - Landing page
+             *  - Home page
+             *  - Help page
+             *  - Pause page
              */
             void init();
     
-            // Draw function -- Loads selected menu (or none if inMenu false)
+            // Draw function -- Loads selected page (or none if inMenu false)
             void draw(const Vec2i &dim);
     
             /**
@@ -90,7 +94,7 @@ namespace menu {
              */
             void update(double dt, const InputState &inputState);
     
-            // Loads a given menu
+            // Loads a given page
             void loadPage(type type);
     
             Vec2f getMousePosition() const;
@@ -107,9 +111,9 @@ namespace menu {
         protected:
         private:
             /**
-             * Menu Object
+             * Render Object
              * 
-             * Holds data for rendering an object inside a menu
+             * Holds data for rendering an object inside a page
              *  - Position
              *  - Size
              *  - Texture
@@ -119,10 +123,10 @@ namespace menu {
                     RenderObject();
                     virtual ~RenderObject();
     
-                    // Initializes a menu object from the given config
+                    // Initializes a page object from the given config
                     void init(const RenderObjectConfig &config);
     
-                    // Draw function for a given menu
+                    // Draw function for a given page
                     void draw(const Vec2i &wDim);
     
                     // Update Menu Object
@@ -137,10 +141,10 @@ namespace menu {
                     // Returns the ID of the object
                     std::string getID() const;
     
-                    // Get parent of the menu object
+                    // Get parent of the page object
                     type getParent() const;
     
-                    // Get redirection destination of the menu
+                    // Get redirection destination of the page
                     type getDestination() const;
     
                     bool operator==(const RenderObject &other) const; 
@@ -177,13 +181,13 @@ namespace menu {
             };
     
             /**
-             * Menu Class
+             * Page Class
              * 
-             * Handles a menu containing
+             * Handles a page containing
              *  - Background
              *  - Buttons (with effects + input handling)
              * 
-             *  Composed of menu objects.
+             *  Composed of page objects.
              */
             class Page {
                 public:
@@ -210,7 +214,7 @@ namespace menu {
                     // Update page
                     void update(double dt, const InputState &inputState, _sounds* sounds);
                     
-                    type redirectTo = MENU_NULL;   // If not null will redirect on next update by Manager
+                    type redirectTo = PAGE_NULL;   // If not null will redirect on next update by Manager
     
                     bool generateWorldEvent = false;
                     bool loadWorldEvent = false;
@@ -227,11 +231,11 @@ namespace menu {
                     double timeSinceRedirect = 0.0; // Timer to prevent redirect spamming
             };
     
-            Page pageList[MENU_COUNT]; // List of menus up to COUNT amount
-            type selectedPage = MENU_LANDING;
+            Page pageList[PAGE_COUNT]; // List of pages up to COUNT amount
+            type selectedPage = PAGE_LANDING;
     
-            _sounds* sounds = nullptr; // Non-owning; provided by main via initMenuManager
-            _scene* scene = nullptr; // Non-owning; provided by main via initMenuManager
+            _sounds* sounds = nullptr;  // Non-owning; 
+            _scene* scene = nullptr;    // Non-owning; 
     
             Vec2f mouseScreenClipPosition;
     };

@@ -27,236 +27,236 @@ namespace menu {
         }
     
         //  -- Landing --  //
-        pageList[MENU_LANDING].init(MENU_LANDING);
-        pageList[MENU_LANDING].addRenderObject({
+        pageList[PAGE_LANDING].init(PAGE_LANDING);
+        pageList[PAGE_LANDING].addRenderObject({
             "images/menu/landing_page.png",
             {1.0f, 1.0f},
             {0.5f, 0.5f},
             false,
             "landing_bg",
-            MENU_LANDING,
-            MENU_NULL
+            PAGE_LANDING,
+            PAGE_NULL
         });
-        pageList[MENU_LANDING].addRenderObject({
+        pageList[PAGE_LANDING].addRenderObject({
             "images/menu/continue_button.png",
             {0.2f, 0.2f},
             {0.5f, 0.2f},
             true,
             "landing_continue_button",
-            MENU_LANDING,
-            MENU_HOME
+            PAGE_LANDING,
+            PAGE_HOME
         });
     
         // -- Home -- //
-        pageList[MENU_HOME].init(MENU_HOME);
-        pageList[MENU_HOME].addRenderObject({
+        pageList[PAGE_HOME].init(PAGE_HOME);
+        pageList[PAGE_HOME].addRenderObject({
             "images/menu/home_page.png",
             {1.0f, 1.0f},
             {0.5f, 0.5f},
             false,
             "home_bg",
-            MENU_HOME,
-            MENU_NULL
+            PAGE_HOME,
+            PAGE_NULL
         });
-        pageList[MENU_HOME].addRenderObject({
+        pageList[PAGE_HOME].addRenderObject({
             "images/menu/play_button.png",
             {0.2f, 0.2f},
             {0.75f, 0.2f},
             true,
             "home_start_button",
-            MENU_HOME,
-            MENU_SAVES
+            PAGE_HOME,
+            PAGE_SAVES
         });
-        pageList[MENU_HOME].addRenderObject({
+        pageList[PAGE_HOME].addRenderObject({
             "images/menu/help_button.png",
             {0.2f, 0.2f},
             {0.25f, 0.2f},
             true,
             "home_help_button",
-            MENU_HOME,
-            MENU_HELP
+            PAGE_HOME,
+            PAGE_HELP
         });
-        // pageList[MENU_HOME].addRenderObject({
+        // pageList[PAGE_HOME].addRenderObject({
         //     "images/menu/landing_button.png",
         //     {0.2f, 0.2f},
         //     {0.85f, 0.2f},
         //     true,
         //     "home_landing_button",
-        //     MENU_HOME,
-        //     MENU_LANDING
+        //     PAGE_HOME,
+        //     PAGE_LANDING
         // });
     
         // -- Saves -- //
-        pageList[MENU_SAVES].init(MENU_SAVES);
-        pageList[MENU_SAVES].addRenderObject({
+        pageList[PAGE_SAVES].init(PAGE_SAVES);
+        pageList[PAGE_SAVES].addRenderObject({
             "images/menu/landing_page.png",
             {1.0f, 1.0f},
             {0.5f, 0.5f},
             false,
             "saves_bg",
-            MENU_SAVES,
-            MENU_NULL
+            PAGE_SAVES,
+            PAGE_NULL
         });
-        pageList[MENU_SAVES].addRenderObject({
+        pageList[PAGE_SAVES].addRenderObject({
             "images/menu/new_game_button.png",
             {0.2f, 0.2f},
             {0.15f, 0.2f},
             true,
             "saves_generate_button",
-            MENU_SAVES,
-            MENU_INFO
+            PAGE_SAVES,
+            PAGE_INFO
         });
-        pageList[MENU_SAVES].addRenderObject({
+        pageList[PAGE_SAVES].addRenderObject({
             "images/menu/load_game_button.png",
             {0.2f, 0.2f},
             {0.85f, 0.2f},
             true,
             "saves_load_button",
-            MENU_SAVES,
-            MENU_INFO
+            PAGE_SAVES,
+            PAGE_INFO
         });
     
         // -- Help -- //
-        pageList[MENU_HELP].init(MENU_HELP);
-        pageList[MENU_HELP].addRenderObject({
+        pageList[PAGE_HELP].init(PAGE_HELP);
+        pageList[PAGE_HELP].addRenderObject({
             "images/menu/help_page.png",
             {1.0f, 1.0f},
             {0.5f, 0.5f},
             false,
             "help_bg",
-            MENU_HELP,
-            MENU_NULL
+            PAGE_HELP,
+            PAGE_NULL
         });
-        pageList[MENU_HELP].addRenderObject({
+        pageList[PAGE_HELP].addRenderObject({
             "images/menu/back_button.png",
             {0.2f, 0.2f},
             {0.5f, 0.2f},
             true,
             "help_back_button",
-            MENU_HELP,
-            MENU_HOME
+            PAGE_HELP,
+            PAGE_HOME
         });
     
         // -- Pause -- //
-        pageList[MENU_PAUSE].init(MENU_PAUSE);
-        pageList[MENU_PAUSE].addRenderObject({
+        pageList[PAGE_PAUSE].init(PAGE_PAUSE);
+        pageList[PAGE_PAUSE].addRenderObject({
             "images/menu/help_page.png",
             {1.0f, 1.0f},
             {0.5f, 0.5f},
             false,
             "help_bg",
-            MENU_PAUSE,
-            MENU_NULL
+            PAGE_PAUSE,
+            PAGE_NULL
         });
-        pageList[MENU_PAUSE].addRenderObject({
+        pageList[PAGE_PAUSE].addRenderObject({
             "images/menu/continue_button.png",
             {0.2f, 0.2f},
             {0.60f, 0.2f},
             true,
             "pause_continue_button",
-            MENU_PAUSE,
-            MENU_GAME
+            PAGE_PAUSE,
+            PAGE_GAME
         });
-        pageList[MENU_PAUSE].addRenderObject({
+        pageList[PAGE_PAUSE].addRenderObject({
             "images/menu/menu_button.png",
             {0.2f, 0.2f},
             {0.8f, 0.2f},
             true,
             "pause_menu_button",
-            MENU_PAUSE,
-            MENU_HOME
+            PAGE_PAUSE,
+            PAGE_HOME
         });
-        pageList[MENU_PAUSE].addRenderObject({
+        pageList[PAGE_PAUSE].addRenderObject({
             "images/menu/save_button.png",
             {0.2f, 0.2f},
             {0.6f, 0.5f},
             true,
             "pause_save_button",
-            MENU_PAUSE,
-            MENU_NULL
+            PAGE_PAUSE,
+            PAGE_NULL
         });
     
-        pageList[MENU_PAUSE].addRenderObject({
+        pageList[PAGE_PAUSE].addRenderObject({
             "images/menu/exit_game_button.png",
             {0.2f, 0.2f},
             {0.8f, 0.5f},
             true,
             "exit_game_button",
-            MENU_PAUSE,
-            MENU_NULL
+            PAGE_PAUSE,
+            PAGE_NULL
         });
     
-        pageList[MENU_PAUSE].addRenderObject({
+        pageList[PAGE_PAUSE].addRenderObject({
             "images/menu/info_button.png",
             {0.2f, 0.2f},
             {0.5f, 0.8f},
             true,
             "pause_info_button",
-            MENU_PAUSE,
-            MENU_INFO
+            PAGE_PAUSE,
+            PAGE_INFO
         });
     
         // -- WIN -- //
-        pageList[MENU_WIN].init(MENU_WIN);
-        pageList[MENU_WIN].addRenderObject({
+        pageList[PAGE_WIN].init(PAGE_WIN);
+        pageList[PAGE_WIN].addRenderObject({
             "images/menu/win_page.png",
             {1.0f, 1.0f},
             {0.5f, 0.5f},
             false,
             "win_bg",
-            MENU_WIN,
-            MENU_NULL
+            PAGE_WIN,
+            PAGE_NULL
         });
-        pageList[MENU_WIN].addRenderObject({
+        pageList[PAGE_WIN].addRenderObject({
             "images/menu/exit_game_button.png",
             {0.2f, 0.2f},
             {0.6f, 0.1f},
             true,
             "exit_game_button",
-            MENU_WIN,
-            MENU_NULL
+            PAGE_WIN,
+            PAGE_NULL
         });
     
         // -- LOOSE -- //
-        pageList[MENU_LOOSE].init(MENU_LOOSE);
-        pageList[MENU_LOOSE].addRenderObject({
+        pageList[PAGE_LOOSE].init(PAGE_LOOSE);
+        pageList[PAGE_LOOSE].addRenderObject({
             "images/menu/loose_page.png",
             {1.0f, 1.0f},
             {0.5f, 0.5f},
             false,
             "loose_bg",
-            MENU_LOOSE,
-            MENU_NULL
+            PAGE_LOOSE,
+            PAGE_NULL
         });
-        pageList[MENU_LOOSE].addRenderObject({
+        pageList[PAGE_LOOSE].addRenderObject({
             "images/menu/loose_game_button.png",
             {0.2f, 0.2f},
             {0.65f, 0.1f},
             true,
             "exit_game_button",
-            MENU_LOOSE,
-            MENU_NULL
+            PAGE_LOOSE,
+            PAGE_NULL
         });
     
         // -- INFO -- //
-        pageList[MENU_INFO].init(MENU_INFO);
-        pageList[MENU_INFO].addRenderObject({
+        pageList[PAGE_INFO].init(PAGE_INFO);
+        pageList[PAGE_INFO].addRenderObject({
             "images/menu/intro_page.png",
             {1.0f, 1.0f},
             {0.5f, 0.5f},
             false,
             "info_bg",
-            MENU_INFO,
-            MENU_NULL
+            PAGE_INFO,
+            PAGE_NULL
         });
-        pageList[MENU_INFO].addRenderObject({
+        pageList[PAGE_INFO].addRenderObject({
             "images/menu/continue_button.png",
             {0.15f, 0.10f},
             {0.5f, 0.09f},
             true,
             "info_continue_button",
-            MENU_INFO,
-            MENU_GAME
+            PAGE_INFO,
+            PAGE_GAME
         });
     }
     
@@ -306,11 +306,11 @@ namespace menu {
     
         }
     
-        if (page->redirectTo != MENU_NULL) {
+        if (page->redirectTo != PAGE_NULL) {
             const type targetPage = page->redirectTo;
-            page->redirectTo = MENU_NULL;   // Reset page redirection state
+            page->redirectTo = PAGE_NULL;   // Reset page redirection state
             SDL_LogDebug(LOG_MENU_MANAGER, "Redirecting to page: %i", static_cast<int>(targetPage));
-            if (targetPage == MENU_GAME) {
+            if (targetPage == PAGE_GAME) {
                 if (!scene->isInitialized()) {
                     SDL_LogError(LOG_MENU_MANAGER, "ERROR: Cannot redirect to GAME as scene is not initialized");
                     return; // Scene must be initialized if were trying to load the game

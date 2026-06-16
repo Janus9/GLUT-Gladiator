@@ -87,7 +87,7 @@ void handleMouseButton(const SDL_Event &event, bool buttonDown) {
 void handleDraw(SDL_Window* window) {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	if (menuManager->getLoadedPage() == menu::MENU_GAME) {
+	if (menuManager->getLoadedPage() == menu::PAGE_GAME) {
 		// Draw Game
 		gameScene->drawScene();
 	} else {
@@ -101,7 +101,7 @@ void handleDraw(SDL_Window* window) {
 
 void handleUpdate(double dt) {
 	// In Game Update //
-	if (menuManager->getLoadedPage() == menu::MENU_GAME) {
+	if (menuManager->getLoadedPage() == menu::PAGE_GAME) {
 		// Load game
 		if (menuManager->loadGameEvent) {
 			SDL_LogInfo(LOG_MAIN, "Entering Game State");
@@ -220,7 +220,7 @@ int main(int argc, char *argv[])
 	menuManager = std::make_unique<menu::Manager>();
 	menuManager->injectContext({ nullptr, gameScene.get() });
 	menuManager->init();
-	menuManager->loadPage(menu::MENU_HOME);
+	menuManager->loadPage(menu::PAGE_HOME);
 
 	updatePreviousTime = SDL_GetTicksNS();
 	inputPreviousTime = SDL_GetTicks();
@@ -267,15 +267,15 @@ int main(int argc, char *argv[])
 					if (dt > 100) {
 						// Pause Event //
 						if (inputState.keys[SDL_SCANCODE_ESCAPE]) {
-							if (menuManager->getLoadedPage() == menu::MENU_GAME) {
+							if (menuManager->getLoadedPage() == menu::PAGE_GAME) {
 								// In game - pause
 								SDL_LogInfo(LOG_MAIN, "Pause game event");
-								menuManager->loadPage(menu::MENU_PAUSE);
+								menuManager->loadPage(menu::PAGE_PAUSE);
 							} else {
 								// In menu - unpause (if game loaded)
 								if (gameScene->isInitialized()) {
 									SDL_LogInfo(LOG_MAIN, "Unpause game event");
-									menuManager->loadPage(menu::MENU_GAME);
+									menuManager->loadPage(menu::PAGE_GAME);
 								}
 							}
 						} else if (inputState.keys[SDL_SCANCODE_F11]) {
