@@ -113,7 +113,7 @@ namespace menu {
             true,
             "saves_load_button",
             MENU_SAVES,
-            MENU_GAME
+            MENU_INFO
         });
     
         // -- Help -- //
