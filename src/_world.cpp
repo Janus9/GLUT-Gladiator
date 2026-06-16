@@ -1124,9 +1124,9 @@ void _world::updateWorldVBO(float left, float right, float top, float bottom) {
 
     // Calculate which chunks are visible
     const int minChunkX = static_cast<int>(floor((middleX - viewRange) / (16 * TILE_D)));
-    const int maxChunkX = static_cast<int>(ceil((middleX + viewRange) / (16 * TILE_D)));
+    const int maxChunkX = static_cast<int>(floor((middleX + viewRange) / (16 * TILE_D)));
     const int minChunkY = static_cast<int>(floor((middleY - viewRange) / (16 * TILE_D)));
-    const int maxChunkY = static_cast<int>(ceil((middleY + viewRange) / (16 * TILE_D)));
+    const int maxChunkY = static_cast<int>(floor((middleY + viewRange) / (16 * TILE_D)));
 
     const int numChunksToRender = (maxChunkX - minChunkX) * (maxChunkY - minChunkY);    // Total chunks in visible range
 
