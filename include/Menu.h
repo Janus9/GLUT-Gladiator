@@ -115,12 +115,6 @@ namespace menu {
             type getLoadedPage() const;
     
             bool loadGameEvent = false;  // If true main reloads back into the game
-            bool closeGameEvent = false;
-    
-            bool loadWorldEvent = false;
-            bool saveWorldEvent = false;
-            bool generateWorldEvent = false;
-            bool unloadWorldEvent = false;
         protected:
         private:
             /**

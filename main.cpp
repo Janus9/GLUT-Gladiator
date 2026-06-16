@@ -104,6 +104,16 @@ void handleDraw(SDL_Window* window) {
 void menuEventHandler(const menu::Event &event) {
 	SDL_LogInfo(LOG_MAIN, "Event callback called for event: %s", event.ID.c_str());
 
+	// Unpause game
+	if (event.redirectTo == menu::PAGE_GAME) {
+		if (!gameScene->isInitialized()) {
+			SDL_LogError(LOG_MENU_MANAGER, "ERROR: Cannot redirect to GAME as scene is not initialized");
+		} else {
+			gameScene->reSize(wWidth, wHeight);
+			gameScene->gameUnPausedEvent = true;
+		} 
+	}
+
 	// Exit game
 	if (event.ID == "exit_game_button") {
 		SDL_LogInfo(LOG_MAIN, "Close Game Event");
@@ -152,18 +162,9 @@ void menuEventHandler(const menu::Event &event) {
 void handleUpdate(double dt) {
 	// In Game Update //
 	if (menuManager->getLoadedPage() == menu::PAGE_GAME) {
-		// Load game
-		if (menuManager->loadGameEvent) {
-			SDL_LogInfo(LOG_MAIN, "Entering Game State");
-			gameScene->reSize(wWidth, wHeight);
-			menuManager->loadGameEvent = false;
-		}
 		// Update Game
 		gameScene->updateScene(dt, inputState);
 	} else {
-	// In Menu Update //
-		
-
 		// Update Menu
 		menuManager->update(dt, inputState);
 	}
