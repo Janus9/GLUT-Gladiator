@@ -30,6 +30,10 @@ static const char* getCategoryName(int category) {
             return "SCENE";
         case LOG_MENU_MANAGER:
             return "MENU_MANAGER";
+        case LOG_MENU_PAGE:
+            return "MENU_PAGE";
+        case LOG_MENU_RENDER_OBJECT:
+            return "MENU_RENDER_OBJECT";
         case LOG_PARTICLE_ENGINE:
             return "PARTICLE_ENGINE";
         case LOG_BULLET_ENGINE:

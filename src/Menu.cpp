@@ -338,7 +338,7 @@ namespace menu {
     }
     
     
-    // ============ Menu Object ============ //
+    // ============ Render Object ============ //
     
     // -- PUBLIC -- //
     
@@ -556,7 +556,7 @@ namespace menu {
         return ID == other.ID;
     }
     
-    // ============ MENU ============ //
+    // ============ PAGE ============ //
     
     
     // -- PUBLIC -- //
@@ -594,7 +594,7 @@ namespace menu {
                 if (sounds) sounds->playSfx("MENU_HOVER");
             }
             if (renderObject->getMouseState() && inputState.LMB && timeSinceRedirect > 0.5) {
-                SDL_LogDebug(LOG_MENU_MANAGER, "Mouse clicked on ID: %s", renderObject->getID().c_str());
+                SDL_LogDebug(LOG_MENU_PAGE, "Mouse clicked on ID: %s", renderObject->getID().c_str());
                 
                 Event event {
                     .ID = renderObject->getID(),
