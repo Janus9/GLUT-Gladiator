@@ -7,8 +7,8 @@
 #define GRAVITY 9.81
 
 // Versions //
-#define GAME_VERSION 0.46           // Version of the game itself
-#define WORLD_SAVE_VERSION 3        // Version of the world save system
+#define GAME_VERSION 0.463           // Version of the game itself
+#define WORLD_SAVE_VERSION 3         // Version of the world save system
 
 // INCLUDES //
 #include <iostream>
