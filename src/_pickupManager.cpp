@@ -176,7 +176,6 @@ bool _pickupManager::importSerializedPickups(const std::vector<pickup_serial_dat
         std::cout << "ERROR: Cannot import pickups as the data is empty\n";
         return false;
     }
-    pickupList.reserve(pickup_data.size());
     for (const pickup_serial_data &p : pickup_data) {
         pickup_config config {
             config.imageIndex = static_cast<int>(p.imageIndex),
@@ -188,7 +187,9 @@ bool _pickupManager::importSerializedPickups(const std::vector<pickup_serial_dat
             config.fireRate = p.fireRate,
             config.xp = p.xp,
         };
-        addPickup({p.xPos, p.yPos}, config);
+        if (!addPickup({p.xPos, p.yPos}, config)) {
+            std::cout << "ERROR: Cannot add pickup\n";
+        }
     }
     return true;
 }
@@ -205,11 +206,11 @@ pickup_serial_data _pickupManager::serializePickup(const _pickup &pickup) const 
         data.speed = pickup.speed,
         data.fireRate = pickup.fireRate,
         data.xp = pickup.xp,
-        data.imageIndex = static_cast<uint8_t>(pickup.imageIndex),
         data.xPos = pickup.pos.x,
         data.yPos = pickup.pos.y,
+        data.padding2 = static_cast<uint16_t>(0),
         data.padding1 = static_cast<uint8_t>(0),
-        data.padding2 = static_cast<uint16_t>(0)
+        data.imageIndex = static_cast<uint8_t>(pickup.imageIndex)
     };
     return data;
 }

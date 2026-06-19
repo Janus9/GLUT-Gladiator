@@ -29,10 +29,9 @@ struct pickup_serial_data {
     float xp;
     float xPos;
     float yPos;               
-
-    uint8_t imageIndex;
-    uint8_t padding1;
     uint16_t padding2;
+    uint8_t padding1;
+    uint8_t imageIndex;
 };
 
 class _pickupManager {

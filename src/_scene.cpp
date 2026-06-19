@@ -491,7 +491,7 @@ void _scene::initScene(bool loadWorld)
 
         // Spawn Orcs //
         const float orcBounds = bounds * world_configuration.outer_cutoff;
-std::        uniform_real_distribution<float> orc_pos_dist(-orcBounds, orcBounds);
+        std::uniform_real_distribution<float> orc_pos_dist(-orcBounds, orcBounds);
         for (int i = 0; i < number_orcs; i++)
         {
             bool lookingForOrcSpawn = true;
