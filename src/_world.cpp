@@ -303,8 +303,8 @@ void _world::initWorld(bool loadWorld, const world_config &_configuration, _ligh
     }
 
     // EBO //
-    // (Number of total chunks) * (256 tiles per chunk) * (number of layers) * (6 indicies per tile)
-    std::vector<uint32_t> eboData(NUM_RENDER_CHUNKS * NUM_TILES_CHUNK * NUM_LAYERS * 6);
+    // (# of total chunks) * (# tiles per chunk) * (# of layers) * (# indicies per tile)
+    std::vector<uint32_t> eboData(NUM_RENDER_CHUNKS * NUM_TILES_CHUNK * NUM_LAYERS * INDICIES_PER_TILE);
     int vertexOffset = 0;
     int eIndex = 0;
     for (int i = 0; i < NUM_RENDER_CHUNKS * NUM_TILES_CHUNK * NUM_LAYERS; i++) {
@@ -336,7 +336,7 @@ void _world::initWorld(bool loadWorld, const world_config &_configuration, _ligh
     glBindBuffer(GL_ARRAY_BUFFER,vboID);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,eboID);
     
-    const GLsizei stride = 7 * sizeof(float);
+    const GLsizei stride = sizeof(vertex);
     
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0,2,GL_FLOAT,GL_FALSE,stride,(void*)(0 * sizeof(float)));     // Size (vec2)
@@ -1130,8 +1130,8 @@ void _world::updateWorldVBO(float left, float right, float top, float bottom) {
 
     const int numChunksToRender = (maxChunkX - minChunkX) * (maxChunkY - minChunkY);    // Total chunks in visible range
 
-    // (Number of tiles in a chunk) * (7 floats per vertex) * (4 verticies per tile) * (bytes per float)
-    constexpr GLsizei bytesPerChunk = NUM_TILES_CHUNK * 7 * 4 * sizeof(float); 
+    // (Number of tiles in a chunk) * (size per vertex) * (# verticies per tile)
+    constexpr GLsizei bytesPerChunk = NUM_TILES_CHUNK * sizeof(vertex) * VERTICIES_PER_TILE; 
     const GLsizei bytesPerLayer = NUM_RENDER_CHUNKS * bytesPerChunk; // How many bytes an entire layer takes up (sizeof chunk * how many)
 
     glBindBuffer(GL_ARRAY_BUFFER, vboID);
@@ -1154,7 +1154,7 @@ void _world::updateWorldVBO(float left, float right, float top, float bottom) {
             for (uint8_t layer = 0; layer < NUM_LAYERS; layer++) {
 
                 // 256 tiles * 4 verticies * 7 floats per vertex
-                std::vector<float> chunkVboData(NUM_TILES_CHUNK * 4 * 7);
+                std::vector<vertex> chunkVboData(NUM_TILES_CHUNK * VERTICIES_PER_TILE);
                 int vIndex = 0;
 
                 // For each tile of the chunk //
@@ -1179,40 +1179,43 @@ void _world::updateWorldVBO(float left, float right, float top, float bottom) {
                         // The VBO is set up identical to how we would do glVertex2f and glTexCoord2f
                         
                         // Bottom-left
-                        chunkVboData[vIndex++] = -halfWidth;
-                        chunkVboData[vIndex++] = -halfHeight;
-                        chunkVboData[vIndex++] = tile.u0;
-                        chunkVboData[vIndex++] = tile.v1;
-                        chunkVboData[vIndex++] = worldXCenter;
-                        chunkVboData[vIndex++] = worldYCenter;
-                        chunkVboData[vIndex++] = cellOutlined;
-                        
+                        chunkVboData[vIndex].w = -halfWidth;
+                        chunkVboData[vIndex].h = -halfHeight;
+                        chunkVboData[vIndex].u = tile.u0;
+                        chunkVboData[vIndex].v = tile.v1;
+                        chunkVboData[vIndex].x = worldXCenter;
+                        chunkVboData[vIndex].y = worldYCenter;
+                        chunkVboData[vIndex].b_o = cellOutlined;
+                        vIndex++;
                         // Bottom-right
-                        chunkVboData[vIndex++] = halfWidth;
-                        chunkVboData[vIndex++] = -halfHeight;
-                        chunkVboData[vIndex++] = tile.u1;
-                        chunkVboData[vIndex++] = tile.v1;
-                        chunkVboData[vIndex++] = worldXCenter;
-                        chunkVboData[vIndex++] = worldYCenter;
-                        chunkVboData[vIndex++] = cellOutlined;
+                        chunkVboData[vIndex].w = halfWidth;
+                        chunkVboData[vIndex].h = -halfHeight;
+                        chunkVboData[vIndex].u = tile.u1;
+                        chunkVboData[vIndex].v = tile.v1;
+                        chunkVboData[vIndex].x = worldXCenter;
+                        chunkVboData[vIndex].y = worldYCenter;
+                        chunkVboData[vIndex].b_o = cellOutlined;
+                        vIndex++;
                         
                         // Top-right
-                        chunkVboData[vIndex++] = halfWidth;
-                        chunkVboData[vIndex++] = halfHeight;
-                        chunkVboData[vIndex++] = tile.u1;
-                        chunkVboData[vIndex++] = tile.v0;
-                        chunkVboData[vIndex++] = worldXCenter;
-                        chunkVboData[vIndex++] = worldYCenter;
-                        chunkVboData[vIndex++] = cellOutlined;
+                        chunkVboData[vIndex].w = halfWidth;
+                        chunkVboData[vIndex].h = halfHeight;
+                        chunkVboData[vIndex].u = tile.u1;
+                        chunkVboData[vIndex].v = tile.v0;
+                        chunkVboData[vIndex].x = worldXCenter;
+                        chunkVboData[vIndex].y = worldYCenter;
+                        chunkVboData[vIndex].b_o = cellOutlined;
+                        vIndex++;
                         
                         // Top-left
-                        chunkVboData[vIndex++] = -halfWidth;
-                        chunkVboData[vIndex++] = halfHeight;
-                        chunkVboData[vIndex++] = tile.u0;
-                        chunkVboData[vIndex++] = tile.v0;  
-                        chunkVboData[vIndex++] = worldXCenter;
-                        chunkVboData[vIndex++] = worldYCenter;
-                        chunkVboData[vIndex++] = cellOutlined;
+                        chunkVboData[vIndex].w = -halfWidth;
+                        chunkVboData[vIndex].h = halfHeight;
+                        chunkVboData[vIndex].u = tile.u0;
+                        chunkVboData[vIndex].v = tile.v0;  
+                        chunkVboData[vIndex].x = worldXCenter;
+                        chunkVboData[vIndex].y = worldYCenter;
+                        chunkVboData[vIndex].b_o = cellOutlined;
+                        vIndex++;
                     }
                 }
                 const GLsizei offset = (chunk->getVboIndex() * bytesPerChunk) + (bytesPerLayer * layer);

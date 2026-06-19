@@ -573,7 +573,19 @@ class _world
          */
         void mapCellNeighbors(_cell* cell, _cell* outNeighbors[9]);
 
-        // -- SHADERS -- //
+        // -- RENDERING -- //
+        struct vertex {
+            float w;
+            float h;
+            float u;
+            float v;
+            float x;
+            float y;
+            float b_o;  // Boolean (outlined)
+        };
+        static constexpr int VERTICIES_PER_TILE = 4;
+        static constexpr int INDICIES_PER_TILE = 6;
+
         _lightManager* sceneLightManager = nullptr; // Pointer to scene lightManager (non-owning)
 
         static glm::mat4 viewProjectionMatrix;
