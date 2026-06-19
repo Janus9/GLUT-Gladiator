@@ -19,6 +19,22 @@ struct pickup_config {
     float xp;               /// XP to reward to player 
 };
 
+struct pickup_serial_data {
+    float size;
+    float health;           
+    float maxHealth;        
+    float ammo;             
+    float speed;            
+    float fireRate;         
+    float xp;
+    float xPos;
+    float yPos;               
+
+    uint8_t imageIndex;
+    uint8_t padding1;
+    uint16_t padding2;
+};
+
 class _pickupManager {
     public:
         _pickupManager();
@@ -50,6 +66,18 @@ class _pickupManager {
          */
         bool addPickup(const Vec2f &pos, const pickup_config& config);
 
+        /**
+         * Returns a vector of serialized pickup data for saving
+         */
+        std::vector<pickup_serial_data> exportSerializedPickups() const;
+
+        /**
+         * Imports a vector of serialized pickup data for loading
+         * @param pickup_data Vector of data
+         * @return True if operation was successfull
+         */
+        bool importSerializedPickups(const std::vector<pickup_serial_data> &pickup_data);
+
         static void setViewProjectionMatrix(const glm::mat4& _viewProjectionMatrix); 
     protected:
     private:
@@ -77,6 +105,8 @@ class _pickupManager {
         };
 
         std::vector<_pickup> pickupList;
+
+        pickup_serial_data serializePickup(const _pickup &pickup) const;
 
         _player* player = nullptr;  // Pointer to player instance in scene (non-owning) 
 

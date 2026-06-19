@@ -162,7 +162,58 @@ bool _pickupManager::addPickup(const Vec2f &pos, const pickup_config& config) {
     return false; // Never found a free pickup (likely full)
 }
 
+std::vector<pickup_serial_data> _pickupManager::exportSerializedPickups() const {
+    std::vector<pickup_serial_data> data;
+    for (const _pickup &p : pickupList) {
+        if (!p.alive) continue; // Skip dead pickups
+        data.push_back(serializePickup(p));
+    }
+    return data;
+}
+
+bool _pickupManager::importSerializedPickups(const std::vector<pickup_serial_data> &pickup_data) {
+    if (pickup_data.empty()) {
+        std::cout << "ERROR: Cannot import pickups as the data is empty\n";
+        return false;
+    }
+    pickupList.reserve(pickup_data.size());
+    for (const pickup_serial_data &p : pickup_data) {
+        pickup_config config {
+            config.imageIndex = static_cast<int>(p.imageIndex),
+            config.size = p.size,
+            config.health = p.health,
+            config.maxHealth = p.maxHealth,
+            config.ammo = p.ammo,
+            config.speed = p.speed,
+            config.fireRate = p.fireRate,
+            config.xp = p.xp,
+        };
+        addPickup({p.xPos, p.yPos}, config);
+    }
+    return true;
+}
+
+
 // -- PRIVATE -- //
+
+pickup_serial_data _pickupManager::serializePickup(const _pickup &pickup) const {
+    pickup_serial_data data {
+        data.size = pickup.size,
+        data.health = pickup.health,
+        data.maxHealth = pickup.maxHealth,
+        data.ammo = pickup.ammo,
+        data.speed = pickup.speed,
+        data.fireRate = pickup.fireRate,
+        data.xp = pickup.xp,
+        data.imageIndex = static_cast<uint8_t>(pickup.imageIndex),
+        data.xPos = pickup.pos.x,
+        data.yPos = pickup.pos.y,
+        data.padding1 = static_cast<uint8_t>(0),
+        data.padding2 = static_cast<uint16_t>(0)
+    };
+    return data;
+}
+
 
 void _pickupManager::buildVBO() {
     float vboData[maxPickups * 10 * 4];
