@@ -167,28 +167,7 @@ Vec2f _world::cameraPosition = {0.0f, 0.0f};
 // -- PUBLIC -- //
 
 void _world::debugPrint() {
-
-    const size_t ChunkBytes = sizeof(_chunk) * worldChunks.size();
-    const size_t TileBytes = sizeof(uint8_t) * worldChunks.size() * NUM_TILES_CHUNK;
-
-    Logger.LogInfo(" -- World Debug Print -- ", LOG_CONSOLE);
-    Logger.LogInfo(
-        "Chunks Loaded: " 
-        + std::to_string(worldChunks.size()) 
-        + " (" + std::to_string(ChunkBytes) + " B)" 
-        + " (" + std::to_string(ChunkBytes/1000000) + "MB)", 
-        LOG_CONSOLE
-    );
-    Logger.LogInfo(
-        "Tiles Loaded: " 
-        + std::to_string(worldChunks.size() * 256) 
-        + " (" + std::to_string(TileBytes) + " B)" 
-        + " (" + std::to_string(TileBytes/1000000) + "MB)", 
-        LOG_CONSOLE);
-
-    Logger.LogInfo("Tiles to Draw: " + std::to_string(tilesToDraw),LOG_CONSOLE);
-    
-    Logger.LogInfo("------------------------", LOG_CONSOLE);
+    // Does nothing
 }
 
 void _world::setViewProjectionMatrix(const glm::mat4 &_viewProjectionMatrix) {
@@ -243,7 +222,7 @@ void _world::initWorld(bool loadWorld, const world_config &_configuration, _ligh
     configuration = _configuration;
 
     if (worldInitialized) {
-        std::cout << "WARNING: World has already been initialized, skipping\n";
+        SDL_LogWarn(LOG_WORLD, "WARNING: World has already been initialized, skipping");
         return;
     }
 
@@ -256,8 +235,7 @@ void _world::initWorld(bool loadWorld, const world_config &_configuration, _ligh
     // Chunk width/height * 16 tiles wide * 16 world units per tile / 2 
     worldBounds = sqrt(configuration.num_chunks) * 16.0f * 16.0f * 0.5f;
 
-    // Logger.LogInfo("Initializing world for seed " + to_string(seed), LOG_BOTH);
-    Logger.LogInfo("World has " + std::to_string(configuration.num_chunks) + " starting chunks.", LOG_BOTH);
+    SDL_LogInfo(LOG_WORLD, "World has: %u starting chunks", configuration.num_chunks);
 
     tileAtlas->loadTexture("images/set_1.png"); // Load the tile atlas texture
     // Reserve allocates memory but does not instantiate it -- resize allocates AND instantiates it (dont want that)
@@ -279,7 +257,7 @@ void _world::initWorld(bool loadWorld, const world_config &_configuration, _ligh
     const double sqrtNumChunks = sqrt(configuration.num_chunks);
     // This checks if a decimal (like 1.3) is equal to its floor (1.0) which indicates the sqrt wasn't perfect
     if (sqrtNumChunks != floor(sqrtNumChunks)) {
-        Logger.LogWarning("numStartingChunks is not a perfect square. This may lead to an uneven distribution of chunks around the center.", LOG_BOTH);
+        SDL_LogWarn(LOG_WORLD, "numStartingChunks is not a perfect square. This may lead to an uneven distribution of chunks around the center");
     }
 
     // Only run generation when we dont load the world  
@@ -299,7 +277,7 @@ void _world::initWorld(bool loadWorld, const world_config &_configuration, _ligh
 
     GLenum errVbo = glGetError();
     if (errVbo != GL_NO_ERROR) {
-        std::cout << "ERROR: OpenGL error on world VBO: " << errVbo << "\n";
+        SDL_LogError(LOG_WORLD, "ERROR: OpenGL error on world VBO: %s", std::to_string(errVbo).c_str());
     }
 
     // EBO //
@@ -327,7 +305,7 @@ void _world::initWorld(bool loadWorld, const world_config &_configuration, _ligh
     
     GLenum errEbo = glGetError();
     if (errEbo != GL_NO_ERROR) {
-        std::cout << "ERROR: OpenGL error on world EBO: " << errEbo << "\n";
+        SDL_LogError(LOG_WORLD, "ERROR: OpenGL error on world EBO: %s", std::to_string(errEbo).c_str());
     }
 
     // VAO //
@@ -358,7 +336,7 @@ void _world::initWorld(bool loadWorld, const world_config &_configuration, _ligh
     double time = initBenchmark->getAverageResult();
 
     worldInitialized = true;
-    Logger.LogInfo("World initialization for " + std::to_string(worldChunks.size()) + "chunks took " + std::to_string(time) + "ms");
+    SDL_LogInfo(LOG_WORLD, "World initialization for: %i chunks took %d ms",static_cast<int>(worldChunks.size()), time);
 }
 
 void _world::initTiles() {
@@ -534,7 +512,7 @@ bool _world::setTileInAtlas(int xIndex, int yIndex, _tile &tile) {
 
     // Error check for mod by 0 
     if (numTilesPerRow == 0) {
-        Logger.LogError("Number of tiles per row cannot be zero. Check tile pixel width.", LOG_BOTH);
+        SDL_LogError(LOG_WORLD,"Number of tiles per row cannot be zero. Check tile pixel width");
         return false;
     }
 
@@ -552,8 +530,6 @@ bool _world::setTileInAtlas(int xIndex, int yIndex, _tile &tile) {
     float u1 = u0 + (TILE_W / 448.0f);
     // Right (Y)
     float v1 = v0 + (TILE_H / 320.0f);
-
-    Logger.LogDebug("Tile (" + std::to_string(xIndex) + ", " + std::to_string(yIndex) + " atlas coordinates: (" + std::to_string(u0) + ", " + std::to_string(v0) + ") to (" + std::to_string(u1) + ", " + std::to_string(v1) + ")", LOG_CONSOLE);
 
     tile.u0 = u0;
     tile.v0 = v0;
@@ -645,7 +621,7 @@ Vec2i _world::convertIndexToPos(int index, int width, int height) {
 }
 
 void _world::postProcessWorld() {
-    Logger.LogInfo("Starting post processing of world");
+    SDL_LogInfo(LOG_WORLD, "Starting post processing of world");
 
     const int worldWidth = (int)sqrt(configuration.num_chunks)*16;
 
@@ -802,7 +778,7 @@ void _world::postProcessWorld() {
         }
         world_noise[LAYER_PRIMARY][i] = determineTileType(level, neighborTiles);
     }
-    Logger.LogInfo("Finishing post processing of world");
+    SDL_LogInfo(LOG_WORLD, "Finishing post processing of world");
 }
 
 // This is awful and should be changed to layered at some point
@@ -855,7 +831,7 @@ When tiles are made from noise its flat but since we load chunk by chunk we have
 a coordinate system for chunks
 */
 void _world::finalizeWorld() {
-    Logger.LogDebug("Mapping world noise into tiles");
+    SDL_LogInfo(LOG_WORLD, "Mapping world noise into tiles");
     
     const int worldWidth = (int)sqrt(configuration.num_chunks) * 16;
     const int worldHeight = (int)sqrt(configuration.num_chunks) * 16;
@@ -921,7 +897,7 @@ void _world::finalizeWorld() {
         world_noise[layer].clear();
     }
 
-    Logger.LogDebug("World noise has been mapped to tiles and has been finalized!");
+    SDL_LogInfo(LOG_WORLD, "World noise has been mapped to tiles and has been finalized!");
 }
 
 Vec2i _world::worldToChunkPos(const Vec2f &pos) const {
@@ -1223,13 +1199,18 @@ void _world::updateWorldVBO(float left, float right, float top, float bottom) {
                 glBufferSubData(GL_ARRAY_BUFFER, offset, bytesPerChunk, chunkVboData.data()); 
 
                 if (offset + bytesPerChunk > maxSizeBytes) {
-                    std::cout << "ERROR: Buffer overflow of (" << offset + bytesPerChunk << "B) max (" << maxSizeBytes << "B)\n";
-                    std::cout << " - Index: " << chunk->getVboIndex() << "\n";
+                    SDL_LogError(
+                        LOG_WORLD, 
+                        "ERROR: Buffer overflow of (%iB) max (%iB)", 
+                        static_cast<int>(offset + bytesPerChunk),
+                        static_cast<int>(maxSizeBytes)
+                    );
+                    SDL_LogError(LOG_WORLD, " - Index: %i", chunk->getVboIndex());
                 }
 
                 GLenum err = glGetError();
                 if (err != GL_NO_ERROR) {
-                    std::cout << "OpenGL error after tile glBufferData: " << err << "\n";
+                    SDL_LogError(LOG_WORLD, "OpenGL error after tile glBufferData: %s", std::to_string(err).c_str());
                 }
             }
             chunk->setChunkClean(); // Mark chunk as "clean" to stop rebuilding buffer until dirty again
@@ -1276,9 +1257,9 @@ void _world::buildWorldVBO(float left, float right, float top, float bottom) {
             }
 
             if (chunk->getVboIndex() >= NUM_RENDER_CHUNKS) {
-                std::cout << "ERROR: Too many visible chunks for render buffer. "
-                     << "chunkIndex=" << chunkIndex
-                     << " max=" << NUM_RENDER_CHUNKS << "\n";
+                SDL_LogError(LOG_WORLD, "ERROR: Too many visible chunks for render buffer.");
+                SDL_LogError(LOG_WORLD, " - ChunkIndex: %i", chunkIndex);
+                SDL_LogError(LOG_WORLD, " - Max: %i", NUM_RENDER_CHUNKS);
                 continue;
             }
 
@@ -1299,8 +1280,13 @@ void _world::runWorldGeneration() {
     world_noise[LAYER_PRIMARY].resize(configuration.num_chunks*256);       // Wall tiles (run cellular automata w/ moore neighborhood)
     wet_noise.resize(configuration.num_chunks*256);                        // Wet tiles (run cellular automata w/ moore neighborhood)
     
-    Logger.LogInfo("Running world generation for parameters: ");
-    Logger.LogInfo(" - Seed: " + std::to_string(seed));
+    SDL_LogInfo(
+        LOG_WORLD, 
+        "Running world generation for parameters:\n"
+        " - Seed: %u",
+        seed
+    );
+
 
     std::uniform_real_distribution<float> dist(0.0f,1.0f);
     
@@ -1336,15 +1322,15 @@ void _world::runWorldGeneration() {
         }
     }
 
-    Logger.LogDebug("World generation completed! Post processing now ...");
+    SDL_LogInfo(LOG_WORLD, "World generation completed! Post processing now");
     postProcessWorld();
-    Logger.LogDebug("Post processing completed! Finalizing world now ...");
+    SDL_LogInfo(LOG_WORLD, "Post processing completed! Finalizing world now");
     finalizeWorld();
 }
 
 void _world::runCellularAutomata(const generation_config &config, std::vector<uint8_t> &cellData) {
     if (cellData.empty()) {
-        std::cerr << "ERROR: Cell data is empty, make sure array is initialized prior to running algorithm\n"; 
+        SDL_LogError(LOG_WORLD, "ERROR: Cell data is empty, make sure array is initialized prior to running algorithm");
         return;
     }
 
@@ -1353,17 +1339,26 @@ void _world::runCellularAutomata(const generation_config &config, std::vector<ui
     const uint32_t survivalReq = glm::clamp(config.survival_requirement,0u,8u);
     const uint32_t birthReq = glm::clamp(config.birth_requirement,0u,8u);
 
-    std::cout << "Running cellular automata algorithm for parameters:\n"
-         << " - Alive Cell Distribution: " << rngDist * 100.0f << "%\n"
-         << " - Number of Iterations: " << numIt << "\n"
-         << " - Survival Requirement: " << survivalReq << " cells\n"
-         << " - Birth Requirement: " << birthReq << " cells\n"
-         << " - Out of Bounds is Alive: " << (config.out_of_bounds_is_alive ? "TRUE" : "FALSE") << "\n";
+    SDL_LogDebug(
+        LOG_WORLD,
+        "Running cellular automata algorithm for parameters:\n"
+        " - Alive Cell Distribution: %.2f%%\n"
+        " - Number of Iterations: %u\n"
+        " - Survival Requirement: %u cells\n"
+        " - Birth Requirement: %u cells\n"
+        " - Out of Bounds is Alive: %s",
+        rngDist * 100.0f,
+        static_cast<unsigned int>(numIt),
+        static_cast<unsigned int>(survivalReq),
+        static_cast<unsigned int>(birthReq),
+        config.out_of_bounds_is_alive ? "TRUE" : "FALSE"
+    );
+
 
     // Check to ensure contents is a perfect square
     const int gridWidth = sqrt(cellData.size());
     if (gridWidth * gridWidth != static_cast<int>(cellData.size())) {
-        std::cerr << "ERROR: Cell data size must be a perfect square\n";
+        SDL_LogError(LOG_WORLD, "ERROR: Cell data size must be a perfect square");
         return;
     }
 
