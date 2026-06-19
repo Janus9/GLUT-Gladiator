@@ -8,7 +8,7 @@
 
 // Versions //
 #define GAME_VERSION 0.46           // Version of the game itself
-#define WORLD_SAVE_VERSION 2        // Version of the world save system
+#define WORLD_SAVE_VERSION 3        // Version of the world save system
 
 // INCLUDES //
 #include <iostream>

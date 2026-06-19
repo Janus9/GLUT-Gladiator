@@ -96,7 +96,13 @@ void _scene::initScene(bool loadWorld)
     myWorld->initWorld(loadWorld, world_configuration, lightManager.get(), ParticleEngine.get());         // Initialize the world
 
     // PICKUPS //
-    pickupManager->initPickupManager("images/pickups/pickup_sheet.png",6,player.get(),lightManager.get());
+    if (!loadWorld) pickupManager->initPickupManager(
+        "images/pickups/pickup_sheet.png",
+        6,
+        player.get(),
+        lightManager.get()
+    );
+    
     // HP 
     health_pickup.imageIndex = 0;
     health_pickup.size = 8.0f;
@@ -714,6 +720,30 @@ bool _scene::saveSceneToFile(const std::string &fileName) {
         return false;
     }
 
+    // Pickup Data Write //
+
+    const char pickup_header[4] = {'P','K','U','P'};
+    file.write(pickup_header,4); // Pickup Data Header ("PKUP")
+
+    std::vector<pickup_serial_data> pickup_data = pickupManager->exportSerializedPickups();
+    if (pickup_data.empty()) {
+        std::cout << "ERROR: Pickup data is empty\n";
+        return false;
+    }
+
+    std::cout << "Writing pickup data:\n"
+         << " - Number of pickups: " << pickup_data.size() << "\n"
+         << " - Size of pickups: " << pickup_data.size() * sizeof(pickup_serial_data) << " bytes\n";
+
+    const uint32_t number_pickups = static_cast<uint32_t>(pickup_data.size());
+    file.write(reinterpret_cast<const char*>(&number_pickups),sizeof(number_pickups)); // Pickup Count
+
+    file.write(reinterpret_cast<const char*>(pickup_data.data()), pickup_data.size() * sizeof(pickup_serial_data)); // Pickup Data
+    if (!file) {
+        std::cout << "ERROR: Save failed to write the pickup data\n";
+        return false;
+    }
+
     // Player Data Write //
 
     std::cout << "Writing player data:\n"
@@ -866,10 +896,54 @@ bool _scene::loadSceneFromFile(const std::string &fileName) {
          << " - Number of enemies: " << enemy_data.size() << "\n"
          << " - Size of enemies: " << enemy_data.size() * sizeof(enemy_serial_data) << " bytes\n";
 
+         
+    // Read Pickup Data //
+    char pickup_header[4];
+    file.read(pickup_header,4);    // Pickup Data Header
+    if (pickup_header[0] != 'P' || pickup_header[1] != 'K' || pickup_header[2] != 'U' || pickup_header[3] != 'P') {
+        std::cout << "ERROR: Invalid pickup data header\n";
+        return false;
+    }
+
+    uint32_t pickup_count = 0;
+    file.read(reinterpret_cast<char*>(&pickup_count), sizeof(pickup_count));  // Pickup Count
+
+    std::cout << "Pickup count read: " << pickup_count << "\n";
+    if (pickup_count == 0) {
+        std::cout << "WARNING: Pickup count is 0\n";
+    }
+
+    pickupManager->initPickupManager(
+        "images/pickups/pickup_sheet.png",
+        6,
+        player.get(),
+        lightManager.get()
+    );
+
+    std::vector<pickup_serial_data> pickup_data;
+    pickup_data.resize(pickup_count);
+    file.read(reinterpret_cast<char*>(pickup_data.data()), pickup_data.size() * sizeof(pickup_serial_data));
+
+    pickupManager->importSerializedPickups(pickup_data);
+
+    if (!file) {
+        std::cout << "ERROR: Unable to read pickup data\n";
+        return false;
+    }
+
+    if (pickup_data.empty()) {
+        std::cout << "ERROR: Pickup data read is empty\n";
+        return false;
+    }
+
+    std::cout << "Read pickup data:\n"
+         << " - Number of pickups: " << pickup_data.size() << "\n"
+         << " - Size of pickups: " << pickup_data.size() * sizeof(pickup_serial_data) << " bytes\n";
+    
     // Read Player Data //
 
     char player_header[4];
-    file.read(player_header,4);    // Enemy Data Header
+    file.read(player_header,4);    // Player Data Header
     if (player_header[0] != 'P' || player_header[1] != 'L' || player_header[2] != 'Y' || player_header[3] != 'R') {
         std::cout << "ERROR: Invalid player data header\n";
         return false;
