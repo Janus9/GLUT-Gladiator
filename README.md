@@ -1,16 +1,19 @@
-# GLUT Gladiator
+<p align="center">
+  <img width="640" height="250" alt="home_page" src="images/menu/home_page.png" />
+</p> 
 
-## Game Info
+![License](https://img.shields.io/badge/license-GPL--3.0-blue.svg)
+![Language](https://img.shields.io/badge/C++20-blue)
 
 GLUT Gladiator is a procedurally generated top-down roguelike. 
 
+# Game Info
+
 The objective of the game is simple, follow the navigation arrow to the center of the cave, and destroy the boss!
-
 Along the way, collect powerups, and fight ever increasing difficulty enemies. 
+The game can be saved/loaded and is fully destructible.
 
-The game can be saved/loaded and is fully destructible
-
-## Build Information
+# Build Information
 
 GLUT Gladiator is built on Windows using **Msys2**, and **GNU Make**.
 
