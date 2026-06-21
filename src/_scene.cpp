@@ -373,11 +373,11 @@ void _scene::initScene(bool loadWorld)
     const float bounds = sqrt(numChunks) * NUM_TILES_CHUNK_SQR * TILE_D * 0.5f;
 
     if(!loadWorld) {
-        player->fireRate = 400.0f;
+        player->addFireRate(400.0f);
         player->magCapacity = 30;
         player->magLevel = 30;
         player->reserveCapacity = 200;
-        player->reserveLevel = 200;
+        player->addAmmo(200);
         player->reloadSpeed = 2.5f;
 
         player->setHealth(200.0f);
@@ -1156,7 +1156,7 @@ void _scene::updateScene(double dt, const InputState &inputState)
         }
     }
 
-    const float playerSpeed = player->movementSpeed;
+    const float playerSpeed = player->getSpeed();
 
     if (gameUnPausedEvent) {
         std::cout << "Game un-paused!\n";
@@ -1419,7 +1419,7 @@ void _scene::updateScene(double dt, const InputState &inputState)
     if (player->playerShootEvent && !player->isDead())
     {
         player->playerShootEvent = false;
-        player->setAnimationFPS(player->fireRate / 60);
+        player->setAnimationFPS(player->getFireRate() / 60);
         Vec2f offsetPos;
         if (face == PLAYER_FACE_E)
         {
@@ -1514,7 +1514,7 @@ void _scene::updateScene(double dt, const InputState &inputState)
     hud->getHudText("MOUSE_NORMAL")->setText("Mouse Normal Coords: " + mouseNormalPos.toString());
     hud->getHudText("PLAYER_HEALTH")->setText("HP: " + std::to_string(player->getHealth()));
     hud->getHudText("PLAYER_AMMO")->setText("Ammo: " + std::to_string(player->magLevel) + " / " + std::to_string(player->magCapacity));
-    hud->getHudText("PLAYER_RESERVE")->setText("Reserve: " + std::to_string(player->reserveLevel) + " / " + std::to_string(player->reserveCapacity));
+    hud->getHudText("PLAYER_RESERVE")->setText("Reserve: " + std::to_string(player->getAmmo()) + " / " + std::to_string(player->reserveCapacity));
     // const _tile* tile = myWorld->getTileAtWorld(player->pos);
 
     const _tile *tile = myWorld->getTileAtWorld(Vec2f(mouseWorldPos.x, mouseWorldPos.y));

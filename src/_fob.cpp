@@ -46,7 +46,8 @@ void _fob::updateFob(double dt) {
     float distanceToPlayer = pos.distance(player->pos);
     if (distanceToPlayer < 128.0f) {
         if (resupplyDt > resupplyTime && !player->isDead() && !player->isRealDead) {
-            player->resupply(10,15);
+            player->addHealth(15);
+            player->addAmmo(35);
             resupplyDt = 0;
         } else {
             resupplyDt += dt;

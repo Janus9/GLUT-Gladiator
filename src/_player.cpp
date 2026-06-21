@@ -481,39 +481,41 @@ void _player::importSerializedPlayer(const player_serial_data &player_data) {
     reloadSpeed = player_data.reloadSpeed;
 }
 
-void _player::resupply(float health, int ammo) {
-    if (getHealthPct() == 1.0f && reserveLevel == reserveCapacity) {
-        // Player already resupplied, skip event
-        return;
-    }
-    const float hpDiff = getMaxHealth() - getHealth();
-    const int ammoDiff = reserveCapacity - reserveLevel;
+void _player::addHealth(float value) {
+    if (getHealth() >= getMaxHealth() || value <= 0.0f) return;
+    impulseHealing(value);
+    ParticleEngine->spawnEffect({pos.x, pos.y}, "player_pickup_health");
+} 
 
-    int numHealthParticles = 0;
-    if (hpDiff > health) {
-        numHealthParticles = static_cast<int>(health);
-    } else {
-        numHealthParticles = static_cast<int>(hpDiff);
-    }
+void _player::addMaxHealth(float value) {
+    if (value <= 0.0f) return;
+    setMaxHealth(getMaxHealth() + value);
+    ParticleEngine->spawnEffect({pos.x, pos.y}, "player_pickup_max_health");
+} 
 
-    int numAmmoParticles = 0;
-    if (ammoDiff > ammo) {
-        numAmmoParticles = ammo;
-    } else {
-        numAmmoParticles = ammoDiff;
-    }
+void _player::addAmmo(float value) {
+    if (reserveLevel >= reserveCapacity || value <= 0.0f) return;
+    reserveLevel = std::clamp(reserveLevel += value, 0, reserveCapacity);
+    ParticleEngine->spawnEffect({pos.x, pos.y}, "player_pickup_ammo");
+} 
 
-    impulseHealing(health);
-    reserveLevel += ammo;
-    if (reserveLevel > reserveCapacity) {
-        reserveLevel = reserveCapacity;
-    }
-    ParticleEngine->getConfig("player_heal")->particleCount = numHealthParticles;
-    ParticleEngine->getConfig("player_ammo")->particleCount = numAmmoParticles;
+void _player::addSpeed(float value) {
+    if (value <= 0.0f) return;
+    movementSpeed+=value;
+    ParticleEngine->spawnEffect({pos.x, pos.y}, "player_pickup_speed");
+} 
 
-    ParticleEngine->spawnEffect({pos.x, pos.y}, "player_heal");
-    ParticleEngine->spawnEffect({pos.x, pos.y}, "player_ammo");
-}
+void _player::addFireRate(float value) {
+    if (value <= 0.0f) return;
+    fireRate+=value;
+    ParticleEngine->spawnEffect({pos.x, pos.y}, "player_pickup_firerate");
+} 
+
+void _player::addXP(float value) {
+    if (value <= 0.0f) return;
+    XP+=value;
+    ParticleEngine->spawnEffect({pos.x, pos.y}, "player_pickup_xp");
+} 
 
 void _player::procReload() {
     if (reloading) return; // Early return on reloading for call saftey

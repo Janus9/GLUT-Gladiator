@@ -36,6 +36,7 @@
 #include <map>
 #include <memory>
 #include <_loggerSDL.h>
+#include <algorithm>
 
 // DEFINITIONS //
 

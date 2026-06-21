@@ -109,12 +109,60 @@ class _player : public _unit {
         // Imports a serialized data package of the player for import
         void importSerializedPlayer(const player_serial_data &player_data);
 
-        /** 
-         * Resupplies the player with health/ammo.
+        /**
+         * Gives player health and applies healing effect.
+         * Does nothing if value is zero or less.
+         * Cannot exceed max health.
          * 
-         * Prevents overflow and spawns effect
+         * @param value Health to add
          */
-        void resupply(float health, int ammo);
+        void addHealth(float value);
+
+        /**
+         * Gives player max health and applies max health effect.
+         * Does nothing if value is zero or less.
+         * 
+         * @param value Max health to add
+         */
+        void addMaxHealth(float value);
+
+        /**
+         * Gives player ammo and applies ammo effect.
+         * Does nothing if value is zero or less.
+         * Cannot exceed reserve capacity.
+         * 
+         * @param value Ammo to add
+         */
+        void addAmmo(float value);
+
+        /**
+         * Gives player speed and applies speed effect.
+         * Does nothing if value is zero or less.
+         * 
+         * @param value Movement speed to add
+         */
+        void addSpeed(float value);
+
+        /**
+         * Gives player fire rate and applies fire rate effect.
+         * Does nothing if value is zero or less.
+         * 
+         * @param value Fire rate to add
+         */
+        void addFireRate(float value);
+
+        /**
+         * Gives player XP and applies XP effect.
+         * Does nothing if value is zero or less.
+         * 
+         * @param value XP to add
+         */
+        void addXP(float value);
+
+        float getAmmo() const { return reserveLevel; }
+        float getSpeed() const { return movementSpeed; }
+        float getFireRate() const {return fireRate; }
+        float getXP() const { return XP; }
 
         // Applies reload event to the player, safe to apply constantly as the state doesnt change
         void procReload();
@@ -125,15 +173,12 @@ class _player : public _unit {
         // Player Variables //
         int lives = 1;
         float respawnTime = 5.0f; // Seconds to respawn.
-        float movementSpeed = 120.0f; // World units / second
         Vec2f spawnPos = {0.0f, 0.0f};
         
         // Weapon Variables //
-        float fireRate;          // RPM
         int magCapacity;         // Maximum bullets in magazine
         int magLevel;            // Current bullets in magazine
         int reserveCapacity;     // Maximum bullets in reserve             
-        int reserveLevel;        // Current bullets in reserve
         float reloadSpeed;       // How fast weapon reloads (in seconds)
 
         bool isMoving = false;      // Is player actively moving
@@ -153,6 +198,12 @@ class _player : public _unit {
         player_enterered_level_event playerLevelEvent = PLAYER_EVENT_LEVEL_NONE;
     protected:
     private:
+        // Variables //
+        float XP = 0;
+        float fireRate = 0;           // RPM
+        int reserveLevel = 0;         // Current bullets in reserve
+        float movementSpeed = 120.0f; // World units / second
+
         Vec2f previousPos = {0.0f, 0.0f};
         _lightManager* sceneLightManager = nullptr;  // Pointer to light manager instantiated in scene (non-owning)
         particles::Engine* ParticleEngine = nullptr; // Pointer to the particle Engine instantiated in scene (non-owning)

@@ -109,12 +109,14 @@ void _pickupManager::updatePickups(const double dt) {
         if (distance < 10.0f) {
             // Apply pickup
             p.alive = false;
-
-            player->resupply(p.health, p.ammo);
-            player->setMaxHealth(player->getMaxHealth() + p.maxHealth);
-            player->movementSpeed += p.speed;
-            player->fireRate += p.fireRate;
-            // DO XP LATER //
+            
+            // Player variables
+            if (p.health > 0) player->addHealth(p.health);
+            if (p.maxHealth > 0) player->addMaxHealth(p.maxHealth);
+            if (p.ammo > 0) player->addAmmo(p.ammo);
+            if (p.speed > 0) player->addSpeed(p.speed);
+            if (p.fireRate > 0) player->addFireRate(p.fireRate);
+            if (p.xp > 0) player->addXP(p.xp);
 
             continue;
         }

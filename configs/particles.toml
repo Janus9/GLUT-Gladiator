@@ -736,14 +736,14 @@ waveFrequencyMin = 0.0
 waveFrequencyMax = 0.0
 
 #############
-[[particles]]
-id = "player_heal"
+[[particles]] # PICKUP HEALTH #
+id = "player_pickup_health"
 
-particleCount = 35
+particleCount = 10
 
 # Animation
 texturePath = "images/particles/player_particles.png"
-sheetColumns = 3
+sheetColumns = 7
 sheetRows = 1
 animationRow = 0
 animationFPS = 0
@@ -791,14 +791,14 @@ waveFrequencyMin = 0.2
 waveFrequencyMax = 1.0
 
 #############
-[[particles]]
-id = "player_ammo"
+[[particles]] # PICKUP AMMO #
+id = "player_pickup_ammo"
 
-particleCount = 35
+particleCount = 10
 
 # Animation
 texturePath = "images/particles/player_particles.png"
-sheetColumns = 3
+sheetColumns = 7
 sheetRows = 1
 animationRow = 0
 animationFPS = 0
@@ -846,6 +846,229 @@ waveFrequencyMin = 0.2
 waveFrequencyMax = 1.0
 
 #############
+[[particles]] # PICKUP MAX HEALTH #
+id = "player_pickup_max_health"
+
+particleCount = 10
+
+# Animation
+texturePath = "images/particles/player_particles.png"
+sheetColumns = 7
+sheetRows = 1
+animationRow = 0
+animationFPS = 0
+startingColumn = 2
+useEntireSheet = false
+pingPongAnimation = false
+deathOnAnimationEnd = false
+stopColumn = 0
+
+# Velocity
+minVelX = -3.0
+maxVelX = 3.0
+minVelY = 3.0
+maxVelY = 5.0
+
+# Size
+minRadius = 2.0
+maxRadius = 4.0
+
+# Lifetime
+minLifeTime = 2.0
+maxLifeTime = 3.0
+
+# Spawn Offset
+minSpawnOffsetX = -12.0
+maxSpawnOffsetX = 12.0
+minSpawnOffsetY = -6.0
+maxSpawnOffsetY = 8.0
+
+# Rotation
+minRotation = 0.0
+maxRotation = 0.0
+
+# Gravity
+hasGravity = false
+
+# Floor Kill Plane
+hasFloor = false
+floorOffset = 0.0
+
+# Wave Motion
+waveAmplitudeMin = 1.0
+waveAmplitudeMax = 3.3
+waveFrequencyMin = 0.2
+waveFrequencyMax = 1.0
+
+#############
+[[particles]] # PICKUP SPEED #
+id = "player_pickup_speed"
+
+particleCount = 10
+
+# Animation
+texturePath = "images/particles/player_particles.png"
+sheetColumns = 7
+sheetRows = 1
+animationRow = 0
+animationFPS = 0
+startingColumn = 3
+useEntireSheet = false
+pingPongAnimation = false
+deathOnAnimationEnd = false
+stopColumn = 0
+
+# Velocity
+minVelX = -3.0
+maxVelX = 3.0
+minVelY = 3.0
+maxVelY = 5.0
+
+# Size
+minRadius = 2.0
+maxRadius = 4.0
+
+# Lifetime
+minLifeTime = 2.0
+maxLifeTime = 3.0
+
+# Spawn Offset
+minSpawnOffsetX = -12.0
+maxSpawnOffsetX = 12.0
+minSpawnOffsetY = -6.0
+maxSpawnOffsetY = 8.0
+
+# Rotation
+minRotation = 0.0
+maxRotation = 0.0
+
+# Gravity
+hasGravity = false
+
+# Floor Kill Plane
+hasFloor = false
+floorOffset = 0.0
+
+# Wave Motion
+waveAmplitudeMin = 1.0
+waveAmplitudeMax = 3.3
+waveFrequencyMin = 0.2
+waveFrequencyMax = 1.0
+#############
+
+#############
+[[particles]] # PICKUP FIRE RATE #
+id = "player_pickup_firerate"
+
+particleCount = 10
+
+# Animation
+texturePath = "images/particles/player_particles.png"
+sheetColumns = 7
+sheetRows = 1
+animationRow = 0
+animationFPS = 0
+startingColumn = 4
+useEntireSheet = false
+pingPongAnimation = false
+deathOnAnimationEnd = false
+stopColumn = 0
+
+# Velocity
+minVelX = -3.0
+maxVelX = 3.0
+minVelY = 3.0
+maxVelY = 5.0
+
+# Size
+minRadius = 2.0
+maxRadius = 4.0
+
+# Lifetime
+minLifeTime = 2.0
+maxLifeTime = 3.0
+
+# Spawn Offset
+minSpawnOffsetX = -12.0
+maxSpawnOffsetX = 12.0
+minSpawnOffsetY = -6.0
+maxSpawnOffsetY = 8.0
+
+# Rotation
+minRotation = 0.0
+maxRotation = 0.0
+
+# Gravity
+hasGravity = false
+
+# Floor Kill Plane
+hasFloor = false
+floorOffset = 0.0
+
+# Wave Motion
+waveAmplitudeMin = 1.0
+waveAmplitudeMax = 3.3
+waveFrequencyMin = 0.2
+waveFrequencyMax = 1.0
+#############
+
+
+#############
+[[particles]] # PICKUP XP #
+id = "player_pickup_xp"
+
+particleCount = 10
+
+# Animation
+texturePath = "images/particles/player_particles.png"
+sheetColumns = 7
+sheetRows = 1
+animationRow = 0
+animationFPS = 0
+startingColumn = 5
+useEntireSheet = false
+pingPongAnimation = false
+deathOnAnimationEnd = false
+stopColumn = 0
+
+# Velocity
+minVelX = -3.0
+maxVelX = 3.0
+minVelY = 3.0
+maxVelY = 5.0
+
+# Size
+minRadius = 2.0
+maxRadius = 4.0
+
+# Lifetime
+minLifeTime = 2.0
+maxLifeTime = 3.0
+
+# Spawn Offset
+minSpawnOffsetX = -12.0
+maxSpawnOffsetX = 12.0
+minSpawnOffsetY = -6.0
+maxSpawnOffsetY = 8.0
+
+# Rotation
+minRotation = 0.0
+maxRotation = 0.0
+
+# Gravity
+hasGravity = false
+
+# Floor Kill Plane
+hasFloor = false
+floorOffset = 0.0
+
+# Wave Motion
+waveAmplitudeMin = 1.0
+waveAmplitudeMax = 3.3
+waveFrequencyMin = 0.2
+waveFrequencyMax = 1.0
+#############
+
 [[particles]]
 id = "fob_death_1"
 
