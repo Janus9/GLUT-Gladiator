@@ -29,6 +29,7 @@ struct player_serial_data {
     int32_t reserveCapacity;
     int32_t reserveLevel;
     float reloadSpeed;
+    float xp;
 
     uint8_t padding1;
     uint16_t padding2;

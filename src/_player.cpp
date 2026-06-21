@@ -455,6 +455,7 @@ player_serial_data _player::exportSerializedPlayer() const {
     player_data.reserveCapacity = reserveCapacity;
     player_data.reserveLevel = reserveLevel;
     player_data.reloadSpeed = reloadSpeed;
+    player_data.xp = XP;
     // Padding -- doesnt do anything
     player_data.padding1 = 0;
     player_data.padding2 = 0;
@@ -479,6 +480,7 @@ void _player::importSerializedPlayer(const player_serial_data &player_data) {
     reserveCapacity = player_data.reserveCapacity;
     reserveLevel = player_data.reserveLevel;
     reloadSpeed = player_data.reloadSpeed;
+    XP = player_data.xp;
 }
 
 void _player::addHealth(float value) {
