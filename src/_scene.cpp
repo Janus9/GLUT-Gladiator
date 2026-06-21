@@ -213,6 +213,15 @@ void _scene::initScene(bool loadWorld)
     hud->addHudText("PLAYER_RESERVE");
     hud->getHudText("PLAYER_RESERVE")->setFont(GLUT_BITMAP_HELVETICA_18);
 
+    hud->addHudText("PLAYER_MOVEMENT_SPEED");
+    hud->getHudText("PLAYER_MOVEMENT_SPEED")->setFont(GLUT_BITMAP_HELVETICA_18);
+
+    hud->addHudText("PLAYER_FIRE_RATE");
+    hud->getHudText("PLAYER_FIRE_RATE")->setFont(GLUT_BITMAP_HELVETICA_18);
+
+    hud->addHudText("PLAYER_XP");
+    hud->getHudText("PLAYER_XP")->setFont(GLUT_BITMAP_HELVETICA_18);
+
     hud->addHudSprite("PROGRESS_BAR");
     hud->getHudSprite("PROGRESS_BAR")->getSprite()->initSprite("images/progress_bar.png", 5, 1, sprite_direction::RIGHT);
     hud->getHudSprite("PROGRESS_BAR")->getSprite()->scale = {1.5f, 1.5f};
@@ -1022,6 +1031,12 @@ void _scene::reSize(GLint width, GLint height)
         hud->getHudText("PLAYER_AMMO")->position = {20.0f, 0 + 120.0f};
     if (hud->getHudSprite("PROGRESS_BAR"))
         hud->getHudSprite("PROGRESS_BAR")->position = {width / 2.0, 100.0f};
+    if (hud->getHudText("PLAYER_MOVEMENT_SPEED"))
+        hud->getHudText("PLAYER_MOVEMENT_SPEED")->position = {width-300.0, 0 + 40.0f};
+    if (hud->getHudText("PLAYER_FIRE_RATE"))
+        hud->getHudText("PLAYER_FIRE_RATE")->position = {width-300.0, 0 + 80.0f};
+    if (hud->getHudText("PLAYER_XP"))
+        hud->getHudText("PLAYER_XP")->position = {width-300.0, 0 + 120.0f};
 
     Logger.LogInfo("Resizing window to width: " + std::to_string(width) + " and height: " + std::to_string(height), LOG_BOTH);
     GLfloat aspectRatio = (GLfloat)width / (GLfloat)height; // Intended to keep track of window resize
@@ -1512,9 +1527,12 @@ void _scene::updateScene(double dt, const InputState &inputState)
     hud->getHudText("MOUSE_SCREEN")->setText("Mouse Screen Coords: " + mouseScreenPos.toString());
     hud->getHudText("MOUSE_WORLD")->setText("Mouse World Coords: " + mouseWorldPos.toString());
     hud->getHudText("MOUSE_NORMAL")->setText("Mouse Normal Coords: " + mouseNormalPos.toString());
-    hud->getHudText("PLAYER_HEALTH")->setText("HP: " + std::to_string(player->getHealth()));
+    hud->getHudText("PLAYER_HEALTH")->setText("HP: " + std::to_string(player->getHealth()) + " / " + std::to_string(player->getMaxHealth()));
     hud->getHudText("PLAYER_AMMO")->setText("Ammo: " + std::to_string(player->magLevel) + " / " + std::to_string(player->magCapacity));
     hud->getHudText("PLAYER_RESERVE")->setText("Reserve: " + std::to_string(player->getAmmo()) + " / " + std::to_string(player->reserveCapacity));
+    hud->getHudText("PLAYER_MOVEMENT_SPEED")->setText("Movement Speed: " + std::to_string(player->getSpeed()));
+    hud->getHudText("PLAYER_FIRE_RATE")->setText("Fire Rate: " + std::to_string(player->getFireRate()));
+    hud->getHudText("PLAYER_XP")->setText("XP: " + std::to_string(player->getXP()));
     // const _tile* tile = myWorld->getTileAtWorld(player->pos);
 
     const _tile *tile = myWorld->getTileAtWorld(Vec2f(mouseWorldPos.x, mouseWorldPos.y));
