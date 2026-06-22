@@ -1694,16 +1694,20 @@ void _scene::setupTextures() {
 
 // Add logging to an output file at some point to help user out
 bool _scene::loadWorldConfig(const std::string &configPath, world_config &outConfig) {
+    SDL_LogInfo(LOG_SCENE, "Reading configuration file %s for world generation", configPath.c_str());
+
     // Test world configuration //
     toml::table config;
-    bool status = false;
 
     try {
         config = toml::parse_file(configPath);
-        std::cout << config << "\n";
     } catch (const toml::parse_error &err) {
-        std::cerr << "ERROR: Failed to parse TOML file: " << configPath << "\n";
-        std::cerr << err << "\n";
+        SDL_LogError(LOG_SCENE, 
+            "ERROR: Failed to parse the TOML config file %s\n"
+            " - What: %s", 
+            configPath.c_str(),
+            err.what()
+        );
         return false;
     }
 
@@ -1712,7 +1716,7 @@ bool _scene::loadWorldConfig(const std::string &configPath, world_config &outCon
     {
         auto check = config["world"]["num_chunks"];
         if (!check.is_integer()) {
-            std::cerr << "ERROR: Num Chunks must be an integer type\n"; 
+            SDL_LogError(LOG_SCENE, "ERROR: Num Chunks must be an integer type");
             return false;
         } 
     }
@@ -1720,7 +1724,7 @@ bool _scene::loadWorldConfig(const std::string &configPath, world_config &outCon
     {
         auto check = config["world"]["outer_cutoff"];
         if (!check.is_number()) {
-            std::cerr << "ERROR: Outer Cutoff must be a float type\n"; 
+            SDL_LogError(LOG_SCENE, "ERROR: Outer Cutoff must be a float type");
             return false;
         } 
     }
@@ -1728,7 +1732,7 @@ bool _scene::loadWorldConfig(const std::string &configPath, world_config &outCon
     {
         auto check = config["world"]["middle_cutoff"];
         if (!check.is_number()) {
-            std::cerr << "ERROR: Middle Cutoff must be a float type\n"; 
+            SDL_LogError(LOG_SCENE, "ERROR: Middle Cutoff must be a float type");
             return false;
         } 
     }
@@ -1736,7 +1740,7 @@ bool _scene::loadWorldConfig(const std::string &configPath, world_config &outCon
     {
         auto check = config["world"]["inner_cutoff"];
         if (!check.is_number()) {
-            std::cerr << "ERROR: Inner Cutoff must be a float type\n"; 
+            SDL_LogError(LOG_SCENE, "ERROR: Inner Cutoff must be a float type");
             return false;
         } 
     }
@@ -1744,7 +1748,7 @@ bool _scene::loadWorldConfig(const std::string &configPath, world_config &outCon
     {
         auto check = config["world"]["outer_biome_blend_radius"];
         if (!check.is_number()) {
-            std::cerr << "ERROR: Outer Biome Blend Radius must be a float type\n"; 
+            SDL_LogError(LOG_SCENE, "ERROR: Outer Biome Blend Radius must be a float type");
             return false;
         } 
     }
@@ -1752,7 +1756,7 @@ bool _scene::loadWorldConfig(const std::string &configPath, world_config &outCon
     {
         auto check = config["world"]["middle_biome_blend_radius"];
         if (!check.is_number()) {
-            std::cerr << "ERROR: Middle Biome Blend Radius must be a float type\n"; 
+            SDL_LogError(LOG_SCENE, "ERROR: Middle Biome Blend Radius must be a float type");
             return false;
         } 
     }
@@ -1761,7 +1765,7 @@ bool _scene::loadWorldConfig(const std::string &configPath, world_config &outCon
     {
         auto check = config["world"]["inner_biome_blend_radius"];
         if (!check.is_number()) {
-            std::cerr << "ERROR: Inner Biome Blend Radius must be a float type\n"; 
+            SDL_LogError(LOG_SCENE, "ERROR: Inner Biome Blend Radius must be a float type");
             return false;
         } 
     }
@@ -1784,20 +1788,36 @@ bool _scene::loadWorldConfig(const std::string &configPath, world_config &outCon
     outConfig.middle_biome_blend_radius = static_cast<float>(config["world"]["middle_biome_blend_radius"].value_or(0.0f));
     outConfig.inner_biome_blend_radius = static_cast<float>(config["world"]["inner_biome_blend_radius"].value_or(0.0f));
 
-    status = loadGenerationConfig(config, "world", "wall_generation", outConfig.wall_generation);
-    if (!status) {
-        std::cerr << "ERROR reading [" << configPath << "]\n"
-                  << " - Ensure configuration file is setup correctly\n";
+    if (!loadGenerationConfig(config, "world", "wall_generation", outConfig.wall_generation)) {
+        SDL_LogError(LOG_SCENE, "ERROR: Cannot parse [wall_generation] for %s", configPath.c_str());
+        return false;
+    }
+    if (!loadGenerationConfig(config, "world", "wet_generation", outConfig.wet_generation)) {
+        SDL_LogError(LOG_SCENE, "ERROR: Cannot parse [wet_generation] for %s", configPath.c_str());
+        return false;
+    }
+    if (!loadPickupConfig(config, "world", "health_pickups", outConfig.health_pickups)) {
+        SDL_LogError(LOG_SCENE, "ERROR: Cannot parse [health_pickups] for %s", configPath.c_str());
+        return false;
+    }
+    if (!loadPickupConfig(config, "world", "max_health_pickups", outConfig.max_health_pickups)) {
+        SDL_LogError(LOG_SCENE, "ERROR: Cannot parse [max_health_pickups] for %s", configPath.c_str());
+        return false;
+    }
+    if (!loadPickupConfig(config, "world", "ammo_pickups", outConfig.ammo_pickups)) {
+        SDL_LogError(LOG_SCENE, "ERROR: Cannot parse [ammo_pickups] for %s", configPath.c_str());
+        return false;
+    }
+    if (!loadPickupConfig(config, "world", "speed_pickups", outConfig.speed_pickups)) {
+        SDL_LogError(LOG_SCENE, "ERROR: Cannot parse [speed_pickups] for %s", configPath.c_str());
+        return false;
+    }
+    if (!loadPickupConfig(config, "world", "firerate_pickups", outConfig.firerate_pickups)) {
+        SDL_LogError(LOG_SCENE, "ERROR: Cannot parse [firerate_pickups] for %s", configPath.c_str());
         return false;
     }
 
-    status = loadGenerationConfig(config, "world", "wet_generation", outConfig.wet_generation);
-    if (!status) {
-        std::cerr << "ERROR reading [" << configPath << "]\n"
-                  << " - Ensure configuration file is setup correctly\n";
-        return false;
-    }
-
+    SDL_LogInfo(LOG_SCENE, "World generation file read successfully", configPath.c_str());
     return true;
 }
 
@@ -1812,7 +1832,7 @@ bool _scene::loadGenerationConfig(
     {
         auto check = config[tableParentPath][tableChildPath]["random_distribution"];
         if (!check.is_number()) {
-            std::cerr << "ERROR: Random Distribution must be a float type\n"; 
+            SDL_LogError(LOG_SCENE, "ERROR: Random Distribution must be a float type");
             return false;
         } 
     }
@@ -1820,7 +1840,7 @@ bool _scene::loadGenerationConfig(
     {
         auto check = config[tableParentPath][tableChildPath]["num_iterations"];
         if (!check.is_integer()) {
-            std::cerr << "ERROR: Num Iterations must be an integer type\n"; 
+            SDL_LogError(LOG_SCENE, "ERROR: Num Iterations must be an integer type");
             return false;
         } 
     }
@@ -1828,7 +1848,7 @@ bool _scene::loadGenerationConfig(
     {
         auto check = config[tableParentPath][tableChildPath]["survival_requirement"];
         if (!check.is_integer()) {
-            std::cerr << "ERROR: Survival Requirement must be an integer type\n"; 
+            SDL_LogError(LOG_SCENE, "ERROR: Survival Requirement must be an integer type");
             return false;
         } 
     }
@@ -1836,7 +1856,7 @@ bool _scene::loadGenerationConfig(
     {
         auto check = config[tableParentPath][tableChildPath]["birth_requirement"];
         if (!check.is_integer()) {
-            std::cerr << "ERROR: Birth Requirement must be an integer type\n"; 
+            SDL_LogError(LOG_SCENE, "ERROR: Birth Requirement must be an integer type");
             return false;
         } 
     }
@@ -1844,7 +1864,7 @@ bool _scene::loadGenerationConfig(
     {
         auto check = config[tableParentPath][tableChildPath]["out_of_bounds_is_alive"];
         if (!check.is_boolean()) {
-            std::cerr << "ERROR: Out of Bounds is Alive must be a boolean type\n"; 
+            SDL_LogError(LOG_SCENE, "ERROR: Out of Bounds must be a boolean type");
             return false;
         } 
     }
@@ -1865,6 +1885,74 @@ bool _scene::loadGenerationConfig(
     outConfig.out_of_bounds_is_alive = static_cast<bool>(
         config[tableParentPath][tableChildPath]["out_of_bounds_is_alive"].value_or(false)
     );
+    
+    return true;
+}
+
+bool _scene::loadPickupConfig(
+    const toml::table &config, 
+    const std::string &tableParentPath, 
+    const std::string &tableChildPath, 
+    pickup_config &outConfig
+) {
+    // ERROR CHECKING //
+    // Pickups Per Chunk
+    {
+        auto check = config[tableParentPath][tableChildPath]["pickups_per_chunk"];
+        if (!check.is_number()) {
+            SDL_LogError(LOG_SCENE, "ERROR: Pickups per chunk must be a float type");
+            return false;
+        } 
+    }
+    // Min Chance
+    {
+        auto check = config[tableParentPath][tableChildPath]["min_chance"];
+        if (!check.is_number()) {
+            SDL_LogError(LOG_SCENE, "ERROR: Min chance must be a float type");
+            return false;
+        } 
+    }
+    // Max Chance
+    {
+        auto check = config[tableParentPath][tableChildPath]["max_chance"];
+        if (!check.is_number()) {
+            SDL_LogError(LOG_SCENE, "ERROR: Max chance must be a float type");
+            return false;
+        } 
+    }
+    // Min Chance Distribution Normalized
+    {
+        auto check = config[tableParentPath][tableChildPath]["min_chance_dist_norm"];
+        if (!check.is_number()) {
+            SDL_LogError(LOG_SCENE, "ERROR: Min chance distribution normalized must be a float type");
+            return false;
+        } 
+    }
+    // Max Chance Distribution Normalized
+    {
+        auto check = config[tableParentPath][tableChildPath]["max_chance_dist_norm"];
+        if (!check.is_number()) {
+            SDL_LogError(LOG_SCENE, "ERROR: Max chance distribution normalized must be a float type");
+            return false;
+        } 
+    }
+
+    // VALUE ASSIGNMENT //
+    outConfig.pickups_per_chunk = static_cast<float>(
+        config[tableParentPath][tableChildPath]["pickups_per_chunk"].value_or(0.0f)
+    );
+    outConfig.pickups_per_chunk = std::clamp(static_cast<float>(
+        config[tableParentPath][tableChildPath]["min_chance"].value_or(0.0f)
+    ), 0.0f, 1.0f);
+    outConfig.pickups_per_chunk = std::clamp(static_cast<float>(
+        config[tableParentPath][tableChildPath]["max_chance"].value_or(0.0f)
+    ), 0.0f, 1.0f);
+    outConfig.pickups_per_chunk = std::clamp(static_cast<float>(
+        config[tableParentPath][tableChildPath]["min_chance_dist_norm"].value_or(0.0f)
+    ), 0.0f, 1.0f);
+    outConfig.pickups_per_chunk = std::clamp(static_cast<float>(
+        config[tableParentPath][tableChildPath]["max_chance_dist_norm"].value_or(0.0f)
+    ), 0.0f, 1.0f);
     
     return true;
 }

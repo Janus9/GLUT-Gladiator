@@ -208,6 +208,22 @@ class _scene
             generation_config &outConfig
         );
 
+        /**
+         * Loads a pickup generation configuration object from a TOML configuration file
+         * 
+         * @param config TOML Table input from read file
+         * @param tableParentPath Name of parent TOML table (ex/ "world")
+         * @param tableChildPath Name of the child TOML table (ex/ "health_pickups")
+         * @param outConfig Configuration struct object to mutate
+         */
+        bool loadPickupConfig(
+            const toml::table &config, 
+            const std::string &tableParentPath, 
+            const std::string &tableChildPath, 
+            pickup_config &outConfig
+        );
+
+
         // -- DEBUGGING -- //
         _timerPlusPlus debugTimer;          // Timer to track time between updates for the scene
         _timerPlusPlus* fpsTimer = new _timerPlusPlus(); // Timer to track time between frames for FPS calculation

@@ -33,6 +33,21 @@
 #include <glm/gtc/type_ptr.hpp>             // Send GLM datatypes (matrix) to GPU
 
 /**
+ * Configuration file for the pickup generation throughout the world.
+ * 
+ *  - Pickups per chunk is, given a chance of 100%, the average distribution of pickups per chunk.
+ *      * This is prefered over a simple number_pickups because it accounts for world size. 
+ *  - The min/max chance is linearly interpolated between the min/max distance.
+ */
+struct pickup_config {
+    float pickups_per_chunk;                /// How many per chunk (average w/ 100% chance of spawning)
+    float min_chance;                       /// Chance of a pickup spawning at it's minimum chance distance [0.0 - 1.0]
+    float max_chance;                       /// Chance of a pickup spawning at it's maximum chance distance [0.0 - 1.0]
+    float min_chance_dist_norm;             /// At what distance is the pickup least likely to spawn? (min_chance) [0.0 - 1.0 where 1.0 is edge of map]
+    float max_chance_dist_norm;             /// At what distance is the pickup most likely to spawn? (max_chance) [0.0 - 1.0 where 1.0 is edge of map]
+};
+
+/**
  * Configuration file for a cellular automata generation
  * 
  * - Any values out of their labeled bounds will be rounded to nearest value with warning attached 
@@ -68,6 +83,11 @@ struct world_config {
     float inner_biome_blend_radius;             /// How many tiles wide the "blend" zone is (transitional period where tilesets dither together) for inner to boss
     generation_config wall_generation;          /// Generation configuration for the world walls
     generation_config wet_generation;           /// Generation configuration for the wet biome
+    pickup_config health_pickups;
+    pickup_config max_health_pickups;
+    pickup_config ammo_pickups;
+    pickup_config speed_pickups;
+    pickup_config firerate_pickups;
 };
 
 class _chunk; // Forward declaration for cell 

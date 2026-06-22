@@ -31,3 +31,39 @@ num_iterations = 8
 survival_requirement = 4
 birth_requirement = 5
 out_of_bounds_is_alive = false
+
+
+[world.health_pickups]
+pickups_per_chunk = 1.0
+min_chance = 0.0
+max_chance = 1.0
+min_chance_dist_norm = 1.0
+max_chance_dist_norm = 0.0
+
+[world.max_health_pickups]
+pickups_per_chunk = 1.0
+min_chance = 0.0
+max_chance = 1.0
+min_chance_dist_norm = 1.0
+max_chance_dist_norm = 0.0
+
+[world.ammo_pickups]
+pickups_per_chunk = 1.0
+min_chance = 0.0
+max_chance = 1.0
+min_chance_dist_norm = 1.0
+max_chance_dist_norm = 0.0
+
+[world.speed_pickups]
+pickups_per_chunk = 1.0
+min_chance = 0.0
+max_chance = 1.0
+min_chance_dist_norm = 1.0
+max_chance_dist_norm = 0.0
+
+[world.firerate_pickups]
+pickups_per_chunk = 1.0
+min_chance = 0.0
+max_chance = 1.0
+min_chance_dist_norm = 1.0
+max_chance_dist_norm = 0.0
