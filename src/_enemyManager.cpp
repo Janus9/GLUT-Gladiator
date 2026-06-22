@@ -256,13 +256,11 @@ void _enemyManager::updateEnemies(double dt) {
                 } else if (enemy->isDead() && enemy->deathTime > enemy->timeInDeathAnimation) {
                     Vec2f offset_pos = {pos_dist(rng), pos_dist(rng)};
                     
-                    xp_pickup.xp = 5.0f;
-                    ammo_pickup.ammo = 20.0f;
-                    scenePickupManager->addPickup(enemy->pos + offset_pos, xp_pickup);
+                    scenePickupManager->addPickup(enemy->pos + offset_pos, PICKUP_XP, 5.0f);
                     
                     if (roll(rng) > 0.5) {
                         offset_pos = {pos_dist(rng), pos_dist(rng)};
-                        scenePickupManager->addPickup(enemy->pos + offset_pos, ammo_pickup);
+                        scenePickupManager->addPickup(enemy->pos + offset_pos, PICKUP_AMMO, 20.0f);
                     }
                     
                     enemyList.erase(enemyList.begin() + i);
@@ -315,16 +313,14 @@ void _enemyManager::updateEnemies(double dt) {
                 } else if (enemy->isDead() && enemy->deathTime > enemy->timeInDeathAnimation) {
                     Vec2f offset_pos = {pos_dist(rng), pos_dist(rng)};
 
-                    xp_pickup.xp = 4.0f;
-
                     for (int i = 0; i < 2; i++) {
                         offset_pos = {pos_dist(rng), pos_dist(rng)};
-                        scenePickupManager->addPickup(enemy->pos + offset_pos, xp_pickup);
+                        scenePickupManager->addPickup(enemy->pos + offset_pos, PICKUP_XP, 4.0f);
                     }
 
                     if (roll(rng) > 0.7f) {
                         offset_pos = {pos_dist(rng), pos_dist(rng)};
-                        scenePickupManager->addPickup(enemy->pos + offset_pos, health_pickup);
+                        scenePickupManager->addPickup(enemy->pos + offset_pos, PICKUP_HEALTH, 15.0f);
                     }
 
                     enemyList.erase(enemyList.begin() + i);
@@ -394,29 +390,26 @@ void _enemyManager::updateEnemies(double dt) {
                     continue;
                 // Final death event (removes enemy)
                 } else if (enemy->isDead() && enemy->deathTime > enemy->timeInDeathAnimation) {
-                    xp_pickup.xp = 6.0f;
-                    ammo_pickup.ammo = 40;
-
                     Vec2f offset_pos = {pos_dist(rng), pos_dist(rng)};
                     
                     for (int i = 0; i < 4; i++) {
                         offset_pos = {pos_dist(rng), pos_dist(rng)};
-                        scenePickupManager->addPickup(offset_pos + enemy->pos, xp_pickup);
+                        scenePickupManager->addPickup(offset_pos + enemy->pos, PICKUP_XP, 6.0f);
                     }
 
                     if (roll(rng) > 0.8f) {
                         offset_pos = {pos_dist(rng), pos_dist(rng)};
-                        scenePickupManager->addPickup(offset_pos + enemy->pos, fire_rate_pickup);
+                        scenePickupManager->addPickup(offset_pos + enemy->pos, PICKUP_FIRERATE, 10.0f);
                     }
 
                     if (roll(rng) > 0.2f) {
                         offset_pos = {pos_dist(rng), pos_dist(rng)};
-                        scenePickupManager->addPickup(offset_pos + enemy->pos, ammo_pickup);
+                        scenePickupManager->addPickup(offset_pos + enemy->pos, PICKUP_AMMO, 40.0f);
                     }
 
                     if (roll(rng) > 0.2f) {
                         offset_pos = {pos_dist(rng), pos_dist(rng)};
-                        scenePickupManager->addPickup(offset_pos + enemy->pos, health_pickup);
+                        scenePickupManager->addPickup(offset_pos + enemy->pos, PICKUP_HEALTH, 20.0f);
                     }
 
                     enemyList.erase(enemyList.begin() + i);

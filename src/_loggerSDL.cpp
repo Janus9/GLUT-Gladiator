@@ -42,6 +42,8 @@ static const char* getCategoryName(int category) {
             return "WORLD";
         case LOG_ENEMY_MANAGER:
             return "ENEMY_MANAGER";
+        case LOG_PICKUPS:
+            return "PICKUP_MANAGER";
         default:
             return "UNKNOWN";
     }

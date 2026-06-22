@@ -7,31 +7,23 @@
 #include <_texture.h>
 #include <_shader.h>
 
-struct pickup_config {
-    int imageIndex = 0;     /// Which image to apply as the texture (0 is a missing texture)
-    float size;             /// Size of the image (1.0 is 100% size, 2.0 is 200% etc)
-
-    float health;           /// Gives the player HP 
-    float maxHealth;        /// Increases the player's max HP
-    float ammo;             /// Gives the player ammo
-    float speed;            /// Increases the player's movement speed
-    float fireRate;         /// Increases player's rate of weapon fire
-    float xp;               /// XP to reward to player 
+/**
+ * These must be in order with image
+ */
+enum pickup_type : int32_t {
+    PICKUP_HEALTH,
+    PICKUP_AMMO,
+    PICKUP_SPEED,
+    PICKUP_MAX_HEALTH,
+    PICKUP_XP,
+    PICKUP_FIRERATE
 };
 
 struct pickup_serial_data {
-    float size;
-    float health;           
-    float maxHealth;        
-    float ammo;             
-    float speed;            
-    float fireRate;         
-    float xp;
+    float value;    
+    int32_t type;
     float xPos;
     float yPos;               
-    uint16_t padding2;
-    uint8_t padding1;
-    uint8_t imageIndex;
 };
 
 class _pickupManager {
@@ -56,14 +48,17 @@ class _pickupManager {
         void updatePickups(const double dt);
 
         /**
-         * Adds a pickup to the system
+         * Adds a pickup to the system. (Size is determined by value)
+         * 
+         * The image is automatically assigned through the type
          * 
          * @param pos Position to spawn the pickup
-         * @param config Pickup configuration class 
+         * @param type Enum pickup type
+         * @param value Value of the pickup 
          * 
          * @return True if operation succeeded (False can be caused by full pickup manager)
          */
-        bool addPickup(const Vec2f &pos, const pickup_config& config);
+        bool addPickup(const Vec2f &pos, pickup_type type, float value);
 
         /**
          * Returns a vector of serialized pickup data for saving
@@ -87,18 +82,14 @@ class _pickupManager {
         bool initialized = false;       // Blocks operations until initialized
 
         struct _pickup {
-            int imageIndex = 0;     
             Vec2f pos;   
             Vec2f vel;           
             Vec2f acc;
+            
+            pickup_type type;
+            
             float size;             
-
-            float health;           
-            float maxHealth;        
-            float ammo;             
-            float speed;            
-            float fireRate;         
-            float xp;
+            float value;
 
             bool alive;
         };

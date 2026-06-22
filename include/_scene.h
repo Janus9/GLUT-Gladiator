@@ -163,12 +163,6 @@ class _scene
 
         // Pickups //
         std::unique_ptr<_pickupManager> pickupManager;
-        pickup_config health_pickup;
-        pickup_config ammo_pickup;
-        pickup_config speed_pickup;
-        pickup_config max_health_pickup;
-        pickup_config fire_rate_pickup;
-        pickup_config xp_pickup;
 
         _cell* hoveredCell = nullptr;
         _chunk* hoveredChunk = nullptr;

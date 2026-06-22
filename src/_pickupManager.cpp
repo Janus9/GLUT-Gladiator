@@ -109,15 +109,30 @@ void _pickupManager::updatePickups(const double dt) {
         if (distance < 10.0f) {
             // Apply pickup
             p.alive = false;
-            
             // Player variables
-            if (p.health > 0) player->addHealth(p.health);
-            if (p.maxHealth > 0) player->addMaxHealth(p.maxHealth);
-            if (p.ammo > 0) player->addAmmo(p.ammo);
-            if (p.speed > 0) player->addSpeed(p.speed);
-            if (p.fireRate > 0) player->addFireRate(p.fireRate);
-            if (p.xp > 0) player->addXP(p.xp);
-
+            switch (p.type) {
+                case PICKUP_HEALTH:
+                    player->addHealth(p.value);
+                    break;
+                case PICKUP_AMMO:
+                    player->addAmmo(p.value);
+                    break;
+                case PICKUP_SPEED:
+                    player->addSpeed(p.value);
+                    break;
+                case PICKUP_MAX_HEALTH:
+                    player->addMaxHealth(p.value);
+                    break;
+                case PICKUP_XP:
+                    player->addXP(p.value);    
+                    break;
+                case PICKUP_FIRERATE:
+                    player->addFireRate(p.value);    
+                    break;
+                default:
+                    SDL_LogError(LOG_PICKUPS, "ERROR: Could not determine pickup type");
+                    break;
+            }
             continue;
         }
 
@@ -136,26 +151,21 @@ void _pickupManager::updatePickups(const double dt) {
     }
 }
 
-bool _pickupManager::addPickup(const Vec2f &pos, const pickup_config& config) {
+bool _pickupManager::addPickup(const Vec2f &pos, pickup_type type, float value) {
     for (int i = 0; i < maxPickups; i++) {
         _pickup& p = pickupList[i];
         if (!p.alive) {
             p.alive = true;
 
-            p.imageIndex = config.imageIndex;
+            p.type = type;
 
             p.pos = pos;
             p.vel = {0.0f,0.0f};
             p.acc = {0.0f,0.0f};
 
-            p.size = config.size;
+            p.value = value;
 
-            p.health = config.health;
-            p.maxHealth = config.maxHealth;
-            p.ammo = config.ammo;
-            p.speed = config.speed;
-            p.fireRate = config.fireRate;
-            p.xp = config.xp;
+            p.size = 4.0f + log(value);
 
             return true;
         }
@@ -179,17 +189,7 @@ bool _pickupManager::importSerializedPickups(const std::vector<pickup_serial_dat
         return false;
     }
     for (const pickup_serial_data &p : pickup_data) {
-        pickup_config config {
-            config.imageIndex = static_cast<int>(p.imageIndex),
-            config.size = p.size,
-            config.health = p.health,
-            config.maxHealth = p.maxHealth,
-            config.ammo = p.ammo,
-            config.speed = p.speed,
-            config.fireRate = p.fireRate,
-            config.xp = p.xp,
-        };
-        if (!addPickup({p.xPos, p.yPos}, config)) {
+        if (!addPickup({p.xPos, p.yPos}, static_cast<pickup_type>(p.type), p.value)) {
             std::cout << "ERROR: Cannot add pickup\n";
         }
     }
@@ -201,18 +201,10 @@ bool _pickupManager::importSerializedPickups(const std::vector<pickup_serial_dat
 
 pickup_serial_data _pickupManager::serializePickup(const _pickup &pickup) const {
     pickup_serial_data data {
-        data.size = pickup.size,
-        data.health = pickup.health,
-        data.maxHealth = pickup.maxHealth,
-        data.ammo = pickup.ammo,
-        data.speed = pickup.speed,
-        data.fireRate = pickup.fireRate,
-        data.xp = pickup.xp,
+        data.value = pickup.value,
+        data.type = static_cast<int32_t>(pickup.type),
         data.xPos = pickup.pos.x,
         data.yPos = pickup.pos.y,
-        data.padding2 = static_cast<uint16_t>(0),
-        data.padding1 = static_cast<uint8_t>(0),
-        data.imageIndex = static_cast<uint8_t>(pickup.imageIndex)
     };
     return data;
 }
@@ -246,7 +238,7 @@ void _pickupManager::buildVBO() {
         // Bottom-left (0)
         vboData[vIndex++] = -halfWidth; 
         vboData[vIndex++] = -halfHeight; 
-        vboData[vIndex++] = p->imageIndex * uWidth; 
+        vboData[vIndex++] = p->type * uWidth; 
         vboData[vIndex++] = 1.0f; 
         vboData[vIndex++] = centerX; 
         vboData[vIndex++] = centerY; 
@@ -254,7 +246,7 @@ void _pickupManager::buildVBO() {
         // Bottom-right (1)
         vboData[vIndex++] = halfWidth; 
         vboData[vIndex++] = -halfHeight; 
-        vboData[vIndex++] = (p->imageIndex + 1) * uWidth; 
+        vboData[vIndex++] = (p->type + 1) * uWidth; 
         vboData[vIndex++] = 1.0f; 
         vboData[vIndex++] = centerX; 
         vboData[vIndex++] = centerY; 
@@ -262,7 +254,7 @@ void _pickupManager::buildVBO() {
         // Top-right (2)
         vboData[vIndex++] = halfWidth; 
         vboData[vIndex++] = halfHeight; 
-        vboData[vIndex++] = (p->imageIndex + 1) * uWidth; 
+        vboData[vIndex++] = (p->type + 1) * uWidth; 
         vboData[vIndex++] = 0.0f; 
         vboData[vIndex++] = centerX; 
         vboData[vIndex++] = centerY; 
@@ -270,7 +262,7 @@ void _pickupManager::buildVBO() {
         // Top-left (3)
         vboData[vIndex++] = -halfWidth; 
         vboData[vIndex++] = halfHeight; 
-        vboData[vIndex++] = p->imageIndex * uWidth; 
+        vboData[vIndex++] = p->type * uWidth; 
         vboData[vIndex++] = 0.0f; 
         vboData[vIndex++] = centerX; 
         vboData[vIndex++] = centerY; 
