@@ -489,19 +489,45 @@ void _scene::initScene(bool loadWorld)
         }
 
         // Spawn Pickups //
-        const int num_hp_pickups = 350;
-        const int num_ammo_pickups = 350;
-        const int num_speed_pickups = 80;
-        const int num_max_hp_pickups = 80;
-        const int num_fire_rate_pickups = 80;
+        const int num_hp_pickups = world_configuration.num_chunks * world_configuration.health_pickups.pickups_per_chunk;
+        const int num_ammo_pickups = world_configuration.num_chunks * world_configuration.ammo_pickups.pickups_per_chunk;
+        const int num_speed_pickups = world_configuration.num_chunks * world_configuration.speed_pickups.pickups_per_chunk;
+        const int num_max_hp_pickups = world_configuration.num_chunks * world_configuration.max_health_pickups.pickups_per_chunk;
+        const int num_firerate_pickups = world_configuration.num_chunks * world_configuration.firerate_pickups.pickups_per_chunk;
 
-        std::uniform_real_distribution<float> hp_pos_dist(-10000, 10000);
-        std::uniform_real_distribution<float> ammo_pos_dist(-10000, 10000);
-        std::uniform_real_distribution<float> speed_pos_dist(-6500, 6500);
-        std::uniform_real_distribution<float> max_hp_pos_dist(-5000, 5000);
-        std::uniform_real_distribution<float> fire_rate_pos_dist(-2000, 2000);
+        const float max_distance = Vec2f(bounds,bounds).distance({0.0f, 0.0f});
+
+        std::uniform_real_distribution<float> pickup_dist(-bounds, bounds);
+        std::uniform_real_distribution<float> pickup_rng(0.0f, 1.0f);
 
         // Hp Pickup Distribution //
+        int hp_pickups_spawned = 0;
+        while (hp_pickups_spawned < num_hp_pickups) {
+            bool lookingSpawn = true;
+            while (lookingSpawn)
+            {
+                const Vec2f pos = {pickup_dist(rng), pickup_dist(rng)};
+                const _cell *cell = myWorld->getCellAtWorld(pos);
+                if (cell && myWorld->isCellWall(cell)) continue;
+
+                // im forgetting the min_chance_dist_normal?
+                // im forgetting the max_chance_dist_normal?
+
+                const float dist = pos.distance({0.0f,0.0f});
+                const float dist_norm = std::clamp(dist / max_distance, 0.0f, 1.0f);
+                const float chance = std::lerp( // Linear Interpolation between min/max value by distance
+                    world_configuration.health_pickups.min_chance, 
+                    world_configuration.health_pickups.max_chance, 
+                    dist_norm // This needs to be inverted right?
+                );
+                
+                if (chance > pickup_rng(rng)) {
+                    pickupManager->addPickup(pos,PICKUP_HEALTH, 10.0f);
+                    lookingSpawn = false;
+                    hp_pickups_spawned++;
+                }
+            }
+        }
         for (int i = 0; i < num_hp_pickups; i++)
         {
             bool lookingSpawn = true;
