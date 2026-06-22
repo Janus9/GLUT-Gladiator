@@ -15,29 +15,21 @@ The game can be saved/loaded and is fully destructible.
 
 # Build Information
 
-GLUT Gladiator is built on Windows using **Msys2**, and **GNU Make**.
+GLUT Gladiator is built on Windows using **MSYS2**, **GNU**, and **MAKE**.
 
 ### Required Tools
+- [MSYS64](https://www.msys2.org/) (ucrt64 for packages)
+- [GCC](https://packages.msys2.org/base/mingw-w64-gcc) 
+- [GDB](https://packages.msys2.org/base/mingw-w64-gdb) 
+- [Make](https://packages.msys2.org/base/mingw-w64-make) 
+- [OpenGL Glew](https://packages.msys2.org/packages/mingw-w64-ucrt-x86_64-glew) 
+- [OpenGL Freeglut](https://packages.msys2.org/base/mingw-w64-freeglut) 
+- [SDL3](https://github.com/libsdl-org/SDL/blob/main/docs/INTRO-mingw.md)
 
-Before building, make sure the following are installed and available from your terminal:
-
-- 64-bit msys64/ucrt64 g++
-- msys64/ucrt64 mingw32-make
-- OpenGL: Glew, Freeglut
-- Sound Engine **TODO**
-
-You can verify the tools with:
-
-```bash
-g++ --version
- - (Needs to be at least V16.0.0)
-mingw32-make --version
- - GNU Make 4.4.1
-```
-
-There are included (but required) header libraries located inside of ``common/include``:
- - stb_image (Image loader) https://github.com/nothings/stb/blob/master/stb_image.h
- - toml.hpp (TOML Configuration Parser) https://github.com/toml-lang/toml
+There are included (but required) header only libraries located inside of ``common/include``:
+ - [stb_image](https://github.com/nothings/stb/blob/master/stb_image.h) (Image loader)
+ - [toml](https://github.com/toml-lang/toml) (TOML Configuration Parser) 
+ - [glm](https://github.com/g-truc/glm) (OpenGL Mathematics) 
 
 ### How To
 
