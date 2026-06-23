@@ -495,6 +495,12 @@ void _scene::initScene(bool loadWorld)
         const int num_max_hp_pickups = world_configuration.num_chunks * world_configuration.max_health_pickups.pickups_per_chunk;
         const int num_firerate_pickups = world_configuration.num_chunks * world_configuration.firerate_pickups.pickups_per_chunk;
 
+        SDL_LogDebug(LOG_SCENE, "Number of HP Pickups to spawn: %i",num_hp_pickups);
+        SDL_LogDebug(LOG_SCENE, "Number of Ammo Pickups to spawn: %i",num_ammo_pickups);
+        SDL_LogDebug(LOG_SCENE, "Number of Speed Pickups to spawn: %i",num_speed_pickups);
+        SDL_LogDebug(LOG_SCENE, "Number of Max HP Pickups to spawn: %i",num_max_hp_pickups);
+        SDL_LogDebug(LOG_SCENE, "Number of Firerate Pickups to spawn: %i",num_firerate_pickups);
+
         const float max_distance = Vec2f(bounds,bounds).distance({0.0f, 0.0f});
 
         std::uniform_real_distribution<float> pickup_dist(-bounds, bounds);
@@ -504,21 +510,31 @@ void _scene::initScene(bool loadWorld)
         int hp_pickups_spawned = 0;
         while (hp_pickups_spawned < num_hp_pickups) {
             bool lookingSpawn = true;
+            const pickup_config &cfg = world_configuration.health_pickups; 
             while (lookingSpawn)
             {
                 const Vec2f pos = {pickup_dist(rng), pickup_dist(rng)};
                 const _cell *cell = myWorld->getCellAtWorld(pos);
                 if (cell && myWorld->isCellWall(cell)) continue;
 
-                // im forgetting the min_chance_dist_normal?
-                // im forgetting the max_chance_dist_normal?
-
                 const float dist = pos.distance({0.0f,0.0f});
                 const float dist_norm = std::clamp(dist / max_distance, 0.0f, 1.0f);
+                
+                float t = 0.0f;
+
+                const float span = cfg.min_chance_dist_norm - cfg.max_chance_dist_norm;
+
+                if (span != 0.0f)
+                {
+                    t = (dist_norm - cfg.max_chance_dist_norm) / span;
+                }
+
+                t = std::clamp(t, 0.0f, 1.0f);
+
                 const float chance = std::lerp( // Linear Interpolation between min/max value by distance
-                    world_configuration.health_pickups.min_chance, 
-                    world_configuration.health_pickups.max_chance, 
-                    dist_norm // This needs to be inverted right?
+                    cfg.max_chance, 
+                    cfg.min_chance, 
+                    t
                 );
                 
                 if (chance > pickup_rng(rng)) {
@@ -526,74 +542,6 @@ void _scene::initScene(bool loadWorld)
                     lookingSpawn = false;
                     hp_pickups_spawned++;
                 }
-            }
-        }
-        for (int i = 0; i < num_hp_pickups; i++)
-        {
-            bool lookingSpawn = true;
-            while (lookingSpawn)
-            {
-                Vec2f pos = {hp_pos_dist(rng), hp_pos_dist(rng)};
-                _cell *cell = myWorld->getCellAtWorld(pos);
-                if (cell && myWorld->isCellWall(cell)) continue;
-                pickupManager->addPickup(pos,PICKUP_HEALTH, 10.0f);
-                lookingSpawn = false;
-            }
-        }
-
-        // Ammo Pickup Distribution //
-        for (int i = 0; i < num_ammo_pickups; i++)
-        {
-            bool lookingSpawn = true;
-            while (lookingSpawn)
-            {
-                Vec2f pos = {ammo_pos_dist(rng), ammo_pos_dist(rng)};
-                _cell *cell = myWorld->getCellAtWorld(pos);
-                if (cell && myWorld->isCellWall(cell)) continue;
-                pickupManager->addPickup(pos,PICKUP_AMMO, 10.0f);
-                lookingSpawn = false;
-            }
-        }
-
-        // Speed Pickup Distribution //
-        for (int i = 0; i < num_speed_pickups; i++)
-        {
-            bool lookingSpawn = true;
-            while (lookingSpawn)
-            {
-                Vec2f pos = {speed_pos_dist(rng), speed_pos_dist(rng)};
-                _cell *cell = myWorld->getCellAtWorld(pos);
-                if (cell && myWorld->isCellWall(cell)) continue;
-                pickupManager->addPickup(pos,PICKUP_SPEED, 10.0f);
-                lookingSpawn = false;
-            }
-        }
-
-        // Max HP Pickup Distribution //
-        for (int i = 0; i < num_max_hp_pickups; i++)
-        {
-            bool lookingSpawn = true;
-            while (lookingSpawn)
-            {
-                Vec2f pos = {max_hp_pos_dist(rng), max_hp_pos_dist(rng)};
-                _cell *cell = myWorld->getCellAtWorld(pos);
-                if (cell && myWorld->isCellWall(cell)) continue;
-                pickupManager->addPickup(pos,PICKUP_MAX_HEALTH, 10.0f);
-                lookingSpawn = false;
-            }
-        }
-
-        // Fire Rate Pickup Distribution //
-        for (int i = 0; i < num_fire_rate_pickups; i++)
-        {
-            bool lookingSpawn = true;
-            while (lookingSpawn)
-            {
-                Vec2f pos = {fire_rate_pos_dist(rng), fire_rate_pos_dist(rng)};
-                _cell *cell = myWorld->getCellAtWorld(pos);
-                if (cell && myWorld->isCellWall(cell)) continue;
-                pickupManager->addPickup(pos,PICKUP_FIRERATE, 10.0f);
-                lookingSpawn = false;
             }
         }
     }    
@@ -1967,16 +1915,16 @@ bool _scene::loadPickupConfig(
     outConfig.pickups_per_chunk = static_cast<float>(
         config[tableParentPath][tableChildPath]["pickups_per_chunk"].value_or(0.0f)
     );
-    outConfig.pickups_per_chunk = std::clamp(static_cast<float>(
+    outConfig.min_chance = std::clamp(static_cast<float>(
         config[tableParentPath][tableChildPath]["min_chance"].value_or(0.0f)
     ), 0.0f, 1.0f);
-    outConfig.pickups_per_chunk = std::clamp(static_cast<float>(
+    outConfig.max_chance = std::clamp(static_cast<float>(
         config[tableParentPath][tableChildPath]["max_chance"].value_or(0.0f)
     ), 0.0f, 1.0f);
-    outConfig.pickups_per_chunk = std::clamp(static_cast<float>(
+    outConfig.min_chance_dist_norm = std::clamp(static_cast<float>(
         config[tableParentPath][tableChildPath]["min_chance_dist_norm"].value_or(0.0f)
     ), 0.0f, 1.0f);
-    outConfig.pickups_per_chunk = std::clamp(static_cast<float>(
+    outConfig.max_chance_dist_norm = std::clamp(static_cast<float>(
         config[tableParentPath][tableChildPath]["max_chance_dist_norm"].value_or(0.0f)
     ), 0.0f, 1.0f);
     
