@@ -41,10 +41,9 @@
  */
 struct pickup_config {
     float pickups_per_chunk;                /// How many per chunk (average w/ 100% chance of spawning)
-    float min_chance;                       /// Chance of a pickup spawning at it's minimum chance distance [0.0 - 1.0]
-    float max_chance;                       /// Chance of a pickup spawning at it's maximum chance distance [0.0 - 1.0]
-    float min_chance_dist_norm;             /// At what distance is the pickup least likely to spawn? (min_chance) [0.0 - 1.0 where 1.0 is edge of map]
-    float max_chance_dist_norm;             /// At what distance is the pickup most likely to spawn? (max_chance) [0.0 - 1.0 where 1.0 is edge of map]
+    float far_bound;                        /// Furthest distance from center pickup will spawn [0.0 - 1.0]
+    float near_bound;                       /// Closest distance from center pickup will spawn [0.0 - 1.0]
+    float min_chance;                       /// Chance for pickup to spawn at "far_bound" [0.0 - 1.0] (Chance at "near_bound" is always 1.0)
 };
 
 /**

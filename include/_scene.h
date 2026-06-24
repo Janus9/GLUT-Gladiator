@@ -223,7 +223,6 @@ class _scene
             pickup_config &outConfig
         );
 
-
         // -- DEBUGGING -- //
         _timerPlusPlus debugTimer;          // Timer to track time between updates for the scene
         _timerPlusPlus* fpsTimer = new _timerPlusPlus(); // Timer to track time between frames for FPS calculation

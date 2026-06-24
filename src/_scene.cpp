@@ -503,8 +503,13 @@ void _scene::initScene(bool loadWorld)
 
         const float max_distance = Vec2f(bounds,bounds).distance({0.0f, 0.0f});
 
-        std::uniform_real_distribution<float> pickup_dist(-bounds, bounds);
+        std::uniform_real_distribution<float> pickup_hp_dist(
+            world_configuration.health_pickups.near_bound, 
+            world_configuration.health_pickups.far_bound
+        );
+        std::uniform_int_distribution<int> coin_flip_rng(0,1);
         std::uniform_real_distribution<float> pickup_rng(0.0f, 1.0f);
+        std::uniform_real_distribution<float> rad_rng(0.0f, 2.0f * PI);
 
         // Hp Pickup Distribution //
         int hp_pickups_spawned = 0;
@@ -513,29 +518,19 @@ void _scene::initScene(bool loadWorld)
             const pickup_config &cfg = world_configuration.health_pickups; 
             while (lookingSpawn)
             {
-                const Vec2f pos = {pickup_dist(rng), pickup_dist(rng)};
+                const float radius = bounds * pickup_hp_dist(rng);   
+                const float theta = rad_rng(rng);
+                const Vec2f pos = {radius * std::cosf(theta), radius * std::sinf(theta)};
+
                 const _cell *cell = myWorld->getCellAtWorld(pos);
                 if (cell && myWorld->isCellWall(cell)) continue;
 
                 const float dist = pos.distance({0.0f,0.0f});
                 const float dist_norm = std::clamp(dist / max_distance, 0.0f, 1.0f);
                 
-                float t = 0.0f;
+                const float t = std::clamp((dist_norm - cfg.near_bound) / (cfg.far_bound - cfg.near_bound), 0.0f, 1.0f);
 
-                const float span = cfg.min_chance_dist_norm - cfg.max_chance_dist_norm;
-
-                if (span != 0.0f)
-                {
-                    t = (dist_norm - cfg.max_chance_dist_norm) / span;
-                }
-
-                t = std::clamp(t, 0.0f, 1.0f);
-
-                const float chance = std::lerp( // Linear Interpolation between min/max value by distance
-                    cfg.max_chance, 
-                    cfg.min_chance, 
-                    t
-                );
+                const float chance = std::lerp(1.0, cfg.min_chance, t);
                 
                 if (chance > pickup_rng(rng)) {
                     pickupManager->addPickup(pos,PICKUP_HEALTH, 10.0f);
@@ -1874,39 +1869,31 @@ bool _scene::loadPickupConfig(
     {
         auto check = config[tableParentPath][tableChildPath]["pickups_per_chunk"];
         if (!check.is_number()) {
-            SDL_LogError(LOG_SCENE, "ERROR: Pickups per chunk must be a float type");
+            SDL_LogError(LOG_SCENE, "ERROR: 'pickups_per_chunk' must be a float type");
             return false;
         } 
     }
-    // Min Chance
+    // Far Bound
+    {
+        auto check = config[tableParentPath][tableChildPath]["far_bound"];
+        if (!check.is_number()) {
+            SDL_LogError(LOG_SCENE, "ERROR: 'far_bound' must be a float type");
+            return false;
+        } 
+    }
+    // Near Bound
+    {
+        auto check = config[tableParentPath][tableChildPath]["near_bound"];
+        if (!check.is_number()) {
+            SDL_LogError(LOG_SCENE, "ERROR: 'near_bound' must be a float type");
+            return false;
+        } 
+    }
+    // Mininum Chance
     {
         auto check = config[tableParentPath][tableChildPath]["min_chance"];
         if (!check.is_number()) {
-            SDL_LogError(LOG_SCENE, "ERROR: Min chance must be a float type");
-            return false;
-        } 
-    }
-    // Max Chance
-    {
-        auto check = config[tableParentPath][tableChildPath]["max_chance"];
-        if (!check.is_number()) {
-            SDL_LogError(LOG_SCENE, "ERROR: Max chance must be a float type");
-            return false;
-        } 
-    }
-    // Min Chance Distribution Normalized
-    {
-        auto check = config[tableParentPath][tableChildPath]["min_chance_dist_norm"];
-        if (!check.is_number()) {
-            SDL_LogError(LOG_SCENE, "ERROR: Min chance distribution normalized must be a float type");
-            return false;
-        } 
-    }
-    // Max Chance Distribution Normalized
-    {
-        auto check = config[tableParentPath][tableChildPath]["max_chance_dist_norm"];
-        if (!check.is_number()) {
-            SDL_LogError(LOG_SCENE, "ERROR: Max chance distribution normalized must be a float type");
+            SDL_LogError(LOG_SCENE, "ERROR: 'min_chance' distribution normalized must be a float type");
             return false;
         } 
     }
@@ -1915,18 +1902,21 @@ bool _scene::loadPickupConfig(
     outConfig.pickups_per_chunk = static_cast<float>(
         config[tableParentPath][tableChildPath]["pickups_per_chunk"].value_or(0.0f)
     );
+    outConfig.far_bound = std::clamp(static_cast<float>(
+        config[tableParentPath][tableChildPath]["far_bound"].value_or(0.0f)
+    ), 0.0f, 1.0f);
+    outConfig.near_bound = std::clamp(static_cast<float>(
+        config[tableParentPath][tableChildPath]["near_bound"].value_or(0.0f)
+    ), 0.0f, 1.0f);
     outConfig.min_chance = std::clamp(static_cast<float>(
         config[tableParentPath][tableChildPath]["min_chance"].value_or(0.0f)
     ), 0.0f, 1.0f);
-    outConfig.max_chance = std::clamp(static_cast<float>(
-        config[tableParentPath][tableChildPath]["max_chance"].value_or(0.0f)
-    ), 0.0f, 1.0f);
-    outConfig.min_chance_dist_norm = std::clamp(static_cast<float>(
-        config[tableParentPath][tableChildPath]["min_chance_dist_norm"].value_or(0.0f)
-    ), 0.0f, 1.0f);
-    outConfig.max_chance_dist_norm = std::clamp(static_cast<float>(
-        config[tableParentPath][tableChildPath]["max_chance_dist_norm"].value_or(0.0f)
-    ), 0.0f, 1.0f);
-    
+
+    if (outConfig.far_bound < outConfig.near_bound) {
+        SDL_LogError(LOG_SCENE, "ERROR: 'far_bound' must be greater than 'near_bound' ... Setting both to 0.0");
+        outConfig.far_bound = 0.0f;
+        outConfig.near_bound = 0.0f;
+    }
+
     return true;
 }
