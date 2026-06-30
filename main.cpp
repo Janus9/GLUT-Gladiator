@@ -107,7 +107,7 @@ void menuEventHandler(const menu::Event &event) {
 	// Unpause game
 	if (event.redirectTo == menu::PAGE_GAME) {
 		if (!gameScene->isInitialized()) {
-			SDL_LogError(LOG_MENU_MANAGER, "ERROR: Cannot redirect to GAME as scene is not initialized");
+			SDL_LogError(LOG_MAIN, "ERROR: Cannot redirect to GAME as scene is not initialized");
 		} else {
 			gameScene->reSize(wWidth, wHeight);
 			gameScene->gameUnPausedEvent = true;

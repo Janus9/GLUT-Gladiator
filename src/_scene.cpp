@@ -488,60 +488,63 @@ void _scene::initScene(bool loadWorld)
             }
         }
 
-        // Spawn Pickups //
-        const int num_hp_pickups = world_configuration.num_chunks * world_configuration.health_pickups.pickups_per_chunk;
-        const int num_ammo_pickups = world_configuration.num_chunks * world_configuration.ammo_pickups.pickups_per_chunk;
-        const int num_speed_pickups = world_configuration.num_chunks * world_configuration.speed_pickups.pickups_per_chunk;
-        const int num_max_hp_pickups = world_configuration.num_chunks * world_configuration.max_health_pickups.pickups_per_chunk;
-        const int num_firerate_pickups = world_configuration.num_chunks * world_configuration.firerate_pickups.pickups_per_chunk;
+    // Pickups disabled by scene //
+    //     // Spawn Pickups //
+    //     const int num_hp_pickups = world_configuration.num_chunks * world_configuration.health_pickups.pickups_per_chunk;
+    //     const int num_ammo_pickups = world_configuration.num_chunks * world_configuration.ammo_pickups.pickups_per_chunk;
+    //     const int num_speed_pickups = world_configuration.num_chunks * world_configuration.speed_pickups.pickups_per_chunk;
+    //     const int num_max_hp_pickups = world_configuration.num_chunks * world_configuration.max_health_pickups.pickups_per_chunk;
+    //     const int num_firerate_pickups = world_configuration.num_chunks * world_configuration.firerate_pickups.pickups_per_chunk;
 
-        SDL_LogDebug(LOG_SCENE, "Number of HP Pickups to spawn: %i",num_hp_pickups);
-        SDL_LogDebug(LOG_SCENE, "Number of Ammo Pickups to spawn: %i",num_ammo_pickups);
-        SDL_LogDebug(LOG_SCENE, "Number of Speed Pickups to spawn: %i",num_speed_pickups);
-        SDL_LogDebug(LOG_SCENE, "Number of Max HP Pickups to spawn: %i",num_max_hp_pickups);
-        SDL_LogDebug(LOG_SCENE, "Number of Firerate Pickups to spawn: %i",num_firerate_pickups);
+    //     SDL_LogDebug(LOG_SCENE, "Number of HP Pickups to spawn: %i",num_hp_pickups);
+    //     SDL_LogDebug(LOG_SCENE, "Number of Ammo Pickups to spawn: %i",num_ammo_pickups);
+    //     SDL_LogDebug(LOG_SCENE, "Number of Speed Pickups to spawn: %i",num_speed_pickups);
+    //     SDL_LogDebug(LOG_SCENE, "Number of Max HP Pickups to spawn: %i",num_max_hp_pickups);
+    //     SDL_LogDebug(LOG_SCENE, "Number of Firerate Pickups to spawn: %i",num_firerate_pickups);
 
-        const float max_distance = Vec2f(bounds,bounds).distance({0.0f, 0.0f});
+    //     const float max_distance = Vec2f(bounds,bounds).distance({0.0f, 0.0f});
 
-        std::uniform_real_distribution<float> pickup_hp_dist(
-            world_configuration.health_pickups.near_bound, 
-            world_configuration.health_pickups.far_bound
-        );
-        std::uniform_int_distribution<int> coin_flip_rng(0,1);
-        std::uniform_real_distribution<float> pickup_rng(0.0f, 1.0f);
-        std::uniform_real_distribution<float> rad_rng(0.0f, 2.0f * PI);
+    //     std::uniform_real_distribution<float> pickup_hp_dist(
+    //         world_configuration.health_pickups.near_bound, 
+    //         world_configuration.health_pickups.far_bound
+    //     );
+    //     std::uniform_int_distribution<int> coin_flip_rng(0,1);
+    //     std::uniform_real_distribution<float> pickup_rng(0.0f, 1.0f);
+    //     std::uniform_real_distribution<float> rad_rng(0.0f, 2.0f * PI);
 
-        // Hp Pickup Distribution //
-        int hp_pickups_spawned = 0;
-        while (hp_pickups_spawned < num_hp_pickups) {
-            bool lookingSpawn = true;
-            const pickup_config &cfg = world_configuration.health_pickups; 
-            while (lookingSpawn)
-            {
-                const float radius = bounds * pickup_hp_dist(rng);   
-                const float theta = rad_rng(rng);
-                const Vec2f pos = {radius * std::cosf(theta), radius * std::sinf(theta)};
+    //     // Hp Pickup Distribution //
+    //     int hp_pickups_spawned = 0;
+    //     while (hp_pickups_spawned < num_hp_pickups) {
+    //         bool lookingSpawn = true;
+    //         const pickup_config &cfg = world_configuration.health_pickups; 
+    //         while (lookingSpawn)
+    //         {
+    //             const float radius = bounds * pickup_hp_dist(rng);   
+    //             const float theta = rad_rng(rng);
+    //             const Vec2f pos = {radius * std::cosf(theta), radius * std::sinf(theta)};
 
-                const _cell *cell = myWorld->getCellAtWorld(pos);
-                if (cell && myWorld->isCellWall(cell)) continue;
+    //             const _cell *cell = myWorld->getCellAtWorld(pos);
+    //             if (cell && myWorld->isCellWall(cell)) continue;
 
-                const float dist = pos.distance({0.0f,0.0f});
-                const float dist_norm = std::clamp(dist / max_distance, 0.0f, 1.0f);
+    //             const float dist = pos.distance({0.0f,0.0f});
+    //             const float dist_norm = std::clamp(dist / max_distance, 0.0f, 1.0f);
                 
-                const float t = std::clamp((dist_norm - cfg.near_bound) / (cfg.far_bound - cfg.near_bound), 0.0f, 1.0f);
+    //             const float t = std::clamp((dist_norm - cfg.near_bound) / (cfg.far_bound - cfg.near_bound), 0.0f, 1.0f);
 
-                const float chance = std::lerp(1.0, cfg.min_chance, t);
+    //             const float chance = std::lerp(1.0, cfg.min_chance, t);
                 
-                if (chance > pickup_rng(rng)) {
-                    pickupManager->addPickup(pos,PICKUP_HEALTH, 10.0f);
-                    lookingSpawn = false;
-                    hp_pickups_spawned++;
-                }
-            }
-        }
+    //             if (chance > pickup_rng(rng)) {
+    //                 pickupManager->addPickup(pos,PICKUP_HEALTH, 10.0f);
+    //                 lookingSpawn = false;
+    //                 hp_pickups_spawned++;
+    //             }
+    //         }
+    //     }
     }    
 
     // player->setAction(PLAYER_ACTION_IDLE_GUN, PLAYER_FACE_S);
+
+    saveSceneToFile("saves/game");  // Force a save event so we can read into world file
 
     SDL_LogInfo(LOG_SCENE, "Scene has been initialized");
     sceneInitialized = true;
@@ -632,8 +635,7 @@ bool _scene::saveSceneToFile(const std::string &fileName) {
 
     std::vector<pickup_serial_data> pickup_data = pickupManager->exportSerializedPickups();
     if (pickup_data.empty()) {
-        std::cout << "ERROR: Pickup data is empty\n";
-        return false;
+        std::cout << "WARNING: Pickup data is empty\n";
     }
 
     std::cout << "Writing pickup data:\n"
@@ -706,7 +708,7 @@ bool _scene::loadSceneFromFile(const std::string &fileName) {
     file.read(reinterpret_cast<char*>(&game_id), sizeof(game_id));    // Version ID
     if (game_id < GAME_VERSION) {
         std::cout << "WARNING: Game file version of " << game_id << " does not match loaded version of the game "
-             << WORLD_SAVE_VERSION << " continuing with load but may fail\n";
+             << GAME_VERSION << " continuing with load but may fail\n";
     }  
 
     int32_t chunk_count = 0;
@@ -825,25 +827,32 @@ bool _scene::loadSceneFromFile(const std::string &fileName) {
         lightManager.get()
     );
 
-    std::vector<pickup_serial_data> pickup_data;
-    pickup_data.resize(pickup_count);
-    file.read(reinterpret_cast<char*>(pickup_data.data()), pickup_data.size() * sizeof(pickup_serial_data));
+    // Check for pickups to read
+    if (pickup_count > 0) {
+        std::vector<pickup_serial_data> pickup_data;
+        pickup_data.resize(pickup_count);
+        file.read(reinterpret_cast<char*>(pickup_data.data()), pickup_data.size() * sizeof(pickup_serial_data));
+    
+        if (!pickupManager->importSerializedPickups(pickup_data)) {
+            std::cout << "WARNING: Unable to import pickup data to pickup manager\n";
+            return false;
+        }
 
-    pickupManager->importSerializedPickups(pickup_data);
+        if (!file) {
+            std::cout << "ERROR: Unable to read pickup data\n";
+            return false;
+        }
+    
+        if (pickup_data.empty()) {
+            std::cout << "WARNING: Pickup data read is empty\n";
+        }
 
-    if (!file) {
-        std::cout << "ERROR: Unable to read pickup data\n";
-        return false;
+        std::cout << "Read pickup data:\n"
+             << " - Number of pickups: " << pickup_data.size() << "\n"
+             << " - Size of pickups: " << pickup_data.size() * sizeof(pickup_serial_data) << " bytes\n";
+    } else {
+        std::cout << "Skipping pickup loading as there are none in save file\n";
     }
-
-    if (pickup_data.empty()) {
-        std::cout << "ERROR: Pickup data read is empty\n";
-        return false;
-    }
-
-    std::cout << "Read pickup data:\n"
-         << " - Number of pickups: " << pickup_data.size() << "\n"
-         << " - Size of pickups: " << pickup_data.size() * sizeof(pickup_serial_data) << " bytes\n";
     
     // Read Player Data //
 
