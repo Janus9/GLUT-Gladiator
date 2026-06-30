@@ -37,6 +37,7 @@
 #include <memory>
 #include <_loggerSDL.h>
 #include <algorithm>
+#include <array>
 
 // DEFINITIONS //
 

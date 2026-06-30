@@ -100,7 +100,8 @@ void _scene::initScene(bool loadWorld)
         "images/pickups/pickup_sheet.png",
         6,
         player.get(),
-        lightManager.get()
+        lightManager.get(),
+        myWorld.get()
     );
     
     // -- PLAYER -- //
@@ -546,6 +547,8 @@ void _scene::initScene(bool loadWorld)
 
     saveSceneToFile("saves/game");  // Force a save event so we can read into world file
 
+    pickupManager->generateToFile(world_configuration);
+
     SDL_LogInfo(LOG_SCENE, "Scene has been initialized");
     sceneInitialized = true;
 }
@@ -851,7 +854,8 @@ bool _scene::loadSceneFromFile(const std::string &fileName) {
         "images/pickups/pickup_sheet.png",
         6,
         player.get(),
-        lightManager.get()
+        lightManager.get(),
+        myWorld.get()
     );
 
     // Check for pickups to read

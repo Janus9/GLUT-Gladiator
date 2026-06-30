@@ -6,6 +6,10 @@
 #include <_lightManager.h>
 #include <_texture.h>
 #include <_shader.h>
+/** A serialization class should be made at some point */
+#include <_world.h>         // For the world generation config + serial data types
+
+struct enemy_serial_data;
 
 /**
  * These must be in order with image
@@ -38,8 +42,15 @@ class _pickupManager {
          * @param imageWidth Number of images in the horizontal image strip
          * @param currentPlayer Player owned by scene to apply pickup attributes
          * @param currentLightManager Light manager owned by scene to apply lighting effects
+         * @param currentWorld World owned by scene to check collision with
          */
-        void initPickupManager(const std::string& fileName, int imageWidth, _player* currentPlayer, _lightManager* currentLightManager);
+        void initPickupManager(
+            const std::string& fileName, 
+            int imageWidth, 
+            _player* currentPlayer, 
+            _lightManager* currentLightManager,
+            _world* currentWorld
+        );
         
         /** Draw function */
         void drawPickups();
@@ -59,6 +70,13 @@ class _pickupManager {
          * @return True if operation succeeded (False can be caused by full pickup manager)
          */
         bool addPickup(const Vec2f &pos, pickup_type type, float value);
+
+        /**
+         * Generates pickups from the configuration file into the game's save file.
+         * 
+         * @param config Configuration file of the world generation
+         */
+        bool generateToFile(const world_config &config);
 
         /**
          * Returns a vector of serialized pickup data for saving
@@ -98,6 +116,7 @@ class _pickupManager {
 
         pickup_serial_data serializePickup(const _pickup &pickup) const;
 
+        _world* world = nullptr;  // Pointer to world instance in scene (non-owning) 
         _player* player = nullptr;  // Pointer to player instance in scene (non-owning) 
 
         // Rendering //

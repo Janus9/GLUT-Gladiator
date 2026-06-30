@@ -1,5 +1,7 @@
 #include <_pickupManager.h>
 
+#include <_enemyManager.h>
+
 // -- STATIC MEMBERS -- //
 
 glm::mat4 _pickupManager::viewProjectionMatrix;
@@ -29,14 +31,21 @@ _pickupManager::~_pickupManager() {
     }
 }
 
-void _pickupManager::initPickupManager(const std::string& fileName, int imageWidth, _player* currentPlayer, _lightManager* currentLightManager) {
+void _pickupManager::initPickupManager(
+    const std::string& fileName, 
+    int imageWidth, 
+    _player* currentPlayer, 
+    _lightManager* currentLightManager,
+    _world* currentWorld
+) {
     SDL_LogInfo(LOG_PICKUPS, "Initializing the pickup manager");
     
     player = currentPlayer;
+    world = currentWorld;
     sceneLightManager = currentLightManager;
     numImages = imageWidth;
 
-    if (!player || !sceneLightManager) {
+    if (!player || !sceneLightManager || !world) {
         SDL_LogError(LOG_PICKUPS, "ERROR: Player or LightManager is nullptr");
         return;
     }
@@ -177,6 +186,119 @@ bool _pickupManager::addPickup(const Vec2f &pos, pickup_type type, float value) 
     return false; // Never found a free pickup (likely full)
 }
 
+bool _pickupManager::generateToFile(const world_config &config) {
+    SDL_LogInfo(LOG_PICKUPS, "Generating pickups into save file");
+
+    std::fstream file("saves/game.gg_world", std::ios::binary | std::ios::in | std::ios::out);
+    if (!file) {
+        SDL_LogError(LOG_PICKUPS, "ERROR: Cannot open the save file");
+        return false;
+    }
+
+    // -- VARIABLES -- //
+    const float NUM_CHUNKS = static_cast<float>(config.num_chunks);
+    const float WORLD_RADIUS = sqrt(NUM_CHUNKS) * NUM_TILES_CHUNK_SQR * TILE_D * 0.5f;
+    const float WORLD_DIAMETER = sqrt(NUM_CHUNKS) * NUM_TILES_CHUNK_SQR * TILE_D;
+
+    // -- MOVE READ HEAD -- //
+
+    // Skip Header, Seed, Time Stamp, Save System Version ID, Game Version
+    file.seekg(static_cast<std::streamoff>(2 + 4 + 8 + 4 + 4), std::ios::cur);
+
+    int32_t chunk_count = 0;
+    file.read(reinterpret_cast<char*>(&chunk_count), sizeof(chunk_count));  // Chunk Count
+    // Skip the Chunk Data Header
+    file.seekg(4, std::ios::cur);
+    // Skip all the chunks
+    file.seekg(static_cast<std::streamoff>(chunk_count * sizeof(chunk_serial_data)), std::ios::cur);
+    
+    // Skip the Enemy Data Header
+    file.seekg(4, std::ios::cur);
+    int32_t enemy_count = 0;
+    file.read(reinterpret_cast<char*>(&enemy_count), sizeof(enemy_count));  // Enemy Count
+    // Skip all enemies
+    file.seekg(static_cast<std::streamoff>(enemy_count * sizeof(enemy_serial_data)), std::ios::cur);
+    
+    // Skip the Pickup Data Header
+    file.seekg(4, std::ios::cur);
+
+    // -- READ PICKUP AMOUNT -- //
+    const uint32_t num_hp_pickups = static_cast<uint32_t>(NUM_CHUNKS * config.health_pickups.pickups_per_chunk);
+    const uint32_t num_ammo_pickups = static_cast<uint32_t>(NUM_CHUNKS * config.ammo_pickups.pickups_per_chunk);
+    const uint32_t num_speed_pickups = static_cast<uint32_t>(NUM_CHUNKS * config.speed_pickups.pickups_per_chunk);
+    const uint32_t num_max_hp_pickups = static_cast<uint32_t>(NUM_CHUNKS * config.max_health_pickups.pickups_per_chunk);
+    const uint32_t num_firerate_pickups = static_cast<uint32_t>(NUM_CHUNKS * config.firerate_pickups.pickups_per_chunk);
+
+    const uint32_t pickup_count = num_hp_pickups + num_ammo_pickups + num_speed_pickups + num_max_hp_pickups + num_firerate_pickups;
+    file.write(reinterpret_cast<const char*>(&pickup_count),sizeof(pickup_count)); // Pickup Count
+
+    SDL_LogDebug(LOG_PICKUPS, "Pickup generation count: %u", pickup_count);
+
+    // -- WRITE PICKUPS -- //
+
+    SDL_LogDebug(LOG_PICKUPS, "Staring write at position: 0x%llX", static_cast<long long>(file.tellp()));
+
+    // Only does pickup health for now
+    constexpr int BUFFER_SIZE = 4096;
+    
+    const float max_distance = Vec2f(WORLD_RADIUS,WORLD_RADIUS).distance({0.0f, 0.0f});
+    int pickups = num_hp_pickups;
+    
+    std::uniform_real_distribution<float> pickup_hp_dist(config.health_pickups.near_bound, config.health_pickups.far_bound);
+    std::uniform_real_distribution<float> rad_rng(0.0f, 2.0f * PI);
+    std::uniform_real_distribution<float> pickup_rng(0.0f, 1.0f);
+    
+    const pickup_config &cfg = config.health_pickups; 
+
+    while (pickups > 0) {
+        std::vector<pickup_serial_data> buffer(std::clamp(pickups, 0, BUFFER_SIZE));
+        
+        SDL_LogDebug(LOG_PICKUPS, "Buffer size: %llu", buffer.size());
+        SDL_LogDebug(LOG_PICKUPS, "Write at position: 0x%llX", static_cast<long long>(file.tellp()));
+        
+        for (size_t i = 0; i < buffer.size(); i++) {
+            bool lookingForSpawn = true;
+            while (lookingForSpawn) {
+                const float radius = WORLD_RADIUS * pickup_hp_dist(rng);   
+                const float theta = rad_rng(rng);
+                const Vec2f pos = {radius * std::cosf(theta), radius * std::sinf(theta)};
+
+                const _cell *cell = world->getCellAtWorld(pos);
+                
+                if (cell && world->isCellWall(cell)) continue;
+
+                const float dist = pos.distance({0.0f,0.0f});
+                const float dist_norm = std::clamp(dist / max_distance, 0.0f, 1.0f);
+                
+                const float t = std::clamp((dist_norm - cfg.near_bound) / (cfg.far_bound - cfg.near_bound), 0.0f, 1.0f);
+
+                const float chance = std::lerp(1.0, cfg.min_chance, t);
+                
+                if (chance > pickup_rng(rng)) {
+                    buffer[i].value = 10.0f;
+                    buffer[i].type = PICKUP_HEALTH;
+                    buffer[i].xPos = pos.x;
+                    buffer[i].yPos = pos.y;
+
+                    lookingForSpawn = false;
+                    pickups--;
+                }
+            }
+        }
+
+        file.write(reinterpret_cast<const char*>(buffer.data()), buffer.size() * sizeof(pickup_serial_data)); // Pickup Data
+        if (!file) {
+            SDL_LogError(LOG_PICKUPS, "ERROR: Failed to write the pickup data");
+            return false;
+        }
+    }
+
+    SDL_LogDebug(LOG_PICKUPS, "Final position: 0x%llX", static_cast<long long>(file.tellp()));
+    SDL_LogInfo(LOG_PICKUPS, "Successfully generated pickups into save file");
+    
+    return true;
+}
+
 std::vector<pickup_serial_data> _pickupManager::exportSerializedPickups() const {
     std::vector<pickup_serial_data> data;
     for (const _pickup &p : pickupList) {
@@ -188,12 +310,12 @@ std::vector<pickup_serial_data> _pickupManager::exportSerializedPickups() const 
 
 bool _pickupManager::importSerializedPickups(const std::vector<pickup_serial_data> &pickup_data) {
     if (pickup_data.empty()) {
-        std::cout << "ERROR: Cannot import pickups as the data is empty\n";
+        SDL_LogWarn(LOG_PICKUPS, "WARNING: Cannot import pickups as the data is empty");
         return false;
     }
     for (const pickup_serial_data &p : pickup_data) {
         if (!addPickup({p.xPos, p.yPos}, static_cast<pickup_type>(p.type), p.value)) {
-            std::cout << "ERROR: Cannot add pickup\n";
+            SDL_LogError(LOG_PICKUPS, "ERROR: Cannot add pickup");
         }
     }
     return true;
