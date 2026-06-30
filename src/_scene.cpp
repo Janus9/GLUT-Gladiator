@@ -551,10 +551,11 @@ void _scene::initScene(bool loadWorld)
 }
 
 bool _scene::saveSceneToFile(const std::string &fileName) {
-    std::cout << "Exporting game to save file: " << fileName << ".gg_world\n";
+    SDL_LogInfo(LOG_SCENE, "Exporting game to save file: %s.gg_world", fileName.c_str());
+
     std::ofstream file(fileName + ".gg_world", std::ios::binary);     // Output as binary file
     if (!file) {
-        std::cerr << "ERROR: Cannot create output file for: " << fileName << "\n";
+        SDL_LogError(LOG_SCENE, "ERROR: Cannot create output file for: %s", fileName.c_str());
         return false;
     }
     // Header Data Write //
@@ -590,31 +591,41 @@ bool _scene::saveSceneToFile(const std::string &fileName) {
 
     std::vector<chunk_serial_data> world_data = myWorld->exportSerializeWorld();
     if (!world_data.empty()) {
-        std::cout << "Writing world data:\n"
-             << " - Number of chunks: " << world_data.size() << "\n"
-             << " - Size of world: " << world_data.size() * sizeof(chunk_serial_data) << " bytes\n";
+        SDL_LogDebug(LOG_SCENE, 
+            "Writing world data: \n"
+            " - Number of chunks: %i\n"
+            " - Size of world: %iB\n",
+            static_cast<int>(world_data.size()),
+            static_cast<int>(world_data.size() * sizeof(chunk_serial_data))
+        );
         // This writes the contents of the entire vector to file
         file.write(reinterpret_cast<const char*>(world_data.data()), world_data.size() * sizeof(chunk_serial_data));
 
         if (!file) {
-            std::cout << "ERROR: Save failed to write the world data\n";
+            SDL_LogError(LOG_SCENE, "ERROR: Save failed to write the world data");
             return false;
         }
     } else {
-        std::cout << "ERROR: Size of world data is 0\n";
+        SDL_LogError(LOG_SCENE, "ERROR: Size of world data is 0");
+        return false;
     }
 
     // Enemy Data Write //
 
+    // *** Fix empty enemies later *** //
     std::vector<enemy_serial_data> enemy_data = enemyManager->exportSerializedEnemies();
     if (enemy_data.empty()) {
-        std::cout << "ERROR: Enemy data is empty\n";
+        SDL_LogWarn(LOG_SCENE, "WARNING: Size of enemy data is 0");
         return false;
     }
 
-    std::cout << "Writing enemy data:\n"
-         << " - Number of enemies: " << enemy_data.size() << "\n"
-         << " - Size of enemies: " << enemy_data.size() * sizeof(enemy_serial_data) << " bytes\n";
+    SDL_LogDebug(LOG_SCENE, 
+        "Writing enemy data:\n"
+        " - Number of enemies: %i\n"
+        " - Size of enemies: %iB\n",
+        static_cast<int>(enemy_data.size()),
+        static_cast<int>(enemy_data.size() * sizeof(enemy_serial_data))
+    );
 
     const char enemy_header[4] = {'E','N','M','Y'};
     file.write(enemy_header,4); // Enemy Data Header ("ENMY")
@@ -624,7 +635,7 @@ bool _scene::saveSceneToFile(const std::string &fileName) {
 
     file.write(reinterpret_cast<const char*>(enemy_data.data()), enemy_data.size() * sizeof(enemy_serial_data)); // Enemy Data
     if (!file) {
-        std::cout << "ERROR: Save failed to write the enemy data\n";
+        SDL_LogError(LOG_SCENE, "ERROR: Save failed to write the enemy data");
         return false;
     }
 
@@ -635,26 +646,33 @@ bool _scene::saveSceneToFile(const std::string &fileName) {
 
     std::vector<pickup_serial_data> pickup_data = pickupManager->exportSerializedPickups();
     if (pickup_data.empty()) {
-        std::cout << "WARNING: Pickup data is empty\n";
+        SDL_LogWarn(LOG_SCENE, "WARNING: Pickup data is empty");
     }
 
-    std::cout << "Writing pickup data:\n"
-         << " - Number of pickups: " << pickup_data.size() << "\n"
-         << " - Size of pickups: " << pickup_data.size() * sizeof(pickup_serial_data) << " bytes\n";
+    SDL_LogDebug(LOG_SCENE, 
+        "Writing pickup data:\n"
+        " - Number of pickups: %i\n"
+        " - Size of pickups: %iB\n",
+        static_cast<int>(pickup_data.size()),
+        static_cast<int>(pickup_data.size() * sizeof(pickup_serial_data))
+    );
 
     const uint32_t number_pickups = static_cast<uint32_t>(pickup_data.size());
     file.write(reinterpret_cast<const char*>(&number_pickups),sizeof(number_pickups)); // Pickup Count
 
     file.write(reinterpret_cast<const char*>(pickup_data.data()), pickup_data.size() * sizeof(pickup_serial_data)); // Pickup Data
     if (!file) {
-        std::cout << "ERROR: Save failed to write the pickup data\n";
+        SDL_LogError(LOG_SCENE, "ERROR: Save failed to write the pickup data");
         return false;
     }
 
     // Player Data Write //
 
-    std::cout << "Writing player data:\n"
-         << " - Size of player: " << sizeof(player_serial_data) << " bytes\n";
+    SDL_LogDebug(LOG_SCENE, 
+        "Writing player data:\n"
+        " - Size of player: %iB",
+        static_cast<int>(sizeof(player_serial_data))
+    );
 
     const char player_header[4] = {'P','L','Y','R'};
     file.write(player_header,4); // Player Data Header ("PLYR")
@@ -663,12 +681,15 @@ bool _scene::saveSceneToFile(const std::string &fileName) {
     file.write(reinterpret_cast<const char*>(&player_data), sizeof(player_data));
 
     if (!file) {
-        std::cout << "ERROR: Save failed to write the player data\n";
+        SDL_LogError(LOG_SCENE, "ERROR: Save failed to write the player data");
         return false;
     }
 
-    std::cout << "Finished game saving!\n"
-         << "Save Size: " << file.tellp() << " bytes\n";
+    SDL_LogInfo(LOG_SCENE, 
+        "Finished saving game\n"
+        "Save size: %iB",
+        static_cast<int>(file.tellp())
+    );
 
     return true;
 }
@@ -1795,7 +1816,7 @@ bool _scene::loadWorldConfig(const std::string &configPath, world_config &outCon
         return false;
     }
 
-    SDL_LogInfo(LOG_SCENE, "World generation file read successfully", configPath.c_str());
+    SDL_LogInfo(LOG_SCENE, "World generation file read successfully for %s", configPath.c_str());
     return true;
 }
 
