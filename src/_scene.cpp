@@ -687,26 +687,26 @@ bool _scene::saveSceneToFile(const std::string &fileName) {
 
     SDL_LogInfo(LOG_SCENE, 
         "Finished saving game\n"
-        "Save size: %iB",
-        static_cast<int>(file.tellp())
+        "Save size: %lldB",
+        static_cast<long long>(file.tellp())
     );
 
     return true;
 }
 
 bool _scene::loadSceneFromFile(const std::string &fileName) {
-    std::cout << "Starting game import from: " << fileName + ".gg_world\n";
+    SDL_LogInfo(LOG_SCENE, "Starting game import from: %s.gg_world", fileName.c_str());
 
     std::ifstream file(fileName + ".gg_world", std::ios::binary);
     if (!file) {
-        std::cerr << "ERROR: Cannot open file: " << fileName << "\n";
+        SDL_LogError(LOG_SCENE, "ERROR: Cannot open file: %s", fileName.c_str());
         return false;
     }
 
     char header[2];
     file.read(header,2);
     if (header[0] != 'G' || header[1] != 'G') {
-        std::cout << "ERROR: Invalid file header\n";
+        SDL_LogError(LOG_SCENE, "ERROR: Invalid file header");
         return false;
     }
 
@@ -721,21 +721,19 @@ bool _scene::loadSceneFromFile(const std::string &fileName) {
     uint32_t version_id = 0;
     file.read(reinterpret_cast<char*>(&version_id), sizeof(version_id));    // Version ID
     if (version_id != WORLD_SAVE_VERSION) {
-        std::cout << "WARNING: World file version of " << version_id << " does not match current version of "
-             << WORLD_SAVE_VERSION << " continuing with load but may fail\n";
+        SDL_LogWarn(LOG_SCENE, "WARNING: World file version of %u does not match current version of %u continuing with load but may fail", version_id, WORLD_SAVE_VERSION);
     }    
 
     float game_id = 0;
     file.read(reinterpret_cast<char*>(&game_id), sizeof(game_id));    // Version ID
     if (game_id < GAME_VERSION) {
-        std::cout << "WARNING: Game file version of " << game_id << " does not match loaded version of the game "
-             << GAME_VERSION << " continuing with load but may fail\n";
+        SDL_LogWarn(LOG_SCENE, "WARNING: Game file version of %f does not match loaded version of the game %f continuing with load but may fail", game_id, GAME_VERSION);
     }  
 
     int32_t chunk_count = 0;
     file.read(reinterpret_cast<char*>(&chunk_count), sizeof(chunk_count));  // Chunk Count
     if (chunk_count <= 0) {
-        std::cout << "ERROR: Chunk Count of save " << fileName << " for " << chunk_count << "must be greater than 0\n";
+        SDL_LogError(LOG_SCENE, "ERROR: Chunk Count of save %s for %d must be greater than 0", fileName.c_str(), chunk_count);
         return false;
     }
     world_configuration.num_chunks = chunk_count;
@@ -745,7 +743,7 @@ bool _scene::loadSceneFromFile(const std::string &fileName) {
     char data_header[4];
     file.read(data_header,4);    // Chunk Data Header
     if (data_header[0] != 'W' || data_header[1] != 'R' || data_header[2] != 'L' || data_header[3] != 'D') {
-        std::cout << "ERROR: Invalid chunk data header\n";
+        SDL_LogError(LOG_SCENE, "ERROR: Invalid chunk data header");
         return false;
     }
 
@@ -754,18 +752,22 @@ bool _scene::loadSceneFromFile(const std::string &fileName) {
     file.read(reinterpret_cast<char*>(world_data.data()), world_data.size() * sizeof(chunk_serial_data));
 
     if (!file) {
-        std::cout << "ERROR: Unable to read chunk data\n";
+        SDL_LogError(LOG_SCENE, "ERROR: Unable to read chunk data");
         return false;
     }
 
     if (world_data.empty()) {
-        std::cout << "ERROR: World data read is empty\n";
+        SDL_LogError(LOG_SCENE, "ERROR: World data read is empty");
         return false;
     }
 
-    std::cout << "Read world data:\n"
-         << " - Number of chunks: " << world_data.size() << "\n"
-         << " - Size of world: " << world_data.size() * sizeof(chunk_serial_data) << " bytes\n";
+    SDL_LogInfo(LOG_SCENE,
+        "Read world data:\n"
+        " - Number of chunks: %zu\n"
+        " - Size of world: %zu bytes",
+        world_data.size(),
+        world_data.size() * sizeof(chunk_serial_data)
+    );
 
     myWorld->importWorldConfiguration(world_configuration);
 
@@ -776,17 +778,17 @@ bool _scene::loadSceneFromFile(const std::string &fileName) {
     char enemy_header[4];
     file.read(enemy_header,4);    // Enemy Data Header
     if (enemy_header[0] != 'E' || enemy_header[1] != 'N' || enemy_header[2] != 'M' || enemy_header[3] != 'Y') {
-        std::cout << "ERROR: Invalid enemy data header\n";
+        SDL_LogError(LOG_SCENE, "ERROR: Invalid enemy data header");
         return false;
     }
 
     uint32_t enemy_count = 0;
     file.read(reinterpret_cast<char*>(&enemy_count), sizeof(enemy_count));  // Enemy Count
 
-    std::cout << "Enemie count read: " << enemy_count << "\n";
+    SDL_LogInfo(LOG_SCENE, "Enemie count read: %u", enemy_count);
 
     if (enemy_count == 0) {
-        std::cout << "WARNING: Enemy count is 0\n";
+        SDL_LogWarn(LOG_SCENE, "WARNING: Enemy count is 0");
     }
 
     // Setup enemy manager before adding enemies
@@ -811,34 +813,38 @@ bool _scene::loadSceneFromFile(const std::string &fileName) {
     enemyManager->importSerializedEnemies(enemy_data);
 
     if (!file) {
-        std::cout << "ERROR: Unable to read chunk data\n";
+        SDL_LogError(LOG_SCENE, "ERROR: Unable to read chunk data");
         return false;
     }
 
     if (enemy_data.empty()) {
-        std::cout << "ERROR: Enemy data read is empty\n";
+        SDL_LogError(LOG_SCENE, "ERROR: Enemy data read is empty");
         return false;
     }
 
-    std::cout << "Read enemy data:\n"
-         << " - Number of enemies: " << enemy_data.size() << "\n"
-         << " - Size of enemies: " << enemy_data.size() * sizeof(enemy_serial_data) << " bytes\n";
+    SDL_LogInfo(LOG_SCENE,
+        "Read enemy data:\n"
+        " - Number of enemies: %zu\n"
+        " - Size of enemies: %zu bytes",
+        enemy_data.size(),
+        enemy_data.size() * sizeof(enemy_serial_data)
+    );
 
          
     // Read Pickup Data //
     char pickup_header[4];
     file.read(pickup_header,4);    // Pickup Data Header
     if (pickup_header[0] != 'P' || pickup_header[1] != 'K' || pickup_header[2] != 'U' || pickup_header[3] != 'P') {
-        std::cout << "ERROR: Invalid pickup data header\n";
+        SDL_LogError(LOG_SCENE, "ERROR: Invalid pickup data header");
         return false;
     }
 
     uint32_t pickup_count = 0;
     file.read(reinterpret_cast<char*>(&pickup_count), sizeof(pickup_count));  // Pickup Count
 
-    std::cout << "Pickup count read: " << pickup_count << "\n";
+    SDL_LogInfo(LOG_SCENE, "Pickup count read: %u", pickup_count);
     if (pickup_count == 0) {
-        std::cout << "WARNING: Pickup count is 0\n";
+        SDL_LogWarn(LOG_SCENE, "WARNING: Pickup count is 0");
     }
 
     pickupManager->initPickupManager(
@@ -855,24 +861,28 @@ bool _scene::loadSceneFromFile(const std::string &fileName) {
         file.read(reinterpret_cast<char*>(pickup_data.data()), pickup_data.size() * sizeof(pickup_serial_data));
     
         if (!pickupManager->importSerializedPickups(pickup_data)) {
-            std::cout << "WARNING: Unable to import pickup data to pickup manager\n";
+            SDL_LogWarn(LOG_SCENE, "WARNING: Unable to import pickup data to pickup manager");
             return false;
         }
 
         if (!file) {
-            std::cout << "ERROR: Unable to read pickup data\n";
+            SDL_LogError(LOG_SCENE, "ERROR: Unable to read pickup data");
             return false;
         }
     
         if (pickup_data.empty()) {
-            std::cout << "WARNING: Pickup data read is empty\n";
+            SDL_LogWarn(LOG_SCENE, "WARNING: Pickup data read is empty");
         }
 
-        std::cout << "Read pickup data:\n"
-             << " - Number of pickups: " << pickup_data.size() << "\n"
-             << " - Size of pickups: " << pickup_data.size() * sizeof(pickup_serial_data) << " bytes\n";
+        SDL_LogInfo(LOG_SCENE,
+            "Read pickup data:\n"
+            " - Number of pickups: %zu\n"
+            " - Size of pickups: %zu bytes",
+            pickup_data.size(),
+            pickup_data.size() * sizeof(pickup_serial_data)
+        );
     } else {
-        std::cout << "Skipping pickup loading as there are none in save file\n";
+        SDL_LogInfo(LOG_SCENE, "Skipping pickup loading as there are none in save file");
     }
     
     // Read Player Data //
@@ -880,7 +890,7 @@ bool _scene::loadSceneFromFile(const std::string &fileName) {
     char player_header[4];
     file.read(player_header,4);    // Player Data Header
     if (player_header[0] != 'P' || player_header[1] != 'L' || player_header[2] != 'Y' || player_header[3] != 'R') {
-        std::cout << "ERROR: Invalid player data header\n";
+        SDL_LogError(LOG_SCENE, "ERROR: Invalid player data header");
         return false;
     }
 
@@ -889,12 +899,18 @@ bool _scene::loadSceneFromFile(const std::string &fileName) {
 
     player->importSerializedPlayer(player_data);
 
-    std::cout << "Read player data:\n"
-         << " - Size of player: " << sizeof(player_data) << " bytes\n";
+    SDL_LogInfo(LOG_SCENE,
+        "Read player data:\n"
+        " - Size of player: %zu bytes",
+        sizeof(player_data)
+    );
 
-
-    std::cout << "Finished game import from: " << fileName + ".gg_world\n"
-         << " - Save Size: " << file.tellg() << " bytes\n";
+    SDL_LogInfo(LOG_SCENE,
+        "Finished game import from: %s.gg_world\n"
+        " - Save Size: %lld bytes",
+        fileName.c_str(),
+        static_cast<long long>(file.tellg())
+    );
 
     return true;
 }
