@@ -30,12 +30,14 @@ _pickupManager::~_pickupManager() {
 }
 
 void _pickupManager::initPickupManager(const std::string& fileName, int imageWidth, _player* currentPlayer, _lightManager* currentLightManager) {
+    SDL_LogInfo(LOG_PICKUPS, "Initializing the pickup manager");
+    
     player = currentPlayer;
     sceneLightManager = currentLightManager;
     numImages = imageWidth;
 
     if (!player || !sceneLightManager) {
-        std::cout << "ERROR: Player or LightManager is nullptr\n";
+        SDL_LogError(LOG_PICKUPS, "ERROR: Player or LightManager is nullptr");
         return;
     }
     
@@ -63,13 +65,14 @@ void _pickupManager::initPickupManager(const std::string& fileName, int imageWid
     int maxSizeBytes = 7 * 4 * maxPickups * sizeof(float);
 
     glBindBuffer(GL_ARRAY_BUFFER,vboID);
-    // This allocates memoery for the buffer but does NOT assign any data
+    // This allocates memory for the buffer but does NOT assign any data
     glBufferData(GL_ARRAY_BUFFER,maxSizeBytes,nullptr,GL_DYNAMIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER,0);
 
     buildEBO();
     buildVAO();
 
+    SDL_LogInfo(LOG_PICKUPS, "Successfully initialized the pickup manager");
     initialized = true;
 }
 
