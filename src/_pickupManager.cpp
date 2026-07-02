@@ -71,7 +71,7 @@ void _pickupManager::initPickupManager(
     // pickupList.resize(maxPickups); 
 
     // 7 floats * 4 verticies * maxPickups * float size
-    int maxSizeBytes = 7 * 4 * maxPickups * sizeof(float);
+    int maxSizeBytes = 7 * 4 * MAX_RENDER_PICKUPS * sizeof(float);
 
     glBindBuffer(GL_ARRAY_BUFFER,vboID);
     // This allocates memory for the buffer but does NOT assign any data
@@ -112,7 +112,7 @@ void _pickupManager::updatePickups(const double dt) {
     t_value += dt;
     if (alivePickups == 0) return;
 
-    for (int i = 0; i < maxPickups; i++) {
+    for (int i = 0; i < pickupList.size(); i++) {
         _pickup& p = pickupList[i];
         if (!p.alive) continue;
 
@@ -163,8 +163,10 @@ void _pickupManager::updatePickups(const double dt) {
     }
 }
 
+// NEEDS TO BE REDONE //
 bool _pickupManager::addPickup(const Vec2f &pos, pickup_type type, float value) {
-    for (int i = 0; i < maxPickups; i++) {
+    SDL_LogWarn(LOG_PICKUPS, "WARNING: Function depricated!");
+    for (int i = 0; i < MAX_RENDER_PICKUPS; i++) {
         _pickup& p = pickupList[i];
         if (!p.alive) {
             p.alive = true;
@@ -390,11 +392,11 @@ void _pickupManager::moveHeadToData(std::fstream &head) {
 
 
 void _pickupManager::buildVBO() {
-    std::vector<float> vbo(maxPickups * 10 * 4);
+    std::vector<float> vbo(MAX_RENDER_PICKUPS * 7 * 4);
     int vIndex = 0;
     
     alivePickups = 0;
-    for (int i = 0; i < std::clamp(static_cast<int>(pickupList.size()), 0, maxPickups); i++) {
+    for (int i = 0; i < std::clamp(static_cast<int>(pickupList.size()), 0, MAX_RENDER_PICKUPS); i++) {
         const _pickup* p = &pickupList[i];
         if (!p->alive) continue; 
 
@@ -456,10 +458,10 @@ void _pickupManager::buildVBO() {
 }
 
 void _pickupManager::buildEBO() {
-    uint32_t eboData[maxPickups * 6];
+    uint32_t eboData[MAX_RENDER_PICKUPS * 6];
     int vertexOffset = 0;
     int eIndex = 0;
-    for (int i = 0; i < maxPickups; i++) {
+    for (int i = 0; i < MAX_RENDER_PICKUPS; i++) {
         // Ebo (Two Triangles) //
         // Triangle 1
         eboData[eIndex++] = vertexOffset + 0; // BL   
