@@ -859,35 +859,38 @@ bool _scene::loadSceneFromFile(const std::string &fileName) {
     );
 
     // Check for pickups to read
-    if (pickup_count > 0) {
-        std::vector<pickup_serial_data> pickup_data;
-        pickup_data.resize(pickup_count);
-        file.read(reinterpret_cast<char*>(pickup_data.data()), pickup_data.size() * sizeof(pickup_serial_data));
+    // if (pickup_count > 0) {
+    //     std::vector<pickup_serial_data> pickup_data;
+    //     pickup_data.resize(pickup_count);
+    //     file.read(reinterpret_cast<char*>(pickup_data.data()), pickup_data.size() * sizeof(pickup_serial_data));
     
-        if (!pickupManager->importSerializedPickups(pickup_data)) {
-            SDL_LogWarn(LOG_SCENE, "WARNING: Unable to import pickup data to pickup manager");
-            return false;
-        }
+    //     if (!pickupManager->importSerializedPickups(pickup_data)) {
+    //         SDL_LogWarn(LOG_SCENE, "WARNING: Unable to import pickup data to pickup manager");
+    //         return false;
+    //     }
 
-        if (!file) {
-            SDL_LogError(LOG_SCENE, "ERROR: Unable to read pickup data");
-            return false;
-        }
+    //     if (!file) {
+    //         SDL_LogError(LOG_SCENE, "ERROR: Unable to read pickup data");
+    //         return false;
+    //     }
     
-        if (pickup_data.empty()) {
-            SDL_LogWarn(LOG_SCENE, "WARNING: Pickup data read is empty");
-        }
+    //     if (pickup_data.empty()) {
+    //         SDL_LogWarn(LOG_SCENE, "WARNING: Pickup data read is empty");
+    //     }
 
-        SDL_LogInfo(LOG_SCENE,
-            "Read pickup data:\n"
-            " - Number of pickups: %zu\n"
-            " - Size of pickups: %zu bytes",
-            pickup_data.size(),
-            pickup_data.size() * sizeof(pickup_serial_data)
-        );
-    } else {
-        SDL_LogInfo(LOG_SCENE, "Skipping pickup loading as there are none in save file");
-    }
+    //     SDL_LogInfo(LOG_SCENE,
+    //         "Read pickup data:\n"
+    //         " - Number of pickups: %zu\n"
+    //         " - Size of pickups: %zu bytes",
+    //         pickup_data.size(),
+    //         pickup_data.size() * sizeof(pickup_serial_data)
+    //     );
+    // } else {
+    //     SDL_LogInfo(LOG_SCENE, "Skipping pickup loading as there are none in save file");
+    // }
+
+    // Skip pickup data
+    file.seekg(static_cast<std::streamoff>(pickup_count * sizeof(pickup_serial_data)), std::ios::cur);
     
     // Read Player Data //
 
@@ -1571,6 +1574,9 @@ void _scene::keyboardHandler(const InputState &inputState)
     }
     if (inputState.keys[SDL_SCANCODE_SPACE]) {
         // Nothing
+    }
+    if (inputState.keys[SDL_SCANCODE_F2]) {
+        pickupManager->readFromFile();
     }
     if (inputState.keys[SDL_SCANCODE_F5]) {
         ParticleEngine->reload();

@@ -68,7 +68,7 @@ void _pickupManager::initPickupManager(
     glGenBuffers(1, &eboID); 
     glGenVertexArrays(1, &vaoID);
 
-    pickupList.resize(maxPickups); 
+    // pickupList.resize(maxPickups); 
 
     // 7 floats * 4 verticies * maxPickups * float size
     int maxSizeBytes = 7 * 4 * maxPickups * sizeof(float);
@@ -201,26 +201,7 @@ bool _pickupManager::generateToFile(const world_config &config) {
     const float WORLD_DIAMETER = sqrt(NUM_CHUNKS) * NUM_TILES_CHUNK_SQR * TILE_D;
 
     // -- MOVE READ HEAD -- //
-
-    // Skip Header, Seed, Time Stamp, Save System Version ID, Game Version
-    file.seekg(static_cast<std::streamoff>(2 + 4 + 8 + 4 + 4), std::ios::cur);
-
-    int32_t chunk_count = 0;
-    file.read(reinterpret_cast<char*>(&chunk_count), sizeof(chunk_count));  // Chunk Count
-    // Skip the Chunk Data Header
-    file.seekg(4, std::ios::cur);
-    // Skip all the chunks
-    file.seekg(static_cast<std::streamoff>(chunk_count * sizeof(chunk_serial_data)), std::ios::cur);
-    
-    // Skip the Enemy Data Header
-    file.seekg(4, std::ios::cur);
-    int32_t enemy_count = 0;
-    file.read(reinterpret_cast<char*>(&enemy_count), sizeof(enemy_count));  // Enemy Count
-    // Skip all enemies
-    file.seekg(static_cast<std::streamoff>(enemy_count * sizeof(enemy_serial_data)), std::ios::cur);
-    
-    // Skip the Pickup Data Header
-    file.seekg(4, std::ios::cur);
+    moveHeadToData(file);
 
     // -- READ PICKUP AMOUNT -- //
     const uint32_t num_hp_pickups = static_cast<uint32_t>(NUM_CHUNKS * config.health_pickups.pickups_per_chunk);
@@ -299,6 +280,57 @@ bool _pickupManager::generateToFile(const world_config &config) {
     return true;
 }
 
+bool _pickupManager::readFromFile() {
+    SDL_LogInfo(LOG_PICKUPS, "Reading pickups from save file");
+
+    std::fstream file("saves/game.gg_world", std::ios::binary | std::ios::in | std::ios::out);
+    if (!file) {
+        SDL_LogError(LOG_PICKUPS, "ERROR: Cannot open the save file");
+        return false;
+    }
+
+    // -- VARIABLES -- //
+    constexpr int BUFFER_SIZE = 4096;
+
+    // -- MOVE READ HEAD -- //
+    moveHeadToData(file);
+
+    uint32_t pickup_count = 0;
+    file.read(reinterpret_cast<char*>(&pickup_count), sizeof(pickup_count));  // Enemy Count
+
+    SDL_LogDebug(LOG_PICKUPS, "Pickups in save: %u", pickup_count);
+    if (pickup_count == 0) {
+        SDL_LogWarn(LOG_PICKUPS, "WARNING: Pickups found is 0");
+    }
+
+    pickupList.clear();
+    pickupList.resize(pickup_count);
+
+    int pickups = static_cast<int>(pickup_count);   // Make signed for simplicity
+    size_t index = 0;
+    while (pickups > 0) {
+        std::vector<pickup_serial_data> buffer(std::clamp(pickups, 0, BUFFER_SIZE));
+        file.read(reinterpret_cast<char*>(buffer.data()), buffer.size() * sizeof(pickup_serial_data));
+
+        for (const auto &p : buffer) {
+            _pickup &pickup = pickupList[index];
+            pickup.pos.x = p.xPos;
+            pickup.pos.y = p.yPos;
+            pickup.vel = { 0.0f, 0.0f };
+            pickup.acc = { 0.0f, 0.0f };
+            pickup.type = static_cast<pickup_type>(p.type);
+            pickup.size = 4.0f + log(p.value);
+            pickup.alive = true;
+
+            index++;
+            pickups--;
+        }
+    }
+
+    SDL_LogInfo(LOG_PICKUPS, "Successfully loaded pickups from save file");
+    return true;
+}
+
 std::vector<pickup_serial_data> _pickupManager::exportSerializedPickups() const {
     std::vector<pickup_serial_data> data;
     for (const _pickup &p : pickupList) {
@@ -334,13 +366,35 @@ pickup_serial_data _pickupManager::serializePickup(const _pickup &pickup) const 
     return data;
 }
 
+void _pickupManager::moveHeadToData(std::fstream &head) {
+    // Skip Header, Seed, Time Stamp, Save System Version ID, Game Version
+    head.seekg(static_cast<std::streamoff>(2 + 4 + 8 + 4 + 4), std::ios::cur);
+
+    int32_t chunk_count = 0;
+    head.read(reinterpret_cast<char*>(&chunk_count), sizeof(chunk_count));  // Chunk Count
+    // Skip the Chunk Data Header
+    head.seekg(4, std::ios::cur);
+    // Skip all the chunks
+    head.seekg(static_cast<std::streamoff>(chunk_count * sizeof(chunk_serial_data)), std::ios::cur);
+    
+    // Skip the Enemy Data Header
+    head.seekg(4, std::ios::cur);
+    int32_t enemy_count = 0;
+    head.read(reinterpret_cast<char*>(&enemy_count), sizeof(enemy_count));  // Enemy Count
+    // Skip all enemies
+    head.seekg(static_cast<std::streamoff>(enemy_count * sizeof(enemy_serial_data)), std::ios::cur);
+    
+    // Skip the Pickup Data Header
+    head.seekg(4, std::ios::cur);
+}
+
 
 void _pickupManager::buildVBO() {
-    float vboData[maxPickups * 10 * 4];
+    std::vector<float> vbo(maxPickups * 10 * 4);
     int vIndex = 0;
     
     alivePickups = 0;
-    for (int i = 0; i < maxPickups; i++) {
+    for (int i = 0; i < std::clamp(static_cast<int>(pickupList.size()), 0, maxPickups); i++) {
         const _pickup* p = &pickupList[i];
         if (!p->alive) continue; 
 
@@ -361,43 +415,43 @@ void _pickupManager::buildVBO() {
         
         // Vbo (Quad) //
         // Bottom-left (0)
-        vboData[vIndex++] = -halfWidth; 
-        vboData[vIndex++] = -halfHeight; 
-        vboData[vIndex++] = p->type * uWidth; 
-        vboData[vIndex++] = 1.0f; 
-        vboData[vIndex++] = centerX; 
-        vboData[vIndex++] = centerY; 
-        vboData[vIndex++] = angle; 
+        vbo[vIndex++] = -halfWidth; 
+        vbo[vIndex++] = -halfHeight; 
+        vbo[vIndex++] = p->type * uWidth; 
+        vbo[vIndex++] = 1.0f; 
+        vbo[vIndex++] = centerX; 
+        vbo[vIndex++] = centerY; 
+        vbo[vIndex++] = angle; 
         // Bottom-right (1)
-        vboData[vIndex++] = halfWidth; 
-        vboData[vIndex++] = -halfHeight; 
-        vboData[vIndex++] = (p->type + 1) * uWidth; 
-        vboData[vIndex++] = 1.0f; 
-        vboData[vIndex++] = centerX; 
-        vboData[vIndex++] = centerY; 
-        vboData[vIndex++] = angle; 
+        vbo[vIndex++] = halfWidth; 
+        vbo[vIndex++] = -halfHeight; 
+        vbo[vIndex++] = (p->type + 1) * uWidth; 
+        vbo[vIndex++] = 1.0f; 
+        vbo[vIndex++] = centerX; 
+        vbo[vIndex++] = centerY; 
+        vbo[vIndex++] = angle; 
         // Top-right (2)
-        vboData[vIndex++] = halfWidth; 
-        vboData[vIndex++] = halfHeight; 
-        vboData[vIndex++] = (p->type + 1) * uWidth; 
-        vboData[vIndex++] = 0.0f; 
-        vboData[vIndex++] = centerX; 
-        vboData[vIndex++] = centerY; 
-        vboData[vIndex++] = angle; 
+        vbo[vIndex++] = halfWidth; 
+        vbo[vIndex++] = halfHeight; 
+        vbo[vIndex++] = (p->type + 1) * uWidth; 
+        vbo[vIndex++] = 0.0f; 
+        vbo[vIndex++] = centerX; 
+        vbo[vIndex++] = centerY; 
+        vbo[vIndex++] = angle; 
         // Top-left (3)
-        vboData[vIndex++] = -halfWidth; 
-        vboData[vIndex++] = halfHeight; 
-        vboData[vIndex++] = p->type * uWidth; 
-        vboData[vIndex++] = 0.0f; 
-        vboData[vIndex++] = centerX; 
-        vboData[vIndex++] = centerY; 
-        vboData[vIndex++] = angle; 
+        vbo[vIndex++] = -halfWidth; 
+        vbo[vIndex++] = halfHeight; 
+        vbo[vIndex++] = p->type * uWidth; 
+        vbo[vIndex++] = 0.0f; 
+        vbo[vIndex++] = centerX; 
+        vbo[vIndex++] = centerY; 
+        vbo[vIndex++] = angle; 
 
         alivePickups++;
     }
 
     glBindBuffer(GL_ARRAY_BUFFER, vboID);
-    glBufferSubData(GL_ARRAY_BUFFER,0,vIndex * sizeof(float),vboData);  
+    glBufferSubData(GL_ARRAY_BUFFER,0,vIndex * sizeof(float),vbo.data());  
     glBindBuffer(GL_ARRAY_BUFFER,0);
 }
 

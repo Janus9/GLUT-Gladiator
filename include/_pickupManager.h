@@ -78,6 +78,12 @@ class _pickupManager {
          */
         bool generateToFile(const world_config &config);
 
+        /** 
+         * Reads the current world file and writes the contents into the memory
+         * @return True if opperation succeeded
+         */
+        bool readFromFile();
+
         /**
          * Returns a vector of serialized pickup data for saving
          */
@@ -114,11 +120,15 @@ class _pickupManager {
 
         std::vector<_pickup> pickupList;
 
-        pickup_serial_data serializePickup(const _pickup &pickup) const;
-
         _world* world = nullptr;  // Pointer to world instance in scene (non-owning) 
         _player* player = nullptr;  // Pointer to player instance in scene (non-owning) 
+        
+        // Serialization + Disk Access //
 
+        pickup_serial_data serializePickup(const _pickup &pickup) const;
+        // Moves a fstream file pointer to the start of the pickup data (number of pickups)
+        void moveHeadToData(std::fstream &head);
+        
         // Rendering //
         void buildVBO();
         void buildEBO();
