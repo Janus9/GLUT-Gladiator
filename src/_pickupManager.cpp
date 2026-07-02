@@ -14,6 +14,9 @@ void _pickupManager::setViewProjectionMatrix(const glm::mat4 &_viewProjectionMat
 
 _pickupManager::_pickupManager() : rng(std::random_device{}()) {
     alivePickups = 0;
+
+    readBuffer = &dataBuffer1;
+    writeBuffer = &dataBuffer2;
 }
 
 _pickupManager::~_pickupManager() {
@@ -112,8 +115,8 @@ void _pickupManager::updatePickups(const double dt) {
     t_value += dt;
     if (alivePickups == 0) return;
 
-    for (int i = 0; i < pickupList.size(); i++) {
-        _pickup& p = pickupList[i];
+    for (int i = 0; i < readBuffer->size(); i++) {
+        _pickup& p = (*readBuffer)[i];
         if (!p.alive) continue;
 
         const float distance = p.pos.distance(player->pos); // Distance to player
@@ -173,7 +176,7 @@ void _pickupManager::updatePickups(const double dt) {
 bool _pickupManager::addPickup(const Vec2f &pos, pickup_type type, float value) {
     SDL_LogWarn(LOG_PICKUPS, "WARNING: Function depricated!");
     for (int i = 0; i < MAX_RENDER_PICKUPS; i++) {
-        _pickup& p = pickupList[i];
+        _pickup& p = (*readBuffer)[i];
         if (!p.alive) {
             p.alive = true;
 
@@ -311,8 +314,13 @@ bool _pickupManager::readFromFile() {
         SDL_LogWarn(LOG_PICKUPS, "WARNING: Pickups found is 0");
     }
 
-    pickupList.clear();
-    pickupList.resize(pickup_count);
+    if (!writeBuffer) {
+        SDL_LogError(LOG_PICKUPS, "ERROR: Cannot write to the buffer as it is nullptr");
+        return false;
+    }
+
+    writeBuffer->clear();
+    writeBuffer->resize(pickup_count);
 
     int pickups = static_cast<int>(pickup_count);   // Make signed for simplicity
     size_t index = 0;
@@ -321,7 +329,7 @@ bool _pickupManager::readFromFile() {
         file.read(reinterpret_cast<char*>(buffer.data()), buffer.size() * sizeof(pickup_serial_data));
 
         for (const auto &p : buffer) {
-            _pickup &pickup = pickupList[index];
+            _pickup &pickup = (*writeBuffer)[index];
             pickup.pos.x = p.xPos;
             pickup.pos.y = p.yPos;
             pickup.vel = { 0.0f, 0.0f };
@@ -336,13 +344,16 @@ bool _pickupManager::readFromFile() {
         }
     }
 
+    std::swap(writeBuffer, readBuffer); // Swap the buffers so that the buffer we wrote into (write buffer) becomes the one we read (read buffer)
+
     SDL_LogInfo(LOG_PICKUPS, "Successfully loaded pickups from save file");
     return true;
 }
 
 std::vector<pickup_serial_data> _pickupManager::exportSerializedPickups() const {
+    SDL_LogWarn(LOG_PICKUPS, "WARNING: Function depricated!");
     std::vector<pickup_serial_data> data;
-    for (const _pickup &p : pickupList) {
+    for (const _pickup &p : (*readBuffer)) {
         if (!p.alive) continue; // Skip dead pickups
         data.push_back(serializePickup(p));
     }
@@ -350,6 +361,7 @@ std::vector<pickup_serial_data> _pickupManager::exportSerializedPickups() const 
 }
 
 bool _pickupManager::importSerializedPickups(const std::vector<pickup_serial_data> &pickup_data) {
+    SDL_LogWarn(LOG_PICKUPS, "WARNING: Function depricated!");
     if (pickup_data.empty()) {
         SDL_LogWarn(LOG_PICKUPS, "WARNING: Cannot import pickups as the data is empty");
         return false;
@@ -403,8 +415,8 @@ void _pickupManager::buildVBO() {
     int vIndex = 0;
     
     alivePickups = 0;
-    for (int i = 0; i < std::clamp(static_cast<int>(pickupList.size()), 0, MAX_RENDER_PICKUPS); i++) {
-        const _pickup* p = &pickupList[i];
+    for (int i = 0; i < std::clamp(static_cast<int>(readBuffer->size()), 0, MAX_RENDER_PICKUPS); i++) {
+        const _pickup* p = &(*readBuffer)[i];
         if (!p->alive) continue; 
 
         const float angle = 0.0f;  // No angle -- kept in case we need it later

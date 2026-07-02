@@ -119,7 +119,11 @@ class _pickupManager {
             bool alive;
         };
 
-        std::vector<_pickup> pickupList;
+        std::vector<_pickup> dataBuffer1;
+        std::vector<_pickup> dataBuffer2;
+        
+        std::vector<_pickup>* readBuffer = nullptr;
+        std::vector<_pickup>* writeBuffer = nullptr;
 
         _world* world = nullptr;  // Pointer to world instance in scene (non-owning) 
         _player* player = nullptr;  // Pointer to player instance in scene (non-owning) 
