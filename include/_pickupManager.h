@@ -125,15 +125,12 @@ class _pickupManager {
         std::vector<_pickup>* readBuffer = nullptr;
         std::vector<_pickup>* writeBuffer = nullptr;
 
-        static std::atomic<bool> writeCompleted;
+        std::atomic<bool> writeCompleted;
+        std::atomic<bool> writeInProgress;
+
+        std::thread writeThread;
         
-        /** 
-         * Writes all the pickups on disk into memory. Meant to be ran on a separate thread.
-         * 
-         * @param file File (read/write) to read the pickups from
-         * @param pickups Number of pickups in disk to write to memory
-         */
-        void writeToBuffer(std::fstream &file, int pickups);
+        void writeToBuffer();
 
         _world* world = nullptr;  // Pointer to world instance in scene (non-owning) 
         _player* player = nullptr;  // Pointer to player instance in scene (non-owning) 

@@ -10,12 +10,13 @@ void _pickupManager::setViewProjectionMatrix(const glm::mat4 &_viewProjectionMat
     viewProjectionMatrix = _viewProjectionMatrix;
 }
 
-std::atomic<bool> _pickupManager::writeCompleted{false};
-
 // -- PUBLIC -- //
 
 _pickupManager::_pickupManager() : rng(std::random_device{}()) {
     alivePickups = 0;
+
+    writeCompleted.store(false);
+    writeInProgress.store(false);
 
     readBuffer = &dataBuffer1;
     writeBuffer = &dataBuffer2;
@@ -33,6 +34,10 @@ _pickupManager::~_pickupManager() {
     if (vaoID != 0) {
         glDeleteVertexArrays(1,&vaoID); 
         vaoID = 0;
+    }
+    // Destroy write thread
+    if (writeThread.joinable()) {
+        writeThread.join();
     }
 }
 
@@ -114,6 +119,16 @@ void _pickupManager::drawPickups() {
 }
 
 void _pickupManager::updatePickups(const double dt) {
+    if (writeInProgress.load() && writeCompleted.load()) {
+        if (writeThread.joinable()) {
+            writeThread.join();
+        } else {
+            SDL_LogWarn(LOG_PICKUPS, "WARNING: Cannot join thread as it is not joinable");
+        }
+        writeInProgress.store(false);
+        writeCompleted.store(false);
+    }
+
     t_value += dt;
     if (alivePickups == 0) return;
 
@@ -294,41 +309,16 @@ bool _pickupManager::generateToFile(const world_config &config) {
 }
 
 bool _pickupManager::readFromFile() {
-    SDL_LogInfo(LOG_PICKUPS, "Reading pickups from save file");
+    SDL_LogInfo(LOG_PICKUPS, "Command given to read from file");
 
-    std::fstream file("saves/game.gg_world", std::ios::binary | std::ios::in | std::ios::out);
-    if (!file) {
-        SDL_LogError(LOG_PICKUPS, "ERROR: Cannot open the save file");
-        return false;
+    if (writeInProgress.load() || writeThread.joinable()) {
+        SDL_LogWarn(LOG_PICKUPS, "WARNING: Thread already working, skipping command");
+        return true;
     }
 
-    // -- VARIABLES -- //
-    constexpr int BUFFER_SIZE = 4096;
-
-    // -- MOVE READ HEAD -- //
-    moveHeadToData(file);
-
-    uint32_t pickup_count = 0;
-    file.read(reinterpret_cast<char*>(&pickup_count), sizeof(pickup_count));  // Enemy Count
-
-    SDL_LogDebug(LOG_PICKUPS, "Pickups in save: %u", pickup_count);
-    if (pickup_count == 0) {
-        SDL_LogWarn(LOG_PICKUPS, "WARNING: Pickups found is 0");
-    }
-
-    if (!writeBuffer) {
-        SDL_LogError(LOG_PICKUPS, "ERROR: Cannot write to the buffer as it is nullptr");
-        return false;
-    }
-
-    writeCompleted.store(false);
-
-    std::thread writeThread(&_pickupManager::writeToBuffer, this, std::ref(file), static_cast<int>(pickup_count));
-    writeThread.join();
-
-    std::swap(writeBuffer, readBuffer); // Swap the buffers so that the buffer we wrote into (write buffer) becomes the one we read (read buffer)
-
-    SDL_LogInfo(LOG_PICKUPS, "Successfully loaded pickups from save file");
+    writeInProgress.store(true);
+    writeThread = std::thread(&_pickupManager::writeToBuffer, this);
+    
     return true;
 }
 
@@ -356,12 +346,37 @@ bool _pickupManager::importSerializedPickups(const std::vector<pickup_serial_dat
     return true;
 }
 
-
 // -- PRIVATE -- //
 
-void _pickupManager::writeToBuffer(std::fstream &file, int pickups) {
+void _pickupManager::writeToBuffer() {
+    SDL_LogInfo(LOG_PICKUPS, "Thread: Reading pickups from save file");
+
+    std::fstream file("saves/game.gg_world", std::ios::binary | std::ios::in | std::ios::out);
+    if (!file) {
+        SDL_LogError(LOG_PICKUPS, "Thread: ERROR: Cannot open the save file");
+        return;
+    }
+
+    // -- VARIABLES -- //
     constexpr int BUFFER_SIZE = 4096;
 
+    // -- MOVE READ HEAD -- //
+    moveHeadToData(file);
+
+    uint32_t pickup_count = 0;
+    file.read(reinterpret_cast<char*>(&pickup_count), sizeof(pickup_count));  // Enemy Count
+
+    SDL_LogDebug(LOG_PICKUPS, "Thread: Pickups in save: %u", pickup_count);
+    if (pickup_count == 0) {
+        SDL_LogWarn(LOG_PICKUPS, "Thread: WARNING: Pickups found is 0");
+    }
+
+    if (!writeBuffer) {
+        SDL_LogError(LOG_PICKUPS, "Thread: ERROR: Cannot write to the buffer as it is nullptr");
+        return;
+    }
+
+    int pickups = static_cast<int>(pickup_count);
     writeBuffer->clear();
     writeBuffer->resize(pickups);
 
@@ -386,7 +401,10 @@ void _pickupManager::writeToBuffer(std::fstream &file, int pickups) {
         }
     }
 
+    std::swap(writeBuffer, readBuffer); // Swap the buffers so that the buffer we wrote into (write buffer) becomes the one we read (read buffer)
+
     writeCompleted.store(true);
+    SDL_LogInfo(LOG_PICKUPS, "Thread: Successfully loaded pickups from save file");
 }
 
 pickup_serial_data _pickupManager::serializePickup(const _pickup &pickup) const {
