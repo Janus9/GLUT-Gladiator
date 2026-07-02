@@ -124,21 +124,27 @@ void _pickupManager::updatePickups(const double dt) {
             // Player variables
             switch (p.type) {
                 case PICKUP_HEALTH:
+                    SDL_LogDebug(LOG_PICKUPS, "Applying %f health", p.value);
                     player->addHealth(p.value);
                     break;
                 case PICKUP_AMMO:
+                    SDL_LogDebug(LOG_PICKUPS, "Applying %f ammo", p.value);
                     player->addAmmo(p.value);
                     break;
                 case PICKUP_SPEED:
+                    SDL_LogDebug(LOG_PICKUPS, "Applying %f speed", p.value);
                     player->addSpeed(p.value);
                     break;
                 case PICKUP_MAX_HEALTH:
+                    SDL_LogDebug(LOG_PICKUPS, "Applying %f max health", p.value);
                     player->addMaxHealth(p.value);
                     break;
                 case PICKUP_XP:
+                    SDL_LogDebug(LOG_PICKUPS, "Applying %f XP", p.value);
                     player->addXP(p.value);    
                     break;
                 case PICKUP_FIRERATE:
+                    SDL_LogDebug(LOG_PICKUPS, "Applying %f fire rate", p.value);
                     player->addFireRate(p.value);    
                     break;
                 default:
@@ -322,6 +328,7 @@ bool _pickupManager::readFromFile() {
             pickup.acc = { 0.0f, 0.0f };
             pickup.type = static_cast<pickup_type>(p.type);
             pickup.size = 4.0f + log(p.value);
+            pickup.value = p.value;
             pickup.alive = true;
 
             index++;
