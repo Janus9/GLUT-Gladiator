@@ -38,6 +38,8 @@
 #include <_loggerSDL.h>
 #include <algorithm>
 #include <array>
+#include <atomic>
+#include <thread>
 
 // DEFINITIONS //
 

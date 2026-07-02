@@ -10,6 +10,8 @@ void _pickupManager::setViewProjectionMatrix(const glm::mat4 &_viewProjectionMat
     viewProjectionMatrix = _viewProjectionMatrix;
 }
 
+std::atomic<bool> _pickupManager::writeCompleted{false};
+
 // -- PUBLIC -- //
 
 _pickupManager::_pickupManager() : rng(std::random_device{}()) {
@@ -319,30 +321,10 @@ bool _pickupManager::readFromFile() {
         return false;
     }
 
-    writeBuffer->clear();
-    writeBuffer->resize(pickup_count);
+    writeCompleted.store(false);
 
-    int pickups = static_cast<int>(pickup_count);   // Make signed for simplicity
-    size_t index = 0;
-    while (pickups > 0) {
-        std::vector<pickup_serial_data> buffer(std::clamp(pickups, 0, BUFFER_SIZE));
-        file.read(reinterpret_cast<char*>(buffer.data()), buffer.size() * sizeof(pickup_serial_data));
-
-        for (const auto &p : buffer) {
-            _pickup &pickup = (*writeBuffer)[index];
-            pickup.pos.x = p.xPos;
-            pickup.pos.y = p.yPos;
-            pickup.vel = { 0.0f, 0.0f };
-            pickup.acc = { 0.0f, 0.0f };
-            pickup.type = static_cast<pickup_type>(p.type);
-            pickup.size = 4.0f + log(p.value);
-            pickup.value = p.value;
-            pickup.alive = true;
-
-            index++;
-            pickups--;
-        }
-    }
+    std::thread writeThread(&_pickupManager::writeToBuffer, this, std::ref(file), static_cast<int>(pickup_count));
+    writeThread.join();
 
     std::swap(writeBuffer, readBuffer); // Swap the buffers so that the buffer we wrote into (write buffer) becomes the one we read (read buffer)
 
@@ -376,6 +358,36 @@ bool _pickupManager::importSerializedPickups(const std::vector<pickup_serial_dat
 
 
 // -- PRIVATE -- //
+
+void _pickupManager::writeToBuffer(std::fstream &file, int pickups) {
+    constexpr int BUFFER_SIZE = 4096;
+
+    writeBuffer->clear();
+    writeBuffer->resize(pickups);
+
+    size_t index = 0;
+    while (pickups > 0) {
+        std::vector<pickup_serial_data> buffer(std::clamp(pickups, 0, BUFFER_SIZE));
+        file.read(reinterpret_cast<char*>(buffer.data()), buffer.size() * sizeof(pickup_serial_data));
+
+        for (const auto &p : buffer) {
+            _pickup &pickup = (*writeBuffer)[index];
+            pickup.pos.x = p.xPos;
+            pickup.pos.y = p.yPos;
+            pickup.vel = { 0.0f, 0.0f };
+            pickup.acc = { 0.0f, 0.0f };
+            pickup.type = static_cast<pickup_type>(p.type);
+            pickup.size = 4.0f + log(p.value);
+            pickup.value = p.value;
+            pickup.alive = true;
+
+            index++;
+            pickups--;
+        }
+    }
+
+    writeCompleted.store(true);
+}
 
 pickup_serial_data _pickupManager::serializePickup(const _pickup &pickup) const {
     pickup_serial_data data {
