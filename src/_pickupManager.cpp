@@ -248,7 +248,11 @@ bool _pickupManager::generateToFile(const world_config &config) {
 
     SDL_LogDebug(LOG_PICKUPS, "Staring write at position: 0x%llX", static_cast<long long>(file.tellp()));
 
-    generatePickup(file, config.health_pickups, config.num_chunks);
+    generatePickup(file, config.health_pickups, config.num_chunks, PICKUP_HEALTH);           // Health
+    generatePickup(file, config.max_health_pickups, config.num_chunks, PICKUP_MAX_HEALTH);   // Max Health
+    generatePickup(file, config.ammo_pickups, config.num_chunks, PICKUP_AMMO);               // Ammo
+    generatePickup(file, config.speed_pickups, config.num_chunks, PICKUP_SPEED);             // Speed
+    generatePickup(file, config.firerate_pickups, config.num_chunks, PICKUP_FIRERATE);       // Fire rate
 
     SDL_LogDebug(LOG_PICKUPS, "Final position: 0x%llX", static_cast<long long>(file.tellp()));
     
@@ -391,7 +395,7 @@ void _pickupManager::moveHeadToData(std::fstream &head) {
     head.seekg(4, std::ios::cur);
 }
 
-bool _pickupManager::generatePickup(std::fstream &file, const pickup_config &config, float numChunks) {
+bool _pickupManager::generatePickup(std::fstream &file, const pickup_config &config, float numChunks, pickup_type type) {
     SDL_LogInfo(LOG_PICKUPS, "Generating pickups instance");
 
     // -- VARIABLES -- //
@@ -433,7 +437,7 @@ bool _pickupManager::generatePickup(std::fstream &file, const pickup_config &con
                 
                 if (chance > pickup_rng(rng)) {
                     buffer[i].value = 10.0f;
-                    buffer[i].type = PICKUP_HEALTH;
+                    buffer[i].type = type;
                     buffer[i].xPos = pos.x;
                     buffer[i].yPos = pos.y;
 

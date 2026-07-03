@@ -146,7 +146,7 @@ class _pickupManager {
         void moveHeadToData(std::fstream &head);
 
         // Generates a given pickup
-        bool generatePickup(std::fstream &file, const pickup_config &config, float numChunks);
+        bool generatePickup(std::fstream &file, const pickup_config &config, float numChunks, pickup_type type);
 
         // Rendering //
         void buildVBO();
