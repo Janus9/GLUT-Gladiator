@@ -1659,6 +1659,7 @@ void _scene::applyCamera()
     _enemyManager::setViewProjectionMatrix(sceneViewProjectionMatrix);
     _world::setViewProjectionMatrix(sceneViewProjectionMatrix);
     _world::setCameraPosition({cameraX,cameraY});
+    _pickupManager::setCameraPosition({cameraX,cameraY});
 
     // Legacy Matrix Building //
 

@@ -97,9 +97,11 @@ class _pickupManager {
         bool importSerializedPickups(const std::vector<pickup_serial_data> &pickup_data);
 
         static void setViewProjectionMatrix(const glm::mat4& _viewProjectionMatrix); 
+        static void setCameraPosition(const Vec2f &_cameraPosition);
     protected:
     private:
-        const int MAX_RENDER_PICKUPS = 5000;    // Maxmimum render pickups visible
+        const int MAX_RENDER_PICKUPS = 65536;    // Maxmimum render pickups visible
+        static constexpr float VIEW_RANGE = 1096.0f;
         
         int alivePickups;
         int numImages;
@@ -118,7 +120,7 @@ class _pickupManager {
 
             bool alive;
         };
-
+        
         std::vector<_pickup> dataBuffer1;
         std::vector<_pickup> dataBuffer2;
         
@@ -129,6 +131,8 @@ class _pickupManager {
         std::atomic<bool> writeInProgress;
 
         std::thread writeThread;
+
+        Vec2f prevWritePos = {0.0f, 0.0f};
         
         void writeToBuffer();
 
@@ -159,6 +163,7 @@ class _pickupManager {
         
         float t_value = 0.0f;
         static glm::mat4 viewProjectionMatrix;
+        static Vec2f cameraPosition; 
 
         _lightManager* sceneLightManager;   // Pointer to light manager in scene (non-owning)
 

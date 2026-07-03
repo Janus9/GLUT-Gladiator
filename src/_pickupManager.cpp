@@ -5,9 +5,14 @@
 // -- STATIC MEMBERS -- //
 
 glm::mat4 _pickupManager::viewProjectionMatrix;
+Vec2f _pickupManager::cameraPosition;
 
 void _pickupManager::setViewProjectionMatrix(const glm::mat4 &_viewProjectionMatrix) {
     viewProjectionMatrix = _viewProjectionMatrix;
+}
+
+void _pickupManager::setCameraPosition(const Vec2f &_cameraPosition) {
+    cameraPosition = _cameraPosition;
 }
 
 // -- PUBLIC -- //
@@ -119,6 +124,11 @@ void _pickupManager::drawPickups() {
 }
 
 void _pickupManager::updatePickups(const double dt) {
+    if (prevWritePos.distance(cameraPosition) > VIEW_RANGE*0.5f) {
+        SDL_LogDebug(LOG_PICKUPS, "Camera moved too far from previous write position, reloading pickups!");
+        readFromFile();
+    }
+
     if (writeInProgress.load() && writeCompleted.load()) {
         if (writeThread.joinable()) {
             writeThread.join();
@@ -144,27 +154,21 @@ void _pickupManager::updatePickups(const double dt) {
             // Player variables
             switch (p.type) {
                 case PICKUP_HEALTH:
-                    SDL_LogDebug(LOG_PICKUPS, "Applying %f health", p.value);
                     player->addHealth(p.value);
                     break;
                 case PICKUP_AMMO:
-                    SDL_LogDebug(LOG_PICKUPS, "Applying %f ammo", p.value);
                     player->addAmmo(p.value);
                     break;
                 case PICKUP_SPEED:
-                    SDL_LogDebug(LOG_PICKUPS, "Applying %f speed", p.value);
                     player->addSpeed(p.value);
                     break;
                 case PICKUP_MAX_HEALTH:
-                    SDL_LogDebug(LOG_PICKUPS, "Applying %f max health", p.value);
                     player->addMaxHealth(p.value);
                     break;
                 case PICKUP_XP:
-                    SDL_LogDebug(LOG_PICKUPS, "Applying %f XP", p.value);
                     player->addXP(p.value);    
                     break;
                 case PICKUP_FIRERATE:
-                    SDL_LogDebug(LOG_PICKUPS, "Applying %f fire rate", p.value);
                     player->addFireRate(p.value);    
                     break;
                 default:
@@ -318,6 +322,8 @@ bool _pickupManager::readFromFile() {
 
     writeInProgress.store(true);
     writeThread = std::thread(&_pickupManager::writeToBuffer, this);
+
+    prevWritePos = cameraPosition;
     
     return true;
 }
@@ -359,7 +365,6 @@ void _pickupManager::writeToBuffer() {
 
     // -- VARIABLES -- //
     constexpr int BUFFER_SIZE = 4096;
-    constexpr float VIEW_RANGE = 1096.0f;
 
     // -- MOVE READ HEAD -- //
     moveHeadToData(file);
@@ -388,7 +393,7 @@ void _pickupManager::writeToBuffer() {
         for (const auto &p : buffer) {
             pickups--;
             
-            if (Vec2f(p.xPos,p.yPos).distance(player->pos) > VIEW_RANGE) continue; // Skip, out of range
+            if (Vec2f(p.xPos,p.yPos).distance(cameraPosition) > VIEW_RANGE) continue; // Skip, out of range
 
             writeBuffer->emplace_back();
             _pickup &pickup = (*writeBuffer)[writeBuffer->size()-1];
