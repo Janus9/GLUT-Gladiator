@@ -132,6 +132,8 @@ void _pickupManager::updatePickups(const double dt) {
     if (writeInProgress.load() && writeCompleted.load()) {
         if (writeThread.joinable()) {
             writeThread.join();
+            // Not done in thread to prevent race conditions
+            std::swap(writeBuffer, readBuffer); // Swap the buffers so that the buffer we wrote into (write buffer) becomes the one we read (read buffer)
         } else {
             SDL_LogWarn(LOG_PICKUPS, "WARNING: Cannot join thread as it is not joinable");
         }
@@ -266,8 +268,8 @@ bool _pickupManager::generateToFile(const world_config &config) {
     while (pickups > 0) {
         std::vector<pickup_serial_data> buffer(std::clamp(pickups, 0, BUFFER_SIZE));
         
-        SDL_LogDebug(LOG_PICKUPS, "Buffer size: %llu", buffer.size());
-        SDL_LogDebug(LOG_PICKUPS, "Write at position: 0x%llX", static_cast<long long>(file.tellp()));
+        // SDL_LogDebug(LOG_PICKUPS, "Buffer size: %llu", buffer.size());
+        // SDL_LogDebug(LOG_PICKUPS, "Write at position: 0x%llX", static_cast<long long>(file.tellp()));
         
         for (size_t i = 0; i < buffer.size(); i++) {
             bool lookingForSpawn = true;
@@ -409,8 +411,6 @@ void _pickupManager::writeToBuffer() {
     }
 
     SDL_LogDebug(LOG_PICKUPS, "Thread: Read %zu pickups", writeBuffer->size());
-
-    std::swap(writeBuffer, readBuffer); // Swap the buffers so that the buffer we wrote into (write buffer) becomes the one we read (read buffer)
 
     writeCompleted.store(true);
     SDL_LogInfo(LOG_PICKUPS, "Thread: Successfully loaded pickups from save file");
