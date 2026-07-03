@@ -359,6 +359,7 @@ void _pickupManager::writeToBuffer() {
 
     // -- VARIABLES -- //
     constexpr int BUFFER_SIZE = 4096;
+    constexpr float VIEW_RANGE = 1096.0f;
 
     // -- MOVE READ HEAD -- //
     moveHeadToData(file);
@@ -378,15 +379,19 @@ void _pickupManager::writeToBuffer() {
 
     int pickups = static_cast<int>(pickup_count);
     writeBuffer->clear();
-    writeBuffer->resize(pickups);
+    // writeBuffer->resize(pickups);
 
-    size_t index = 0;
     while (pickups > 0) {
         std::vector<pickup_serial_data> buffer(std::clamp(pickups, 0, BUFFER_SIZE));
         file.read(reinterpret_cast<char*>(buffer.data()), buffer.size() * sizeof(pickup_serial_data));
 
         for (const auto &p : buffer) {
-            _pickup &pickup = (*writeBuffer)[index];
+            pickups--;
+            
+            if (Vec2f(p.xPos,p.yPos).distance(player->pos) > VIEW_RANGE) continue; // Skip, out of range
+
+            writeBuffer->emplace_back();
+            _pickup &pickup = (*writeBuffer)[writeBuffer->size()-1];
             pickup.pos.x = p.xPos;
             pickup.pos.y = p.yPos;
             pickup.vel = { 0.0f, 0.0f };
@@ -395,11 +400,10 @@ void _pickupManager::writeToBuffer() {
             pickup.size = 4.0f + log(p.value);
             pickup.value = p.value;
             pickup.alive = true;
-
-            index++;
-            pickups--;
         }
     }
+
+    SDL_LogDebug(LOG_PICKUPS, "Thread: Read %zu pickups", writeBuffer->size());
 
     std::swap(writeBuffer, readBuffer); // Swap the buffers so that the buffer we wrote into (write buffer) becomes the one we read (read buffer)
 
