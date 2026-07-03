@@ -229,20 +229,15 @@ bool _pickupManager::generateToFile(const world_config &config) {
         return false;
     }
 
-    // -- VARIABLES -- //
-    const float NUM_CHUNKS = static_cast<float>(config.num_chunks);
-    const float WORLD_RADIUS = sqrt(NUM_CHUNKS) * NUM_TILES_CHUNK_SQR * TILE_D * 0.5f;
-    const float WORLD_DIAMETER = sqrt(NUM_CHUNKS) * NUM_TILES_CHUNK_SQR * TILE_D;
-
     // -- MOVE READ HEAD -- //
     moveHeadToData(file);
 
     // -- READ PICKUP AMOUNT -- //
-    const uint32_t num_hp_pickups = static_cast<uint32_t>(NUM_CHUNKS * config.health_pickups.pickups_per_chunk);
-    const uint32_t num_ammo_pickups = static_cast<uint32_t>(NUM_CHUNKS * config.ammo_pickups.pickups_per_chunk);
-    const uint32_t num_speed_pickups = static_cast<uint32_t>(NUM_CHUNKS * config.speed_pickups.pickups_per_chunk);
-    const uint32_t num_max_hp_pickups = static_cast<uint32_t>(NUM_CHUNKS * config.max_health_pickups.pickups_per_chunk);
-    const uint32_t num_firerate_pickups = static_cast<uint32_t>(NUM_CHUNKS * config.firerate_pickups.pickups_per_chunk);
+    const uint32_t num_hp_pickups = static_cast<uint32_t>(config.num_chunks * config.health_pickups.pickups_per_chunk);
+    const uint32_t num_ammo_pickups = static_cast<uint32_t>(config.num_chunks * config.ammo_pickups.pickups_per_chunk);
+    const uint32_t num_speed_pickups = static_cast<uint32_t>(config.num_chunks * config.speed_pickups.pickups_per_chunk);
+    const uint32_t num_max_hp_pickups = static_cast<uint32_t>(config.num_chunks * config.max_health_pickups.pickups_per_chunk);
+    const uint32_t num_firerate_pickups = static_cast<uint32_t>(config.num_chunks * config.firerate_pickups.pickups_per_chunk);
 
     const uint32_t pickup_count = num_hp_pickups + num_ammo_pickups + num_speed_pickups + num_max_hp_pickups + num_firerate_pickups;
     file.write(reinterpret_cast<const char*>(&pickup_count),sizeof(pickup_count)); // Pickup Count
@@ -253,62 +248,10 @@ bool _pickupManager::generateToFile(const world_config &config) {
 
     SDL_LogDebug(LOG_PICKUPS, "Staring write at position: 0x%llX", static_cast<long long>(file.tellp()));
 
-    // Only does pickup health for now
-    constexpr int BUFFER_SIZE = 4096;
-    
-    const float max_distance = Vec2f(WORLD_RADIUS,WORLD_RADIUS).distance({0.0f, 0.0f});
-    int pickups = num_hp_pickups;
-    
-    std::uniform_real_distribution<float> pickup_hp_dist(config.health_pickups.near_bound, config.health_pickups.far_bound);
-    std::uniform_real_distribution<float> rad_rng(0.0f, 2.0f * PI);
-    std::uniform_real_distribution<float> pickup_rng(0.0f, 1.0f);
-    
-    const pickup_config &cfg = config.health_pickups; 
-
-    while (pickups > 0) {
-        std::vector<pickup_serial_data> buffer(std::clamp(pickups, 0, BUFFER_SIZE));
-        
-        // SDL_LogDebug(LOG_PICKUPS, "Buffer size: %llu", buffer.size());
-        // SDL_LogDebug(LOG_PICKUPS, "Write at position: 0x%llX", static_cast<long long>(file.tellp()));
-        
-        for (size_t i = 0; i < buffer.size(); i++) {
-            bool lookingForSpawn = true;
-            while (lookingForSpawn) {
-                const float radius = WORLD_RADIUS * pickup_hp_dist(rng);   
-                const float theta = rad_rng(rng);
-                const Vec2f pos = {radius * std::cosf(theta), radius * std::sinf(theta)};
-
-                const _cell *cell = world->getCellAtWorld(pos);
-                
-                if (cell && world->isCellWall(cell)) continue;
-
-                const float dist = pos.distance({0.0f,0.0f});
-                const float dist_norm = std::clamp(dist / max_distance, 0.0f, 1.0f);
-                
-                const float t = std::clamp((dist_norm - cfg.near_bound) / (cfg.far_bound - cfg.near_bound), 0.0f, 1.0f);
-
-                const float chance = std::lerp(1.0, cfg.min_chance, t);
-                
-                if (chance > pickup_rng(rng)) {
-                    buffer[i].value = 10.0f;
-                    buffer[i].type = PICKUP_HEALTH;
-                    buffer[i].xPos = pos.x;
-                    buffer[i].yPos = pos.y;
-
-                    lookingForSpawn = false;
-                    pickups--;
-                }
-            }
-        }
-
-        file.write(reinterpret_cast<const char*>(buffer.data()), buffer.size() * sizeof(pickup_serial_data)); // Pickup Data
-        if (!file) {
-            SDL_LogError(LOG_PICKUPS, "ERROR: Failed to write the pickup data");
-            return false;
-        }
-    }
+    generatePickup(file, config.health_pickups, config.num_chunks);
 
     SDL_LogDebug(LOG_PICKUPS, "Final position: 0x%llX", static_cast<long long>(file.tellp()));
+    
     SDL_LogInfo(LOG_PICKUPS, "Successfully generated pickups into save file");
     
     return true;
@@ -446,6 +389,68 @@ void _pickupManager::moveHeadToData(std::fstream &head) {
     
     // Skip the Pickup Data Header
     head.seekg(4, std::ios::cur);
+}
+
+bool _pickupManager::generatePickup(std::fstream &file, const pickup_config &config, float numChunks) {
+    SDL_LogInfo(LOG_PICKUPS, "Generating pickups instance");
+
+    // -- VARIABLES -- //
+    const float WORLD_RADIUS = sqrt(numChunks) * NUM_TILES_CHUNK_SQR * TILE_D * 0.5f;
+    const float WORLD_DIAMETER = sqrt(numChunks) * NUM_TILES_CHUNK_SQR * TILE_D;
+
+    // Only does pickup health for now
+    constexpr int BUFFER_SIZE = 4096;
+    
+    const float max_distance = Vec2f(WORLD_RADIUS,WORLD_RADIUS).distance({0.0f, 0.0f});
+    int pickups = static_cast<int>(numChunks * config.pickups_per_chunk);
+    
+    SDL_LogDebug(LOG_PICKUPS, "Pickups to generate: %i", pickups);
+
+    std::uniform_real_distribution<float> pickup_hp_dist(config.near_bound, config.far_bound);
+    std::uniform_real_distribution<float> rad_rng(0.0f, 2.0f * PI);
+    std::uniform_real_distribution<float> pickup_rng(0.0f, 1.0f);
+    
+    while (pickups > 0) {
+        std::vector<pickup_serial_data> buffer(std::clamp(pickups, 0, BUFFER_SIZE));
+        
+        for (size_t i = 0; i < buffer.size(); i++) {
+            bool lookingForSpawn = true;
+            while (lookingForSpawn) {
+                const float radius = WORLD_RADIUS * pickup_hp_dist(rng);   
+                const float theta = rad_rng(rng);
+                const Vec2f pos = {radius * std::cosf(theta), radius * std::sinf(theta)};
+
+                const _cell *cell = world->getCellAtWorld(pos);
+                
+                if (cell && world->isCellWall(cell)) continue;
+
+                const float dist = pos.distance({0.0f,0.0f});
+                const float dist_norm = std::clamp(dist / max_distance, 0.0f, 1.0f);
+                
+                const float t = std::clamp((dist_norm - config.near_bound) / (config.far_bound - config.near_bound), 0.0f, 1.0f);
+
+                const float chance = std::lerp(1.0, config.min_chance, t);
+                
+                if (chance > pickup_rng(rng)) {
+                    buffer[i].value = 10.0f;
+                    buffer[i].type = PICKUP_HEALTH;
+                    buffer[i].xPos = pos.x;
+                    buffer[i].yPos = pos.y;
+
+                    lookingForSpawn = false;
+                    pickups--;
+                }
+            }
+        }
+
+        file.write(reinterpret_cast<const char*>(buffer.data()), buffer.size() * sizeof(pickup_serial_data)); // Pickup Data
+        if (!file) {
+            SDL_LogError(LOG_PICKUPS, "ERROR: Failed to write the pickup data");
+            return false;
+        }
+    }
+    SDL_LogInfo(LOG_PICKUPS, "Finished generating pickups instance");
+    return true;
 }
 
 

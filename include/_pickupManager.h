@@ -144,7 +144,10 @@ class _pickupManager {
         pickup_serial_data serializePickup(const _pickup &pickup) const;
         // Moves a fstream file pointer to the start of the pickup data (number of pickups)
         void moveHeadToData(std::fstream &head);
-        
+
+        // Generates a given pickup
+        bool generatePickup(std::fstream &file, const pickup_config &config, float numChunks);
+
         // Rendering //
         void buildVBO();
         void buildEBO();
