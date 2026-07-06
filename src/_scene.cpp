@@ -1576,7 +1576,7 @@ void _scene::keyboardHandler(const InputState &inputState)
         // Nothing
     }
     if (inputState.keys[SDL_SCANCODE_F2]) {
-        pickupManager->readFromFile();
+        pickupManager->logDisk();
     }
     if (inputState.keys[SDL_SCANCODE_F5]) {
         ParticleEngine->reload();

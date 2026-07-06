@@ -24,6 +24,7 @@ enum pickup_type : int32_t {
 };
 
 struct pickup_serial_data {
+    uint32_t id;
     float value;    
     int32_t type;
     float xPos;
@@ -96,6 +97,13 @@ class _pickupManager {
          */
         bool importSerializedPickups(const std::vector<pickup_serial_data> &pickup_data);
 
+        /** 
+         * Creates a "pickup.log" file which contains a detailed printout of the save file pickup contents.
+         * 
+         * This function does nothing if no save file is found.
+         * */
+        void logDisk() const;
+
         static void setViewProjectionMatrix(const glm::mat4& _viewProjectionMatrix); 
         static void setCameraPosition(const Vec2f &_cameraPosition);
     protected:
@@ -109,6 +117,8 @@ class _pickupManager {
         bool initialized = false;       // Blocks operations until initialized
 
         struct _pickup {
+            unsigned int id;
+
             Vec2f pos;   
             Vec2f vel;           
             Vec2f acc;
@@ -143,10 +153,10 @@ class _pickupManager {
 
         pickup_serial_data serializePickup(const _pickup &pickup) const;
         // Moves a fstream file pointer to the start of the pickup data (number of pickups)
-        void moveHeadToData(std::fstream &head);
+        void moveHeadToData(std::fstream &head) const;
 
         // Generates a given pickup
-        bool generatePickup(std::fstream &file, const pickup_config &config, float numChunks, pickup_type type);
+        bool generatePickup(std::fstream &file, const pickup_config &config, float numChunks, pickup_type type, int &ID);
 
         // Rendering //
         void buildVBO();

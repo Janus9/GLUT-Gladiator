@@ -233,6 +233,7 @@ bool _pickupManager::generateToFile(const world_config &config) {
     moveHeadToData(file);
 
     // -- READ PICKUP AMOUNT -- //
+    int ID = 0;
     const uint32_t num_hp_pickups = static_cast<uint32_t>(config.num_chunks * config.health_pickups.pickups_per_chunk);
     const uint32_t num_ammo_pickups = static_cast<uint32_t>(config.num_chunks * config.ammo_pickups.pickups_per_chunk);
     const uint32_t num_speed_pickups = static_cast<uint32_t>(config.num_chunks * config.speed_pickups.pickups_per_chunk);
@@ -248,14 +249,16 @@ bool _pickupManager::generateToFile(const world_config &config) {
 
     SDL_LogDebug(LOG_PICKUPS, "Staring write at position: 0x%llX", static_cast<long long>(file.tellp()));
 
-    generatePickup(file, config.health_pickups, config.num_chunks, PICKUP_HEALTH);           // Health
-    generatePickup(file, config.max_health_pickups, config.num_chunks, PICKUP_MAX_HEALTH);   // Max Health
-    generatePickup(file, config.ammo_pickups, config.num_chunks, PICKUP_AMMO);               // Ammo
-    generatePickup(file, config.speed_pickups, config.num_chunks, PICKUP_SPEED);             // Speed
-    generatePickup(file, config.firerate_pickups, config.num_chunks, PICKUP_FIRERATE);       // Fire rate
+    generatePickup(file, config.max_health_pickups, config.num_chunks, PICKUP_MAX_HEALTH, ID);   // Max Health
+    generatePickup(file, config.health_pickups, config.num_chunks, PICKUP_HEALTH, ID);           // Health
+    generatePickup(file, config.ammo_pickups, config.num_chunks, PICKUP_AMMO, ID);               // Ammo
+    generatePickup(file, config.speed_pickups, config.num_chunks, PICKUP_SPEED, ID);             // Speed
+    generatePickup(file, config.firerate_pickups, config.num_chunks, PICKUP_FIRERATE, ID);       // Fire rate
 
     SDL_LogDebug(LOG_PICKUPS, "Final position: 0x%llX", static_cast<long long>(file.tellp()));
     
+    file.close();
+
     SDL_LogInfo(LOG_PICKUPS, "Successfully generated pickups into save file");
     
     return true;
@@ -301,6 +304,64 @@ bool _pickupManager::importSerializedPickups(const std::vector<pickup_serial_dat
     return true;
 }
 
+void _pickupManager::logDisk() const {
+    SDL_LogInfo(LOG_PICKUPS, "Creating a log output at [logs/pickup.log]");
+
+    std::fstream file("saves/game.gg_world", std::ios::binary | std::ios::in);
+    if (!file) {
+        SDL_LogError(LOG_PICKUPS, "ERROR: Cannot open the save file");
+        return;
+    }
+
+    std::fstream log("logs/pickup.log", std::ios::out);
+    if (!log) {
+        SDL_LogError(LOG_PICKUPS, "ERROR: Unable to create log file");
+        return;
+    }
+    // -- VARIABLES -- //
+    constexpr int BUFFER_SIZE = 4096;
+
+    // -- MOVE READ HEAD -- //
+    moveHeadToData(file);
+
+    uint32_t pickup_count = 0;
+    file.read(reinterpret_cast<char*>(&pickup_count), sizeof(pickup_count));  // Pickup Count
+
+    log << "file: game.gg_world\n";
+    log << "pickups: " << pickup_count << "\n";
+    log << "------------------\n\n";
+
+    int pickups = static_cast<int>(pickup_count);
+
+    while (pickups > 0) {
+        std::vector<pickup_serial_data> buffer(std::clamp(pickups, 0, BUFFER_SIZE));
+        file.read(reinterpret_cast<char*>(buffer.data()), buffer.size() * sizeof(pickup_serial_data));
+
+        std::streamsize bytesRead = file.gcount();
+        int pickupsRead = static_cast<int>(bytesRead / sizeof(pickup_serial_data));
+        
+        if (pickupsRead == 0) {
+            SDL_LogError(LOG_PICKUPS, "ERROR: Reached end of file before reading all pickups");
+            break;
+        }
+
+        for (int i = 0; i < pickupsRead; i++) {
+            const auto &p = buffer[i];
+            pickups--;
+            log << "ID: " << p.id << "\n"
+                << "Value: " << p.value << "\n"
+                << "Type: " << p.type << "\n"
+                << "Pos X: " << p.xPos << "\n"
+                << "Pos Y: " << p.yPos << "\n";
+            log << "------------\n";
+        }
+    }
+
+    log.close();
+    
+    SDL_LogInfo(LOG_PICKUPS, "Finished creating a log output at [logs/pickup.log]");
+}
+
 // -- PRIVATE -- //
 
 void _pickupManager::writeToBuffer() {
@@ -319,7 +380,7 @@ void _pickupManager::writeToBuffer() {
     moveHeadToData(file);
 
     uint32_t pickup_count = 0;
-    file.read(reinterpret_cast<char*>(&pickup_count), sizeof(pickup_count));  // Enemy Count
+    file.read(reinterpret_cast<char*>(&pickup_count), sizeof(pickup_count));  // Pickup Count
 
     SDL_LogDebug(LOG_PICKUPS, "Thread: Pickups in save: %u", pickup_count);
     if (pickup_count == 0) {
@@ -353,6 +414,7 @@ void _pickupManager::writeToBuffer() {
             pickup.type = static_cast<pickup_type>(p.type);
             pickup.size = 4.0f + log(p.value);
             pickup.value = p.value;
+            pickup.id = p.id;
             pickup.alive = true;
         }
     }
@@ -373,7 +435,7 @@ pickup_serial_data _pickupManager::serializePickup(const _pickup &pickup) const 
     return data;
 }
 
-void _pickupManager::moveHeadToData(std::fstream &head) {
+void _pickupManager::moveHeadToData(std::fstream &head) const {
     // Skip Header, Seed, Time Stamp, Save System Version ID, Game Version
     head.seekg(static_cast<std::streamoff>(2 + 4 + 8 + 4 + 4), std::ios::cur);
 
@@ -395,7 +457,7 @@ void _pickupManager::moveHeadToData(std::fstream &head) {
     head.seekg(4, std::ios::cur);
 }
 
-bool _pickupManager::generatePickup(std::fstream &file, const pickup_config &config, float numChunks, pickup_type type) {
+bool _pickupManager::generatePickup(std::fstream &file, const pickup_config &config, float numChunks, pickup_type type, int &ID) {
     SDL_LogInfo(LOG_PICKUPS, "Generating pickups instance");
 
     // -- VARIABLES -- //
@@ -436,6 +498,7 @@ bool _pickupManager::generatePickup(std::fstream &file, const pickup_config &con
                 const float chance = std::lerp(1.0, config.min_chance, t);
                 
                 if (chance > pickup_rng(rng)) {
+                    buffer[i].id = ID++;
                     buffer[i].value = 10.0f;
                     buffer[i].type = type;
                     buffer[i].xPos = pos.x;
