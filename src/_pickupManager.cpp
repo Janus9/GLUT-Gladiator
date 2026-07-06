@@ -327,17 +327,17 @@ void _pickupManager::logDisk() const {
     uint32_t pickup_count = 0;
     file.read(reinterpret_cast<char*>(&pickup_count), sizeof(pickup_count));  // Pickup Count
 
+    std::streampos startPos = file.tellp();
+
     log << "File: game.gg_world\n";
     log << "Pickups: " << pickup_count << "\n";
     log << "Memory Stride: " << sizeof(pickup_serial_data) << "B" << "\n";
-    log << "Memory Start: 0x" << std::hex << file.tellp() << std::dec << "\n";
+    log << "Memory Start: 0x" << std::hex << startPos << std::dec << "\n";
     log << "------------------\n\n";
 
     int pickups = static_cast<int>(pickup_count);
 
     while (pickups > 0) {
-        int pickupsParsed = 0; // Just for memory logging purposes
-
         std::vector<pickup_serial_data> buffer(std::clamp(pickups, 0, BUFFER_SIZE));
         file.read(reinterpret_cast<char*>(buffer.data()), buffer.size() * sizeof(pickup_serial_data));
 
@@ -350,11 +350,10 @@ void _pickupManager::logDisk() const {
         }
 
         for (int i = 0; i < pickupsRead; i++) {
-            std::streampos pos = file.tellp() + static_cast<std::streamoff>(sizeof(pickup_serial_data) * pickupsParsed);
-
             const auto &p = buffer[i];
             pickups--;
-            pickupsParsed++;
+            
+            std::streampos pos = startPos + static_cast<std::streamoff>(sizeof(pickup_serial_data) * p.id);
             log << "ID: " << p.id << " [0x" << std::uppercase << std::hex << pos << std::dec << std::nouppercase << "]\n"
                 << "Value: " << p.value << "\n"
                 << "Type: " << p.type << "\n"
