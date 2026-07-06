@@ -28,7 +28,8 @@ struct pickup_serial_data {
     float value;    
     int32_t type;
     float xPos;
-    float yPos;               
+    float yPos;   
+    uint32_t alive;            
 };
 
 class _pickupManager {

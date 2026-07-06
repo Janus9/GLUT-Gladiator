@@ -327,13 +327,17 @@ void _pickupManager::logDisk() const {
     uint32_t pickup_count = 0;
     file.read(reinterpret_cast<char*>(&pickup_count), sizeof(pickup_count));  // Pickup Count
 
-    log << "file: game.gg_world\n";
-    log << "pickups: " << pickup_count << "\n";
+    log << "File: game.gg_world\n";
+    log << "Pickups: " << pickup_count << "\n";
+    log << "Memory Stride: " << sizeof(pickup_serial_data) << "B" << "\n";
+    log << "Memory Start: 0x" << std::hex << file.tellp() << std::dec << "\n";
     log << "------------------\n\n";
 
     int pickups = static_cast<int>(pickup_count);
 
     while (pickups > 0) {
+        int pickupsParsed = 0; // Just for memory logging purposes
+
         std::vector<pickup_serial_data> buffer(std::clamp(pickups, 0, BUFFER_SIZE));
         file.read(reinterpret_cast<char*>(buffer.data()), buffer.size() * sizeof(pickup_serial_data));
 
@@ -346,13 +350,17 @@ void _pickupManager::logDisk() const {
         }
 
         for (int i = 0; i < pickupsRead; i++) {
+            std::streampos pos = file.tellp() + static_cast<std::streamoff>(sizeof(pickup_serial_data) * pickupsParsed);
+
             const auto &p = buffer[i];
             pickups--;
-            log << "ID: " << p.id << "\n"
+            pickupsParsed++;
+            log << "ID: " << p.id << " [0x" << std::uppercase << std::hex << pos << std::dec << std::nouppercase << "]\n"
                 << "Value: " << p.value << "\n"
                 << "Type: " << p.type << "\n"
                 << "Pos X: " << p.xPos << "\n"
-                << "Pos Y: " << p.yPos << "\n";
+                << "Pos Y: " << p.yPos << "\n"
+                << "Alive: " << p.alive << "\n";
             log << "------------\n";
         }
     }
@@ -404,6 +412,7 @@ void _pickupManager::writeToBuffer() {
             pickups--;
             
             if (Vec2f(p.xPos,p.yPos).distance(cameraPosition) > VIEW_RANGE) continue; // Skip, out of range
+            if (!p.alive) continue; // Skip writing dead pickups in memory
 
             writeBuffer->emplace_back();
             _pickup &pickup = (*writeBuffer)[writeBuffer->size()-1];
@@ -503,6 +512,7 @@ bool _pickupManager::generatePickup(std::fstream &file, const pickup_config &con
                     buffer[i].type = type;
                     buffer[i].xPos = pos.x;
                     buffer[i].yPos = pos.y;
+                    buffer[i].alive = static_cast<uint32_t>(true);
 
                     lookingForSpawn = false;
                     pickups--;
