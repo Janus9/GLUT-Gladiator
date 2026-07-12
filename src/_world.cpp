@@ -13,7 +13,7 @@ _cell::~_cell() {
 }
 
 bool _cell::setOutline(bool state) {
-    if (!this || !parentChunk) return false;
+    if (!parentChunk) return false;
         outlined = state;
         parentChunk->setChunkDirty();
     return true;
@@ -62,7 +62,6 @@ _chunk::~_chunk() {
 }
 
 TileId _chunk::getTileIdAt(int index) const {
-    if (!this) return TILE_NULL;
     if (index < 0 || index > 255) return TILE_NULL;
     return cellData[index].tileIDs[LAYER_PRIMARY];       // Change later only returns "primary" tile
 }
@@ -73,7 +72,6 @@ _cell* _chunk::cellAt(int index) {
 }
 
 bool _chunk::setTileIdAt(TileId id, int index) {
-    if (!this) return false;
     if (index < 0 || index > 255) return false;
     
     cellData[index].tileIDs[LAYER_PRIMARY] = id;         // Change later only sets "primary" tile
@@ -84,12 +82,6 @@ bool _chunk::setTileIdAt(TileId id, int index) {
 
 const _cell* _chunk::getAllCells() const {
     return cellData;
-}
-
-void _chunk::setAllCells(const _cell* cells) {
-    if (!cells) return;
-    memcpy(cellData,cells,256 * sizeof(_cell));
-    vboDirty = true;
 }
 
 chunk_serial_data _chunk::serializeChunk() const {
@@ -615,11 +607,6 @@ bool _world::isChunkLoaded(int chunkX, int chunkY) {
 
 /* -- >> WORLD GENERATION << -- */
 
-Vec2i _world::convertIndexToPos(int index, int width, int height) {
-    int xPos = index % width;
-    int yPos = index / height;
-}
-
 void _world::postProcessWorld() {
     SDL_LogInfo(LOG_WORLD, "Starting post processing of world");
 
@@ -644,7 +631,7 @@ void _world::postProcessWorld() {
     const float outerBlendRadius = configuration.outer_biome_blend_radius * TILE_W;
     
     // FLOOR TILE //
-    for (int i = 0; i < world_noise[LAYER_FLOOR].size(); i++) {
+    for (size_t i = 0; i < world_noise[LAYER_FLOOR].size(); i++) {
         const int col = i % worldWidth;                                 // Which column
         const int row = i / worldWidth;                                 // Which row
         
@@ -716,14 +703,14 @@ void _world::postProcessWorld() {
     }
 
     // COSMETIC 1 //
-    for (int i = 0; i < world_noise[LAYER_COSMETIC_1].size(); i++) {
+    for (size_t i = 0; i < world_noise[LAYER_COSMETIC_1].size(); i++) {
         if (dist(rng) > 0.95f) {
             world_noise[LAYER_COSMETIC_1][i] = TILE_COSMETIC_ROCK_1;
         }
     }
 
     // COSMETIC 2 //bg
-    for (int i = 0; i < world_noise[LAYER_COSMETIC_2].size(); i++) {
+    for (size_t i = 0; i < world_noise[LAYER_COSMETIC_2].size(); i++) {
         // Spawns a grass randomly ONLY on wet tiles
         if (wet_noise[i]) {
             if (dist(rng) > 0.80f) {
@@ -733,7 +720,7 @@ void _world::postProcessWorld() {
     }
 
     // PRIMARY TILE //
-    for (int i = 0; i < world_noise[LAYER_PRIMARY].size(); i++) {
+    for (size_t i = 0; i < world_noise[LAYER_PRIMARY].size(); i++) {
         const int col = i % worldWidth;                                 // Which column
         const int row = i / worldWidth;                                 // Which row
         
@@ -836,7 +823,7 @@ void _world::finalizeWorld() {
     const int worldWidth = (int)sqrt(configuration.num_chunks) * 16;
     const int worldHeight = (int)sqrt(configuration.num_chunks) * 16;
 
-    for (int i = 0; i < configuration.num_chunks; i++) {
+    for (uint32_t i = 0; i < configuration.num_chunks; i++) {
         const int new_chunkX = i % (int)sqrt(configuration.num_chunks) - floor(sqrt(configuration.num_chunks) / 2);
         const int new_chunkY = i / (int)sqrt(configuration.num_chunks) - floor(sqrt(configuration.num_chunks) / 2);
 
@@ -937,6 +924,7 @@ const _tile* _world::getTileAtWorld(const Vec2f &pos) const {
     
     // Get chunk present at position
     const _chunk* chunk = getChunkAtWorld(pos);
+    if (!chunk) return nullptr;
     
     // Get an index in the flat array for the tile
     uint8_t tileIndex = (int)floor(adjustedPos.y/16)*16 + (int)floor(adjustedPos.x/16);
@@ -1032,6 +1020,8 @@ bool _world::damageCell(_cell* cell, float amount) {
             case LEVEL_OUTER:
                 setCellTile(cell,TILE_FLOOR_BROKEN_OUTER);
                 break;
+            case LEVEL_BOSS:
+                break;
         }
         ParticleEngine->spawnEffect({cell->pos.x, cell->pos.y}, "wall_break");
     }
@@ -1041,7 +1031,7 @@ bool _world::damageCell(_cell* cell, float amount) {
 
 std::vector<chunk_serial_data> _world::exportSerializeWorld() const {
     std::vector<chunk_serial_data> world_data;
-    for (int i = 0; i < configuration.num_chunks; i++) {
+    for (uint32_t i = 0; i < configuration.num_chunks; i++) {
         const _chunk* chunk = &worldChunks[i];
         world_data.push_back(chunk->serializeChunk());
     }
@@ -1049,7 +1039,7 @@ std::vector<chunk_serial_data> _world::exportSerializeWorld() const {
 }
 
 void _world::importSerializeWorld(std::vector<chunk_serial_data> world_data) {
-    for (int i = 0; i < world_data.size(); i++) {
+    for (size_t i = 0; i < world_data.size(); i++) {
         // Build chunk
         worldChunks.reserve(configuration.num_chunks);
         worldChunks.emplace_back();
@@ -1294,7 +1284,7 @@ void _world::runWorldGeneration() {
     int worldWidth = (int)sqrt(configuration.num_chunks)*16;
     int worldHeight = (int)sqrt(configuration.num_chunks)*16;
 
-    for (int i = 0; i < world_noise[LAYER_PRIMARY].size(); i++) {
+    for (size_t i = 0; i < world_noise[LAYER_PRIMARY].size(); i++) {
         world_noise[LAYER_FLOOR][i] = TILE_NULL;
         world_noise[LAYER_COSMETIC_1][i] = TILE_NULL;
         world_noise[LAYER_COSMETIC_2][i] = TILE_NULL;
@@ -1305,7 +1295,7 @@ void _world::runWorldGeneration() {
 
     // World modifications -- clear space in center for the boss //
     std::vector<uint8_t> world_noise_copy(world_noise[LAYER_PRIMARY]);
-    for (int i = 0; i < world_noise[LAYER_PRIMARY].size(); i++) {
+    for (size_t i = 0; i < world_noise[LAYER_PRIMARY].size(); i++) {
         const int col = i % worldWidth;                                 // Which column
         const int row = i / worldWidth;                                 // Which row
         

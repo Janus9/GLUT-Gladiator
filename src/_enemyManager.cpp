@@ -19,10 +19,6 @@ _enemy::~_enemy() {
     // dtor
 }
 
-void _enemy::updateEnemy(double dt) {
-
-}
-
 void _enemy::initEnemy(const enemy_config &config, const _textureManager* textureManager) {
 
     switch (config.type) {
@@ -99,6 +95,21 @@ void _enemy::initEnemy(const enemy_config &config, const _textureManager* textur
             }
             break;
         }
+        case ENEMY_ORC:
+            SDL_LogWarn(LOG_ENEMY_MANAGER, "WARNING: Not yet implemented");
+            break;
+        case ENEMY_VAMPIRE:
+            SDL_LogWarn(LOG_ENEMY_MANAGER, "WARNING: Not yet implemented");
+            break;
+        case ENEMY_VAMPIRE_MINION1:
+            SDL_LogWarn(LOG_ENEMY_MANAGER, "WARNING: Not yet implemented");
+            break;
+        case ENEMY_VAMPIRE_MINION2:
+            SDL_LogWarn(LOG_ENEMY_MANAGER, "WARNING: Not yet implemented");
+            break;
+        default:
+            SDL_LogError(LOG_ENEMY_MANAGER, "ERROR: Unable to initialize an enemy");
+            break;
     }
 }
 
@@ -590,7 +601,7 @@ void _enemyManager::addEnemy(const Vec2f &_pos, const enemy_config &config) {
 
 std::vector<enemy_serial_data> _enemyManager::exportSerializedEnemies() const {
     std::vector<enemy_serial_data> enemy_data;
-    for (int i = 0; i < enemyList.size(); i++) {
+    for (size_t i = 0; i < enemyList.size(); i++) {
         const _enemy* enemy = enemyList[i].get();
         if (enemy->inDeathAnimation || enemy->isDead()) continue; // Skip dead enemies
         enemy_data.push_back(enemy->serializeEnemy());
@@ -605,7 +616,7 @@ bool _enemyManager::importSerializedEnemies(const std::vector<enemy_serial_data>
     }
     enemyList.reserve(enemy_data.size());
     enemy_config tempConfig; // This config is modified and fed repeatably for adding enemies
-    for (int i = 0; i < enemy_data.size(); i++) {
+    for (size_t i = 0; i < enemy_data.size(); i++) {
         tempConfig.type = static_cast<enemy_type>(enemy_data[i].type);
         tempConfig.team = static_cast<_team>(enemy_data[i].team);
         tempConfig.maxHP = enemy_data[i].maxHP;
@@ -620,7 +631,7 @@ bool _enemyManager::importSerializedEnemies(const std::vector<enemy_serial_data>
 
 
 _enemy* _enemyManager::isColliding(const Vec2f &pos, float registerDistance) const {
-    for (int i = 0; i < enemyList.size(); i++) {
+    for (size_t i = 0; i < enemyList.size(); i++) {
         _enemy* enemy = enemyList[i].get();
         bool hit = false;
         if (_collisionBound* cb = enemy->getCollisionBound()) {

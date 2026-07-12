@@ -90,7 +90,7 @@ static const char* getCategoryName(int category) {
 }
 
 // Re-routes the logger function calls here to add pretty-printing
-static void SDLCALL gameLogOutput(void* userdata, int category, SDL_LogPriority priority, const char* message) {
+static void SDLCALL gameLogOutput([[maybe_unused]] void* userdata, int category, SDL_LogPriority priority, const char* message) {
     const char* priorityName = getPriorityName(priority);
     const char* categoryName = getCategoryName(category);
 

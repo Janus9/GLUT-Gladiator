@@ -1483,7 +1483,7 @@ void _scene::updateScene(double dt, const InputState &inputState)
 
     if (cell && cell != hoveredCell)
     {
-        hoveredCell->setOutline(false);
+        if (hoveredCell) hoveredCell->setOutline(false);
 
         hoveredCell = cell;
         hoveredChunk = chunk;

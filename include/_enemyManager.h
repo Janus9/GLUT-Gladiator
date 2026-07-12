@@ -70,13 +70,6 @@ class _enemy : public _unit {
         _enemy();
         virtual ~_enemy();
 
-        /**
-         * Update function for an enemy
-         * 
-         * @param dt Delta Time (in seconds)
-         */
-        void updateEnemy(double dt);
-
         // Initialization function for animations/sprites/textures etc
         void initEnemy(const enemy_config &config, const _textureManager* textureManager);
 
@@ -157,6 +150,7 @@ struct enemyManagerContext {
             SDL_LogError(LOG_ENEMY_MANAGER, "ERROR: Particle Engine is nullptr");
             return false;
         }
+        return true;
     }
 };
 

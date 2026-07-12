@@ -323,9 +323,6 @@ class _chunk
         // Returns all 256 cells stored in the chunk as an array (readonly)
         const _cell* getAllCells() const;
 
-        // Sets all 256 cells to the array passed in
-        void setAllCells(const _cell* cells);
-
         chunk_serial_data serializeChunk() const;
 
         void loadSerializedChunk(const chunk_serial_data &chunk_data);
@@ -557,9 +554,6 @@ class _world
         // -- World Generation -- //
         std::vector<uint8_t> world_noise[NUM_LAYERS];    // Tile ID distribution of layers
         std::vector<uint8_t> wet_noise;                  // Noise distribution to create wet/dry tiles
-
-        // Converts an index into a coordinate position starting at TOP LEFT for (0,0) using grid
-        Vec2i convertIndexToPos(int index, int width, int height);
 
         // Puts the world through post processing converting bools to tile IDs for texturing
         void postProcessWorld();
