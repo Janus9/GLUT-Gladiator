@@ -426,6 +426,7 @@ void _pickupManager::writeToBuffer() {
     std::fstream file("saves/game.gg_world", std::ios::binary | std::ios::in | std::ios::out);
     if (!file) {
         SDL_LogError(LOG_PICKUPS, "[Write Buffer Thread]: ERROR: Cannot open the save file");
+        writeBufferCompleted.store(true);
         return;
     }
 
@@ -445,6 +446,7 @@ void _pickupManager::writeToBuffer() {
 
     if (!writeBuffer) {
         SDL_LogError(LOG_PICKUPS, "[Write Buffer Thread]: ERROR: Cannot write to the buffer as it is nullptr");
+        writeBufferCompleted.store(true);
         return;
     }
 
@@ -532,6 +534,7 @@ void _pickupManager::emptyMutationMap() {
     std::fstream file("saves/game.gg_world", std::ios::binary | std::ios::in | std::ios::out);
     if (!file) {
         SDL_LogError(LOG_PICKUPS, "[Disk Write Thread]: ERROR: Cannot open the save file");
+        writeDiskCompleted.store(true);
         return;
     }
 
@@ -550,19 +553,26 @@ void _pickupManager::emptyMutationMap() {
     }
 
     int pickups = static_cast<int>(pickup_count);
+    int mutatedPickups = 0;
+
     while (pickups > 0) {
-        std::streampos startPos = file.tellg();
-        SDL_LogDebug(LOG_PICKUPS, "[Disk Write Thread]: Disk Start: 0x%llX", startPos);
+        std::streampos startPos = file.tellp();
+        SDL_LogDebug(
+            LOG_PICKUPS, 
+            "[Disk Write Thread]: Disk Start: 0x%llX", 
+            static_cast<unsigned long long>(static_cast<std::streamoff>(startPos))
+        );
 
         std::vector<pickup_serial_data> buffer(std::clamp(pickups, 0, BUFFER_SIZE));
         file.read(reinterpret_cast<char*>(buffer.data()), buffer.size() * sizeof(pickup_serial_data));
         for (size_t i = 0; i < buffer.size(); i++) {
             pickup_serial_data &p = buffer[i];
-
+            
             std::lock_guard<std::mutex> lock(m_mm);
-
+            
             auto it = mutationMap.find(p.id);
             if (it != mutationMap.end()) {
+                mutatedPickups++;
                 // Modify to match whats in mutation map
                 p = serializePickup(it->second);
             }
@@ -574,11 +584,16 @@ void _pickupManager::emptyMutationMap() {
         file.write(reinterpret_cast<const char*>(buffer.data()), buffer.size() * sizeof(pickup_serial_data)); 
         if (!file) {
             SDL_LogError(LOG_PICKUPS, "[Disk Write Thread]: ERROR: Failed to write the pickup buffer data");
+            writeDiskCompleted.store(true);
             return;
         }
     }
 
+    SDL_LogDebug(LOG_PICKUPS, "[Disk Write Thread]: Mutated pickups processed: %i", mutatedPickups);
+
     mutationMap.clear();
+
+    writeDiskCompleted.store(true);
 
     auto stop = std::chrono::steady_clock::now();
     const float d = std::chrono::duration<float, std::milli>(stop-start).count();
