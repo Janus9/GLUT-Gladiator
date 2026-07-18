@@ -278,7 +278,7 @@ bool _pickupManager::readFromFile() {
     writeThread = std::thread(&_pickupManager::writeToBuffer, this);
 
     prevWritePos = cameraPosition;
-    
+
     return true;
 }
 
@@ -376,6 +376,8 @@ void _pickupManager::logDisk() const {
 void _pickupManager::writeToBuffer() {
     SDL_LogInfo(LOG_PICKUPS, "Thread: Reading pickups from save file");
 
+    auto start = std::chrono::steady_clock::now();
+
     std::fstream file("saves/game.gg_world", std::ios::binary | std::ios::in | std::ios::out);
     if (!file) {
         SDL_LogError(LOG_PICKUPS, "Thread: ERROR: Cannot open the save file");
@@ -417,6 +419,7 @@ void _pickupManager::writeToBuffer() {
 
             writeBuffer->emplace_back();
             _pickup &pickup = (*writeBuffer)[writeBuffer->size()-1];
+            
             pickup.pos.x = p.xPos;
             pickup.pos.y = p.yPos;
             pickup.vel = { 0.0f, 0.0f };
@@ -434,11 +437,18 @@ void _pickupManager::writeToBuffer() {
     applyMutations();
 
     writeCompleted.store(true);
+
+    auto stop = std::chrono::steady_clock::now();
+    const float d = std::chrono::duration<float, std::milli>(stop-start).count();
+    SDL_LogDebug(LOG_PICKUPS, "Thread: Write To Buffer took [%fms]",d);
+
     SDL_LogInfo(LOG_PICKUPS, "Thread: Successfully loaded pickups from save file");
 }
 
 void _pickupManager::applyMutations() {
     SDL_LogInfo(LOG_PICKUPS, "Thread: Applying mutations from mutation map");
+    auto start = std::chrono::steady_clock::now();
+    
     if (!writeBuffer) {
         SDL_LogError(LOG_PICKUPS, "ERROR: Write Buffer is nullptr");
         return;
@@ -451,6 +461,11 @@ void _pickupManager::applyMutations() {
             p = it->second; // Swap pickup read from disk to be mutated one in memory
         }
     }
+
+    auto stop = std::chrono::steady_clock::now();
+    const float d = std::chrono::duration<float, std::milli>(stop - start).count();
+    SDL_LogDebug(LOG_PICKUPS, "Thread: Apply Mutations took [%fms]", d);
+
     SDL_LogInfo(LOG_PICKUPS, "Thread: Finished applying mutations from mutation map");
 }
 
@@ -488,6 +503,7 @@ void _pickupManager::moveHeadToData(std::fstream &head) const {
 
 bool _pickupManager::generatePickup(std::fstream &file, const pickup_config &config, float numChunks, pickup_type type, int &ID) {
     SDL_LogInfo(LOG_PICKUPS, "Generating pickups instance");
+    auto start = std::chrono::steady_clock::now();
 
     // -- VARIABLES -- //
     const float WORLD_RADIUS = sqrt(numChunks) * NUM_TILES_CHUNK_SQR * TILE_D * 0.5f;
@@ -546,6 +562,11 @@ bool _pickupManager::generatePickup(std::fstream &file, const pickup_config &con
             return false;
         }
     }
+
+    auto stop = std::chrono::steady_clock::now();
+    const float d = std::chrono::duration<float, std::milli>(stop - start).count();
+    SDL_LogDebug(LOG_PICKUPS, "Generate Pickups took [%fms]", d);
+
     SDL_LogInfo(LOG_PICKUPS, "Finished generating pickups instance");
     return true;
 }
