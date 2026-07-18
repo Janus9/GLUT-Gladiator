@@ -131,6 +131,13 @@ void _pickupManager::drawPickups() {
 }
 
 void _pickupManager::updatePickups(const double dt) {
+    if (pickupSaveElapsedTime >= PICKUP_SAVE_INTERVAL) {
+        pickupSaveElapsedTime = 0.0f;
+        if (!writeToFile()) {
+            SDL_LogError(LOG_PICKUPS, "ERROR: Unable to save pickups to disk");
+        }
+    }
+
     if (prevWritePos.distance(cameraPosition) > VIEW_RANGE*0.5f) {
         SDL_LogDebug(LOG_PICKUPS, "Camera moved too far from previous write position, reloading pickups!");
         readFromFile();
@@ -222,6 +229,7 @@ void _pickupManager::updatePickups(const double dt) {
             mutationMap[p.id] = p;  // Add to mutation map
         }
     }
+    pickupSaveElapsedTime += dt;
 }
 
 // NEEDS TO BE REDONE //
@@ -305,6 +313,10 @@ bool _pickupManager::readFromFile() {
         SDL_LogWarn(LOG_PICKUPS, "WARNING: Write Buffer Thread already working, skipping command");
         return true;
     }
+    if (writeDiskInProgress.load() || writeDiskThread.joinable()) {
+        SDL_LogWarn(LOG_PICKUPS, "WARNING: Write Disk Thread already working, must wait until done, skipping command");
+        return true;
+    }
 
     writeBufferInProgress.store(true);
     writeBufferThread = std::thread(&_pickupManager::writeToBuffer, this);
@@ -318,6 +330,14 @@ bool _pickupManager::writeToFile() {
     SDL_LogInfo(LOG_PICKUPS, "Command given to write to file");
     if (writeDiskInProgress.load() || writeDiskThread.joinable()) {
         SDL_LogWarn(LOG_PICKUPS, "WARNING: Write Disk Thread already working, skipping command");
+        return true;
+    }
+    if (writeBufferInProgress.load() || writeBufferThread.joinable()) {
+        SDL_LogWarn(LOG_PICKUPS, "WARNING: Write Buffer Thread already working, must wait until done, skipping command");
+        return true;
+    }
+    if (mutationMap.empty()) {
+        SDL_LogInfo(LOG_PICKUPS, "Mutation Map empty, skipping command");
         return true;
     }
 

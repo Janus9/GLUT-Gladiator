@@ -107,8 +107,11 @@ class _pickupManager {
         static void setCameraPosition(const Vec2f &_cameraPosition);
     protected:
     private:
-        const int MAX_RENDER_PICKUPS = 65536;    // Maxmimum render pickups visible
+        static constexpr int MAX_RENDER_PICKUPS = 65536;     // Maxmimum render pickups visible
         static constexpr float VIEW_RANGE = 1096.0f;
+        static constexpr float PICKUP_SAVE_INTERVAL = 30.0f; // In seconds
+
+        float pickupSaveElapsedTime = 0.0f;
         
         int alivePickups;
         int numImages;
