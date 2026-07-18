@@ -192,14 +192,26 @@ void _pickupManager::updatePickups(const double dt) {
             p.acc = {0.0f,0.0f};
         }
 
-        p.pos += p.vel * dt;
         p.vel += p.acc * dt;
+        constexpr float TOLERANCE = 0.0005f; // Ignore if smaller than this
+        if (p.vel.x > TOLERANCE || p.vel.x < -TOLERANCE || p.vel.y > TOLERANCE || p.vel.y < -TOLERANCE) {
+            p.pos += p.vel * dt;
+
+            // Only apply into mutation list when velocity 
+            std::lock_guard<std::mutex> lock(m_mm); // Race condition with Apply Mutations
+            mutationMap[p.id] = p;  // Add to mutation map
+        }
     }
 }
 
 // NEEDS TO BE REDONE //
 bool _pickupManager::addPickup(const Vec2f &pos, pickup_type type, float value) {
-    SDL_LogWarn(LOG_PICKUPS, "WARNING: Function depricated!");
+    SDL_LogWarn(LOG_PICKUPS, "WARNING: Function depricated -- will not run!");
+    return false;
+    if (!readBuffer) {
+        SDL_LogError(LOG_PICKUPS, "ERROR: Read Buffer is nullptr!");
+        return false;
+    }
     for (int i = 0; i < MAX_RENDER_PICKUPS; i++) {
         _pickup& p = (*readBuffer)[i];
         if (!p.alive) {
@@ -413,13 +425,24 @@ void _pickupManager::writeToBuffer() {
 
         for (const auto &p : buffer) {
             pickups--;
+
+            // Look for pickup in mutation map BEFORE reading it in disk
+            std::lock_guard<std::mutex> lock(m_mm);
+            auto it = mutationMap.find(p.id);
+            if (it != mutationMap.end()) {
+                // Apply from mutation map instead of disk
+                writeBuffer->emplace_back();
+                _pickup &pickup = (*writeBuffer)[writeBuffer->size()-1];
+                pickup = it->second;
+                continue;
+            }
             
             if (Vec2f(p.xPos,p.yPos).distance(cameraPosition) > VIEW_RANGE) continue; // Skip, out of range
             if (!p.alive) continue; // Skip writing dead pickups in memory
 
             writeBuffer->emplace_back();
             _pickup &pickup = (*writeBuffer)[writeBuffer->size()-1];
-            
+
             pickup.pos.x = p.xPos;
             pickup.pos.y = p.yPos;
             pickup.vel = { 0.0f, 0.0f };
@@ -434,13 +457,14 @@ void _pickupManager::writeToBuffer() {
 
     SDL_LogDebug(LOG_PICKUPS, "Thread: Read %zu pickups", writeBuffer->size());
 
-    applyMutations();
+    // applyMutations(); // Done separatley instead of in while loop to allow for full-locking w/o stall
 
     writeCompleted.store(true);
 
     auto stop = std::chrono::steady_clock::now();
     const float d = std::chrono::duration<float, std::milli>(stop-start).count();
     SDL_LogDebug(LOG_PICKUPS, "Thread: Write To Buffer took [%fms]",d);
+    SDL_LogDebug(LOG_PICKUPS, "Thread: Pickups in Mutation Map: %zu", mutationMap.size());
 
     SDL_LogInfo(LOG_PICKUPS, "Thread: Successfully loaded pickups from save file");
 }
@@ -467,6 +491,46 @@ void _pickupManager::applyMutations() {
     SDL_LogDebug(LOG_PICKUPS, "Thread: Apply Mutations took [%fms]", d);
 
     SDL_LogInfo(LOG_PICKUPS, "Thread: Finished applying mutations from mutation map");
+}
+
+void _pickupManager::emptyMutationMap() {
+    auto start = std::chrono::steady_clock::now();
+
+    std::fstream file("saves/game.gg_world", std::ios::binary | std::ios::in | std::ios::out);
+    if (!file) {
+        SDL_LogError(LOG_PICKUPS, "Thread: ERROR: Cannot open the save file");
+        return;
+    }
+
+    // -- VARIABLES -- //
+    constexpr int BUFFER_SIZE = 4096;
+
+    // -- MOVE READ HEAD -- //
+    moveHeadToData(file);
+
+    uint32_t pickup_count = 0;
+    file.read(reinterpret_cast<char*>(&pickup_count), sizeof(pickup_count));  // Pickup Count
+    
+    SDL_LogDebug(LOG_PICKUPS, "Thread: Pickups in save: %u", pickup_count);
+    if (pickup_count == 0) {
+        SDL_LogWarn(LOG_PICKUPS, "Thread: WARNING: Pickups found is 0");
+    }
+
+    std::streampos startPos = file.tellp();
+    SDL_LogDebug(LOG_PICKUPS, "Disk Start: 0x%llX", startPos);
+
+    int pickups = static_cast<int>(pickup_count);
+    while (pickups > 0) {
+        std::vector<pickup_serial_data> buffer(std::clamp(pickups, 0, BUFFER_SIZE));
+        file.read(reinterpret_cast<char*>(buffer.data()), buffer.size() * sizeof(pickup_serial_data));
+        
+    }
+
+    mutationMap.clear();
+
+    auto stop = std::chrono::steady_clock::now();
+    const float d = std::chrono::duration<float, std::milli>(stop-start).count();
+    SDL_LogDebug(LOG_PICKUPS, "Thread: Empty Mutation Map took [%fms]",d);
 }
 
 pickup_serial_data _pickupManager::serializePickup(const _pickup &pickup) const {

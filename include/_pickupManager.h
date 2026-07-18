@@ -150,6 +150,7 @@ class _pickupManager {
         
         void writeToBuffer();
         void applyMutations();
+        void emptyMutationMap();
 
         _world* world = nullptr;  // Pointer to world instance in scene (non-owning) 
         _player* player = nullptr;  // Pointer to player instance in scene (non-owning) 
