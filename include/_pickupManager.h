@@ -87,6 +87,16 @@ class _pickupManager {
         bool readFromFile();
 
         /**
+         * Writes the contents of the mutation map into disk
+         * 
+         * Clears out the mutation map
+         * 
+         * Opens in a new thread
+         * @return True if operation succeeded
+         */
+        bool writeToFile();
+
+        /**
          * Returns a vector of serialized pickup data for saving
          */
         std::vector<pickup_serial_data> exportSerializedPickups() const;
@@ -141,15 +151,22 @@ class _pickupManager {
         std::vector<_pickup>* writeBuffer = nullptr;
 
         std::mutex m_mm;
-        std::atomic<bool> writeCompleted;
-        std::atomic<bool> writeInProgress;
-
-        std::thread writeThread;
+        std::atomic<bool> writeBufferCompleted;
+        std::atomic<bool> writeBufferInProgress;
+        std::atomic<bool> writeDiskCompleted;
+        std::atomic<bool> writeDiskInProgress;
+        
+        std::thread writeBufferThread;      // Thread for Write Buffer (Memory)
+        std::thread writeDiskThread;        // Thread for Disk
 
         Vec2f prevWritePos = {0.0f, 0.0f};
         
         void writeToBuffer();
         void applyMutations();
+
+        /**
+         * Empties the contents of mutationMap into disk, thread safe.
+         */
         void emptyMutationMap();
 
         _world* world = nullptr;  // Pointer to world instance in scene (non-owning) 

@@ -20,8 +20,11 @@ void _pickupManager::setCameraPosition(const Vec2f &_cameraPosition) {
 _pickupManager::_pickupManager() : rng(std::random_device{}()) {
     alivePickups = 0;
 
-    writeCompleted.store(false);
-    writeInProgress.store(false);
+    writeBufferCompleted.store(false);
+    writeBufferInProgress.store(false);
+
+    writeDiskCompleted.store(false);
+    writeDiskInProgress.store(false);
 
     readBuffer = &dataBuffer1;
     writeBuffer = &dataBuffer2;
@@ -40,9 +43,13 @@ _pickupManager::~_pickupManager() {
         glDeleteVertexArrays(1,&vaoID); 
         vaoID = 0;
     }
-    // Destroy write thread
-    if (writeThread.joinable()) {
-        writeThread.join();
+    // Destroy write buffer thread
+    if (writeBufferThread.joinable()) {
+        writeBufferThread.join();
+    }
+    // Destroy write disk thread
+    if (writeDiskThread.joinable()) {
+        writeDiskThread.join();
     }
 }
 
@@ -129,16 +136,29 @@ void _pickupManager::updatePickups(const double dt) {
         readFromFile();
     }
 
-    if (writeInProgress.load() && writeCompleted.load()) {
-        if (writeThread.joinable()) {
-            writeThread.join();
+    if (writeBufferInProgress.load() && writeBufferCompleted.load()) {
+        if (writeBufferThread.joinable()) {
+            writeBufferThread.join();
             // Not done in thread to prevent race conditions
             std::swap(writeBuffer, readBuffer); // Swap the buffers so that the buffer we wrote into (write buffer) becomes the one we read (read buffer)
+            SDL_LogDebug(LOG_PICKUPS, "Write Buffer Thread joined");
         } else {
-            SDL_LogWarn(LOG_PICKUPS, "WARNING: Cannot join thread as it is not joinable");
+            SDL_LogWarn(LOG_PICKUPS, "WARNING: Cannot join Write Buffer Thread as it is not joinable");
         }
-        writeInProgress.store(false);
-        writeCompleted.store(false);
+        writeBufferInProgress.store(false);
+        writeBufferCompleted.store(false);
+    }
+
+    if (writeDiskInProgress.load() && writeDiskCompleted.load()) {
+        if (writeDiskThread.joinable()) {
+            writeDiskThread.join();
+            SDL_LogDebug(LOG_PICKUPS, "Write Disk Thread joined");
+        } else {
+            SDL_LogWarn(LOG_PICKUPS, "WARNING: Cannot join Disk Write Thread as it is not joinable");
+        }
+
+        writeDiskInProgress.store(false);
+        writeDiskCompleted.store(false);
     }
 
     t_value += dt;
@@ -281,15 +301,28 @@ bool _pickupManager::generateToFile(const world_config &config) {
 bool _pickupManager::readFromFile() {
     SDL_LogInfo(LOG_PICKUPS, "Command given to read from file");
 
-    if (writeInProgress.load() || writeThread.joinable()) {
-        SDL_LogWarn(LOG_PICKUPS, "WARNING: Thread already working, skipping command");
+    if (writeBufferInProgress.load() || writeBufferThread.joinable()) {
+        SDL_LogWarn(LOG_PICKUPS, "WARNING: Write Buffer Thread already working, skipping command");
         return true;
     }
 
-    writeInProgress.store(true);
-    writeThread = std::thread(&_pickupManager::writeToBuffer, this);
+    writeBufferInProgress.store(true);
+    writeBufferThread = std::thread(&_pickupManager::writeToBuffer, this);
 
     prevWritePos = cameraPosition;
+
+    return true;
+}
+
+bool _pickupManager::writeToFile() {
+    SDL_LogInfo(LOG_PICKUPS, "Command given to write to file");
+    if (writeDiskInProgress.load() || writeDiskThread.joinable()) {
+        SDL_LogWarn(LOG_PICKUPS, "WARNING: Write Disk Thread already working, skipping command");
+        return true;
+    }
+
+    writeDiskInProgress.store(true);
+    writeDiskThread = std::thread(&_pickupManager::emptyMutationMap, this);
 
     return true;
 }
@@ -386,13 +419,13 @@ void _pickupManager::logDisk() const {
 // -- PRIVATE -- //
 
 void _pickupManager::writeToBuffer() {
-    SDL_LogInfo(LOG_PICKUPS, "Thread: Reading pickups from save file");
+    SDL_LogInfo(LOG_PICKUPS, "[Write Buffer Thread]: Reading pickups from save file");
 
     auto start = std::chrono::steady_clock::now();
 
     std::fstream file("saves/game.gg_world", std::ios::binary | std::ios::in | std::ios::out);
     if (!file) {
-        SDL_LogError(LOG_PICKUPS, "Thread: ERROR: Cannot open the save file");
+        SDL_LogError(LOG_PICKUPS, "[Write Buffer Thread]: ERROR: Cannot open the save file");
         return;
     }
 
@@ -405,13 +438,13 @@ void _pickupManager::writeToBuffer() {
     uint32_t pickup_count = 0;
     file.read(reinterpret_cast<char*>(&pickup_count), sizeof(pickup_count));  // Pickup Count
 
-    SDL_LogDebug(LOG_PICKUPS, "Thread: Pickups in save: %u", pickup_count);
+    SDL_LogDebug(LOG_PICKUPS, "[Write Buffer Thread]: Pickups in save: %u", pickup_count);
     if (pickup_count == 0) {
-        SDL_LogWarn(LOG_PICKUPS, "Thread: WARNING: Pickups found is 0");
+        SDL_LogWarn(LOG_PICKUPS, "[Write Buffer Thread]: WARNING: Pickups found is 0");
     }
 
     if (!writeBuffer) {
-        SDL_LogError(LOG_PICKUPS, "Thread: ERROR: Cannot write to the buffer as it is nullptr");
+        SDL_LogError(LOG_PICKUPS, "[Write Buffer Thread]: ERROR: Cannot write to the buffer as it is nullptr");
         return;
     }
 
@@ -455,22 +488,22 @@ void _pickupManager::writeToBuffer() {
         }
     }
 
-    SDL_LogDebug(LOG_PICKUPS, "Thread: Read %zu pickups", writeBuffer->size());
+    SDL_LogDebug(LOG_PICKUPS, "[Write Buffer Thread]: Read %zu pickups", writeBuffer->size());
 
     // applyMutations(); // Done separatley instead of in while loop to allow for full-locking w/o stall
 
-    writeCompleted.store(true);
+    writeBufferCompleted.store(true);
 
     auto stop = std::chrono::steady_clock::now();
     const float d = std::chrono::duration<float, std::milli>(stop-start).count();
-    SDL_LogDebug(LOG_PICKUPS, "Thread: Write To Buffer took [%fms]",d);
-    SDL_LogDebug(LOG_PICKUPS, "Thread: Pickups in Mutation Map: %zu", mutationMap.size());
+    SDL_LogDebug(LOG_PICKUPS, "[Write Buffer Thread]: Write To Buffer took [%fms]",d);
+    SDL_LogDebug(LOG_PICKUPS, "[Write Buffer Thread]: Pickups in Mutation Map: %zu", mutationMap.size());
 
-    SDL_LogInfo(LOG_PICKUPS, "Thread: Successfully loaded pickups from save file");
+    SDL_LogInfo(LOG_PICKUPS, "[Write Buffer Thread]: Successfully loaded pickups from save file");
 }
 
 void _pickupManager::applyMutations() {
-    SDL_LogInfo(LOG_PICKUPS, "Thread: Applying mutations from mutation map");
+    SDL_LogInfo(LOG_PICKUPS, "[Write Write Thread]: Applying mutations from mutation map");
     auto start = std::chrono::steady_clock::now();
     
     if (!writeBuffer) {
@@ -488,9 +521,9 @@ void _pickupManager::applyMutations() {
 
     auto stop = std::chrono::steady_clock::now();
     const float d = std::chrono::duration<float, std::milli>(stop - start).count();
-    SDL_LogDebug(LOG_PICKUPS, "Thread: Apply Mutations took [%fms]", d);
+    SDL_LogDebug(LOG_PICKUPS, "[Write Write Thread]: Apply Mutations took [%fms]", d);
 
-    SDL_LogInfo(LOG_PICKUPS, "Thread: Finished applying mutations from mutation map");
+    SDL_LogInfo(LOG_PICKUPS, "[Write Write Thread]: Finished applying mutations from mutation map");
 }
 
 void _pickupManager::emptyMutationMap() {
@@ -498,7 +531,7 @@ void _pickupManager::emptyMutationMap() {
 
     std::fstream file("saves/game.gg_world", std::ios::binary | std::ios::in | std::ios::out);
     if (!file) {
-        SDL_LogError(LOG_PICKUPS, "Thread: ERROR: Cannot open the save file");
+        SDL_LogError(LOG_PICKUPS, "[Disk Write Thread]: ERROR: Cannot open the save file");
         return;
     }
 
@@ -511,26 +544,42 @@ void _pickupManager::emptyMutationMap() {
     uint32_t pickup_count = 0;
     file.read(reinterpret_cast<char*>(&pickup_count), sizeof(pickup_count));  // Pickup Count
     
-    SDL_LogDebug(LOG_PICKUPS, "Thread: Pickups in save: %u", pickup_count);
+    SDL_LogDebug(LOG_PICKUPS, "[Disk Write Thread]: Pickups in save: %u", pickup_count);
     if (pickup_count == 0) {
-        SDL_LogWarn(LOG_PICKUPS, "Thread: WARNING: Pickups found is 0");
+        SDL_LogWarn(LOG_PICKUPS, "[Disk Write Thread]: WARNING: Pickups found is 0");
     }
-
-    std::streampos startPos = file.tellp();
-    SDL_LogDebug(LOG_PICKUPS, "Disk Start: 0x%llX", startPos);
 
     int pickups = static_cast<int>(pickup_count);
     while (pickups > 0) {
+        std::streampos startPos = file.tellp();
+        SDL_LogDebug(LOG_PICKUPS, "[Disk Write Thread]: Disk Start: 0x%llX", startPos);
+
         std::vector<pickup_serial_data> buffer(std::clamp(pickups, 0, BUFFER_SIZE));
         file.read(reinterpret_cast<char*>(buffer.data()), buffer.size() * sizeof(pickup_serial_data));
-        
+        for (size_t i = 0; i < buffer.size(); i++) {
+            pickup_serial_data &p = buffer[i];
+
+            std::lock_guard<std::mutex> lock(m_mm);
+
+            auto it = mutationMap.find(p.id);
+            if (it != mutationMap.end()) {
+                // Modify to match whats in mutation map
+                p = serializePickup(it->second);
+            }
+        }
+        // Write modified buffer back in
+        file.write(reinterpret_cast<const char*>(buffer.data()), buffer.size() * sizeof(pickup_serial_data)); 
+        if (!file) {
+            SDL_LogError(LOG_PICKUPS, "[Disk Write Thread]: ERROR: Failed to write the pickup buffer data");
+            return;
+        }
     }
 
     mutationMap.clear();
 
     auto stop = std::chrono::steady_clock::now();
     const float d = std::chrono::duration<float, std::milli>(stop-start).count();
-    SDL_LogDebug(LOG_PICKUPS, "Thread: Empty Mutation Map took [%fms]",d);
+    SDL_LogDebug(LOG_PICKUPS, "[Disk Write Thread]: Empty Mutation Map took [%fms]",d);
 }
 
 pickup_serial_data _pickupManager::serializePickup(const _pickup &pickup) const {
