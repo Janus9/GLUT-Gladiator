@@ -551,7 +551,7 @@ void _pickupManager::emptyMutationMap() {
 
     int pickups = static_cast<int>(pickup_count);
     while (pickups > 0) {
-        std::streampos startPos = file.tellp();
+        std::streampos startPos = file.tellg();
         SDL_LogDebug(LOG_PICKUPS, "[Disk Write Thread]: Disk Start: 0x%llX", startPos);
 
         std::vector<pickup_serial_data> buffer(std::clamp(pickups, 0, BUFFER_SIZE));
@@ -567,6 +567,9 @@ void _pickupManager::emptyMutationMap() {
                 p = serializePickup(it->second);
             }
         }
+        pickups -= static_cast<int>(buffer.size());
+
+        file.seekp(startPos); // Move back to beginning of buffer to write it
         // Write modified buffer back in
         file.write(reinterpret_cast<const char*>(buffer.data()), buffer.size() * sizeof(pickup_serial_data)); 
         if (!file) {
