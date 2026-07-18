@@ -96,18 +96,6 @@ class _pickupManager {
          */
         bool writeToFile();
 
-        /**
-         * Returns a vector of serialized pickup data for saving
-         */
-        std::vector<pickup_serial_data> exportSerializedPickups() const;
-
-        /**
-         * Imports a vector of serialized pickup data for loading
-         * @param pickup_data Vector of data
-         * @return True if operation was successfull
-         */
-        bool importSerializedPickups(const std::vector<pickup_serial_data> &pickup_data);
-
         /** 
          * Creates a "pickup.log" file which contains a detailed printout of the save file pickup contents.
          * 

@@ -379,11 +379,17 @@ void _scene::initScene(bool loadWorld)
     lightManager->addLight(boss_light);
 
 
-    const int number_default_turrets = 500;
-    const int number_gatling_turrets = 75;
-    const int number_orcs = 600;
-    const int number_vampire_minions = 200;      // Spawn naturally in world
-    const int number_vampire_boss_minions = 25;  // Spawn near the boss
+    // const int number_default_turrets = 500;
+    // const int number_gatling_turrets = 75;
+    // const int number_orcs = 600;
+    // const int number_vampire_minions = 200;      // Spawn naturally in world
+    // const int number_vampire_boss_minions = 25;  // Spawn near the boss
+
+    const int number_default_turrets = 0;
+    const int number_gatling_turrets = 0;
+    const int number_orcs = 0;
+    const int number_vampire_minions = 0;       
+    const int number_vampire_boss_minions = 0;  
 
     // Dont spawn enemies when world is loaded
     if (!loadWorld) {
@@ -547,7 +553,7 @@ void _scene::initScene(bool loadWorld)
 
     saveSceneToFile("saves/game");  // Force a save event so we can read into world file
 
-    pickupManager->generateToFile(world_configuration);
+    if (!loadWorld) pickupManager->generateToFile(world_configuration);
 
     SDL_LogInfo(LOG_SCENE, "Scene has been initialized");
     sceneInitialized = true;
@@ -556,7 +562,7 @@ void _scene::initScene(bool loadWorld)
 bool _scene::saveSceneToFile(const std::string &fileName) {
     SDL_LogInfo(LOG_SCENE, "Exporting game to save file: %s.gg_world", fileName.c_str());
 
-    std::ofstream file(fileName + ".gg_world", std::ios::binary);     // Output as binary file
+    std::fstream file(fileName + ".gg_world", std::ios::binary | std::ios::in | std::ios::out);     // Output as binary file
     if (!file) {
         SDL_LogError(LOG_SCENE, "ERROR: Cannot create output file for: %s", fileName.c_str());
         return false;
@@ -647,28 +653,22 @@ bool _scene::saveSceneToFile(const std::string &fileName) {
     const char pickup_header[4] = {'P','K','U','P'};
     file.write(pickup_header,4); // Pickup Data Header ("PKUP")
 
-    std::vector<pickup_serial_data> pickup_data = pickupManager->exportSerializedPickups();
-    if (pickup_data.empty()) {
-        SDL_LogWarn(LOG_SCENE, "WARNING: Pickup data is empty");
-    }
-
-    SDL_LogDebug(LOG_SCENE, 
-        "Writing pickup data:\n"
-        " - Number of pickups: %i\n"
-        " - Size of pickups: %iB\n",
-        static_cast<int>(pickup_data.size()),
-        static_cast<int>(pickup_data.size() * sizeof(pickup_serial_data))
-    );
-
-    const uint32_t number_pickups = static_cast<uint32_t>(pickup_data.size());
-    file.write(reinterpret_cast<const char*>(&number_pickups),sizeof(number_pickups)); // Pickup Count
-
-    file.write(reinterpret_cast<const char*>(pickup_data.data()), pickup_data.size() * sizeof(pickup_serial_data)); // Pickup Data
-    if (!file) {
-        SDL_LogError(LOG_SCENE, "ERROR: Save failed to write the pickup data");
+    // Pickups processed by manager, skip the write
+    uint32_t pickup_count = 0;
+    file.read(reinterpret_cast<char*>(&pickup_count), sizeof(pickup_count)); 
+    
+    if (!pickupManager->writeToFile()) {
+        SDL_LogError(LOG_SCENE, "ERROR: Save failed to write pickups to file");
         return false;
     }
 
+    SDL_LogInfo(LOG_SCENE, "Pickup count read: %u", pickup_count);
+    if (pickup_count == 0) {
+        SDL_LogWarn(LOG_SCENE, "WARNING: Pickup count is 0");
+    }
+    file.seekp(static_cast<std::streamoff>(pickup_count * sizeof(pickup_serial_data)), std::ios::cur);
+
+    
     // Player Data Write //
 
     SDL_LogDebug(LOG_SCENE, 

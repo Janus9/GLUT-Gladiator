@@ -82,7 +82,7 @@ class _enemy : public _unit {
 
         // Hook fired by _bulletManager after impulseDamage. Subclasses override
         // to react (e.g. _orc plays HURT animation). Default is no-op.
-        virtual void notifyDamaged(_sounds* sounds) {}
+        virtual void notifyDamaged([[maybe_unused]] _sounds* sounds) {}
 
         // Returns a serialized struct of the enemy
         enemy_serial_data serializeEnemy() const;

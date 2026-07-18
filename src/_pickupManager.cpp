@@ -164,7 +164,7 @@ void _pickupManager::updatePickups(const double dt) {
     t_value += dt;
     if (alivePickups == 0) return;
 
-    for (int i = 0; i < readBuffer->size(); i++) {
+    for (size_t i = 0; i < readBuffer->size(); i++) {
         _pickup& p = (*readBuffer)[i];
         if (!p.alive) continue;
 
@@ -327,30 +327,6 @@ bool _pickupManager::writeToFile() {
     return true;
 }
 
-std::vector<pickup_serial_data> _pickupManager::exportSerializedPickups() const {
-    SDL_LogWarn(LOG_PICKUPS, "WARNING: Function depricated!");
-    std::vector<pickup_serial_data> data;
-    for (const _pickup &p : (*readBuffer)) {
-        if (!p.alive) continue; // Skip dead pickups
-        data.push_back(serializePickup(p));
-    }
-    return data;
-}
-
-bool _pickupManager::importSerializedPickups(const std::vector<pickup_serial_data> &pickup_data) {
-    SDL_LogWarn(LOG_PICKUPS, "WARNING: Function depricated!");
-    if (pickup_data.empty()) {
-        SDL_LogWarn(LOG_PICKUPS, "WARNING: Cannot import pickups as the data is empty");
-        return false;
-    }
-    for (const pickup_serial_data &p : pickup_data) {
-        if (!addPickup({p.xPos, p.yPos}, static_cast<pickup_type>(p.type), p.value)) {
-            SDL_LogError(LOG_PICKUPS, "ERROR: Cannot add pickup");
-        }
-    }
-    return true;
-}
-
 void _pickupManager::logDisk() const {
     SDL_LogInfo(LOG_PICKUPS, "Creating a log output at [logs/pickup.log]");
 
@@ -490,7 +466,7 @@ void _pickupManager::writeToBuffer() {
         }
     }
 
-    SDL_LogDebug(LOG_PICKUPS, "[Write Buffer Thread]: Read %zu pickups", writeBuffer->size());
+    SDL_LogDebug(LOG_PICKUPS, "[Write Buffer Thread]: Read %llu pickups", writeBuffer->size());
 
     // applyMutations(); // Done separatley instead of in while loop to allow for full-locking w/o stall
 
@@ -499,7 +475,7 @@ void _pickupManager::writeToBuffer() {
     auto stop = std::chrono::steady_clock::now();
     const float d = std::chrono::duration<float, std::milli>(stop-start).count();
     SDL_LogDebug(LOG_PICKUPS, "[Write Buffer Thread]: Write To Buffer took [%fms]",d);
-    SDL_LogDebug(LOG_PICKUPS, "[Write Buffer Thread]: Pickups in Mutation Map: %zu", mutationMap.size());
+    SDL_LogDebug(LOG_PICKUPS, "[Write Buffer Thread]: Pickups in Mutation Map: %llu", mutationMap.size());
 
     SDL_LogInfo(LOG_PICKUPS, "[Write Buffer Thread]: Successfully loaded pickups from save file");
 }
@@ -555,6 +531,13 @@ void _pickupManager::emptyMutationMap() {
     int pickups = static_cast<int>(pickup_count);
     int mutatedPickups = 0;
 
+    // Process snapshot 
+    std::unordered_map<uint32_t, _pickup> snapshot;
+    {
+        std::lock_guard<std::mutex> lock(m_mm);
+        std::swap(mutationMap, snapshot);
+    }
+
     while (pickups > 0) {
         std::streampos startPos = file.tellp();
         SDL_LogDebug(
@@ -568,10 +551,8 @@ void _pickupManager::emptyMutationMap() {
         for (size_t i = 0; i < buffer.size(); i++) {
             pickup_serial_data &p = buffer[i];
             
-            std::lock_guard<std::mutex> lock(m_mm);
-            
-            auto it = mutationMap.find(p.id);
-            if (it != mutationMap.end()) {
+            auto it = snapshot.find(p.id);
+            if (it != snapshot.end()) {
                 mutatedPickups++;
                 // Modify to match whats in mutation map
                 p = serializePickup(it->second);
@@ -591,8 +572,6 @@ void _pickupManager::emptyMutationMap() {
 
     SDL_LogDebug(LOG_PICKUPS, "[Disk Write Thread]: Mutated pickups processed: %i", mutatedPickups);
 
-    mutationMap.clear();
-
     writeDiskCompleted.store(true);
 
     auto stop = std::chrono::steady_clock::now();
@@ -601,13 +580,14 @@ void _pickupManager::emptyMutationMap() {
 }
 
 pickup_serial_data _pickupManager::serializePickup(const _pickup &pickup) const {
-    pickup_serial_data data {
-        data.value = pickup.value,
-        data.type = static_cast<int32_t>(pickup.type),
-        data.xPos = pickup.pos.x,
-        data.yPos = pickup.pos.y,
+    return pickup_serial_data {
+      .id = pickup.id,
+      .value = pickup.value,
+      .type = static_cast<int32_t>(pickup.type),
+      .xPos = pickup.pos.x,
+      .yPos = pickup.pos.y,
+      .alive = static_cast<uint32_t>(pickup.alive)
     };
-    return data;
 }
 
 void _pickupManager::moveHeadToData(std::fstream &head) const {
@@ -637,8 +617,8 @@ bool _pickupManager::generatePickup(std::fstream &file, const pickup_config &con
     auto start = std::chrono::steady_clock::now();
 
     // -- VARIABLES -- //
-    const float WORLD_RADIUS = sqrt(numChunks) * NUM_TILES_CHUNK_SQR * TILE_D * 0.5f;
-    const float WORLD_DIAMETER = sqrt(numChunks) * NUM_TILES_CHUNK_SQR * TILE_D;
+    [[maybe_unused]] const float WORLD_RADIUS = sqrt(numChunks) * NUM_TILES_CHUNK_SQR * TILE_D * 0.5f;
+    [[maybe_unused]] const float WORLD_DIAMETER = sqrt(numChunks) * NUM_TILES_CHUNK_SQR * TILE_D;
 
     // Only does pickup health for now
     constexpr int BUFFER_SIZE = 4096;
@@ -712,6 +692,8 @@ void _pickupManager::buildVBO() {
         const _pickup* p = &(*readBuffer)[i];
         if (!p->alive) continue; 
 
+        const float type = static_cast<float>(p->type);
+
         const float angle = 0.0f;  // No angle -- kept in case we need it later
 
         const float centerX = p->pos.x;
@@ -731,7 +713,7 @@ void _pickupManager::buildVBO() {
         // Bottom-left (0)
         vbo[vIndex++] = -halfWidth; 
         vbo[vIndex++] = -halfHeight; 
-        vbo[vIndex++] = p->type * uWidth; 
+        vbo[vIndex++] = type * uWidth; 
         vbo[vIndex++] = 1.0f; 
         vbo[vIndex++] = centerX; 
         vbo[vIndex++] = centerY; 
@@ -739,7 +721,7 @@ void _pickupManager::buildVBO() {
         // Bottom-right (1)
         vbo[vIndex++] = halfWidth; 
         vbo[vIndex++] = -halfHeight; 
-        vbo[vIndex++] = (p->type + 1) * uWidth; 
+        vbo[vIndex++] = (type + 1) * uWidth; 
         vbo[vIndex++] = 1.0f; 
         vbo[vIndex++] = centerX; 
         vbo[vIndex++] = centerY; 
@@ -747,7 +729,7 @@ void _pickupManager::buildVBO() {
         // Top-right (2)
         vbo[vIndex++] = halfWidth; 
         vbo[vIndex++] = halfHeight; 
-        vbo[vIndex++] = (p->type + 1) * uWidth; 
+        vbo[vIndex++] = (type + 1) * uWidth; 
         vbo[vIndex++] = 0.0f; 
         vbo[vIndex++] = centerX; 
         vbo[vIndex++] = centerY; 
@@ -755,7 +737,7 @@ void _pickupManager::buildVBO() {
         // Top-left (3)
         vbo[vIndex++] = -halfWidth; 
         vbo[vIndex++] = halfHeight; 
-        vbo[vIndex++] = p->type * uWidth; 
+        vbo[vIndex++] = type * uWidth; 
         vbo[vIndex++] = 0.0f; 
         vbo[vIndex++] = centerX; 
         vbo[vIndex++] = centerY; 
