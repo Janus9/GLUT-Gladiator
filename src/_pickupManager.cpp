@@ -153,6 +153,8 @@ void _pickupManager::updatePickups(const double dt) {
         if (distance < 10.0f) {
             // Apply pickup
             p.alive = false;
+            std::lock_guard<std::mutex> lock(m_mm); // Race condition with Apply Mutations
+            mutationMap[p.id] = p;  // Add to mutation map
             // Player variables
             switch (p.type) {
                 case PICKUP_HEALTH:
@@ -429,8 +431,27 @@ void _pickupManager::writeToBuffer() {
 
     SDL_LogDebug(LOG_PICKUPS, "Thread: Read %zu pickups", writeBuffer->size());
 
+    applyMutations();
+
     writeCompleted.store(true);
     SDL_LogInfo(LOG_PICKUPS, "Thread: Successfully loaded pickups from save file");
+}
+
+void _pickupManager::applyMutations() {
+    SDL_LogInfo(LOG_PICKUPS, "Thread: Applying mutations from mutation map");
+    if (!writeBuffer) {
+        SDL_LogError(LOG_PICKUPS, "ERROR: Write Buffer is nullptr");
+        return;
+    }
+    std::lock_guard<std::mutex> lock(m_mm);
+    for (size_t i = 0; i < writeBuffer->size(); i++) {
+        _pickup &p = (*writeBuffer)[i];
+        auto it = mutationMap.find(p.id);
+        if (it != mutationMap.end()) {
+            p = it->second; // Swap pickup read from disk to be mutated one in memory
+        }
+    }
+    SDL_LogInfo(LOG_PICKUPS, "Thread: Finished applying mutations from mutation map");
 }
 
 pickup_serial_data _pickupManager::serializePickup(const _pickup &pickup) const {

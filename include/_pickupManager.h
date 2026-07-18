@@ -134,10 +134,13 @@ class _pickupManager {
         
         std::vector<_pickup> dataBuffer1;
         std::vector<_pickup> dataBuffer2;
+
+        std::unordered_map<uint32_t, _pickup> mutationMap;
         
         std::vector<_pickup>* readBuffer = nullptr;
         std::vector<_pickup>* writeBuffer = nullptr;
 
+        std::mutex m_mm;
         std::atomic<bool> writeCompleted;
         std::atomic<bool> writeInProgress;
 
@@ -146,6 +149,7 @@ class _pickupManager {
         Vec2f prevWritePos = {0.0f, 0.0f};
         
         void writeToBuffer();
+        void applyMutations();
 
         _world* world = nullptr;  // Pointer to world instance in scene (non-owning) 
         _player* player = nullptr;  // Pointer to player instance in scene (non-owning) 

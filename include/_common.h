@@ -40,6 +40,7 @@
 #include <array>
 #include <atomic>
 #include <thread>
+#include <mutex>
 
 // DEFINITIONS //
 

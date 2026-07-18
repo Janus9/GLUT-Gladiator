@@ -43,7 +43,7 @@ min_chance = 0.8
 
 [world.max_health_pickups]
 # pickups_per_chunk = 0.1
-pickups_per_chunk = 10
+pickups_per_chunk = 0
 far_bound = 0.4
 near_bound = 0.1
 min_chance = 0.7
@@ -51,7 +51,7 @@ min_chance = 0.7
 
 [world.ammo_pickups]
 # pickups_per_chunk = 0.25
-pickups_per_chunk = 10
+pickups_per_chunk = 0
 far_bound = 1.0
 near_bound = 0.1
 min_chance = 0.8
@@ -59,7 +59,7 @@ min_chance = 0.8
 
 [world.speed_pickups]
 # pickups_per_chunk = 0.07
-pickups_per_chunk = 10
+pickups_per_chunk = 0
 far_bound = 0.8
 near_bound = 0.1
 min_chance = 0.1
@@ -67,7 +67,7 @@ min_chance = 0.1
 
 [world.firerate_pickups]
 # pickups_per_chunk = 0.05
-pickups_per_chunk = 10
+pickups_per_chunk = 0
 far_bound = 0.3
 near_bound = 0.1
 min_chance = 1.0
