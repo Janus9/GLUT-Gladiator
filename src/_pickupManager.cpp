@@ -554,6 +554,8 @@ void _pickupManager::emptyMutationMap() {
     // -- MOVE READ HEAD -- //
     moveHeadToData(file);
 
+    std::streampos pickupCountPos = file.tellp();
+
     uint32_t pickup_count = 0;
     file.read(reinterpret_cast<char*>(&pickup_count), sizeof(pickup_count));  // Pickup Count
     
@@ -571,6 +573,8 @@ void _pickupManager::emptyMutationMap() {
         std::lock_guard<std::mutex> lock(m_mm);
         std::swap(mutationMap, snapshot);
     }
+
+    // EXISTING PICKUPS //
 
     while (pickups > 0) {
         std::streampos startPos = file.tellp();
@@ -590,6 +594,7 @@ void _pickupManager::emptyMutationMap() {
                 mutatedPickups++;
                 // Modify to match whats in mutation map
                 p = serializePickup(it->second);
+                snapshot.erase(it); // Remove from snapshot to process remainder at end
             }
         }
         pickups -= static_cast<int>(buffer.size());
@@ -603,8 +608,48 @@ void _pickupManager::emptyMutationMap() {
             return;
         }
     }
-
     SDL_LogDebug(LOG_PICKUPS, "[Disk Write Thread]: Mutated pickups processed: %i", mutatedPickups);
+
+    // NEW PICKUPS //
+
+    const size_t newPickups = snapshot.size();
+    std::vector<pickup_serial_data> buffer(newPickups);
+
+    SDL_LogDebug(LOG_PICKUPS, "[Disk Write Thread]: New pickups to add: %llu", newPickups);
+
+    int i = 0;
+    for (const auto &it : snapshot) {
+        if (i > static_cast<int>(newPickups)) {
+            SDL_LogError(LOG_PICKUPS, "[Disk Write Thread]: Overloaded max size of buffer at index: %i", i);
+            break;
+        }
+        buffer[i] = (serializePickup(it.second));
+        i++;
+    }
+
+    SDL_LogDebug(LOG_PICKUPS, "[Disk Write Thread]: New pickups added: %i", i);
+
+    file.write(reinterpret_cast<const char*>(buffer.data()), buffer.size() * sizeof(pickup_serial_data)); 
+    if (!file) {
+        SDL_LogError(LOG_PICKUPS, "[Disk Write Thread]: ERROR: Failed to write the pickup buffer data");
+        writeDiskCompleted.store(true);
+        return;
+    }
+
+    if (newPickups > 0) {
+        pickup_count += static_cast<uint32_t>(newPickups);
+        
+        file.seekp(pickupCountPos);
+        file.write(reinterpret_cast<const char*>(&pickup_count),sizeof(pickup_count)); // Pickup Count
+        
+        if (!file) {
+            SDL_LogError(LOG_PICKUPS, "[Disk Write Thread]: ERROR: Failed to write the updated pickup_count");
+            writeDiskCompleted.store(true);
+            return;
+        }
+    }
+
+    // DONE //
 
     writeDiskCompleted.store(true);
 
