@@ -26,6 +26,8 @@ _pickupManager::_pickupManager() : rng(std::random_device{}()) {
     writeDiskCompleted.store(false);
     writeDiskInProgress.store(false);
 
+    nextID.store(0u);
+
     readBuffer = &dataBuffer1;
     writeBuffer = &dataBuffer2;
 }
@@ -234,32 +236,33 @@ void _pickupManager::updatePickups(const double dt) {
 
 // NEEDS TO BE REDONE //
 bool _pickupManager::addPickup(const Vec2f &pos, pickup_type type, float value) {
-    SDL_LogWarn(LOG_PICKUPS, "WARNING: Function depricated -- will not run!");
-    return false;
-    if (!readBuffer) {
-        SDL_LogError(LOG_PICKUPS, "ERROR: Read Buffer is nullptr!");
+    const uint32_t id = nextID.load();
+
+    std::lock_guard<std::mutex> lock(m_mm);
+
+    if (mutationMap.contains(id)) {
+        SDL_LogError(LOG_PICKUPS, "[addPickup] :: Error cannot add ID: %u as it already exists" , id);
         return false;
     }
-    for (int i = 0; i < MAX_RENDER_PICKUPS; i++) {
-        _pickup& p = (*readBuffer)[i];
-        if (!p.alive) {
-            p.alive = true;
 
-            p.type = type;
+    const _pickup p = {
+      .id = id,
+      .pos = pos,
+      .vel = {0.0f, 0.0f},
+      .acc = {0.0f, 0.0f},
+      .type = type,
+      .size = 4.0f + log(value),
+      .value = value,
+      .alive = true   
+    };
 
-            p.pos = pos;
-            p.vel = {0.0f,0.0f};
-            p.acc = {0.0f,0.0f};
+    mutationMap[id] = p;
+    readBuffer->push_back(p);   // Add to read buffer so user immediately sees it. Next writeToDisk call will save it in disk
 
-            p.value = value;
+    nextID.store(id + 1);
+    SDL_LogDebug(LOG_PICKUPS, "[addPickup] :: NextID: %u", nextID.load());
 
-            p.size = 4.0f + log(value);
-
-            return true;
-        }
-    }
-
-    return false; // Never found a free pickup (likely full)
+    return true;
 }
 
 bool _pickupManager::generateToFile(const world_config &config) {
@@ -450,23 +453,30 @@ void _pickupManager::writeToBuffer() {
     writeBuffer->clear();
     // writeBuffer->resize(pickups);
 
+    uint32_t maxID = 0; 
+
     while (pickups > 0) {
         std::vector<pickup_serial_data> buffer(std::clamp(pickups, 0, BUFFER_SIZE));
         file.read(reinterpret_cast<char*>(buffer.data()), buffer.size() * sizeof(pickup_serial_data));
 
+        // Add all pickups from mutation map
+        {
+            std::lock_guard<std::mutex> lock(m_mm);
+            for (const auto &it : mutationMap) {
+                writeBuffer->emplace_back();
+                _pickup &pickup = (*writeBuffer)[writeBuffer->size()-1];
+                pickup = it.second;
+            }
+        }
+
         for (const auto &p : buffer) {
             pickups--;
 
+            if (p.id > maxID) maxID = p.id;
+
             // Look for pickup in mutation map BEFORE reading it in disk
             std::lock_guard<std::mutex> lock(m_mm);
-            auto it = mutationMap.find(p.id);
-            if (it != mutationMap.end()) {
-                // Apply from mutation map instead of disk
-                writeBuffer->emplace_back();
-                _pickup &pickup = (*writeBuffer)[writeBuffer->size()-1];
-                pickup = it->second;
-                continue;
-            }
+            if (mutationMap.contains(p.id)) continue; // Already added above -- skip
             
             if (Vec2f(p.xPos,p.yPos).distance(cameraPosition) > VIEW_RANGE) continue; // Skip, out of range
             if (!p.alive) continue; // Skip writing dead pickups in memory
@@ -485,6 +495,10 @@ void _pickupManager::writeToBuffer() {
             pickup.alive = true;
         }
     }
+
+    SDL_LogDebug(LOG_PICKUPS, "[Write Buffer Thread]: Max ID found: %u", maxID);
+    if (maxID + 1 > nextID) nextID.store(maxID + 1);
+    SDL_LogDebug(LOG_PICKUPS, "[Write Buffer Thread]: Next ID: %u", nextID.load());
 
     SDL_LogDebug(LOG_PICKUPS, "[Write Buffer Thread]: Read %llu pickups", writeBuffer->size());
 

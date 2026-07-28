@@ -147,6 +147,8 @@ class _pickupManager {
         std::atomic<bool> writeDiskCompleted;
         std::atomic<bool> writeDiskInProgress;
         
+        std::atomic<uint32_t> nextID;
+
         std::thread writeBufferThread;      // Thread for Write Buffer (Memory)
         std::thread writeDiskThread;        // Thread for Disk
 
