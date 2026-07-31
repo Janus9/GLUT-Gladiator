@@ -502,8 +502,6 @@ void _pickupManager::writeToBuffer() {
 
     SDL_LogDebug(LOG_PICKUPS, "[Write Buffer Thread]: Read %llu pickups", writeBuffer->size());
 
-    // applyMutations(); // Done separatley instead of in while loop to allow for full-locking w/o stall
-
     writeBufferCompleted.store(true);
 
     auto stop = std::chrono::steady_clock::now();
@@ -512,30 +510,6 @@ void _pickupManager::writeToBuffer() {
     SDL_LogDebug(LOG_PICKUPS, "[Write Buffer Thread]: Pickups in Mutation Map: %llu", mutationMap.size());
 
     SDL_LogInfo(LOG_PICKUPS, "[Write Buffer Thread]: Successfully loaded pickups from save file");
-}
-
-void _pickupManager::applyMutations() {
-    SDL_LogInfo(LOG_PICKUPS, "[Write Write Thread]: Applying mutations from mutation map");
-    auto start = std::chrono::steady_clock::now();
-    
-    if (!writeBuffer) {
-        SDL_LogError(LOG_PICKUPS, "ERROR: Write Buffer is nullptr");
-        return;
-    }
-    std::lock_guard<std::mutex> lock(m_mm);
-    for (size_t i = 0; i < writeBuffer->size(); i++) {
-        _pickup &p = (*writeBuffer)[i];
-        auto it = mutationMap.find(p.id);
-        if (it != mutationMap.end()) {
-            p = it->second; // Swap pickup read from disk to be mutated one in memory
-        }
-    }
-
-    auto stop = std::chrono::steady_clock::now();
-    const float d = std::chrono::duration<float, std::milli>(stop - start).count();
-    SDL_LogDebug(LOG_PICKUPS, "[Write Write Thread]: Apply Mutations took [%fms]", d);
-
-    SDL_LogInfo(LOG_PICKUPS, "[Write Write Thread]: Finished applying mutations from mutation map");
 }
 
 void _pickupManager::emptyMutationMap() {

@@ -154,8 +154,7 @@ class _pickupManager {
 
         Vec2f prevWritePos = {0.0f, 0.0f};
         
-        void writeToBuffer();
-        void applyMutations();
+        void writeToBuffer();   // Write pickups from disk into memory
 
         /**
          * Empties the contents of mutationMap into disk, thread safe.
