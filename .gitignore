@@ -23,6 +23,7 @@ saves/
 *.exe
 *.dll
 *.gg_world
+*.gg_pickups
 
 # Ignore Mr. Claude
 CLAUDE.md
