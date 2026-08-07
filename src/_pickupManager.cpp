@@ -271,19 +271,35 @@ bool _pickupManager::addPickup(const Vec2f &pos, pickup_type type, float value) 
 }
 
 bool _pickupManager::generateToFile(const world_config &config) {
-    SDL_LogInfo(LOG_PICKUPS, "Generating pickups into save file");
+    const std::string saveDir = std::string(SAVE_DIRECTORY + global::saveFileName + PICKUPS_EXTENSION);
 
-    std::fstream file("saves/game.gg_world", std::ios::binary | std::ios::in | std::ios::out);
+    SDL_LogInfo(LOG_PICKUPS, "Generating pickups for save: %s", saveDir.c_str());
+
+    std::fstream file(saveDir, std::ios::binary | std::ios::out);
     if (!file) {
-        SDL_LogError(LOG_PICKUPS, "ERROR: Cannot open the save file");
+        SDL_LogError(LOG_PICKUPS, "ERROR: Cannot create save file %s", saveDir.c_str());
         return false;
     }
 
-    // -- MOVE READ HEAD -- //
-    moveHeadToData(file);
+    // -- WRITE HEADERS -- //
 
-    // -- READ PICKUP AMOUNT -- //
+    constexpr char meta_header[2] = {'G','G'};
+    file.write(meta_header,2); 
+    if (!file) {
+        SDL_LogError(LOG_PICKUPS, "ERROR: Could not create meta header for save file: %s", saveDir.c_str());
+        return false;
+    }
+
+    constexpr char pickup_header[4] = {'P','K','U','P'};
+    file.write(pickup_header,4); 
+    if (!file) {
+        SDL_LogError(LOG_PICKUPS, "ERROR: Could not create data header for save file: %s", saveDir.c_str());
+        return false;
+    }
+
+    // -- PICKUP AMOUNT -- //
     int ID = 0;
+
     const uint32_t num_hp_pickups = static_cast<uint32_t>(config.num_chunks * config.health_pickups.pickups_per_chunk);
     const uint32_t num_ammo_pickups = static_cast<uint32_t>(config.num_chunks * config.ammo_pickups.pickups_per_chunk);
     const uint32_t num_speed_pickups = static_cast<uint32_t>(config.num_chunks * config.speed_pickups.pickups_per_chunk);
@@ -291,7 +307,11 @@ bool _pickupManager::generateToFile(const world_config &config) {
     const uint32_t num_firerate_pickups = static_cast<uint32_t>(config.num_chunks * config.firerate_pickups.pickups_per_chunk);
 
     const uint32_t pickup_count = num_hp_pickups + num_ammo_pickups + num_speed_pickups + num_max_hp_pickups + num_firerate_pickups;
-    file.write(reinterpret_cast<const char*>(&pickup_count),sizeof(pickup_count)); // Pickup Count
+    file.write(reinterpret_cast<const char*>(&pickup_count),sizeof(pickup_count)); 
+    if (!file) {
+        SDL_LogError(LOG_PICKUPS, "ERROR: Could not create write count for save file: %s", saveDir.c_str());
+        return false;
+    }
 
     SDL_LogDebug(LOG_PICKUPS, "Pickup generation count: %u", pickup_count);
 
@@ -358,9 +378,10 @@ bool _pickupManager::writeToFile() {
 void _pickupManager::logDisk() const {
     SDL_LogInfo(LOG_PICKUPS, "Creating a log output at [logs/pickup.log]");
 
-    std::fstream file("saves/game.gg_world", std::ios::binary | std::ios::in);
+    const std::string saveDir = std::string(SAVE_DIRECTORY + global::saveFileName + PICKUPS_EXTENSION);
+    std::fstream file(saveDir, std::ios::binary | std::ios::in);
     if (!file) {
-        SDL_LogError(LOG_PICKUPS, "ERROR: Cannot open the save file");
+        SDL_LogError(LOG_PICKUPS, "ERROR: Cannot open the save file: %s", saveDir.c_str());
         return;
     }
 
@@ -372,15 +393,15 @@ void _pickupManager::logDisk() const {
     // -- VARIABLES -- //
     constexpr int BUFFER_SIZE = 4096;
 
-    // -- MOVE READ HEAD -- //
-    moveHeadToData(file);
-
     uint32_t pickup_count = 0;
-    file.read(reinterpret_cast<char*>(&pickup_count), sizeof(pickup_count));  // Pickup Count
+    if (!verifyFile(file, pickup_count)) {
+        SDL_LogError(LOG_PICKUPS, "ERROR: Cannot verify the save file");
+        return;
+    }
 
     std::streampos startPos = file.tellp();
 
-    log << "File: game.gg_world\n";
+    log << "File: " << saveDir << "\n";
     log << "Pickups: " << pickup_count << "\n";
     log << "Memory Stride: " << sizeof(pickup_serial_data) << "B" << "\n";
     log << "Memory Start: 0x" << std::hex << startPos << std::dec << "\n";
@@ -427,9 +448,10 @@ void _pickupManager::writeToBuffer() {
 
     auto start = std::chrono::steady_clock::now();
 
-    std::fstream file("saves/game.gg_world", std::ios::binary | std::ios::in | std::ios::out);
+    const std::string saveDir = std::string(SAVE_DIRECTORY + global::saveFileName + PICKUPS_EXTENSION);
+    std::fstream file(saveDir, std::ios::binary | std::ios::in | std::ios::out);
     if (!file) {
-        SDL_LogError(LOG_PICKUPS, "[Write Buffer Thread]: ERROR: Cannot open the save file");
+        SDL_LogError(LOG_PICKUPS, "[Write Buffer Thread]: ERROR: Cannot open the save file: %s", saveDir.c_str());
         writeBufferCompleted.store(true);
         return;
     }
@@ -437,11 +459,11 @@ void _pickupManager::writeToBuffer() {
     // -- VARIABLES -- //
     constexpr int BUFFER_SIZE = 4096;
 
-    // -- MOVE READ HEAD -- //
-    moveHeadToData(file);
-
     uint32_t pickup_count = 0;
-    file.read(reinterpret_cast<char*>(&pickup_count), sizeof(pickup_count));  // Pickup Count
+    if (!verifyFile(file, pickup_count)) {
+        SDL_LogError(LOG_PICKUPS, "ERROR: Cannot verify the save file");
+        return;
+    }
 
     SDL_LogDebug(LOG_PICKUPS, "[Write Buffer Thread]: Pickups in save: %u", pickup_count);
     if (pickup_count == 0) {
@@ -518,10 +540,11 @@ void _pickupManager::writeToBuffer() {
 
 void _pickupManager::emptyMutationMap() {
     auto start = std::chrono::steady_clock::now();
-
-    std::fstream file("saves/game.gg_world", std::ios::binary | std::ios::in | std::ios::out);
+    
+    const std::string saveDir = std::string(SAVE_DIRECTORY + global::saveFileName + PICKUPS_EXTENSION);
+    std::fstream file(saveDir, std::ios::binary | std::ios::in | std::ios::out);
     if (!file) {
-        SDL_LogError(LOG_PICKUPS, "[Disk Write Thread]: ERROR: Cannot open the save file");
+        SDL_LogError(LOG_PICKUPS, "[Disk Write Thread]: ERROR: Cannot open the save file: %s", saveDir.c_str());
         writeDiskCompleted.store(true);
         return;
     }
@@ -529,14 +552,15 @@ void _pickupManager::emptyMutationMap() {
     // -- VARIABLES -- //
     constexpr int BUFFER_SIZE = 4096;
 
-    // -- MOVE READ HEAD -- //
-    moveHeadToData(file);
-
-    std::streampos pickupCountPos = file.tellp();
-
     uint32_t pickup_count = 0;
-    file.read(reinterpret_cast<char*>(&pickup_count), sizeof(pickup_count));  // Pickup Count
-    
+    if (!verifyFile(file, pickup_count)) {
+        SDL_LogError(LOG_PICKUPS, "[Disk Write Thread]: ERROR: Cannot verify the save file: %s", saveDir.c_str());
+        writeDiskCompleted.store(true);
+        return;
+    }
+
+    std::streampos pickupCountPos = file.tellp() - static_cast<std::streamoff>(4); // 4 bytes to get back to beginning of where count is
+
     SDL_LogDebug(LOG_PICKUPS, "[Disk Write Thread]: Pickups in save: %u", pickup_count);
     if (pickup_count == 0) {
         SDL_LogWarn(LOG_PICKUPS, "[Disk Write Thread]: WARNING: Pickups found is 0");
@@ -647,26 +671,32 @@ pickup_serial_data _pickupManager::serializePickup(const _pickup &pickup) const 
     };
 }
 
-void _pickupManager::moveHeadToData(std::fstream &head) const {
-    // Skip Header, Seed, Time Stamp, Save System Version ID, Game Version
-    head.seekg(static_cast<std::streamoff>(2 + 4 + 8 + 4 + 4), std::ios::cur);
+bool _pickupManager::verifyFile(std::fstream &file, uint32_t &pickup_count) const {
+    if (!file) {
+        SDL_LogError(LOG_PICKUPS, "ERROR: File cannot be opened");
+        return false;
+    }
 
-    int32_t chunk_count = 0;
-    head.read(reinterpret_cast<char*>(&chunk_count), sizeof(chunk_count));  // Chunk Count
-    // Skip the Chunk Data Header
-    head.seekg(4, std::ios::cur);
-    // Skip all the chunks
-    head.seekg(static_cast<std::streamoff>(chunk_count * sizeof(chunk_serial_data)), std::ios::cur);
-    
-    // Skip the Enemy Data Header
-    head.seekg(4, std::ios::cur);
-    int32_t enemy_count = 0;
-    head.read(reinterpret_cast<char*>(&enemy_count), sizeof(enemy_count));  // Enemy Count
-    // Skip all enemies
-    head.seekg(static_cast<std::streamoff>(enemy_count * sizeof(enemy_serial_data)), std::ios::cur);
-    
-    // Skip the Pickup Data Header
-    head.seekg(4, std::ios::cur);
+    char meta_header[2];
+    file.read(meta_header,2);
+    if (meta_header[0] != 'G' || meta_header[1] != 'G') {
+        SDL_LogError(LOG_PICKUPS, "ERROR: Invalid pickup meta header");
+        return false;
+    }
+
+    char data_header[4];
+    file.read(data_header,4);
+    if (data_header[0] != 'P' || data_header[1] != 'K' || data_header[2] != 'U' || data_header[3] != 'P') {
+        SDL_LogError(LOG_PICKUPS, "ERROR: Invalid pickup data header");
+        return false;
+    }
+
+    file.read(reinterpret_cast<char*>(&pickup_count), sizeof(pickup_count));  
+    if (pickup_count == 0) {
+        SDL_LogWarn(LOG_PICKUPS, "WARNING: Pickup count is zero");
+    }
+
+    return true;
 }
 
 bool _pickupManager::generatePickup(std::fstream &file, const pickup_config &config, float numChunks, pickup_type type, int &ID) {

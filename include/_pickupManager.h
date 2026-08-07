@@ -171,7 +171,8 @@ class _pickupManager {
 
         pickup_serial_data serializePickup(const _pickup &pickup) const;
         
-        void moveHeadToData(std::fstream &head) const; // Moves a fstream file pointer to the start of the pickup data (number of pickups)
+        // Verifies existing save file is valid, sets the pickup count.
+        bool verifyFile(std::fstream &file, uint32_t &pickup_count) const;
 
         // Rendering //
         void buildVBO();

@@ -648,27 +648,13 @@ bool _scene::saveSceneToFile(const std::string &fileName) {
         return false;
     }
 
-    // Pickup Data Write //
-
-    const char pickup_header[4] = {'P','K','U','P'};
-    file.write(pickup_header,4); // Pickup Data Header ("PKUP")
-
-    // Pickups processed by manager, skip the write
-    uint32_t pickup_count = 0;
-    file.read(reinterpret_cast<char*>(&pickup_count), sizeof(pickup_count)); 
+    // Pickup Data Save //
     
     if (!pickupManager->writeToFile()) {
         SDL_LogError(LOG_SCENE, "ERROR: Save failed to write pickups to file");
         return false;
     }
 
-    SDL_LogInfo(LOG_SCENE, "Pickup count read: %u", pickup_count);
-    if (pickup_count == 0) {
-        SDL_LogWarn(LOG_SCENE, "WARNING: Pickup count is 0");
-    }
-    file.seekp(static_cast<std::streamoff>(pickup_count * sizeof(pickup_serial_data)), std::ios::cur);
-
-    
     // Player Data Write //
 
     SDL_LogDebug(LOG_SCENE, 
@@ -843,21 +829,7 @@ bool _scene::loadSceneFromFile(const std::string &fileName) {
     );
 
          
-    // Read Pickup Data //
-    char pickup_header[4];
-    file.read(pickup_header,4);    // Pickup Data Header
-    if (pickup_header[0] != 'P' || pickup_header[1] != 'K' || pickup_header[2] != 'U' || pickup_header[3] != 'P') {
-        SDL_LogError(LOG_SCENE, "ERROR: Invalid pickup data header");
-        return false;
-    }
-
-    uint32_t pickup_count = 0;
-    file.read(reinterpret_cast<char*>(&pickup_count), sizeof(pickup_count));  // Pickup Count
-
-    SDL_LogInfo(LOG_SCENE, "Pickup count read: %u", pickup_count);
-    if (pickup_count == 0) {
-        SDL_LogWarn(LOG_SCENE, "WARNING: Pickup count is 0");
-    }
+    // Initialize Pickups //
 
     pickupManager->initPickupManager(
         "images/pickups/pickup_sheet.png",
@@ -867,40 +839,6 @@ bool _scene::loadSceneFromFile(const std::string &fileName) {
         myWorld.get()
     );
 
-    // Check for pickups to read
-    // if (pickup_count > 0) {
-    //     std::vector<pickup_serial_data> pickup_data;
-    //     pickup_data.resize(pickup_count);
-    //     file.read(reinterpret_cast<char*>(pickup_data.data()), pickup_data.size() * sizeof(pickup_serial_data));
-    
-    //     if (!pickupManager->importSerializedPickups(pickup_data)) {
-    //         SDL_LogWarn(LOG_SCENE, "WARNING: Unable to import pickup data to pickup manager");
-    //         return false;
-    //     }
-
-    //     if (!file) {
-    //         SDL_LogError(LOG_SCENE, "ERROR: Unable to read pickup data");
-    //         return false;
-    //     }
-    
-    //     if (pickup_data.empty()) {
-    //         SDL_LogWarn(LOG_SCENE, "WARNING: Pickup data read is empty");
-    //     }
-
-    //     SDL_LogInfo(LOG_SCENE,
-    //         "Read pickup data:\n"
-    //         " - Number of pickups: %zu\n"
-    //         " - Size of pickups: %zu bytes",
-    //         pickup_data.size(),
-    //         pickup_data.size() * sizeof(pickup_serial_data)
-    //     );
-    // } else {
-    //     SDL_LogInfo(LOG_SCENE, "Skipping pickup loading as there are none in save file");
-    // }
-
-    // Skip pickup data
-    file.seekg(static_cast<std::streamoff>(pickup_count * sizeof(pickup_serial_data)), std::ios::cur);
-    
     // Read Player Data //
 
     char player_header[4];
