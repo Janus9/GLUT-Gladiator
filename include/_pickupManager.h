@@ -141,12 +141,11 @@ class _pickupManager {
         std::vector<_pickup>* readBuffer = nullptr;
         std::vector<_pickup>* writeBuffer = nullptr;
 
-        std::mutex m_mm;
+        std::mutex m_mm; // Mutation Map Mutex
         std::atomic<bool> writeBufferCompleted;
         std::atomic<bool> writeBufferInProgress;
         std::atomic<bool> writeDiskCompleted;
         std::atomic<bool> writeDiskInProgress;
-        
         std::atomic<uint32_t> nextID;
 
         std::thread writeBufferThread;      // Thread for Write Buffer (Memory)
@@ -154,24 +153,18 @@ class _pickupManager {
 
         Vec2f prevWritePos = {0.0f, 0.0f};
         
-        void writeToBuffer();   // Write pickups from disk into memory
-
-        /**
-         * Empties the contents of mutationMap into disk, thread safe.
-         */
-        void emptyMutationMap();
-
         _world* world = nullptr;  // Pointer to world instance in scene (non-owning) 
         _player* player = nullptr;  // Pointer to player instance in scene (non-owning) 
+        
+        void writeToBuffer();   // Write pickups from disk into memory
+        void emptyMutationMap(); // Empties the contents of mutationMap into disk
+        bool generatePickup(std::fstream &file, const pickup_config &config, float numChunks, pickup_type type, int &ID); // Generates a given pickup
         
         // Serialization + Disk Access //
 
         pickup_serial_data serializePickup(const _pickup &pickup) const;
-        // Moves a fstream file pointer to the start of the pickup data (number of pickups)
-        void moveHeadToData(std::fstream &head) const;
-
-        // Generates a given pickup
-        bool generatePickup(std::fstream &file, const pickup_config &config, float numChunks, pickup_type type, int &ID);
+        
+        void moveHeadToData(std::fstream &head) const; // Moves a fstream file pointer to the start of the pickup data (number of pickups)
 
         // Rendering //
         void buildVBO();

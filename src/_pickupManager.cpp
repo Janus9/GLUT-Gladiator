@@ -451,7 +451,6 @@ void _pickupManager::writeToBuffer() {
 
     int pickups = static_cast<int>(pickup_count);
     writeBuffer->clear();
-    // writeBuffer->resize(pickups);
 
     uint32_t maxID = 0; 
 
