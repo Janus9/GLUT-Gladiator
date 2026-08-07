@@ -9,6 +9,8 @@
 /** A serialization class should be made at some point */
 #include <_world.h>         // For the world generation config + serial data types
 
+// https://docs.google.com/spreadsheets/d/125jQdeutCYkeY5MRzY0q0YjmVbVyGVxeAAeK7RvzJqU/edit?usp=sharing // Drive Link
+
 struct enemy_serial_data;
 
 /**
