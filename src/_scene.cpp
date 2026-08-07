@@ -1081,6 +1081,7 @@ void _scene::updateScene(double dt, const InputState &inputState)
     player->updatePlayer(dt);
     FOB->updateFob(dt);
     pickupManager->updatePickups(dt);
+    pickupManager->updateBackground();
 
     if (enemyManager->bossKilledEvent) {
         enemyManager->bossKilledEvent = false;

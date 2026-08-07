@@ -60,6 +60,13 @@ class _pickupManager {
         /** Update function */
         void updatePickups(const double dt);
 
+        /** 
+         * Background Update Function 
+         * 
+         * Always runs regardless of game state. Does not run at a fixed framerate.
+        */
+        void updateBackground();
+
         /**
          * Adds a pickup to the system. (Size is determined by value)
          * 

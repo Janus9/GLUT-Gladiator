@@ -133,6 +133,7 @@ void _pickupManager::drawPickups() {
 }
 
 void _pickupManager::updatePickups(const double dt) {
+    // Save Pickups Timer //
     if (pickupSaveElapsedTime >= PICKUP_SAVE_INTERVAL) {
         pickupSaveElapsedTime = 0.0f;
         if (!writeToFile()) {
@@ -140,34 +141,10 @@ void _pickupManager::updatePickups(const double dt) {
         }
     }
 
+    // Reload Pickups Distance Check //
     if (prevWritePos.distance(cameraPosition) > VIEW_RANGE*0.5f) {
         SDL_LogDebug(LOG_PICKUPS, "Camera moved too far from previous write position, reloading pickups!");
         readFromFile();
-    }
-
-    if (writeBufferInProgress.load() && writeBufferCompleted.load()) {
-        if (writeBufferThread.joinable()) {
-            writeBufferThread.join();
-            // Not done in thread to prevent race conditions
-            std::swap(writeBuffer, readBuffer); // Swap the buffers so that the buffer we wrote into (write buffer) becomes the one we read (read buffer)
-            SDL_LogDebug(LOG_PICKUPS, "Write Buffer Thread joined");
-        } else {
-            SDL_LogWarn(LOG_PICKUPS, "WARNING: Cannot join Write Buffer Thread as it is not joinable");
-        }
-        writeBufferInProgress.store(false);
-        writeBufferCompleted.store(false);
-    }
-
-    if (writeDiskInProgress.load() && writeDiskCompleted.load()) {
-        if (writeDiskThread.joinable()) {
-            writeDiskThread.join();
-            SDL_LogDebug(LOG_PICKUPS, "Write Disk Thread joined");
-        } else {
-            SDL_LogWarn(LOG_PICKUPS, "WARNING: Cannot join Disk Write Thread as it is not joinable");
-        }
-
-        writeDiskInProgress.store(false);
-        writeDiskCompleted.store(false);
     }
 
     t_value += dt;
@@ -234,7 +211,35 @@ void _pickupManager::updatePickups(const double dt) {
     pickupSaveElapsedTime += dt;
 }
 
-// NEEDS TO BE REDONE //
+void _pickupManager::updateBackground() {
+    // Write Buffer Join //
+    if (writeBufferInProgress.load() && writeBufferCompleted.load()) {
+        if (writeBufferThread.joinable()) {
+            writeBufferThread.join();
+            // Not done in thread to prevent race conditions
+            std::swap(writeBuffer, readBuffer); // Swap the buffers so that the buffer we wrote into (write buffer) becomes the one we read (read buffer)
+            SDL_LogDebug(LOG_PICKUPS, "Write Buffer Thread joined");
+        } else {
+            SDL_LogWarn(LOG_PICKUPS, "WARNING: Cannot join Write Buffer Thread as it is not joinable");
+        }
+        writeBufferInProgress.store(false);
+        writeBufferCompleted.store(false);
+    }
+
+    // Write Disk Join //
+    if (writeDiskInProgress.load() && writeDiskCompleted.load()) {
+        if (writeDiskThread.joinable()) {
+            writeDiskThread.join();
+            SDL_LogDebug(LOG_PICKUPS, "Write Disk Thread joined");
+        } else {
+            SDL_LogWarn(LOG_PICKUPS, "WARNING: Cannot join Disk Write Thread as it is not joinable");
+        }
+
+        writeDiskInProgress.store(false);
+        writeDiskCompleted.store(false);
+    }
+}
+
 bool _pickupManager::addPickup(const Vec2f &pos, pickup_type type, float value) {
     const uint32_t id = nextID.load();
 
