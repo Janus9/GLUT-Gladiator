@@ -727,10 +727,19 @@ bool _scene::loadSceneFromFile(const std::string &fileName) {
         SDL_LogWarn(LOG_SCENE, "WARNING: World file version of %u does not match current version of %u continuing with load but may fail", version_id, WORLD_SAVE_VERSION);
     }    
 
+    constexpr float tolerance = 0.0009;
     float game_id = 0;
     file.read(reinterpret_cast<char*>(&game_id), sizeof(game_id));    // Version ID
-    if (game_id < GAME_VERSION) {
-        SDL_LogWarn(LOG_SCENE, "WARNING: Game file version of %f does not match loaded version of the game %f continuing with load but may fail", game_id, GAME_VERSION);
+    const float diff = abs(game_id - GAME_VERSION);
+    if (diff > tolerance) {
+        SDL_LogWarn(
+            LOG_SCENE, 
+            "WARNING: Game file version of %f does not match loaded version of the game %f continuing with load but may fail." 
+            "\nDifference: %f",
+            game_id, 
+            GAME_VERSION,
+            diff
+        );
     }  
 
     int32_t chunk_count = 0;
@@ -1081,7 +1090,6 @@ void _scene::updateScene(double dt, const InputState &inputState)
     player->updatePlayer(dt);
     FOB->updateFob(dt);
     pickupManager->updatePickups(dt);
-    pickupManager->updateBackground();
 
     if (enemyManager->bossKilledEvent) {
         enemyManager->bossKilledEvent = false;
@@ -1512,6 +1520,10 @@ void _scene::updateScene(double dt, const InputState &inputState)
         std::string test_con = hoveredChunk->isChunkDirty() ? "TRUE" : "FALSE";
         hud->getHudText("CHUNK_REDRAW")->setText(text_main + test_con);
     }
+}
+
+void _scene::updateSceneBackground() {
+    pickupManager->updateBackground();
 }
 
 void _scene::debugPrint()

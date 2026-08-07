@@ -322,6 +322,9 @@ int main(int argc, char *argv[])
 			handleUpdate(dt);
 			updatePreviousTime = currentTime;
 		}
+
+		// BACKGROUND UPDATE //
+		gameScene->updateSceneBackground();
 		
 		// DRAW //
 		handleDraw(window);
