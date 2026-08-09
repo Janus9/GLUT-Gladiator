@@ -149,7 +149,7 @@ void _pickupManager::updatePickups(const double dt) {
 
     pickupSaveElapsedTime += dt;
     t_value += dt;
-    
+
     if (alivePickups == 0) return;
 
     for (size_t i = 0; i < readBuffer->size(); i++) {
@@ -710,7 +710,7 @@ void _pickupManager::cleanDeadFromFileWorker() {
     }
 
     // -- VARIABLES -- //
-    constexpr int BUFFER_SIZE = 1;
+    constexpr int BUFFER_SIZE = 4096;
     std::streampos writePos;
     std::streampos readPos;
     
