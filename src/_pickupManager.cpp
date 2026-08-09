@@ -523,15 +523,15 @@ void _pickupManager::writeToBuffer() {
         std::vector<pickup_serial_data> buffer(std::clamp(pickups, 0, BUFFER_SIZE));
         file.read(reinterpret_cast<char*>(buffer.data()), buffer.size() * sizeof(pickup_serial_data));
 
-        // Add all pickups from mutation map
-        {
-            std::lock_guard<std::mutex> lock(m_mm);
-            for (const auto &it : mutationMap) {
-                writeBuffer->emplace_back();
-                _pickup &pickup = (*writeBuffer)[writeBuffer->size()-1];
-                pickup = it.second;
-            }
-        }
+        // // Add all pickups from mutation map
+        // {
+        //     std::lock_guard<std::mutex> lock(m_mm);
+        //     for (const auto &it : mutationMap) {
+        //         writeBuffer->emplace_back();
+        //         _pickup &pickup = (*writeBuffer)[writeBuffer->size()-1];
+        //         pickup = it.second;
+        //     }
+        // }
 
         for (const auto &p : buffer) {
             pickups--;
@@ -540,7 +540,12 @@ void _pickupManager::writeToBuffer() {
 
             // Look for pickup in mutation map BEFORE reading it in disk
             std::lock_guard<std::mutex> lock(m_mm);
-            if (mutationMap.contains(p.id)) continue; // Already added above -- skip
+            // if (mutationMap.contains(p.id)) continue; // Already added above -- skip
+            auto it = mutationMap.find(p.id);
+            if (it != mutationMap.end()) {
+                writeBuffer->push_back(it->second);
+                continue; // Already added from mutation map, skip from disk
+            }
             
             if (Vec2f(p.xPos,p.yPos).distance(cameraPosition) > VIEW_RANGE) continue; // Skip, out of range
             if (!p.alive) continue; // Skip writing dead pickups in memory
