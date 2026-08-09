@@ -14,12 +14,16 @@ logs/
 obj/
 publish/
 
+# GAME FILES #
+saves/
+
 # FILE TYPES #
 *.log
 *.o
 *.exe
 *.dll
 *.gg_world
+*.gg_pickups
 
 # Ignore Mr. Claude
 CLAUDE.md

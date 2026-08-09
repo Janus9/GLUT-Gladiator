@@ -267,11 +267,11 @@ void _enemyManager::updateEnemies(double dt) {
                 } else if (enemy->isDead() && enemy->deathTime > enemy->timeInDeathAnimation) {
                     Vec2f offset_pos = {pos_dist(rng), pos_dist(rng)};
                     
-                    scenePickupManager->addPickup(enemy->pos + offset_pos, PICKUP_XP, 5.0f);
+                    scenePickupManager->add(enemy->pos + offset_pos, pickups::PICKUP_XP, 5.0f);
                     
                     if (roll(rng) > 0.5) {
                         offset_pos = {pos_dist(rng), pos_dist(rng)};
-                        scenePickupManager->addPickup(enemy->pos + offset_pos, PICKUP_AMMO, 20.0f);
+                        scenePickupManager->add(enemy->pos + offset_pos, pickups::PICKUP_AMMO, 20.0f);
                     }
                     
                     enemyList.erase(enemyList.begin() + i);
@@ -326,12 +326,12 @@ void _enemyManager::updateEnemies(double dt) {
 
                     for (int i = 0; i < 2; i++) {
                         offset_pos = {pos_dist(rng), pos_dist(rng)};
-                        scenePickupManager->addPickup(enemy->pos + offset_pos, PICKUP_XP, 4.0f);
+                        scenePickupManager->add(enemy->pos + offset_pos, pickups::PICKUP_XP, 4.0f);
                     }
 
                     if (roll(rng) > 0.7f) {
                         offset_pos = {pos_dist(rng), pos_dist(rng)};
-                        scenePickupManager->addPickup(enemy->pos + offset_pos, PICKUP_HEALTH, 15.0f);
+                        scenePickupManager->add(enemy->pos + offset_pos, pickups::PICKUP_HEALTH, 15.0f);
                     }
 
                     enemyList.erase(enemyList.begin() + i);
@@ -405,22 +405,22 @@ void _enemyManager::updateEnemies(double dt) {
                     
                     for (int i = 0; i < 4; i++) {
                         offset_pos = {pos_dist(rng), pos_dist(rng)};
-                        scenePickupManager->addPickup(offset_pos + enemy->pos, PICKUP_XP, 6.0f);
+                        scenePickupManager->add(offset_pos + enemy->pos, pickups::PICKUP_XP, 6.0f);
                     }
 
                     if (roll(rng) > 0.8f) {
                         offset_pos = {pos_dist(rng), pos_dist(rng)};
-                        scenePickupManager->addPickup(offset_pos + enemy->pos, PICKUP_FIRERATE, 10.0f);
+                        scenePickupManager->add(offset_pos + enemy->pos, pickups::PICKUP_FIRERATE, 10.0f);
                     }
 
                     if (roll(rng) > 0.2f) {
                         offset_pos = {pos_dist(rng), pos_dist(rng)};
-                        scenePickupManager->addPickup(offset_pos + enemy->pos, PICKUP_AMMO, 40.0f);
+                        scenePickupManager->add(offset_pos + enemy->pos, pickups::PICKUP_AMMO, 40.0f);
                     }
 
                     if (roll(rng) > 0.2f) {
                         offset_pos = {pos_dist(rng), pos_dist(rng)};
-                        scenePickupManager->addPickup(offset_pos + enemy->pos, PICKUP_HEALTH, 20.0f);
+                        scenePickupManager->add(offset_pos + enemy->pos, pickups::PICKUP_HEALTH, 20.0f);
                     }
 
                     enemyList.erase(enemyList.begin() + i);

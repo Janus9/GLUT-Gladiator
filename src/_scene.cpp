@@ -1,4 +1,4 @@
-#include "_scene.h"
+#include <_scene.h>
 
 _scene::_scene() : rng(std::random_device{}())
 {
@@ -12,7 +12,7 @@ _scene::_scene() : rng(std::random_device{}())
     FOB = std::make_unique<_fob>();
     player = std::make_unique<_player>();
     myWorld = std::make_unique<_world>();
-    pickupManager = std::make_unique<_pickupManager>();
+    pickupManager = std::make_unique<pickups::Engine>();
     lightManager = std::make_unique<_lightManager>();
     textureManager = std::make_unique<_textureManager>();
 }
@@ -96,11 +96,12 @@ void _scene::initScene(bool loadWorld)
     myWorld->initWorld(loadWorld, world_configuration, lightManager.get(), ParticleEngine.get());         // Initialize the world
 
     // PICKUPS //
-    if (!loadWorld) pickupManager->initPickupManager(
+    if (!loadWorld) pickupManager->init(
         "images/pickups/pickup_sheet.png",
         6,
         player.get(),
-        lightManager.get()
+        lightManager.get(),
+        myWorld.get()
     );
     
     // -- PLAYER -- //
@@ -378,11 +379,17 @@ void _scene::initScene(bool loadWorld)
     lightManager->addLight(boss_light);
 
 
-    const int number_default_turrets = 500;
-    const int number_gatling_turrets = 75;
-    const int number_orcs = 600;
-    const int number_vampire_minions = 200;      // Spawn naturally in world
-    const int number_vampire_boss_minions = 25;  // Spawn near the boss
+    // const int number_default_turrets = 500;
+    // const int number_gatling_turrets = 75;
+    // const int number_orcs = 600;
+    // const int number_vampire_minions = 200;      // Spawn naturally in world
+    // const int number_vampire_boss_minions = 25;  // Spawn near the boss
+
+    const int number_default_turrets = 0;
+    const int number_gatling_turrets = 0;
+    const int number_orcs = 0;
+    const int number_vampire_minions = 0;       
+    const int number_vampire_boss_minions = 0;  
 
     // Dont spawn enemies when world is loaded
     if (!loadWorld) {
@@ -487,64 +494,13 @@ void _scene::initScene(bool loadWorld)
                 enemyManager->addEnemy(spawnVampMiniPos,vampire_minion2_config);
             }
         }
-
-    // Pickups disabled by scene //
-    //     // Spawn Pickups //
-    //     const int num_hp_pickups = world_configuration.num_chunks * world_configuration.health_pickups.pickups_per_chunk;
-    //     const int num_ammo_pickups = world_configuration.num_chunks * world_configuration.ammo_pickups.pickups_per_chunk;
-    //     const int num_speed_pickups = world_configuration.num_chunks * world_configuration.speed_pickups.pickups_per_chunk;
-    //     const int num_max_hp_pickups = world_configuration.num_chunks * world_configuration.max_health_pickups.pickups_per_chunk;
-    //     const int num_firerate_pickups = world_configuration.num_chunks * world_configuration.firerate_pickups.pickups_per_chunk;
-
-    //     SDL_LogDebug(LOG_SCENE, "Number of HP Pickups to spawn: %i",num_hp_pickups);
-    //     SDL_LogDebug(LOG_SCENE, "Number of Ammo Pickups to spawn: %i",num_ammo_pickups);
-    //     SDL_LogDebug(LOG_SCENE, "Number of Speed Pickups to spawn: %i",num_speed_pickups);
-    //     SDL_LogDebug(LOG_SCENE, "Number of Max HP Pickups to spawn: %i",num_max_hp_pickups);
-    //     SDL_LogDebug(LOG_SCENE, "Number of Firerate Pickups to spawn: %i",num_firerate_pickups);
-
-    //     const float max_distance = Vec2f(bounds,bounds).distance({0.0f, 0.0f});
-
-    //     std::uniform_real_distribution<float> pickup_hp_dist(
-    //         world_configuration.health_pickups.near_bound, 
-    //         world_configuration.health_pickups.far_bound
-    //     );
-    //     std::uniform_int_distribution<int> coin_flip_rng(0,1);
-    //     std::uniform_real_distribution<float> pickup_rng(0.0f, 1.0f);
-    //     std::uniform_real_distribution<float> rad_rng(0.0f, 2.0f * PI);
-
-    //     // Hp Pickup Distribution //
-    //     int hp_pickups_spawned = 0;
-    //     while (hp_pickups_spawned < num_hp_pickups) {
-    //         bool lookingSpawn = true;
-    //         const pickup_config &cfg = world_configuration.health_pickups; 
-    //         while (lookingSpawn)
-    //         {
-    //             const float radius = bounds * pickup_hp_dist(rng);   
-    //             const float theta = rad_rng(rng);
-    //             const Vec2f pos = {radius * std::cosf(theta), radius * std::sinf(theta)};
-
-    //             const _cell *cell = myWorld->getCellAtWorld(pos);
-    //             if (cell && myWorld->isCellWall(cell)) continue;
-
-    //             const float dist = pos.distance({0.0f,0.0f});
-    //             const float dist_norm = std::clamp(dist / max_distance, 0.0f, 1.0f);
-                
-    //             const float t = std::clamp((dist_norm - cfg.near_bound) / (cfg.far_bound - cfg.near_bound), 0.0f, 1.0f);
-
-    //             const float chance = std::lerp(1.0, cfg.min_chance, t);
-                
-    //             if (chance > pickup_rng(rng)) {
-    //                 pickupManager->addPickup(pos,PICKUP_HEALTH, 10.0f);
-    //                 lookingSpawn = false;
-    //                 hp_pickups_spawned++;
-    //             }
-    //         }
-    //     }
     }    
 
     // player->setAction(PLAYER_ACTION_IDLE_GUN, PLAYER_FACE_S);
 
     saveSceneToFile("saves/game");  // Force a save event so we can read into world file
+
+    if (!loadWorld) pickupManager->generateToFile(world_configuration);
 
     SDL_LogInfo(LOG_SCENE, "Scene has been initialized");
     sceneInitialized = true;
@@ -553,7 +509,7 @@ void _scene::initScene(bool loadWorld)
 bool _scene::saveSceneToFile(const std::string &fileName) {
     SDL_LogInfo(LOG_SCENE, "Exporting game to save file: %s.gg_world", fileName.c_str());
 
-    std::ofstream file(fileName + ".gg_world", std::ios::binary);     // Output as binary file
+    std::fstream file(fileName + ".gg_world", std::ios::binary | std::ios::out);     // Output as binary file
     if (!file) {
         SDL_LogError(LOG_SCENE, "ERROR: Cannot create output file for: %s", fileName.c_str());
         return false;
@@ -639,32 +595,8 @@ bool _scene::saveSceneToFile(const std::string &fileName) {
         return false;
     }
 
-    // Pickup Data Write //
-
-    const char pickup_header[4] = {'P','K','U','P'};
-    file.write(pickup_header,4); // Pickup Data Header ("PKUP")
-
-    std::vector<pickup_serial_data> pickup_data = pickupManager->exportSerializedPickups();
-    if (pickup_data.empty()) {
-        SDL_LogWarn(LOG_SCENE, "WARNING: Pickup data is empty");
-    }
-
-    SDL_LogDebug(LOG_SCENE, 
-        "Writing pickup data:\n"
-        " - Number of pickups: %i\n"
-        " - Size of pickups: %iB\n",
-        static_cast<int>(pickup_data.size()),
-        static_cast<int>(pickup_data.size() * sizeof(pickup_serial_data))
-    );
-
-    const uint32_t number_pickups = static_cast<uint32_t>(pickup_data.size());
-    file.write(reinterpret_cast<const char*>(&number_pickups),sizeof(number_pickups)); // Pickup Count
-
-    file.write(reinterpret_cast<const char*>(pickup_data.data()), pickup_data.size() * sizeof(pickup_serial_data)); // Pickup Data
-    if (!file) {
-        SDL_LogError(LOG_SCENE, "ERROR: Save failed to write the pickup data");
-        return false;
-    }
+    // Pickup Data Save //
+    pickupManager->writeToFileAsync();
 
     // Player Data Write //
 
@@ -724,10 +656,19 @@ bool _scene::loadSceneFromFile(const std::string &fileName) {
         SDL_LogWarn(LOG_SCENE, "WARNING: World file version of %u does not match current version of %u continuing with load but may fail", version_id, WORLD_SAVE_VERSION);
     }    
 
+    constexpr float tolerance = 0.0009;
     float game_id = 0;
     file.read(reinterpret_cast<char*>(&game_id), sizeof(game_id));    // Version ID
-    if (game_id < GAME_VERSION) {
-        SDL_LogWarn(LOG_SCENE, "WARNING: Game file version of %f does not match loaded version of the game %f continuing with load but may fail", game_id, GAME_VERSION);
+    const float diff = abs(game_id - GAME_VERSION);
+    if (diff > tolerance) {
+        SDL_LogWarn(
+            LOG_SCENE, 
+            "WARNING: Game file version of %f does not match loaded version of the game %f continuing with load but may fail." 
+            "\nDifference: %f",
+            game_id, 
+            GAME_VERSION,
+            diff
+        );
     }  
 
     int32_t chunk_count = 0;
@@ -831,60 +772,16 @@ bool _scene::loadSceneFromFile(const std::string &fileName) {
     );
 
          
-    // Read Pickup Data //
-    char pickup_header[4];
-    file.read(pickup_header,4);    // Pickup Data Header
-    if (pickup_header[0] != 'P' || pickup_header[1] != 'K' || pickup_header[2] != 'U' || pickup_header[3] != 'P') {
-        SDL_LogError(LOG_SCENE, "ERROR: Invalid pickup data header");
-        return false;
-    }
+    // Initialize Pickups //
 
-    uint32_t pickup_count = 0;
-    file.read(reinterpret_cast<char*>(&pickup_count), sizeof(pickup_count));  // Pickup Count
-
-    SDL_LogInfo(LOG_SCENE, "Pickup count read: %u", pickup_count);
-    if (pickup_count == 0) {
-        SDL_LogWarn(LOG_SCENE, "WARNING: Pickup count is 0");
-    }
-
-    pickupManager->initPickupManager(
+    pickupManager->init(
         "images/pickups/pickup_sheet.png",
         6,
         player.get(),
-        lightManager.get()
+        lightManager.get(),
+        myWorld.get()
     );
 
-    // Check for pickups to read
-    if (pickup_count > 0) {
-        std::vector<pickup_serial_data> pickup_data;
-        pickup_data.resize(pickup_count);
-        file.read(reinterpret_cast<char*>(pickup_data.data()), pickup_data.size() * sizeof(pickup_serial_data));
-    
-        if (!pickupManager->importSerializedPickups(pickup_data)) {
-            SDL_LogWarn(LOG_SCENE, "WARNING: Unable to import pickup data to pickup manager");
-            return false;
-        }
-
-        if (!file) {
-            SDL_LogError(LOG_SCENE, "ERROR: Unable to read pickup data");
-            return false;
-        }
-    
-        if (pickup_data.empty()) {
-            SDL_LogWarn(LOG_SCENE, "WARNING: Pickup data read is empty");
-        }
-
-        SDL_LogInfo(LOG_SCENE,
-            "Read pickup data:\n"
-            " - Number of pickups: %zu\n"
-            " - Size of pickups: %zu bytes",
-            pickup_data.size(),
-            pickup_data.size() * sizeof(pickup_serial_data)
-        );
-    } else {
-        SDL_LogInfo(LOG_SCENE, "Skipping pickup loading as there are none in save file");
-    }
-    
     // Read Player Data //
 
     char player_header[4];
@@ -1009,7 +906,7 @@ void _scene::drawScene()
     
     bulletManager->drawBulletManager();
 
-    pickupManager->drawPickups();
+    pickupManager->draw();
     
     FOB->drawFob();
 
@@ -1073,7 +970,7 @@ void _scene::updateScene(double dt, const InputState &inputState)
     myWorld->updateWorld(dt);
     player->updatePlayer(dt);
     FOB->updateFob(dt);
-    pickupManager->updatePickups(dt);
+    pickupManager->update(dt);
 
     if (enemyManager->bossKilledEvent) {
         enemyManager->bossKilledEvent = false;
@@ -1506,6 +1403,10 @@ void _scene::updateScene(double dt, const InputState &inputState)
     }
 }
 
+void _scene::updateSceneBackground() {
+    pickupManager->updateBackground();
+}
+
 void _scene::debugPrint()
 {
     Logger.LogDebug("World drawing took: " + std::to_string(drawWorldBenchmark.getAverageResult()) + "ms");
@@ -1551,28 +1452,37 @@ void _scene::keyboardHandler(const InputState &inputState)
         enemyManager->addEnemy(mouseWorldPos, vampire_minion2_config);
     }
     if (inputState.keys[SDL_SCANCODE_7]) {
-        pickupManager->addPickup(mouseWorldPos, PICKUP_SPEED, 10.0f);
+        pickupManager->add(mouseWorldPos, pickups::PICKUP_SPEED, 10.0f);
     }
     if (inputState.keys[SDL_SCANCODE_8]) {
-        pickupManager->addPickup(mouseWorldPos, PICKUP_MAX_HEALTH, 10.0f);
+        pickupManager->add(mouseWorldPos, pickups::PICKUP_MAX_HEALTH, 10.0f);
     }
     if (inputState.keys[SDL_SCANCODE_9]) {
-        pickupManager->addPickup(mouseWorldPos, PICKUP_FIRERATE, 10.0f);
+        pickupManager->add(mouseWorldPos, pickups::PICKUP_FIRERATE, 10.0f);
     }
     if (inputState.keys[SDL_SCANCODE_0]) {
-        pickupManager->addPickup(mouseWorldPos, PICKUP_XP, 10.0f);
+        pickupManager->add(mouseWorldPos, pickups::PICKUP_XP, 10.0f);
     }
     if (inputState.keys[SDL_SCANCODE_SPACE]) {
-        // Nothing
+        
     }
-    if (inputState.keys[SDL_SCANCODE_SPACE]) {
-        // Nothing
+    if (inputState.keys[SDL_SCANCODE_F1]) {
+
+    }
+    if (inputState.keys[SDL_SCANCODE_F2]) {
+
+    }
+    if (inputState.keys[SDL_SCANCODE_F3]) {
+
+    }
+    if (inputState.keys[SDL_SCANCODE_F4]) {
+
     }
     if (inputState.keys[SDL_SCANCODE_F5]) {
         ParticleEngine->reload();
     }
     if (inputState.keys[SDL_SCANCODE_RIGHTBRACKET]) {
-        ParticleEngine->spawnEffect({mouseWorldPos.x, mouseWorldPos.y},"test_2");
+
     }
     if (inputState.keys[SDL_SCANCODE_R]) {
         player->procReload();
@@ -1645,10 +1555,11 @@ void _scene::applyCamera()
     sceneViewProjectionMatrix = sceneProjectionMatrix * sceneViewMatix;
 
     _bulletManager::setViewProjectionMatrix(sceneViewProjectionMatrix);
-    _pickupManager::setViewProjectionMatrix(sceneViewProjectionMatrix);
+    pickups::Engine::setViewProjectionMatrix(sceneViewProjectionMatrix);
     _enemyManager::setViewProjectionMatrix(sceneViewProjectionMatrix);
     _world::setViewProjectionMatrix(sceneViewProjectionMatrix);
     _world::setCameraPosition({cameraX,cameraY});
+    pickups::Engine::setCameraPosition({cameraX,cameraY});
 
     // Legacy Matrix Building //
 

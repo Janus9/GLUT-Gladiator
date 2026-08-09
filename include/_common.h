@@ -5,10 +5,14 @@
 
 #define GLUT_DISABLE_ATEXIT_HACK    // glut.h here is classic GLUT; skip the inline ATEXIT stubs that reference __glut*WithExit symbols not exported by freeglut
 #define GRAVITY 9.81
+#define SAVE_DIRECTORY "saves/"
+#define PICKUPS_EXTENSION ".gg_pickups"
 
 // Versions //
 #define GAME_VERSION 0.463           // Version of the game itself
-#define WORLD_SAVE_VERSION 3         // Version of the world save system
+#define WORLD_SAVE_VERSION 4         // Version of the world save system
+
+#define PI 3.14159
 
 // INCLUDES //
 #include <iostream>
@@ -37,10 +41,21 @@
 #include <memory>
 #include <_loggerSDL.h>
 #include <algorithm>
+#include <array>
+#include <atomic>
+#include <thread>
+#include <mutex>
+#include <filesystem>
 
-// DEFINITIONS //
+// GLOBAL VARIABLES //
+namespace global {
+    inline std::string saveFileName = "game";        
+}
 
-#define PI 3.14159
+namespace debug {
+    inline bool pickupCleanDisk = false;      // Disables "heavy" debug logging
+    inline bool pickupWriteDisk = false;      // Disables "heavy" debug logging
+}
 
 // STRUCTS //
 
