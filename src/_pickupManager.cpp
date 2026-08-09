@@ -360,20 +360,20 @@ bool _pickupManager::generateToFile(const world_config &config) {
     return true;
 }
 
-bool _pickupManager::readFromFileAsync() {
+void _pickupManager::readFromFileAsync() {
     SDL_LogInfo(LOG_PICKUPS, "Command given to read from file");
 
     if (writeBufferInProgress.load() || writeBufferThread.joinable()) {
         SDL_LogWarn(LOG_PICKUPS, "WARNING: Write Buffer Thread already working, skipping command");
-        return true;
+        return;
     }
     if (writeDiskInProgress.load() || writeDiskThread.joinable()) {
         SDL_LogWarn(LOG_PICKUPS, "WARNING: Write Disk Thread already working, must wait until done, skipping command");
-        return true;
+        return;
     }
     if (cleanDiskInProgress.load() || cleanDiskThread.joinable()) {
         SDL_LogWarn(LOG_PICKUPS, "WARNING: Clean Disk Thread already working, must wait until done, skipping command");
-        return true;
+        return;
     }
 
     writeBufferInProgress.store(true);
@@ -381,32 +381,32 @@ bool _pickupManager::readFromFileAsync() {
 
     prevWritePos = cameraPosition;
 
-    return true;
+    return;
 }
 
-bool _pickupManager::writeToFileAsync() {
+void _pickupManager::writeToFileAsync() {
     SDL_LogInfo(LOG_PICKUPS, "Command given to write to file");
     if (writeDiskInProgress.load() || writeDiskThread.joinable()) {
         SDL_LogWarn(LOG_PICKUPS, "WARNING: Write Disk Thread already working, skipping command");
-        return true;
+        return;
     }
     if (writeBufferInProgress.load() || writeBufferThread.joinable()) {
         SDL_LogWarn(LOG_PICKUPS, "WARNING: Write Buffer Thread already working, must wait until done, skipping command");
-        return true;
+        return;
     }
     if (cleanDiskInProgress.load() || cleanDiskThread.joinable()) {
         SDL_LogWarn(LOG_PICKUPS, "WARNING: Clean Disk Thread already working, must wait until done, skipping command");
-        return true;
+        return;
     }
     if (mutationMap.empty()) {
         SDL_LogInfo(LOG_PICKUPS, "Mutation Map empty, skipping command");
-        return true;
+        return;
     }
 
     writeDiskInProgress.store(true);
     writeDiskThread = std::thread(&_pickupManager::saveToFileWorker, this);
 
-    return true;
+    return;
 }
 
 void _pickupManager::cleanDeadFromFileAsync() {
@@ -423,6 +423,23 @@ void _pickupManager::cleanDeadFromFileAsync() {
 
     cleanDiskInProgress.store(true);
     cleanDiskThread = std::thread(&_pickupManager::cleanDeadFromFileWorker, this);
+}
+
+bool _pickupManager::areAsyncTasksCompleted() const {
+    if (writeDiskInProgress.load() || writeDiskThread.joinable()) {
+        SDL_LogInfo(LOG_PICKUPS, "Write Disk Thread working");
+        return false;
+    }
+    if (writeBufferInProgress.load() || writeBufferThread.joinable()) {
+        SDL_LogInfo(LOG_PICKUPS, "Write Buffer Thread working");
+        return false;
+    }
+    if (cleanDiskInProgress.load() || cleanDiskThread.joinable()) {
+        SDL_LogInfo(LOG_PICKUPS, "Clean Disk Thread working");
+        return false;
+    }
+    SDL_LogInfo(LOG_PICKUPS, "All threads have been joined");
+    return true;
 }
 
 void _pickupManager::logDisk() const {

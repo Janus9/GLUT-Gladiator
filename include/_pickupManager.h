@@ -93,19 +93,15 @@ class _pickupManager {
          * Reads the current world file and writes the contents into the memory
          * 
          * Runs asynchronously on a worker thread.
-         * 
-         * @return True if opperation succeeded
          */
-        bool readFromFileAsync();
+        void readFromFileAsync();
 
         /**
          * Writes the contents of the mutation map into disk.
          * 
          * Runs asynchronously on a worker thread.
-         * 
-         * @return True if operation succeeded
          */
-        bool writeToFileAsync();
+        void writeToFileAsync();
 
         /**
          * Removes dead pickups from the save file.
@@ -113,6 +109,13 @@ class _pickupManager {
          * Runs asynchronously on a worker thread.
          */
         void cleanDeadFromFileAsync();
+
+        /**
+         * Checks if any async tasks are actively runnning.
+         * 
+         * @return True if all async functions have completed.
+         */
+        bool areAsyncTasksCompleted() const;
 
         /** 
          * Creates a "pickup.log" file which contains a detailed printout of the save file pickup contents.
