@@ -53,7 +53,8 @@ namespace global {
 }
 
 namespace debug {
-    inline bool cleanDisk = false;      // Disables "heavy" debug logging
+    inline bool pickupCleanDisk = false;      // Disables "heavy" debug logging
+    inline bool pickupWriteDisk = false;      // Disables "heavy" debug logging
 }
 
 // STRUCTS //

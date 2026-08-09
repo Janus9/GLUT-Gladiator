@@ -565,6 +565,14 @@ void _pickupManager::writeToBuffer() {
     SDL_LogDebug(LOG_PICKUPS, "[Write Buffer Thread]: Next ID: %u", nextID.load());
 
     SDL_LogDebug(LOG_PICKUPS, "[Write Buffer Thread]: Read %llu pickups", writeBuffer->size());
+    if (writeBuffer->size() > MAX_RENDER_PICKUPS) {
+        SDL_LogWarn(
+            LOG_PICKUPS, 
+            "[Write Buffer Thread]: WARNING: Pickups loaded (%llu) exceeds max render amount of (%i)",
+            writeBuffer->size(), 
+            MAX_RENDER_PICKUPS
+        );
+    }
 
     writeBufferCompleted.store(true);
 
@@ -618,11 +626,14 @@ void _pickupManager::emptyMutationMap() {
 
     while (pickups > 0) {
         std::streampos startPos = file.tellp();
-        SDL_LogDebug(
-            LOG_PICKUPS, 
-            "[Disk Write Thread]: Disk Start: 0x%llX", 
-            static_cast<unsigned long long>(static_cast<std::streamoff>(startPos))
-        );
+
+        if (debug::pickupWriteDisk) {
+            SDL_LogDebug(
+                LOG_PICKUPS, 
+                "[Disk Write Thread]: Disk Start: 0x%llX", 
+                static_cast<unsigned long long>(static_cast<std::streamoff>(startPos))
+            );
+        }
 
         std::vector<pickup_serial_data> buffer(std::clamp(pickups, 0, BUFFER_SIZE));
         file.read(reinterpret_cast<char*>(buffer.data()), buffer.size() * sizeof(pickup_serial_data));
@@ -728,7 +739,7 @@ void _pickupManager::cleanDeadFromFileWorker() {
     writePos = file.tellp();
     readPos = file.tellg();
 
-    if (debug::cleanDisk) {
+    if (debug::pickupCleanDisk) {
         SDL_LogDebug(
             LOG_PICKUPS, 
             "[Clean Disk Thread]: Disk Position Debug"
@@ -778,7 +789,7 @@ void _pickupManager::cleanDeadFromFileWorker() {
 
         writePos += std::streamoff(static_cast<long long>(aliveCount) * static_cast<long long>(sizeof(pickup_serial_data)));
         
-        if (debug::cleanDisk) {
+        if (debug::pickupCleanDisk) {
             SDL_LogDebug(
                 LOG_PICKUPS, 
                 "[Clean Disk Thread]: Disk Position Debug"
