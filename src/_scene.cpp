@@ -562,7 +562,7 @@ void _scene::initScene(bool loadWorld)
 bool _scene::saveSceneToFile(const std::string &fileName) {
     SDL_LogInfo(LOG_SCENE, "Exporting game to save file: %s.gg_world", fileName.c_str());
 
-    std::fstream file(fileName + ".gg_world", std::ios::binary | std::ios::in | std::ios::out);     // Output as binary file
+    std::fstream file(fileName + ".gg_world", std::ios::binary | std::ios::out);     // Output as binary file
     if (!file) {
         SDL_LogError(LOG_SCENE, "ERROR: Cannot create output file for: %s", fileName.c_str());
         return false;
