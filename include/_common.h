@@ -52,6 +52,10 @@ namespace global {
     inline std::string saveFileName = "game";        
 }
 
+namespace debug {
+    inline bool cleanDisk = false;      // Disables "heavy" debug logging
+}
+
 // STRUCTS //
 
 // Structure for a Vector 2D of type float containg simple functions and operator overloads
