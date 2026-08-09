@@ -358,6 +358,10 @@ bool _pickupManager::readFromFile() {
         SDL_LogWarn(LOG_PICKUPS, "WARNING: Write Disk Thread already working, must wait until done, skipping command");
         return true;
     }
+    if (cleanDiskInProgress.load() || cleanDiskThread.joinable()) {
+        SDL_LogWarn(LOG_PICKUPS, "WARNING: Clean Disk Thread already working, must wait until done, skipping command");
+        return true;
+    }
 
     writeBufferInProgress.store(true);
     writeBufferThread = std::thread(&_pickupManager::writeToBuffer, this);
@@ -375,6 +379,10 @@ bool _pickupManager::writeToFile() {
     }
     if (writeBufferInProgress.load() || writeBufferThread.joinable()) {
         SDL_LogWarn(LOG_PICKUPS, "WARNING: Write Buffer Thread already working, must wait until done, skipping command");
+        return true;
+    }
+    if (cleanDiskInProgress.load() || cleanDiskThread.joinable()) {
+        SDL_LogWarn(LOG_PICKUPS, "WARNING: Clean Disk Thread already working, must wait until done, skipping command");
         return true;
     }
     if (mutationMap.empty()) {
@@ -709,6 +717,8 @@ void _pickupManager::cleanDeadFromFileWorker() {
         cleanDiskCompleted.store(true);
         return;
     }
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(2000));
 
     // -- DONE -- //
     cleanDiskCompleted.store(true);
