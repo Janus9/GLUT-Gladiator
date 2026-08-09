@@ -112,7 +112,7 @@ namespace pickups {
             void cleanDeadFromFileAsync();
 
             /**
-             * Checks if any async tasks are actively runnning.
+             * Checks whether all asynchronous pickup tasks have completed.
              * 
              * @return True if all async functions have completed.
              */
@@ -175,16 +175,13 @@ namespace pickups {
 
             std::mutex m_mm; // Mutation Map Mutex
             // Add Pickups From Disk Into Memory //
-            std::atomic<bool> writeBufferCompleted;
-            std::atomic<bool> writeBufferInProgress;
+            std::atomic<AsyncState> writeBufferState;
             std::thread writeBufferThread;      // Thread for Write Buffer (Memory)
             // Add Pickups To Disk //
-            std::atomic<bool> writeDiskCompleted;
-            std::atomic<bool> writeDiskInProgress;
+            std::atomic<AsyncState> writeDiskState;
             std::thread writeDiskThread;        // Thread for Disk Write
             // Remove Dead Pickups From Disk //
-            std::atomic<bool> cleanDiskCompleted;   
-            std::atomic<bool> cleanDiskInProgress;
+            std::atomic<AsyncState> cleanDiskState;
             std::thread cleanDiskThread;        // Thread for Disk Clean
 
             std::atomic<uint32_t> nextID;

@@ -20,11 +20,9 @@ namespace pickups {
     Engine::Engine() : rng(std::random_device{}()) {
         alivePickups = 0;
 
-        writeBufferCompleted.store(false);
-        writeBufferInProgress.store(false);
-
-        writeDiskCompleted.store(false);
-        writeDiskInProgress.store(false);
+        writeBufferState.store(AsyncState::IDLE);
+        writeDiskState.store(AsyncState::IDLE);
+        cleanDiskState.store(AsyncState::IDLE);
 
         nextID.store(0u);
 
@@ -226,7 +224,7 @@ namespace pickups {
 
     void Engine::updateBackground() {
         // Write Buffer Join //
-        if (writeBufferInProgress.load() && writeBufferCompleted.load()) {
+        if (writeBufferState.load() == AsyncState::COMPLETED) {
             if (writeBufferThread.joinable()) {
                 writeBufferThread.join();
                 // Not done in thread to prevent race conditions
@@ -235,12 +233,11 @@ namespace pickups {
             } else {
                 SDL_LogWarn(LOG_PICKUPS, "WARNING: Cannot join Write Buffer Thread as it is not joinable");
             }
-            writeBufferInProgress.store(false);
-            writeBufferCompleted.store(false);
+            writeBufferState.store(AsyncState::IDLE);
         }
 
         // Write Disk Join //
-        if (writeDiskInProgress.load() && writeDiskCompleted.load()) {
+        if (writeDiskState.load() == AsyncState::COMPLETED) {
             if (writeDiskThread.joinable()) {
                 writeDiskThread.join();
                 SDL_LogDebug(LOG_PICKUPS, "Write Disk Thread joined");
@@ -248,12 +245,11 @@ namespace pickups {
                 SDL_LogWarn(LOG_PICKUPS, "WARNING: Cannot join Write Disk Thread as it is not joinable");
             }
 
-            writeDiskInProgress.store(false);
-            writeDiskCompleted.store(false);
+            writeDiskState.store(AsyncState::IDLE);
         }
 
         // Clean Disk Join //
-        if (cleanDiskInProgress.load() && cleanDiskCompleted.load()) {
+        if (cleanDiskState.load() == AsyncState::COMPLETED) {
             if (cleanDiskThread.joinable()) {
                 cleanDiskThread.join();
                 SDL_LogDebug(LOG_PICKUPS, "Clean Disk Thread joined");
@@ -261,8 +257,7 @@ namespace pickups {
                 SDL_LogWarn(LOG_PICKUPS, "WARNING: Cannot join Clean Disk Thread as it is not joinable");
             }
 
-            cleanDiskInProgress.store(false);
-            cleanDiskCompleted.store(false);
+            cleanDiskState.store(AsyncState::IDLE);
         }
     }
 
@@ -363,20 +358,20 @@ namespace pickups {
     void Engine::readFromFileAsync() {
         SDL_LogInfo(LOG_PICKUPS, "Command given to read from file");
 
-        if (writeBufferInProgress.load() || writeBufferThread.joinable()) {
+        if (writeBufferState.load() == AsyncState::RUNNING || writeBufferThread.joinable()) {
             SDL_LogWarn(LOG_PICKUPS, "WARNING: Write Buffer Thread already working, skipping command");
             return;
         }
-        if (writeDiskInProgress.load() || writeDiskThread.joinable()) {
+        if (writeDiskState.load() == AsyncState::RUNNING || writeDiskThread.joinable()) {
             SDL_LogWarn(LOG_PICKUPS, "WARNING: Write Disk Thread already working, must wait until done, skipping command");
             return;
         }
-        if (cleanDiskInProgress.load() || cleanDiskThread.joinable()) {
+        if (cleanDiskState.load() == AsyncState::RUNNING || cleanDiskThread.joinable()) {
             SDL_LogWarn(LOG_PICKUPS, "WARNING: Clean Disk Thread already working, must wait until done, skipping command");
             return;
         }
 
-        writeBufferInProgress.store(true);
+        writeBufferState.store(AsyncState::RUNNING);
         writeBufferThread = std::thread(&Engine::readFromFileWorker, this);
 
         prevWritePos = cameraPosition;
@@ -386,15 +381,15 @@ namespace pickups {
 
     void Engine::writeToFileAsync() {
         SDL_LogInfo(LOG_PICKUPS, "Command given to write to file");
-        if (writeDiskInProgress.load() || writeDiskThread.joinable()) {
+        if (writeDiskState.load() == AsyncState::RUNNING || writeDiskThread.joinable()) {
             SDL_LogWarn(LOG_PICKUPS, "WARNING: Write Disk Thread already working, skipping command");
             return;
         }
-        if (writeBufferInProgress.load() || writeBufferThread.joinable()) {
+        if (writeBufferState.load() == AsyncState::RUNNING || writeBufferThread.joinable()) {
             SDL_LogWarn(LOG_PICKUPS, "WARNING: Write Buffer Thread already working, must wait until done, skipping command");
             return;
         }
-        if (cleanDiskInProgress.load() || cleanDiskThread.joinable()) {
+        if (cleanDiskState.load() == AsyncState::RUNNING || cleanDiskThread.joinable()) {
             SDL_LogWarn(LOG_PICKUPS, "WARNING: Clean Disk Thread already working, must wait until done, skipping command");
             return;
         }
@@ -403,7 +398,7 @@ namespace pickups {
             return;
         }
 
-        writeDiskInProgress.store(true);
+        writeDiskState.store(AsyncState::RUNNING);
         writeDiskThread = std::thread(&Engine::saveToFileWorker, this);
 
         return;
@@ -412,29 +407,33 @@ namespace pickups {
     void Engine::cleanDeadFromFileAsync() {
         SDL_LogInfo(LOG_PICKUPS, "Command given to remove dead pickups from file");
 
-        if (cleanDiskInProgress.load() || cleanDiskThread.joinable()) {
+        if (cleanDiskState.load() == AsyncState::RUNNING || cleanDiskThread.joinable()) {
             SDL_LogWarn(LOG_PICKUPS, "WARNING: Clean Disk Thread already working, skipping command");
             return;
         }
-        if (writeDiskInProgress.load() || writeDiskThread.joinable()) {
+        if (writeDiskState.load() == AsyncState::RUNNING || writeDiskThread.joinable()) {
             SDL_LogWarn(LOG_PICKUPS, "WARNING: Write Disk Thread already working, must wait until done, skipping command");
             return;
         }
+        if (writeBufferState.load() == AsyncState::RUNNING || writeBufferThread.joinable()) {
+            SDL_LogWarn(LOG_PICKUPS, "WARNING: Write Buffer Thread already working, must wait until done, skipping command");
+            return;
+        }
 
-        cleanDiskInProgress.store(true);
+        cleanDiskState.store(AsyncState::RUNNING);
         cleanDiskThread = std::thread(&Engine::cleanDeadFromFileWorker, this);
     }
 
     bool Engine::areAsyncTasksCompleted() const {
-        if (writeDiskInProgress.load() || writeDiskThread.joinable()) {
+        if (writeDiskState.load() == AsyncState::RUNNING || writeDiskThread.joinable()) {
             SDL_LogInfo(LOG_PICKUPS, "Write Disk Thread working");
             return false;
         }
-        if (writeBufferInProgress.load() || writeBufferThread.joinable()) {
+        if (writeBufferState.load() == AsyncState::RUNNING || writeBufferThread.joinable()) {
             SDL_LogInfo(LOG_PICKUPS, "Write Buffer Thread working");
             return false;
         }
-        if (cleanDiskInProgress.load() || cleanDiskThread.joinable()) {
+        if (cleanDiskState.load() == AsyncState::RUNNING || cleanDiskThread.joinable()) {
             SDL_LogInfo(LOG_PICKUPS, "Clean Disk Thread working");
             return false;
         }
@@ -519,7 +518,7 @@ namespace pickups {
         std::fstream file(saveDir, std::ios::binary | std::ios::in | std::ios::out);
         if (!file) {
             SDL_LogError(LOG_PICKUPS, "[Write Buffer Thread]: ERROR: Cannot open the save file: %s", saveDir.c_str());
-            writeBufferCompleted.store(true);
+            writeBufferState.store(AsyncState::COMPLETED);
             return;
         }
 
@@ -539,7 +538,7 @@ namespace pickups {
 
         if (!writeBuffer) {
             SDL_LogError(LOG_PICKUPS, "[Write Buffer Thread]: ERROR: Cannot write to the buffer as it is nullptr");
-            writeBufferCompleted.store(true);
+            writeBufferState.store(AsyncState::COMPLETED);
             return;
         }
 
@@ -597,7 +596,7 @@ namespace pickups {
             );
         }
 
-        writeBufferCompleted.store(true);
+        writeBufferState.store(AsyncState::COMPLETED);
 
         auto stop = std::chrono::steady_clock::now();
         const float d = std::chrono::duration<float, std::milli>(stop-start).count();
@@ -614,7 +613,7 @@ namespace pickups {
         std::fstream file(saveDir, std::ios::binary | std::ios::in | std::ios::out);
         if (!file) {
             SDL_LogError(LOG_PICKUPS, "[Disk Write Thread]: ERROR: Cannot open the save file: %s", saveDir.c_str());
-            writeDiskCompleted.store(true);
+            writeDiskState.store(AsyncState::COMPLETED);
             return;
         }
 
@@ -624,7 +623,7 @@ namespace pickups {
         uint32_t pickup_count = 0;
         if (!verifyFile(file, pickup_count)) {
             SDL_LogError(LOG_PICKUPS, "[Disk Write Thread]: ERROR: Cannot verify the save file: %s", saveDir.c_str());
-            writeDiskCompleted.store(true);
+            writeDiskState.store(AsyncState::COMPLETED);
             return;
         }
 
@@ -678,7 +677,7 @@ namespace pickups {
             file.write(reinterpret_cast<const char*>(buffer.data()), buffer.size() * sizeof(pickups::serial_data)); 
             if (!file) {
                 SDL_LogError(LOG_PICKUPS, "[Disk Write Thread]: ERROR: Failed to write the pickup buffer data");
-                writeDiskCompleted.store(true);
+                writeDiskState.store(AsyncState::COMPLETED);
                 return;
             }
         }
@@ -706,7 +705,7 @@ namespace pickups {
         file.write(reinterpret_cast<const char*>(buffer.data()), buffer.size() * sizeof(pickups::serial_data)); 
         if (!file) {
             SDL_LogError(LOG_PICKUPS, "[Disk Write Thread]: ERROR: Failed to write the pickup buffer data");
-            writeDiskCompleted.store(true);
+            writeDiskState.store(AsyncState::COMPLETED);
             return;
         }
 
@@ -718,13 +717,13 @@ namespace pickups {
             
             if (!file) {
                 SDL_LogError(LOG_PICKUPS, "[Disk Write Thread]: ERROR: Failed to write the updated pickup_count");
-                writeDiskCompleted.store(true);
+                writeDiskState.store(AsyncState::COMPLETED);
                 return;
             }
         }
 
         // DONE //
-        writeDiskCompleted.store(true);
+        writeDiskState.store(AsyncState::COMPLETED);
 
         auto stop = std::chrono::steady_clock::now();
         const float d = std::chrono::duration<float, std::milli>(stop-start).count();
@@ -739,7 +738,7 @@ namespace pickups {
         std::fstream file(saveDir, std::ios::binary | std::ios::in | std::ios::out);
         if (!file) {
             SDL_LogError(LOG_PICKUPS, "[Clean Disk Thread]: ERROR: Cannot open the save file: %s", saveDir.c_str());
-            cleanDiskCompleted.store(true);
+            cleanDiskState.store(AsyncState::COMPLETED);
             return;
         }
 
@@ -751,7 +750,7 @@ namespace pickups {
         uint32_t pickup_count = 0;
         if (!verifyFile(file, pickup_count)) {
             SDL_LogError(LOG_PICKUPS, "[Clean Disk Thread]: ERROR: Cannot verify the save file: %s", saveDir.c_str());
-            cleanDiskCompleted.store(true);
+            cleanDiskState.store(AsyncState::COMPLETED);
             return;
         }
         const std::streamoff startOff = file.tellg();
@@ -848,7 +847,7 @@ namespace pickups {
         SDL_LogDebug(LOG_PICKUPS, "[Clean Disk Thread]: File New Size: %llu B", newSize);
 
         // -- DONE -- //
-        cleanDiskCompleted.store(true);
+        cleanDiskState.store(AsyncState::COMPLETED);
 
         auto stop = std::chrono::steady_clock::now();
         const float d = std::chrono::duration<float, std::milli>(stop-start).count();

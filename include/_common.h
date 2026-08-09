@@ -451,4 +451,10 @@ enum class _team : uint8_t {
     NEUTRAL
 };
 
+enum class AsyncState {
+    IDLE,       // Task is not running (joined)
+    RUNNING,    // Task is running
+    COMPLETED   // Task has completed (await join)
+};
+
 #endif // _COMMON_H
