@@ -147,7 +147,9 @@ void _pickupManager::updatePickups(const double dt) {
         readFromFile();
     }
 
+    pickupSaveElapsedTime += dt;
     t_value += dt;
+    
     if (alivePickups == 0) return;
 
     for (size_t i = 0; i < readBuffer->size(); i++) {
@@ -208,7 +210,6 @@ void _pickupManager::updatePickups(const double dt) {
             mutationMap[p.id] = p;  // Add to mutation map
         }
     }
-    pickupSaveElapsedTime += dt;
 }
 
 void _pickupManager::updateBackground() {
@@ -727,6 +728,19 @@ void _pickupManager::cleanDeadFromFileWorker() {
     writePos = file.tellp();
     readPos = file.tellg();
 
+    SDL_LogDebug(
+        LOG_PICKUPS, 
+        "[Clean Disk Thread]: Disk Position Debug"
+        "\n - Write Pos: 0x%llX" 
+        "\n - Read Pos: 0x%llX"
+        "\n - Count Pos: 0x%llX"
+        "\n - Start Offset: 0x%llX",
+        static_cast<unsigned long long>(static_cast<std::streamoff>(writePos)),
+        static_cast<unsigned long long>(static_cast<std::streamoff>(readPos)),
+        static_cast<unsigned long long>(static_cast<std::streamoff>(countPos)),
+        static_cast<unsigned long long>(startOff)
+    );
+
     // -- WORK -- //
     // Invariant: writePos < readPos
     uint32_t totalAlive = 0;
@@ -754,15 +768,25 @@ void _pickupManager::cleanDeadFromFileWorker() {
         totalAlive += aliveCount;
         
         readPos += std::streamoff(buffer.size() * sizeof(pickup_serial_data));
-        writePos += std::streamoff(static_cast<unsigned long long>(aliveCount) * sizeof(pickup_serial_data));
 
         // Write alive pickups back in
         file.seekp(writePos);
         file.write(reinterpret_cast<const char*>(buffer.data()), aliveCount * sizeof(pickup_serial_data)); 
 
-        SDL_LogDebug(LOG_PICKUPS, "Alive Pickups Found: %i of %llu", aliveCount, buffer.size());
-        SDL_LogDebug(LOG_PICKUPS, "Pickups Remaining: %i", pickups);
-        SDL_LogDebug(LOG_PICKUPS, "Total Alive Pickups: %u", totalAlive);
+        writePos += std::streamoff(static_cast<long long>(aliveCount) * static_cast<long long>(sizeof(pickup_serial_data)));
+        
+        SDL_LogDebug(
+            LOG_PICKUPS, 
+            "[Clean Disk Thread]: Disk Position Debug"
+            "\n - Write Pos: 0x%llX" 
+            "\n - Read Pos: 0x%llX",
+            static_cast<unsigned long long>(static_cast<std::streamoff>(writePos)),
+            static_cast<unsigned long long>(static_cast<std::streamoff>(readPos))
+        );
+
+        SDL_LogDebug(LOG_PICKUPS, "[Clean Disk Thread]: Alive Pickups Found: %i of %llu", aliveCount, buffer.size());
+        SDL_LogDebug(LOG_PICKUPS, "[Clean Disk Thread]: Pickups Remaining: %i", pickups);
+        SDL_LogDebug(LOG_PICKUPS, "[Clean Disk Thread]: Total Alive Pickups: %u", totalAlive);
     }
 
     // Write new pickup count
@@ -776,13 +800,13 @@ void _pickupManager::cleanDeadFromFileWorker() {
         static_cast<uintmax_t>(sizeof(pickup_serial_data));
     
     file.seekg(0,std::ios::end);
-    SDL_LogDebug(LOG_PICKUPS, "File Original Size: %lli B", static_cast<long long>(file.tellg()));
+    SDL_LogDebug(LOG_PICKUPS, "[Clean Disk Thread]: File Original Size: %lli B", static_cast<long long>(file.tellg()));
 
     file.flush();
     file.close();
 
     std::filesystem::resize_file(saveDir, newSize);
-    SDL_LogDebug(LOG_PICKUPS, "File New Size: %llu B", newSize);
+    SDL_LogDebug(LOG_PICKUPS, "[Clean Disk Thread]: File New Size: %llu B", newSize);
 
     // -- DONE -- //
     cleanDiskCompleted.store(true);
