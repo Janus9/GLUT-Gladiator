@@ -370,7 +370,7 @@ bool _pickupManager::readFromFileAsync() {
     }
 
     writeBufferInProgress.store(true);
-    writeBufferThread = std::thread(&_pickupManager::writeToBuffer, this);
+    writeBufferThread = std::thread(&_pickupManager::readFromFileWorker, this);
 
     prevWritePos = cameraPosition;
 
@@ -397,7 +397,7 @@ bool _pickupManager::writeToFileAsync() {
     }
 
     writeDiskInProgress.store(true);
-    writeDiskThread = std::thread(&_pickupManager::emptyMutationMap, this);
+    writeDiskThread = std::thread(&_pickupManager::saveToFileWorker, this);
 
     return true;
 }
@@ -486,7 +486,7 @@ void _pickupManager::logDisk() const {
 
 // -- PRIVATE -- //
 
-void _pickupManager::writeToBuffer() {
+void _pickupManager::readFromFileWorker() {
     SDL_LogInfo(LOG_PICKUPS, "[Write Buffer Thread]: Reading pickups from save file");
 
     auto start = std::chrono::steady_clock::now();
@@ -583,7 +583,7 @@ void _pickupManager::writeToBuffer() {
     SDL_LogInfo(LOG_PICKUPS, "[Write Buffer Thread]: Successfully loaded pickups from save file");
 }
 
-void _pickupManager::emptyMutationMap() {
+void _pickupManager::saveToFileWorker() {
     auto start = std::chrono::steady_clock::now();
     
     const std::string saveDir = std::string(SAVE_DIRECTORY + global::saveFileName + PICKUPS_EXTENSION);

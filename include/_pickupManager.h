@@ -190,8 +190,8 @@ class _pickupManager {
 
         // Rename to "Worker" for threaded functions
         
-        void writeToBuffer();   // Write pickups from disk into memory
-        void emptyMutationMap(); // Empties the contents of mutationMap into disk
+        void readFromFileWorker();   // Write pickups from disk into memory
+        void saveToFileWorker(); // Empties the contents of mutationMap into disk
         void cleanDeadFromFileWorker(); // Removes dead pickups from disk
         bool generatePickup(std::fstream &file, const pickup_config &config, float numChunks, pickup_type type, int &ID); // Generates a given pickup
 
