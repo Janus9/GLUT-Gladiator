@@ -709,16 +709,80 @@ void _pickupManager::cleanDeadFromFileWorker() {
     }
 
     // -- VARIABLES -- //
-    constexpr int BUFFER_SIZE = 4096;
-
+    constexpr int BUFFER_SIZE = 1;
+    std::streampos writePos;
+    std::streampos readPos;
+    
     uint32_t pickup_count = 0;
     if (!verifyFile(file, pickup_count)) {
         SDL_LogError(LOG_PICKUPS, "[Clean Disk Thread]: ERROR: Cannot verify the save file: %s", saveDir.c_str());
         cleanDiskCompleted.store(true);
         return;
     }
+    const std::streamoff startOff = file.tellg();
+    const std::streampos countPos = file.tellp() - std::streamoff(4); // Go back four bytes to beginning of pickup_count data
+    
+    int pickups = static_cast<int>(pickup_count);
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+    writePos = file.tellp();
+    readPos = file.tellg();
+
+    // -- WORK -- //
+    // Invariant: writePos < readPos
+    uint32_t totalAlive = 0;
+    while (pickups > 0) {
+        // Populate buffer from disk
+        std::vector<pickup_serial_data> buffer(std::clamp(pickups, 0, BUFFER_SIZE));
+        file.seekg(readPos);
+        file.read(reinterpret_cast<char*>(buffer.data()), buffer.size() * sizeof(pickup_serial_data));
+
+        // Compact Buffer
+        int aliveCount = 0;
+        size_t write = 0;
+        for (size_t read = 0; read < buffer.size(); read++) {
+            // Invariant: read & write < buffer size
+            const bool alive = buffer[read].alive;
+            if (alive) {
+                if (read != write) {
+                    buffer[write] = buffer[read];
+                    write++;
+                }
+                aliveCount++;
+            }
+        }
+        pickups -= buffer.size();
+        totalAlive += aliveCount;
+        
+        readPos += std::streamoff(buffer.size() * sizeof(pickup_serial_data));
+        writePos += std::streamoff(static_cast<unsigned long long>(aliveCount) * sizeof(pickup_serial_data));
+
+        // Write alive pickups back in
+        file.seekp(writePos);
+        file.write(reinterpret_cast<const char*>(buffer.data()), aliveCount * sizeof(pickup_serial_data)); 
+
+        SDL_LogDebug(LOG_PICKUPS, "Alive Pickups Found: %i of %llu", aliveCount, buffer.size());
+        SDL_LogDebug(LOG_PICKUPS, "Pickups Remaining: %i", pickups);
+        SDL_LogDebug(LOG_PICKUPS, "Total Alive Pickups: %u", totalAlive);
+    }
+
+    // Write new pickup count
+    file.seekp(countPos);
+    file.write(reinterpret_cast<const char*>(&totalAlive),sizeof(totalAlive)); 
+
+    // Change file disk size
+    const uintmax_t newSize = 
+        static_cast<uintmax_t>(startOff) + 
+        static_cast<uintmax_t>(totalAlive) * 
+        static_cast<uintmax_t>(sizeof(pickup_serial_data));
+    
+    file.seekg(0,std::ios::end);
+    SDL_LogDebug(LOG_PICKUPS, "File Original Size: %lli B", static_cast<long long>(file.tellg()));
+
+    file.flush();
+    file.close();
+
+    std::filesystem::resize_file(saveDir, newSize);
+    SDL_LogDebug(LOG_PICKUPS, "File New Size: %llu B", newSize);
 
     // -- DONE -- //
     cleanDiskCompleted.store(true);
