@@ -1464,28 +1464,25 @@ void _scene::keyboardHandler(const InputState &inputState)
         pickupManager->add(mouseWorldPos, pickups::PICKUP_XP, 10.0f);
     }
     if (inputState.keys[SDL_SCANCODE_SPACE]) {
-        // Nothing
-    }
-    if (inputState.keys[SDL_SCANCODE_SPACE]) {
-        // Nothing
+        
     }
     if (inputState.keys[SDL_SCANCODE_F1]) {
-        pickupManager->cleanDeadFromFileAsync();
+
     }
     if (inputState.keys[SDL_SCANCODE_F2]) {
-        pickupManager->logDisk();
+
     }
     if (inputState.keys[SDL_SCANCODE_F3]) {
-        pickupManager->writeToFileAsync();
+
     }
     if (inputState.keys[SDL_SCANCODE_F4]) {
-        pickupManager->areAsyncTasksCompleted();
+
     }
     if (inputState.keys[SDL_SCANCODE_F5]) {
         ParticleEngine->reload();
     }
     if (inputState.keys[SDL_SCANCODE_RIGHTBRACKET]) {
-        ParticleEngine->spawnEffect({mouseWorldPos.x, mouseWorldPos.y},"test_2");
+
     }
     if (inputState.keys[SDL_SCANCODE_R]) {
         player->procReload();
