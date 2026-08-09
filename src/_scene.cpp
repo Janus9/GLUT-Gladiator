@@ -1,4 +1,4 @@
-#include "_scene.h"
+#include <_scene.h>
 
 _scene::_scene() : rng(std::random_device{}())
 {
@@ -12,7 +12,7 @@ _scene::_scene() : rng(std::random_device{}())
     FOB = std::make_unique<_fob>();
     player = std::make_unique<_player>();
     myWorld = std::make_unique<_world>();
-    pickupManager = std::make_unique<_pickupManager>();
+    pickupManager = std::make_unique<pickups::Engine>();
     lightManager = std::make_unique<_lightManager>();
     textureManager = std::make_unique<_textureManager>();
 }
@@ -96,7 +96,7 @@ void _scene::initScene(bool loadWorld)
     myWorld->initWorld(loadWorld, world_configuration, lightManager.get(), ParticleEngine.get());         // Initialize the world
 
     // PICKUPS //
-    if (!loadWorld) pickupManager->initPickupManager(
+    if (!loadWorld) pickupManager->init(
         "images/pickups/pickup_sheet.png",
         6,
         player.get(),
@@ -494,59 +494,6 @@ void _scene::initScene(bool loadWorld)
                 enemyManager->addEnemy(spawnVampMiniPos,vampire_minion2_config);
             }
         }
-
-    // Pickups disabled by scene //
-    //     // Spawn Pickups //
-    //     const int num_hp_pickups = world_configuration.num_chunks * world_configuration.health_pickups.pickups_per_chunk;
-    //     const int num_ammo_pickups = world_configuration.num_chunks * world_configuration.ammo_pickups.pickups_per_chunk;
-    //     const int num_speed_pickups = world_configuration.num_chunks * world_configuration.speed_pickups.pickups_per_chunk;
-    //     const int num_max_hp_pickups = world_configuration.num_chunks * world_configuration.max_health_pickups.pickups_per_chunk;
-    //     const int num_firerate_pickups = world_configuration.num_chunks * world_configuration.firerate_pickups.pickups_per_chunk;
-
-    //     SDL_LogDebug(LOG_SCENE, "Number of HP Pickups to spawn: %i",num_hp_pickups);
-    //     SDL_LogDebug(LOG_SCENE, "Number of Ammo Pickups to spawn: %i",num_ammo_pickups);
-    //     SDL_LogDebug(LOG_SCENE, "Number of Speed Pickups to spawn: %i",num_speed_pickups);
-    //     SDL_LogDebug(LOG_SCENE, "Number of Max HP Pickups to spawn: %i",num_max_hp_pickups);
-    //     SDL_LogDebug(LOG_SCENE, "Number of Firerate Pickups to spawn: %i",num_firerate_pickups);
-
-    //     const float max_distance = Vec2f(bounds,bounds).distance({0.0f, 0.0f});
-
-    //     std::uniform_real_distribution<float> pickup_hp_dist(
-    //         world_configuration.health_pickups.near_bound, 
-    //         world_configuration.health_pickups.far_bound
-    //     );
-    //     std::uniform_int_distribution<int> coin_flip_rng(0,1);
-    //     std::uniform_real_distribution<float> pickup_rng(0.0f, 1.0f);
-    //     std::uniform_real_distribution<float> rad_rng(0.0f, 2.0f * PI);
-
-    //     // Hp Pickup Distribution //
-    //     int hp_pickups_spawned = 0;
-    //     while (hp_pickups_spawned < num_hp_pickups) {
-    //         bool lookingSpawn = true;
-    //         const pickup_config &cfg = world_configuration.health_pickups; 
-    //         while (lookingSpawn)
-    //         {
-    //             const float radius = bounds * pickup_hp_dist(rng);   
-    //             const float theta = rad_rng(rng);
-    //             const Vec2f pos = {radius * std::cosf(theta), radius * std::sinf(theta)};
-
-    //             const _cell *cell = myWorld->getCellAtWorld(pos);
-    //             if (cell && myWorld->isCellWall(cell)) continue;
-
-    //             const float dist = pos.distance({0.0f,0.0f});
-    //             const float dist_norm = std::clamp(dist / max_distance, 0.0f, 1.0f);
-                
-    //             const float t = std::clamp((dist_norm - cfg.near_bound) / (cfg.far_bound - cfg.near_bound), 0.0f, 1.0f);
-
-    //             const float chance = std::lerp(1.0, cfg.min_chance, t);
-                
-    //             if (chance > pickup_rng(rng)) {
-    //                 pickupManager->addPickup(pos,PICKUP_HEALTH, 10.0f);
-    //                 lookingSpawn = false;
-    //                 hp_pickups_spawned++;
-    //             }
-    //         }
-    //     }
     }    
 
     // player->setAction(PLAYER_ACTION_IDLE_GUN, PLAYER_FACE_S);
@@ -827,7 +774,7 @@ bool _scene::loadSceneFromFile(const std::string &fileName) {
          
     // Initialize Pickups //
 
-    pickupManager->initPickupManager(
+    pickupManager->init(
         "images/pickups/pickup_sheet.png",
         6,
         player.get(),
@@ -959,7 +906,7 @@ void _scene::drawScene()
     
     bulletManager->drawBulletManager();
 
-    pickupManager->drawPickups();
+    pickupManager->draw();
     
     FOB->drawFob();
 
@@ -1023,7 +970,7 @@ void _scene::updateScene(double dt, const InputState &inputState)
     myWorld->updateWorld(dt);
     player->updatePlayer(dt);
     FOB->updateFob(dt);
-    pickupManager->updatePickups(dt);
+    pickupManager->update(dt);
 
     if (enemyManager->bossKilledEvent) {
         enemyManager->bossKilledEvent = false;
@@ -1505,16 +1452,16 @@ void _scene::keyboardHandler(const InputState &inputState)
         enemyManager->addEnemy(mouseWorldPos, vampire_minion2_config);
     }
     if (inputState.keys[SDL_SCANCODE_7]) {
-        pickupManager->addPickup(mouseWorldPos, PICKUP_SPEED, 10.0f);
+        pickupManager->add(mouseWorldPos, pickups::PICKUP_SPEED, 10.0f);
     }
     if (inputState.keys[SDL_SCANCODE_8]) {
-        pickupManager->addPickup(mouseWorldPos, PICKUP_MAX_HEALTH, 10.0f);
+        pickupManager->add(mouseWorldPos, pickups::PICKUP_MAX_HEALTH, 10.0f);
     }
     if (inputState.keys[SDL_SCANCODE_9]) {
-        pickupManager->addPickup(mouseWorldPos, PICKUP_FIRERATE, 10.0f);
+        pickupManager->add(mouseWorldPos, pickups::PICKUP_FIRERATE, 10.0f);
     }
     if (inputState.keys[SDL_SCANCODE_0]) {
-        pickupManager->addPickup(mouseWorldPos, PICKUP_XP, 10.0f);
+        pickupManager->add(mouseWorldPos, pickups::PICKUP_XP, 10.0f);
     }
     if (inputState.keys[SDL_SCANCODE_SPACE]) {
         // Nothing
@@ -1611,11 +1558,11 @@ void _scene::applyCamera()
     sceneViewProjectionMatrix = sceneProjectionMatrix * sceneViewMatix;
 
     _bulletManager::setViewProjectionMatrix(sceneViewProjectionMatrix);
-    _pickupManager::setViewProjectionMatrix(sceneViewProjectionMatrix);
+    pickups::Engine::setViewProjectionMatrix(sceneViewProjectionMatrix);
     _enemyManager::setViewProjectionMatrix(sceneViewProjectionMatrix);
     _world::setViewProjectionMatrix(sceneViewProjectionMatrix);
     _world::setCameraPosition({cameraX,cameraY});
-    _pickupManager::setCameraPosition({cameraX,cameraY});
+    pickups::Engine::setCameraPosition({cameraX,cameraY});
 
     // Legacy Matrix Building //
 

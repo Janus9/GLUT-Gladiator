@@ -23,8 +23,8 @@
 #include<_fob.h>
 #include<_lightManager.h>
 #include<_textureManager.h>
-#include<_pickupManager.h>
-#include <ParticleEngine.h>
+#include<PickupEngine.h>
+#include<ParticleEngine.h>
 
 // Matrix math for shaders //
 #include <glm/glm.hpp>                      // Core library
@@ -164,7 +164,7 @@ class _scene
         _shader* sh = new _shader();
 
         // Pickups //
-        std::unique_ptr<_pickupManager> pickupManager;
+        std::unique_ptr<pickups::Engine> pickupManager;
 
         _cell* hoveredCell = nullptr;
         _chunk* hoveredChunk = nullptr;

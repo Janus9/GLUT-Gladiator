@@ -9,7 +9,7 @@
 #include <_shader.h>
 #include <_lightManager.h>
 #include <_textureManager.h>
-#include <_pickupManager.h>
+#include <PickupEngine.h>
 #include <ParticleEngine.h>
 
 // Matrix math for shaders //
@@ -116,7 +116,7 @@ struct enemyManagerContext {
     _sounds* sounds; 
     _lightManager* lights; 
     _textureManager* textures; 
-    _pickupManager* pickups;
+    pickups::Engine* pickups;
     particles::Engine* particles;
 
     /**
@@ -218,7 +218,7 @@ class _enemyManager {
         _world* world = nullptr;                        // Pointer to world instance instantiated in scene (non-owning)
         _bulletManager* bulletManager = nullptr;        // Pointer to bulletManager instance instantiated in scene (non-owning)
         _textureManager* sceneTextureManager = nullptr; // Pointer to the texture manager instance instantiated in scene (non-owning)
-        _pickupManager* scenePickupManager = nullptr;   // Pointer to the pickup manager instance instantiated in scene (non-owning)
+        pickups::Engine* scenePickupManager = nullptr;   // Pointer to the pickup manager instance instantiated in scene (non-owning)
         particles::Engine* ParticleEngine = nullptr;    // Pointer to the particle manager instance instantiated in scene (non-owning)
 
         _sounds* sounds = nullptr;                  // Pointer to sounds instance instantiated in scene (non-owning)
