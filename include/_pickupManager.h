@@ -89,21 +89,32 @@ class _pickupManager {
          */
         bool generateToFile(const world_config &config);
 
+        // Call these "Async"
+
         /** 
          * Reads the current world file and writes the contents into the memory
+         * 
+         * Runs asynchronously on a worker thread.
+         * 
          * @return True if opperation succeeded
          */
         bool readFromFile();
 
         /**
-         * Writes the contents of the mutation map into disk
+         * Writes the contents of the mutation map into disk.
          * 
-         * Clears out the mutation map
+         * Runs asynchronously on a worker thread.
          * 
-         * Opens in a new thread
          * @return True if operation succeeded
          */
         bool writeToFile();
+
+        /**
+         * Removes dead pickups from the save file.
+         * 
+         * Runs asynchronously on a worker thread.
+         */
+        void cleanDeadFromFileAsync();
 
         /** 
          * Creates a "pickup.log" file which contains a detailed printout of the save file pickup contents.
@@ -151,24 +162,33 @@ class _pickupManager {
         std::vector<_pickup>* writeBuffer = nullptr;
 
         std::mutex m_mm; // Mutation Map Mutex
+        // Add Pickups From Disk Into Memory //
         std::atomic<bool> writeBufferCompleted;
         std::atomic<bool> writeBufferInProgress;
+        std::thread writeBufferThread;      // Thread for Write Buffer (Memory)
+        // Add Pickups To Disk //
         std::atomic<bool> writeDiskCompleted;
         std::atomic<bool> writeDiskInProgress;
-        std::atomic<uint32_t> nextID;
+        std::thread writeDiskThread;        // Thread for Disk Write
+        // Remove Dead Pickups From Disk //
+        std::atomic<bool> cleanDiskCompleted;   
+        std::atomic<bool> cleanDiskInProgress;
+        std::thread cleanDiskThread;        // Thread for Disk Clean
 
-        std::thread writeBufferThread;      // Thread for Write Buffer (Memory)
-        std::thread writeDiskThread;        // Thread for Disk
+        std::atomic<uint32_t> nextID;
 
         Vec2f prevWritePos = {0.0f, 0.0f};
         
         _world* world = nullptr;  // Pointer to world instance in scene (non-owning) 
         _player* player = nullptr;  // Pointer to player instance in scene (non-owning) 
+
+        // Rename to "Worker" for threaded functions
         
         void writeToBuffer();   // Write pickups from disk into memory
         void emptyMutationMap(); // Empties the contents of mutationMap into disk
+        void cleanDeadFromFileWorker(); // Removes dead pickups from disk
         bool generatePickup(std::fstream &file, const pickup_config &config, float numChunks, pickup_type type, int &ID); // Generates a given pickup
-        
+
         // Serialization + Disk Access //
 
         pickup_serial_data serializePickup(const _pickup &pickup) const;

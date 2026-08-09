@@ -1526,6 +1526,9 @@ void _scene::keyboardHandler(const InputState &inputState)
     if (inputState.keys[SDL_SCANCODE_SPACE]) {
         // Nothing
     }
+    if (inputState.keys[SDL_SCANCODE_F1]) {
+        pickupManager->cleanDeadFromFileAsync();
+    }
     if (inputState.keys[SDL_SCANCODE_F2]) {
         pickupManager->logDisk();
     }

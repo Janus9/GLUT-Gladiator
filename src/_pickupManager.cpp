@@ -232,11 +232,24 @@ void _pickupManager::updateBackground() {
             writeDiskThread.join();
             SDL_LogDebug(LOG_PICKUPS, "Write Disk Thread joined");
         } else {
-            SDL_LogWarn(LOG_PICKUPS, "WARNING: Cannot join Disk Write Thread as it is not joinable");
+            SDL_LogWarn(LOG_PICKUPS, "WARNING: Cannot join Write Disk Thread as it is not joinable");
         }
 
         writeDiskInProgress.store(false);
         writeDiskCompleted.store(false);
+    }
+
+    // Clean Disk Join //
+    if (cleanDiskInProgress.load() && cleanDiskCompleted.load()) {
+        if (cleanDiskThread.joinable()) {
+            cleanDiskThread.join();
+            SDL_LogDebug(LOG_PICKUPS, "Clean Disk Thread joined");
+        } else {
+            SDL_LogWarn(LOG_PICKUPS, "WARNING: Cannot join Clean Disk Thread as it is not joinable");
+        }
+
+        cleanDiskInProgress.store(false);
+        cleanDiskCompleted.store(false);
     }
 }
 
@@ -373,6 +386,22 @@ bool _pickupManager::writeToFile() {
     writeDiskThread = std::thread(&_pickupManager::emptyMutationMap, this);
 
     return true;
+}
+
+void _pickupManager::cleanDeadFromFileAsync() {
+    SDL_LogInfo(LOG_PICKUPS, "Command given to remove dead pickups from file");
+
+    if (cleanDiskInProgress.load() || cleanDiskThread.joinable()) {
+        SDL_LogWarn(LOG_PICKUPS, "WARNING: Clean Disk Thread already working, skipping command");
+        return;
+    }
+    if (writeDiskInProgress.load() || writeDiskThread.joinable()) {
+        SDL_LogWarn(LOG_PICKUPS, "WARNING: Write Disk Thread already working, must wait until done, skipping command");
+        return;
+    }
+
+    cleanDiskInProgress.store(true);
+    cleanDiskThread = std::thread(&_pickupManager::cleanDeadFromFileWorker, this);
 }
 
 void _pickupManager::logDisk() const {
@@ -652,12 +681,41 @@ void _pickupManager::emptyMutationMap() {
     }
 
     // DONE //
-
     writeDiskCompleted.store(true);
 
     auto stop = std::chrono::steady_clock::now();
     const float d = std::chrono::duration<float, std::milli>(stop-start).count();
     SDL_LogDebug(LOG_PICKUPS, "[Disk Write Thread]: Empty Mutation Map took [%fms]",d);
+}
+
+void _pickupManager::cleanDeadFromFileWorker() {
+    auto start = std::chrono::steady_clock::now();
+    
+    // -- FILE ACCESS -- //
+    const std::string saveDir = std::string(SAVE_DIRECTORY + global::saveFileName + PICKUPS_EXTENSION);
+    std::fstream file(saveDir, std::ios::binary | std::ios::in | std::ios::out);
+    if (!file) {
+        SDL_LogError(LOG_PICKUPS, "[Clean Disk Thread]: ERROR: Cannot open the save file: %s", saveDir.c_str());
+        cleanDiskCompleted.store(true);
+        return;
+    }
+
+    // -- VARIABLES -- //
+    constexpr int BUFFER_SIZE = 4096;
+
+    uint32_t pickup_count = 0;
+    if (!verifyFile(file, pickup_count)) {
+        SDL_LogError(LOG_PICKUPS, "[Clean Disk Thread]: ERROR: Cannot verify the save file: %s", saveDir.c_str());
+        cleanDiskCompleted.store(true);
+        return;
+    }
+
+    // -- DONE -- //
+    cleanDiskCompleted.store(true);
+
+    auto stop = std::chrono::steady_clock::now();
+    const float d = std::chrono::duration<float, std::milli>(stop-start).count();
+    SDL_LogDebug(LOG_PICKUPS, "[Clean Disk Thread]: cleanDeadFromFileWorker took [%fms]",d);
 }
 
 pickup_serial_data _pickupManager::serializePickup(const _pickup &pickup) const {
