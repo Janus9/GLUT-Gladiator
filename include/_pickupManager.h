@@ -89,8 +89,6 @@ class _pickupManager {
          */
         bool generateToFile(const world_config &config);
 
-        // Call these "Async"
-
         /** 
          * Reads the current world file and writes the contents into the memory
          * 
@@ -98,7 +96,7 @@ class _pickupManager {
          * 
          * @return True if opperation succeeded
          */
-        bool readFromFile();
+        bool readFromFileAsync();
 
         /**
          * Writes the contents of the mutation map into disk.
@@ -107,7 +105,7 @@ class _pickupManager {
          * 
          * @return True if operation succeeded
          */
-        bool writeToFile();
+        bool writeToFileAsync();
 
         /**
          * Removes dead pickups from the save file.

@@ -136,7 +136,7 @@ void _pickupManager::updatePickups(const double dt) {
     // Save Pickups Timer //
     if (pickupSaveElapsedTime >= PICKUP_SAVE_INTERVAL) {
         pickupSaveElapsedTime = 0.0f;
-        if (!writeToFile()) {
+        if (!writeToFileAsync()) {
             SDL_LogError(LOG_PICKUPS, "ERROR: Unable to save pickups to disk");
         }
     }
@@ -144,7 +144,7 @@ void _pickupManager::updatePickups(const double dt) {
     // Reload Pickups Distance Check //
     if (prevWritePos.distance(cameraPosition) > VIEW_RANGE*0.5f) {
         SDL_LogDebug(LOG_PICKUPS, "Camera moved too far from previous write position, reloading pickups!");
-        readFromFile();
+        readFromFileAsync();
     }
 
     pickupSaveElapsedTime += dt;
@@ -353,7 +353,7 @@ bool _pickupManager::generateToFile(const world_config &config) {
     return true;
 }
 
-bool _pickupManager::readFromFile() {
+bool _pickupManager::readFromFileAsync() {
     SDL_LogInfo(LOG_PICKUPS, "Command given to read from file");
 
     if (writeBufferInProgress.load() || writeBufferThread.joinable()) {
@@ -377,7 +377,7 @@ bool _pickupManager::readFromFile() {
     return true;
 }
 
-bool _pickupManager::writeToFile() {
+bool _pickupManager::writeToFileAsync() {
     SDL_LogInfo(LOG_PICKUPS, "Command given to write to file");
     if (writeDiskInProgress.load() || writeDiskThread.joinable()) {
         SDL_LogWarn(LOG_PICKUPS, "WARNING: Write Disk Thread already working, skipping command");

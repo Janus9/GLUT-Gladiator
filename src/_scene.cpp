@@ -650,7 +650,7 @@ bool _scene::saveSceneToFile(const std::string &fileName) {
 
     // Pickup Data Save //
     
-    if (!pickupManager->writeToFile()) {
+    if (!pickupManager->writeToFileAsync()) {
         SDL_LogError(LOG_SCENE, "ERROR: Save failed to write pickups to file");
         return false;
     }
@@ -1533,7 +1533,7 @@ void _scene::keyboardHandler(const InputState &inputState)
         pickupManager->logDisk();
     }
     if (inputState.keys[SDL_SCANCODE_F3]) {
-        pickupManager->writeToFile();
+        pickupManager->writeToFileAsync();
     }
     if (inputState.keys[SDL_SCANCODE_F5]) {
         ParticleEngine->reload();
