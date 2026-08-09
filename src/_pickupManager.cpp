@@ -190,14 +190,19 @@ void _pickupManager::updatePickups(const double dt) {
             continue;
         }
 
-        if (distance < 48.0f) {
-            // Apply movement towards player
+        if (distance < PHYS_PICKUP_DISTANCE) {
             const Vec2f direction = (player->pos - p.pos).normalized();
-            const float speed = 48.0f / (distance); // Speed ramps up closer to player
-            p.acc = (direction * speed * 50.0f);
+
+            const float targetSpeed =
+                std::clamp(PHYS_PICKUP_DISTANCE / distance * PHYS_ATTRACT_SPEED, PHYS_MIN_SPEED, PHYS_MAX_SPEED);
+
+            p.vel = direction * targetSpeed;
+            p.acc = {0.0f, 0.0f};
         } else {
             // Player out of range
             p.acc = {0.0f,0.0f};
+            p.vel *= std::clamp(1.0f - PHYS_AIR_RESISTANCE * static_cast<float>(dt), 0.0f, 1.0f);
+            if (p.vel.length() < PHYS_VEL_ZERO) p.vel = {0.0f, 0.0f};
         }
 
         p.vel += p.acc * dt;

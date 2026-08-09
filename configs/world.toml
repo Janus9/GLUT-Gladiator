@@ -34,7 +34,7 @@ out_of_bounds_is_alive = false
 
 
 [world.health_pickups]
-# pickups_per_chunk = 200
+# pickups_per_chunk = 500
 pickups_per_chunk = 0
 far_bound = 1.0
 near_bound = 0.1

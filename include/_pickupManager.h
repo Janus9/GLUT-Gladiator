@@ -131,6 +131,14 @@ class _pickupManager {
         static constexpr float VIEW_RANGE = 1096.0f;
         static constexpr float PICKUP_SAVE_INTERVAL = 30.0f; // In seconds
 
+        // PHYSICS VARIABLES //
+        static constexpr float PHYS_AIR_RESISTANCE = 0.75f;        // % Vel lost per second
+        static constexpr float PHYS_VEL_ZERO = 0.01f;              // Velocity magnitude lower than this results in zero velocity
+        static constexpr float PHYS_PICKUP_DISTANCE = 48.0f;       // Distance for pickups to begin movement towards player
+        static constexpr float PHYS_ATTRACT_SPEED = 35.0f;         // Overall multiplier for pickup attraction speed
+        static constexpr float PHYS_MIN_SPEED = 15.0f;             // Minimum speed pickup can be (forces instant velocity)
+        static constexpr float PHYS_MAX_SPEED = 120.0f;             // Maximum speed pickup can achieve
+
         float pickupSaveElapsedTime = 0.0f;
         
         int alivePickups;
