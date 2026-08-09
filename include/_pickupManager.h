@@ -127,7 +127,8 @@ class _pickupManager {
     private:
         static constexpr int MAX_RENDER_PICKUPS = 65536;     // Maxmimum render pickups visible
         static constexpr float VIEW_RANGE = 1096.0f;
-        static constexpr float PICKUP_SAVE_INTERVAL = 30.0f; // In seconds
+        static constexpr float PICKUP_SAVE_INTERVAL = 30.0f; // Delay in seconds until pickups from memory are saved to disk
+        static constexpr float DISK_CLEAN_INTERVAL = 60.0f;  // Delay in seconds until dead pickups in disk are cleaned
 
         // PHYSICS VARIABLES //
         static constexpr float PHYS_AIR_RESISTANCE = 0.75f;        // % Vel lost per second
@@ -138,6 +139,7 @@ class _pickupManager {
         static constexpr float PHYS_MAX_SPEED = 120.0f;             // Maximum speed pickup can achieve
 
         float pickupSaveElapsedTime = 0.0f;
+        float cleanDiskElapsedTime = 0.0f;
         
         int alivePickups;
         int numImages;
@@ -188,11 +190,11 @@ class _pickupManager {
         _world* world = nullptr;  // Pointer to world instance in scene (non-owning) 
         _player* player = nullptr;  // Pointer to player instance in scene (non-owning) 
 
-        // Rename to "Worker" for threaded functions
-        
-        void readFromFileWorker();   // Write pickups from disk into memory
-        void saveToFileWorker(); // Empties the contents of mutationMap into disk
+        // Async Worker Functions //        
+        void readFromFileWorker();      // Write pickups from disk into memory
+        void saveToFileWorker();        // Empties the contents of mutationMap into disk
         void cleanDeadFromFileWorker(); // Removes dead pickups from disk
+
         bool generatePickup(std::fstream &file, const pickup_config &config, float numChunks, pickup_type type, int &ID); // Generates a given pickup
 
         // Serialization + Disk Access //

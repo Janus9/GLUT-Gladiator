@@ -135,10 +135,16 @@ void _pickupManager::drawPickups() {
 void _pickupManager::updatePickups(const double dt) {
     // Save Pickups Timer //
     if (pickupSaveElapsedTime >= PICKUP_SAVE_INTERVAL) {
+        SDL_LogInfo(LOG_PICKUPS, "Saving pickups!");
         pickupSaveElapsedTime = 0.0f;
-        if (!writeToFileAsync()) {
-            SDL_LogError(LOG_PICKUPS, "ERROR: Unable to save pickups to disk");
-        }
+        writeToFileAsync();
+    }
+    
+    // Clean Disk Timer //
+    if (cleanDiskElapsedTime >= DISK_CLEAN_INTERVAL) {
+        SDL_LogInfo(LOG_PICKUPS, "Cleaning dead pickups!");
+        cleanDiskElapsedTime = 0.0f;
+        cleanDeadFromFileAsync();
     }
 
     // Reload Pickups Distance Check //
@@ -148,6 +154,7 @@ void _pickupManager::updatePickups(const double dt) {
     }
 
     pickupSaveElapsedTime += dt;
+    cleanDiskElapsedTime += dt;
     t_value += dt;
 
     if (alivePickups == 0) return;
