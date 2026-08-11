@@ -218,6 +218,173 @@ namespace sound {
         return;
     }
 
+    void Engine::playSound(const std::string &id, const Vec2f &pos) {
+        // Courtesy of mr.gpt
+        if (!initialized) {
+            return;
+        }
+
+        auto it = registery.find(id);
+
+        if (it == registery.end()) {
+            SDL_LogWarn(
+                LOG_SOUND,
+                "Sound ID not registered: %s",
+                id.c_str()
+            );
+
+            return;
+        }
+
+        Registration &sound = it->second;
+
+
+        // ---------------------------------
+        // Calculate positional information
+        // ---------------------------------
+
+        const Vec2f offset = pos - listenerPosition;
+
+        const float distance = offset.length();
+
+
+        // -1.0 = left
+        //  0.0 = center
+        // +1.0 = right
+
+        float pan = offset.x / spatialMaxDistance;
+
+        pan = std::clamp(
+            pan,
+            -1.0f,
+            1.0f
+        );
+
+
+        // Distance attenuation
+        float distanceGain =
+            1.0f - (distance / spatialMaxDistance);
+
+        distanceGain = std::clamp(
+            distanceGain,
+            0.0f,
+            1.0f
+        );
+
+        // ---------------------------------
+        // Calculate stereo gains
+        // ---------------------------------
+
+        float leftGain = 1.0f;
+        float rightGain = 1.0f;
+
+        if (pan < 0.0f) {
+            rightGain = 1.0f + pan;
+        }
+        else {
+            leftGain = 1.0f - pan;
+        }
+
+        leftGain *= distanceGain;
+        rightGain *= distanceGain;
+
+
+        // ---------------------------------
+        // Convert source audio to stereo F32
+        // ---------------------------------
+
+        SDL_AudioSpec stereoSpec = {};
+
+        stereoSpec.format = SDL_AUDIO_F32;
+        stereoSpec.channels = 2;
+        stereoSpec.freq = sound.spec.freq;
+
+
+        Uint8 *convertedData = nullptr;
+        int convertedSize = 0;
+
+        if (!SDL_ConvertAudioSamples(
+            &sound.spec,
+            sound.data,
+            static_cast<int>(sound.dataSize),
+            &stereoSpec,
+            &convertedData,
+            &convertedSize
+        )) {
+            SDL_LogError(
+                LOG_SOUND,
+                "Unable to convert sound '%s': %s",
+                id.c_str(),
+                SDL_GetError()
+            );
+
+            return;
+        }
+
+        // ---------------------------------
+        // Apply stereo panning
+        // ---------------------------------
+
+        float *samples =
+            reinterpret_cast<float*>(convertedData);
+
+        const int sampleCount =
+            convertedSize / sizeof(float);
+
+
+        for (int i = 0; i < sampleCount; i += 2) {
+            samples[i] *= leftGain;
+            samples[i + 1] *= rightGain;
+        }
+
+
+        // ---------------------------------
+        // Create playback stream
+        // ---------------------------------
+
+        SDL_AudioStream *stream =
+            SDL_CreateAudioStream(
+                &stereoSpec,
+                nullptr
+            );
+
+        if (stream == nullptr) {
+            SDL_free(convertedData);
+            return;
+        }
+
+        if (!SDL_BindAudioStream(
+            device,
+            stream
+        )) {
+
+            SDL_DestroyAudioStream(stream);
+            SDL_free(convertedData);
+
+            return;
+        }
+
+        if (!SDL_PutAudioStreamData(
+            stream,
+            convertedData,
+            convertedSize
+        )) {
+
+            SDL_DestroyAudioStream(stream);
+            SDL_free(convertedData);
+
+            return;
+        }
+
+        SDL_FlushAudioStream(stream);
+
+        SDL_free(convertedData);
+
+        activeStreams.push_back(stream);
+
+        return;
+    }
+
     void Engine::playBackgroundSound(const std::string &id) {
         if (!initialized) {
             return;
@@ -326,6 +493,10 @@ namespace sound {
         }
 
         backgroundStreams.clear();
+    }
+
+    void Engine::setListenerPosition(const Vec2f &pos) {
+        listenerPosition = pos;
     }
 
     void Engine::setMasterVolume(float volume) {

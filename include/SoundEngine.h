@@ -44,11 +44,17 @@ namespace sound {
             bool unRegisterSound(const std::string &id);
 
             /**
-             * Plays a non-looped sound from a given ID. Audio can stack and is mono.
-             * 
-             * @param id Unique ID of the sound.
+             * Plays a non-looped mono sound from a given ID. Audio can stack.
              */
             void playSound(const std::string &id);
+            
+            /**
+             * Plays a non-looped sound spatial sound from a given ID. Audio can stack.
+             * 
+             * @param id Unique ID of the sound.
+             * @param pos Position of the sound.
+             */
+            void playSound(const std::string &id, const Vec2f &pos);
 
             /**
              * Plays a looped sound from a given ID. Intended for music. Must be unloaded to stop playing.
@@ -69,6 +75,13 @@ namespace sound {
              * Unloads all background sounds currently active.
              */
             void stopAllBackgroundSounds();
+
+            /**
+             * Sets the listener position for spatial audio.
+             * 
+             * @param pos Position of the listener.
+             */
+            void setListenerPosition(const Vec2f &pos);
 
             /**
              * Sets master volume for all sound outputs. 
@@ -92,6 +105,9 @@ namespace sound {
             std::unordered_map<std::string, Registration> registery;
             std::unordered_map<std::string, SDL_AudioStream*> backgroundStreams;
             std::vector<SDL_AudioStream*> activeStreams;
+
+            Vec2f listenerPosition = {0.0f, 0.0f};
+            float spatialMaxDistance = 1000.0f;      // Max distance player can hear audio from
 
             float masterVolume = 1.0f;
             bool initialized = false;

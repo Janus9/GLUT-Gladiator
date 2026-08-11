@@ -66,10 +66,10 @@ bool _scene::initGL()
     return true;
 }
 
-void _scene::initScene(bool loadWorld, sound::Engine* sounds) {
-    soundEngine = sounds;
+void _scene::initScene(bool loadWorld, sound::Engine* _sounds) {
+    sounds = _sounds;
 
-    if (!soundEngine) {
+    if (!sounds) {
         SDL_LogError(LOG_SCENE, "ERROR: Unable to validate the sound engine");
     }
 
@@ -967,7 +967,8 @@ void _scene::updateScene(double dt, const InputState &inputState)
 
     mouseScreenPos = inputState.mouseScreenPos;
 
-    soundManager->setListenerPos(player->pos);
+    // soundManager->setListenerPos(player->pos);
+    sounds->setListenerPosition(player->pos);
 
     enemyManager->updateEnemies(dt);
     bulletManager->updateBulletManager(dt);
@@ -1063,15 +1064,11 @@ void _scene::updateScene(double dt, const InputState &inputState)
         {
             hud->getHudSprite("PROGRESS_BAR")->getSprite()->iterateFrame();
             myWorld->damageCell(hoveredCell, 25.0f);
-            if (!hoveredCell->isAlive())
-            {
-                std::cout << "BLOCK HAS BEEN MINED \n";
+            if (!hoveredCell->isAlive()) {
                 hud->getHudSprite("PROGRESS_BAR")->getSprite()->stopAnimation(); // Mining finished, reset progress bar animation
-                soundManager->playSfx("MINE_COMPLETE");
-            }
-            else
-            {
-                soundManager->playSfx("MINE_TICK");
+                sounds->playSound("MINE_COMPLETE", hoveredCell->pos);
+            } else {
+                sounds->playSound("MINE_TICK", hoveredCell->pos);
             }
             interactionTimer->reset();
         }

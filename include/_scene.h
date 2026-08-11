@@ -47,7 +47,7 @@ class _scene
         bool initGL(); 
 
         // Initialization of scene objects
-        void initScene(bool loadWorld, sound::Engine* sounds);
+        void initScene(bool loadWorld, sound::Engine* _sounds);
 
         /**
          * Runs a save command to save the world/player/enemies etc to a save file specified
@@ -138,7 +138,7 @@ class _scene
         std::unique_ptr<particles::Engine> ParticleEngine;
         
         _sounds* soundManager = nullptr; // DEPRICTED :: Non-owning; set via setSounds() before initScene()
-        sound::Engine* soundEngine = nullptr;
+        sound::Engine* sounds = nullptr;
 
         // Texture Manager //
         void setupTextures();   // Sets up game texture assets via a TOML config file "configs/texture.toml"

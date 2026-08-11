@@ -226,11 +226,15 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char *argv[])
 	gameScene = std::make_unique<_scene>();
 	gameScene->initGL();
 
-	// Sound Registration //
+	// -- Sound Registration -- //
 	soundEngine->init();
+	// Menu //
 	soundEngine->registerSound("MENU_MUSIC", "sounds/menu/main_menu_music.wav");
 	soundEngine->registerSound("MENU_HOVER", "sounds/menu/menu_hover.wav");
 	soundEngine->registerSound("MENU_CLICK", "sounds/menu/menu_click.wav");
+	// Player //
+	soundEngine->registerSound("MINE_COMPLETE", "sounds/player/mine_complete.wav");
+	soundEngine->registerSound("MINE_TICK", "sounds/player/mine_tick.wav");
 
 	handleWindowResize(window);	// Force resize event to sit window dimension parameters + OpenGL window params		
 	SDL_SetWindowFullscreen(window, fullscreen); // Set fullscreen based on settings

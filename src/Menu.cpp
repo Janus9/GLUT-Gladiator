@@ -295,7 +295,6 @@ namespace menu {
     void Manager::loadPage(type type) {
         SDL_LogDebug(LOG_MENU_MANAGER, "Loaded page: %i", static_cast<int>(type));
         if (type != PAGE_GAME) {
-            sounds->stopAllBackgroundSounds();
             sounds->playBackgroundSound("MENU_MUSIC");
         } else {
             sounds->stopBackgroundSound("MENU_MUSIC");
