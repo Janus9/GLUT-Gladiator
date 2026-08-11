@@ -108,6 +108,7 @@ namespace sound {
 
             Vec2f listenerPosition = {0.0f, 0.0f};
             float spatialMaxDistance = 1000.0f;      // Max distance player can hear audio from
+            float audioFalloff = 2.5f;               // What power is applied to audio falloff (ex 2.0f is squared falloff)
 
             float masterVolume = 1.0f;
             bool initialized = false;

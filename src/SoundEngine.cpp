@@ -269,8 +269,8 @@ namespace sound {
             1.0f
         );
 
-        // Squared falloff
-        distanceGain *= distanceGain;
+        // Audio falloff
+        distanceGain = powf(distanceGain, audioFalloff);
 
         // ---------------------------------
         // Calculate stereo gains
