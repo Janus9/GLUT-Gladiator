@@ -564,6 +564,8 @@ namespace menu {
             if (renderObject->getMouseState() && inputState.LMB && timeSinceRedirect > 0.5) {
                 SDL_LogDebug(LOG_MENU_PAGE, "Mouse clicked on ID: %s", renderObject->getID().c_str());
                 
+                sounds->playSound("MENU_CLICK");
+                
                 Event event {
                     .ID = renderObject->getID(),
                     .redirectTo = renderObject->getDestination()
