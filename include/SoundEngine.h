@@ -44,9 +44,31 @@ namespace sound {
             bool unRegisterSound(const std::string &id);
 
             /**
-             * TODO -- Plays a sound but non-looped and can stack.
+             * Plays a non-looped sound from a given ID. Audio can stack and is mono.
+             * 
+             * @param id Unique ID of the sound.
              */
             void playSound(const std::string &id);
+
+            /**
+             * Plays a looped sound from a given ID. Intended for music. Must be unloaded to stop playing.
+             * Can have stacked background sounds playing. 
+             * 
+             * @param id Unique ID of the sound.
+             */
+            void playBackgroundSound(const std::string &id);
+
+            /**
+             * Unloads a given background sound (looped) to stop it from playing from a given ID.
+             * 
+             * @param id Unique ID of the sound.
+             */
+            void stopBackgroundSound(const std::string &id);
+
+            /**
+             * Unloads all background sounds currently active.
+             */
+            void stopAllBackgroundSounds();
 
             /**
              * Sets master volume for all sound outputs. 
@@ -68,6 +90,7 @@ namespace sound {
             SDL_AudioDeviceID device = 0;
 
             std::unordered_map<std::string, Registration> registery;
+            std::unordered_map<std::string, SDL_AudioStream*> backgroundStreams;
             std::vector<SDL_AudioStream*> activeStreams;
 
             float masterVolume = 1.0f;

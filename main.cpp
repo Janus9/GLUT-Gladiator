@@ -231,7 +231,6 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char *argv[])
 	soundEngine->registerSound("MENU_MUSIC", "sounds/menu/main_menu_music.wav");
 	soundEngine->registerSound("MENU_HOVER", "sounds/menu/menu_hover.wav");
 	soundEngine->registerSound("MENU_CLICK", "sounds/menu/menu_click.wav");
-	soundEngine->playSound("MENU_MUSIC");
 
 	handleWindowResize(window);	// Force resize event to sit window dimension parameters + OpenGL window params		
 	SDL_SetWindowFullscreen(window, fullscreen); // Set fullscreen based on settings
