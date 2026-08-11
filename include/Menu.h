@@ -4,7 +4,7 @@
 #include <_common.h>
 #include <_texture.h>
 #include <_shader.h>
-#include <_sounds.h>
+#include <SoundEngine.h>
 #include <_scene.h>
 
 #include <queue>
@@ -57,7 +57,7 @@ namespace menu {
      * Context injection
      */
     struct Context {
-        _sounds* sounds;
+        sound::Engine* sounds;
         _scene* scene;
         const std::function<void(const Event&)> &callback;
     
@@ -74,6 +74,7 @@ namespace menu {
                 SDL_LogError(LOG_MENU_MANAGER, "ERROR: Unable to validate the event callback");
                 return false;
             }
+            return true;
         }
     };
     
@@ -219,7 +220,7 @@ namespace menu {
                     void draw(const Vec2i &wDim);
     
                     // Update page
-                    void update(double dt, const InputState &inputState, _sounds* sounds);
+                    void update(double dt, const InputState &inputState, sound::Engine* sounds);
                     
                     std::queue<Event> eventQueue;   // Since the page class is private, its ok for event queue to be public
                 protected:
@@ -237,7 +238,7 @@ namespace menu {
 
             type selectedPage = PAGE_LANDING;
     
-            _sounds* sounds = nullptr;  // Non-owning; 
+            sound::Engine* sounds = nullptr;  // Non-owning; 
             _scene* scene = nullptr;    // Non-owning; 
     
             Vec2f mouseScreenClipPosition;

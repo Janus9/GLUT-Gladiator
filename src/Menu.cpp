@@ -553,13 +553,13 @@ namespace menu {
         }
     }
     
-    void Manager::Page::update(double dt, const InputState &inputState, _sounds* sounds) {
+    void Manager::Page::update(double dt, const InputState &inputState, sound::Engine* sounds) {
         timeSinceRedirect += dt;
         for (int i = 0; i < renderObjects.size(); i++) {
             RenderObject* renderObject = renderObjects[i].get();
             renderObject->update(dt, inputState);
             if (renderObject->justEnteredHover()) {
-                if (sounds) sounds->playSfx("MENU_HOVER");
+                sounds->playSound("MENU_HOVER");
             }
             if (renderObject->getMouseState() && inputState.LMB && timeSinceRedirect > 0.5) {
                 SDL_LogDebug(LOG_MENU_PAGE, "Mouse clicked on ID: %s", renderObject->getID().c_str());

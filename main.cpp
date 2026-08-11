@@ -154,7 +154,7 @@ void menuEventHandler(const menu::Event &event) {
 		gameScene->initGL();
 		auto callback = menuEventHandler;
 		menuManager->injectContext({ 
-			nullptr, 
+			soundEngine.get(), 
 			gameScene.get(), 
 			callback 
 		});
@@ -229,6 +229,7 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char *argv[])
 	// Sound Registration //
 	soundEngine->init();
 	soundEngine->registerSound("MENU_MUSIC", "sounds/menu/main_menu_music.wav");
+	soundEngine->registerSound("MENU_HOVER", "sounds/menu/menu_hover.wav");
 	soundEngine->playSound("MENU_MUSIC");
 
 	handleWindowResize(window);	// Force resize event to sit window dimension parameters + OpenGL window params		
@@ -239,7 +240,7 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char *argv[])
 
 	auto callback = menuEventHandler;
 	menuManager->injectContext({ 
-		nullptr, 
+		soundEngine.get(), 
 		gameScene.get(), 
 		callback
 	});
