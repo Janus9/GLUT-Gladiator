@@ -7,6 +7,7 @@
 #include <_timerPlusPlus.h>   // For the timer class
 #include <Menu.h>
 #include <_sounds.h>         // Shared audio engine (owned here, not by _scene)
+#include <SoundEngine.h>
 
 #include <functional>
 
@@ -38,6 +39,7 @@ std::unique_ptr<_scene> gameScene; 												// Singleton Scene
 // std::unique_ptr<_timerPlusPlus> timer = std::make_unique<_timerPlusPlus>();  // Wont likely be used
 std::unique_ptr<menu::Manager> menuManager;										// Singleton Menu Manager
 // std::unique_ptr<_sounds> sharedSounds = std::make_unique<_sounds>();			// DEPRICATED -- Delete later
+std::unique_ptr<sound::Engine> soundEngine = std::make_unique<sound::Engine>();
 
 // SCREEN RESIZE HANDLER //
 void handleWindowResize(SDL_Window* window) {
@@ -123,7 +125,7 @@ void menuEventHandler(const menu::Event &event) {
 	// Generate World
 	if (event.ID == "saves_generate_button") {
 		SDL_LogInfo(LOG_MAIN, "Generate World Event");
-		gameScene->initScene(false);
+		gameScene->initScene(false, soundEngine.get());
 	}
 
 	// Load World
@@ -133,7 +135,7 @@ void menuEventHandler(const menu::Event &event) {
 			SDL_LogError(LOG_MAIN, "ERROR: Save failed to load correctly");
 			return;
 		}
-		gameScene->initScene(true);             // Setup scene to load world
+		gameScene->initScene(true, soundEngine.get());             // Setup scene to load world
 	}	
 
 	// Save World
@@ -168,6 +170,8 @@ void handleUpdate(double dt) {
 		// Update Menu
 		menuManager->update(dt, inputState);
 	}
+	// Audio Updates //
+	soundEngine->update();
 }
 
 // MAIN ENTRY POINT //
@@ -176,7 +180,7 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char *argv[])
 	initSDLLogger();  // Setup logging functionality
 	
 	// Initialization //
-	if (!SDL_Init(SDL_INIT_VIDEO)) {
+	if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO)) {
 		const std::string errorMessage = std::string("ERROR: SDL_Init failed") + SDL_GetError(); 
 		SDL_LogError(LOG_MAIN, errorMessage.c_str());
 		return EXIT_FAILURE;
@@ -221,6 +225,11 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char *argv[])
 
 	gameScene = std::make_unique<_scene>();
 	gameScene->initGL();
+
+	// Sound Registration //
+	soundEngine->init();
+	soundEngine->registerSound("MENU_MUSIC", "sounds/menu/main_menu_music.wav");
+	soundEngine->playSound("MENU_MUSIC");
 
 	handleWindowResize(window);	// Force resize event to sit window dimension parameters + OpenGL window params		
 	SDL_SetWindowFullscreen(window, fullscreen); // Set fullscreen based on settings
@@ -331,6 +340,7 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char *argv[])
     }
 
 	// -- GAME EXIT -- //
+	soundEngine.reset();
 	SDL_Quit();
 
 	return EXIT_SUCCESS;

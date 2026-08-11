@@ -66,8 +66,13 @@ bool _scene::initGL()
     return true;
 }
 
-void _scene::initScene(bool loadWorld)
-{
+void _scene::initScene(bool loadWorld, sound::Engine* sounds) {
+    soundEngine = sounds;
+
+    if (!soundEngine) {
+        SDL_LogError(LOG_SCENE, "ERROR: Unable to validate the sound engine");
+    }
+
     if (sceneInitialized) {
         std::cout << "WARNING: Scene already initialized, skipping\n";
         return;

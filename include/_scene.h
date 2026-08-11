@@ -25,6 +25,7 @@
 #include<_textureManager.h>
 #include<PickupEngine.h>
 #include<ParticleEngine.h>
+#include<SoundEngine.h>
 
 // Matrix math for shaders //
 #include <glm/glm.hpp>                      // Core library
@@ -46,7 +47,7 @@ class _scene
         bool initGL(); 
 
         // Initialization of scene objects
-        void initScene(bool loadWorld);
+        void initScene(bool loadWorld, sound::Engine* sounds);
 
         /**
          * Runs a save command to save the world/player/enemies etc to a save file specified
@@ -62,7 +63,7 @@ class _scene
          */
         bool loadSceneFromFile(const std::string &fileName);
 
-        // Inject the shared sound engine (owned by main). Must be called before initScene().
+        // DEPRICATED Inject the shared sound engine (owned by main). Must be called before initScene().
         void setSounds(_sounds* sounds);
 
         // Runs and handles a window resize event
@@ -137,6 +138,7 @@ class _scene
         std::unique_ptr<particles::Engine> ParticleEngine;
         
         _sounds* soundManager = nullptr; // DEPRICTED :: Non-owning; set via setSounds() before initScene()
+        sound::Engine* soundEngine = nullptr;
 
         // Texture Manager //
         void setupTextures();   // Sets up game texture assets via a TOML config file "configs/texture.toml"

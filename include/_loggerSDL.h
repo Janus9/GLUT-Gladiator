@@ -13,7 +13,8 @@ enum GameLogCategory {
     LOG_BULLET_ENGINE,
     LOG_WORLD,
     LOG_ENEMY_MANAGER,
-    LOG_PICKUPS
+    LOG_PICKUPS,
+    LOG_SOUND
 };
 
 void initSDLLogger();
