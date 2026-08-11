@@ -1036,23 +1036,27 @@ void _scene::updateScene(double dt, const InputState &inputState)
 
     switch (player->playerLevelEvent) {
         case PLAYER_EVENT_LEVEL_OUTER:
-            std::cout << "Player entered level: OUTER\n";
-            soundManager->playBackgroundMusic("sounds/level_outer.wav",0.3f);
+            SDL_LogInfo(LOG_SCENE, "Player entered level: OUTER");
+            sounds->stopAllBackgroundSounds();
+            sounds->playBackgroundSound("LEVEL_OUTER_MUSIC");
             player->playerLevelEvent = PLAYER_EVENT_LEVEL_NONE;
             break;
         case PLAYER_EVENT_LEVEL_MIDDLE:
-            std::cout << "Player entered level: MIDDLE\n";
-            soundManager->playBackgroundMusic("sounds/level_middle.wav",0.3f);
+            SDL_LogInfo(LOG_SCENE, "Player entered level: MIDDLE");
+            sounds->stopAllBackgroundSounds();
+            sounds->playBackgroundSound("LEVEL_MIDDLE_MUSIC");
             player->playerLevelEvent = PLAYER_EVENT_LEVEL_NONE;
             break;
         case PLAYER_EVENT_LEVEL_CENTER:
-            std::cout << "Player entered level: CENTER\n";
-            soundManager->playBackgroundMusic("sounds/level_center.ogg",0.3f);
+            SDL_LogInfo(LOG_SCENE, "Player entered level: CENTER");
+            sounds->stopAllBackgroundSounds();
+            sounds->playBackgroundSound("LEVEL_CENTER_MUSIC");
             player->playerLevelEvent = PLAYER_EVENT_LEVEL_NONE;
             break;
         case PLAYER_EVENT_LEVEL_BOSS:
-            std::cout << "Player entered level: BOSS\n";
-            soundManager->playBackgroundMusic("sounds/level_boss.wav",0.15f);
+            SDL_LogInfo(LOG_SCENE, "Player entered level: BOSS");
+            sounds->stopAllBackgroundSounds();
+            sounds->playBackgroundSound("LEVEL_BOSS_MUSIC");
             player->playerLevelEvent = PLAYER_EVENT_LEVEL_NONE;
             break;
     }

@@ -235,6 +235,11 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char *argv[])
 	// Player //
 	soundEngine->registerSound("MINE_COMPLETE", "sounds/player/mine_complete.wav");
 	soundEngine->registerSound("MINE_TICK", "sounds/player/mine_tick.wav");
+	// Sound Tracks //
+	soundEngine->registerSound("LEVEL_OUTER_MUSIC", "sounds/level_outer/level_outer.wav");
+	soundEngine->registerSound("LEVEL_MIDDLE_MUSIC", "sounds/level_middle/level_middle.wav");
+	soundEngine->registerSound("LEVEL_CENTER_MUSIC", "sounds/level_center/level_center.wav");
+	soundEngine->registerSound("LEVEL_BOSS_MUSIC", "sounds/level_boss/level_boss.wav");
 
 	handleWindowResize(window);	// Force resize event to sit window dimension parameters + OpenGL window params		
 	SDL_SetWindowFullscreen(window, fullscreen); // Set fullscreen based on settings
@@ -304,6 +309,7 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char *argv[])
 								// In menu - unpause (if game loaded)
 								if (gameScene->isInitialized()) {
 									SDL_LogInfo(LOG_MAIN, "Unpause game event");
+									soundEngine->stopAllBackgroundSounds();
 									menuManager->loadPage(menu::PAGE_GAME);
 								}
 							}
