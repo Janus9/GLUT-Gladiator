@@ -247,7 +247,6 @@ namespace sound {
 
         const float distance = offset.length();
 
-
         // -1.0 = left
         //  0.0 = center
         // +1.0 = right
@@ -260,7 +259,6 @@ namespace sound {
             1.0f
         );
 
-
         // Distance attenuation
         float distanceGain =
             1.0f - (distance / spatialMaxDistance);
@@ -270,6 +268,9 @@ namespace sound {
             0.0f,
             1.0f
         );
+
+        // Squared falloff
+        distanceGain *= distanceGain;
 
         // ---------------------------------
         // Calculate stereo gains
