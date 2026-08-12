@@ -3,7 +3,11 @@
 namespace sound {
     // -- PUBLIC -- //
     Engine::Engine() {
-        
+        activeSoundTrack.first = "";
+        activeSoundTrack.second = nullptr;
+
+        nextSoundTrack.first = "";
+        nextSoundTrack.second = nullptr;
     }
 
     Engine::~Engine() {
@@ -73,7 +77,7 @@ namespace sound {
         SDL_LogInfo(LOG_SOUND, "Successfully shut down the Sound Engine.");
     }
 
-    void Engine::update() {
+    void Engine::update(double dt) {
         // ----- One-shot sounds ----- //
         for (auto it = activeStreams.begin(); it != activeStreams.end();) {
 
@@ -81,7 +85,7 @@ namespace sound {
 
             int queued = SDL_GetAudioStreamQueued(stream);
             int available = SDL_GetAudioStreamAvailable(stream);
-
+            // Automatically destroyed as they are non-looping
             if (queued == 0 && available == 0) {
                 SDL_DestroyAudioStream(stream);
                 it = activeStreams.erase(it);
@@ -92,12 +96,10 @@ namespace sound {
 
         // ----- Background sounds ----- //
         for (auto &entry : backgroundStreams) {
-
             const std::string &id = entry.first;
             SDL_AudioStream *stream = entry.second;
 
             auto soundIt = registery.find(id);
-
             if (soundIt == registery.end()) {
                 continue;
             }
@@ -105,23 +107,72 @@ namespace sound {
             Registration &sound = soundIt->second;
 
             int queued = SDL_GetAudioStreamQueued(stream);
-
             if (queued <= static_cast<int>(sound.dataSize)) {
-
-                if (!SDL_PutAudioStreamData(
-                    stream,
-                    sound.data,
-                    static_cast<int>(sound.dataSize)
-                )) {
-                    SDL_LogError(
-                        LOG_SOUND,
-                        "Failed to loop background sound '%s': %s",
-                        id.c_str(),
-                        SDL_GetError()
-                    );
+                if (!SDL_PutAudioStreamData(stream, sound.data, static_cast<int>(sound.dataSize))) {
+                    SDL_LogError(LOG_SOUND, "Failed to loop background sound '%s': %s", id.c_str(), SDL_GetError());
                 }
             }
         }
+
+        // ------- Soundtrack ------- //
+
+        // -- Loop Sound Track -- //
+        if(!activeSoundTrack.first.empty() && activeSoundTrack.second) {
+            const std::string &id = activeSoundTrack.first;
+            SDL_AudioStream *stream = activeSoundTrack.second;
+
+            auto soundIt = registery.find(id);
+            if (soundIt != registery.end()) {
+                Registration &sound = soundIt->second;
+    
+                int queued = SDL_GetAudioStreamQueued(stream);
+                if (queued <= static_cast<int>(sound.dataSize)) {
+                    if (!SDL_PutAudioStreamData(stream, sound.data, static_cast<int>(sound.dataSize))) {
+                        SDL_LogError(LOG_SOUND, "Failed to loop soundtrack '%s': %s", id.c_str(), SDL_GetError());
+                    }
+                }
+            }
+        }
+
+        // -- Fade Into Next Track -- //
+        if (!nextSoundTrack.first.empty() && nextSoundTrack.second) {
+            // Has next soundtrack
+            if (fadeTime != 0.0f) {
+                SDL_AudioStream* nextStream = nextSoundTrack.second;
+                const float nextGain = std::clamp(
+                    std::lerp(0.0f, 1.0f, fadeTimeElapsed / fadeTime),
+                    0.0f,
+                    1.0f
+                );
+                SDL_AudioStream* activeStream = activeSoundTrack.second;
+                const float activeGain = std::clamp(
+                    std::lerp(0.0f, 1.0f, 1.0f - fadeTimeElapsed / fadeTime),
+                    0.0f,
+                    1.0f
+                );
+                // Set fades between track
+                SDL_SetAudioStreamGain(nextStream,nextGain);
+                if(activeStream) SDL_SetAudioStreamGain(activeStream,activeGain);
+            }
+            
+            if (fadeTimeElapsed > fadeTime) {
+                if (activeSoundTrack.second) {
+                    SDL_DestroyAudioStream(activeSoundTrack.second);
+                }
+                
+                // Assign next track to be the active track
+                activeSoundTrack.first = nextSoundTrack.first;
+                activeSoundTrack.second = nextSoundTrack.second;
+                
+                // Clear next sound track as its been swapped to the first
+                nextSoundTrack.first = "";
+                nextSoundTrack.second = nullptr;
+
+                SDL_SetAudioStreamGain(activeSoundTrack.second, 1.0f);  // Set to full volume
+            }
+        }
+
+        fadeTimeElapsed += static_cast<float>(dt);
     }
 
     bool Engine::registerSound(const std::string &id, const std::string &filePath) {
@@ -494,6 +545,64 @@ namespace sound {
         }
 
         backgroundStreams.clear();
+    }
+
+    void Engine::setSoundTrack(const std::string id, float fadeTime) {
+        if (!initialized) {
+            SDL_LogError(LOG_SOUND, "ERROR: Unable to set soundtrack for sound ID: %s as the engine is not initialized.", id.c_str());
+            return;
+        }
+
+        auto it = registery.find(id);
+        if (it == registery.end()) {
+            SDL_LogError(LOG_SOUND, "Unable to set soundtrack for sound ID: %s as it is not in the registery", id.c_str());
+            return;
+        }
+
+        this->fadeTime = fadeTime;
+        fadeTimeElapsed = 0.0f;
+        nextSoundTrack.first = id;
+
+        Registration &sound = it->second;
+
+        // Create stream
+        SDL_AudioStream* stream = SDL_CreateAudioStream(&sound.spec, nullptr);
+        nextSoundTrack.second = stream;
+        if (!stream) {
+            SDL_LogError(LOG_SOUND, "Failed to create background audio stream: %s", SDL_GetError());
+            return;
+        }
+
+        // Bind to playback device
+        if (!SDL_BindAudioStream(device, stream)) {
+            SDL_LogError(LOG_SOUND, "Failed to bind background audio stream: %s", SDL_GetError());
+            SDL_DestroyAudioStream(stream);
+            return;
+        }
+
+        // Set gain to 0.0 so there is no audio (for fade in)
+        if (!SDL_SetAudioStreamGain(stream, 0.0f)) {
+            SDL_LogError(LOG_SOUND, "Failed to set background audio gain to 0.0: %s", SDL_GetError());
+            SDL_DestroyAudioStream(stream);
+            return;
+        }
+
+        // Fill stream with data for playback. Done twice to buffer for the looping
+        if (!SDL_PutAudioStreamData(stream, sound.data, static_cast<int>(sound.dataSize))) {
+            SDL_LogError(LOG_SOUND, "Failed to queue background audio: %s", SDL_GetError());
+            SDL_DestroyAudioStream(stream);
+            return;
+        }
+
+        if (!SDL_PutAudioStreamData(stream, sound.data, static_cast<int>(sound.dataSize))) {
+            SDL_LogError(LOG_SOUND, "Failed to queue background audio: %s", SDL_GetError());
+            SDL_DestroyAudioStream(stream);
+            return;
+        }
+    }
+
+    void Engine::stopSoundTrack(float fadeTime) {
+        // TODO
     }
 
     void Engine::setListenerPosition(const Vec2f &pos) {

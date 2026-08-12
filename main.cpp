@@ -171,7 +171,7 @@ void handleUpdate(double dt) {
 		menuManager->update(dt, inputState);
 	}
 	// Audio Updates //
-	soundEngine->update();
+	soundEngine->update(dt);
 }
 
 // MAIN ENTRY POINT //
@@ -240,6 +240,9 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char *argv[])
 	soundEngine->registerSound("LEVEL_MIDDLE_MUSIC", "sounds/level_middle/level_middle.wav");
 	soundEngine->registerSound("LEVEL_CENTER_MUSIC", "sounds/level_center/level_center.wav");
 	soundEngine->registerSound("LEVEL_BOSS_MUSIC", "sounds/level_boss/level_boss.wav");
+
+	soundEngine->registerSound("TEST", "sounds/gameplay_music1.wav");
+	soundEngine->registerSound("WIN_MUSIC", "sounds/win_music.wav");
 
 	handleWindowResize(window);	// Force resize event to sit window dimension parameters + OpenGL window params		
 	SDL_SetWindowFullscreen(window, fullscreen); // Set fullscreen based on settings
