@@ -294,10 +294,11 @@ namespace menu {
     
     void Manager::loadPage(type type) {
         SDL_LogDebug(LOG_MENU_MANAGER, "Loaded page: %i", static_cast<int>(type));
-        if (type != PAGE_GAME) {
-            sounds->playBackgroundSound("MENU_MUSIC");
+        if (type == PAGE_GAME) {
+            // sounds->stopBackgroundSound("MENU_MUSIC");
         } else {
-            sounds->stopBackgroundSound("MENU_MUSIC");
+            sounds->setSoundTrack("MENU_MUSIC", 1.0f);
+            // sounds->playBackgroundSound("MENU_MUSIC");
         }
         selectedPage = type;
     }

@@ -54,6 +54,10 @@ namespace sound {
         // Background streams
         stopAllBackgroundSounds();
 
+        // Sound Tracks //
+        if (activeSoundTrack.second) SDL_DestroyAudioStream(activeSoundTrack.second);
+        if (nextSoundTrack.second) SDL_DestroyAudioStream(nextSoundTrack.second);
+
         // Registered audio data
         for (auto &entry : registery) {
             Registration &sound = entry.second;
@@ -65,7 +69,6 @@ namespace sound {
         }
 
         registery.clear();
-
 
         if (device != 0) {
             SDL_CloseAudioDevice(device);
@@ -555,8 +558,9 @@ namespace sound {
             return;
         }
 
-        if (!nextSoundTrack.first.empty() || nextSoundTrack.second) {
-            // Next soundtrack already set
+        if (id == activeSoundTrack.first) {
+            // Skip -- Already activley playing same track
+            SDL_LogDebug(LOG_SOUND, "Skipping '%s' as it is already activley playing", id.c_str());
             return;
         }
 
@@ -564,6 +568,17 @@ namespace sound {
         if (it == registery.end()) {
             SDL_LogError(LOG_SOUND, "Unable to set soundtrack for sound ID: %s as it is not in the registery", id.c_str());
             return;
+        }
+
+        if (!nextSoundTrack.first.empty() || nextSoundTrack.second) {
+            // Next soundtrack already set -- destroy it prior to replacing it
+            SDL_LogDebug(
+                LOG_SOUND, 
+                "Replacing next track '%s' with '%s'", 
+                nextSoundTrack.first.c_str(),
+                id.c_str()
+            );
+            SDL_DestroyAudioStream(nextSoundTrack.second);
         }
 
         this->fadeTime = fadeTime;

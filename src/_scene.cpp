@@ -1019,7 +1019,7 @@ void _scene::updateScene(double dt, const InputState &inputState)
     const float playerSpeed = player->getSpeed();
 
     if (gameUnPausedEvent) {
-        std::cout << "Game un-paused!\n";
+        SDL_LogInfo(LOG_SCENE, "Game unpaused");
         gameUnPausedEvent = false;
 
         const float distance = player->pos.distance({0.0f,0.0f});
@@ -1037,26 +1037,22 @@ void _scene::updateScene(double dt, const InputState &inputState)
     switch (player->playerLevelEvent) {
         case PLAYER_EVENT_LEVEL_OUTER:
             SDL_LogInfo(LOG_SCENE, "Player entered level: OUTER");
-            sounds->stopAllBackgroundSounds();
-            sounds->playBackgroundSound("LEVEL_OUTER_MUSIC");
+            sounds->setSoundTrack("LEVEL_OUTER_MUSIC", 1.5f);
             player->playerLevelEvent = PLAYER_EVENT_LEVEL_NONE;
             break;
         case PLAYER_EVENT_LEVEL_MIDDLE:
             SDL_LogInfo(LOG_SCENE, "Player entered level: MIDDLE");
-            sounds->stopAllBackgroundSounds();
-            sounds->playBackgroundSound("LEVEL_MIDDLE_MUSIC");
+            sounds->setSoundTrack("LEVEL_MIDDLE_MUSIC", 1.5f);
             player->playerLevelEvent = PLAYER_EVENT_LEVEL_NONE;
             break;
         case PLAYER_EVENT_LEVEL_CENTER:
             SDL_LogInfo(LOG_SCENE, "Player entered level: CENTER");
-            sounds->stopAllBackgroundSounds();
-            sounds->playBackgroundSound("LEVEL_CENTER_MUSIC");
+            sounds->setSoundTrack("LEVEL_CENTER_MUSIC", 1.5f);
             player->playerLevelEvent = PLAYER_EVENT_LEVEL_NONE;
             break;
         case PLAYER_EVENT_LEVEL_BOSS:
             SDL_LogInfo(LOG_SCENE, "Player entered level: BOSS");
-            sounds->stopAllBackgroundSounds();
-            sounds->playBackgroundSound("LEVEL_BOSS_MUSIC");
+            sounds->setSoundTrack("LEVEL_BOSS_MUSIC", 1.5f);
             player->playerLevelEvent = PLAYER_EVENT_LEVEL_NONE;
             break;
     }
