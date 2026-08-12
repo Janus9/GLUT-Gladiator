@@ -169,6 +169,8 @@ namespace sound {
                 nextSoundTrack.second = nullptr;
 
                 SDL_SetAudioStreamGain(activeSoundTrack.second, 1.0f);  // Set to full volume
+
+                SDL_LogInfo(LOG_SOUND, "Soundtrack '%s' set to active",activeSoundTrack.first.c_str());
             }
         }
 
@@ -553,6 +555,11 @@ namespace sound {
             return;
         }
 
+        if (!nextSoundTrack.first.empty() || nextSoundTrack.second) {
+            // Next soundtrack already set
+            return;
+        }
+
         auto it = registery.find(id);
         if (it == registery.end()) {
             SDL_LogError(LOG_SOUND, "Unable to set soundtrack for sound ID: %s as it is not in the registery", id.c_str());
@@ -599,6 +606,8 @@ namespace sound {
             SDL_DestroyAudioStream(stream);
             return;
         }
+
+        SDL_LogInfo(LOG_SOUND, "Set next sound track to '%s' with fade time '%fs'", id.c_str(), fadeTime);
     }
 
     void Engine::stopSoundTrack(float fadeTime) {

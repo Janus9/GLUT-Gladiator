@@ -74,7 +74,10 @@ namespace sound {
             /**
              * Sets the soundtrack to the given ID.
              * The soundtrack cannot be stacked, or repeated.  
-             * If the soundtrack is already set, this overwrites the soundtrack over the given fade time. 
+             * 
+             * If the soundtrack is already set, the next soundtrack is set and fades in over the given fade time. 
+             * The active soundtrack fades out over the given fade time.
+             * If the next soundtrack is already set, function is ignored. 
              * 
              * @param id Unique ID of the sound.
              * @param fadeTime Time it takes to fade to next track (Default: 0.0s)
