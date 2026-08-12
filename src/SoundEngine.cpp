@@ -581,8 +581,14 @@ namespace sound {
             SDL_DestroyAudioStream(nextSoundTrack.second);
         }
 
+        if (fadeTimeElapsed < this->fadeTime) {
+            // Still in last fade, adjust new fade to % of last one
+            fadeTimeElapsed = fadeTime * std::clamp(std::lerp(0.0f, 1.0f, fadeTimeElapsed / this->fadeTime), 0.0f, 1.0f);
+        } else {
+            fadeTimeElapsed = 0.0f;
+        }
+        
         this->fadeTime = fadeTime;
-        fadeTimeElapsed = 0.0f;
         nextSoundTrack.first = id;
 
         Registration &sound = it->second;
