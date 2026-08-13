@@ -1286,7 +1286,7 @@ void _scene::updateScene(double dt, const InputState &inputState)
             offsetPos = {-4.0f, 8.0f};
         }
         bulletManager->spawnBulletEffect(player->pos + offsetPos, mouseWorldPos, _team::FRIENDLY, player_bullet);
-        soundManager->playSfx("PLAYER_SHOOT");
+        sounds->playSound("PLAYER_SHOOT");
     } else {
         player->setAnimationFPS(12);
     }
@@ -1469,10 +1469,10 @@ void _scene::keyboardHandler(const InputState &inputState)
         
     }
     if (inputState.keys[SDL_SCANCODE_F1]) {
-        sounds->setSoundTrack("TEST", 4.0f);
+
     }
     if (inputState.keys[SDL_SCANCODE_F2]) {
-        sounds->setSoundTrack("WIN_MUSIC", 4.0f);
+        
     }
     if (inputState.keys[SDL_SCANCODE_F3]) {
 

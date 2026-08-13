@@ -235,6 +235,7 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char *argv[])
 	// Player //
 	soundEngine->registerSound("MINE_COMPLETE", "sounds/player/mine_complete.wav");
 	soundEngine->registerSound("MINE_TICK", "sounds/player/mine_tick.wav");
+	soundEngine->registerSound("PLAYER_SHOOT", "sounds/player/22LR Single Isolated.wav");
 	// Sound Tracks //
 	soundEngine->registerSound("LEVEL_OUTER_MUSIC", "sounds/level_outer/level_outer.wav");
 	soundEngine->registerSound("LEVEL_MIDDLE_MUSIC", "sounds/level_middle/level_middle.wav");
