@@ -642,7 +642,7 @@ namespace sound {
         SDL_LogWarn(LOG_SOUND, "stopSoundTrack Function unfinished -- does nothing");
     }
 
-    bool Engine::playingSoundTrack(const std::string id) const {
+    bool Engine::isPlayingSoundTrack(const std::string id) const {
         return (id == activeSoundTrack.first);
     }
 

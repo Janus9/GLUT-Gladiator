@@ -78,7 +78,10 @@ namespace sound {
              * If the soundtrack is already set, the next soundtrack is set and fades in over the given fade time. 
              * The active soundtrack fades out over the given fade time.
              * If the next soundtrack is already set, function overwrites the existing next soundtrack.
-             * If the provided sound ID is the same as the active soundtracks, command is ignored. 
+             * If the provided sound ID is the same as the active soundtracks, it makes the active soundtrack fade back in.
+             * 
+             * This function is not protected from repeated calls, to prevent odd clipping, use "isPlayingSoundTrack" to ensure you are
+             * not calling function repeatedly on the same soundtrack.
              * 
              * @param id Unique ID of the sound.
              * @param fadeTime Time it takes to fade to next track (Default: 0.0s)
@@ -98,7 +101,7 @@ namespace sound {
              * @param id Unique ID of the sound.
              * @return True if track is currently active (not next); False if track is not currently active.
              */
-            bool playingSoundTrack(const std::string id) const;
+            bool isPlayingSoundTrack(const std::string id) const;
 
             /**
              * Unloads all background sounds currently active.

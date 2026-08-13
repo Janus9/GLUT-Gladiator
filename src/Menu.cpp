@@ -296,7 +296,7 @@ namespace menu {
         SDL_LogDebug(LOG_MENU_MANAGER, "Loaded page: %i", static_cast<int>(type));
         if (type == PAGE_GAME) {
         } else {
-            if(!sounds->playingSoundTrack("MENU_MUSIC")) sounds->setSoundTrack("MENU_MUSIC", 0.5f);
+            if(!sounds->isPlayingSoundTrack("MENU_MUSIC")) sounds->setSoundTrack("MENU_MUSIC", 0.5f);
         }
         selectedPage = type;
     }
