@@ -558,16 +558,26 @@ namespace sound {
             return;
         }
 
-        if (id == activeSoundTrack.first) {
-            // Skip -- Already activley playing same track
-            SDL_LogDebug(LOG_SOUND, "Skipping '%s' as it is already activley playing", id.c_str());
-            return;
-        }
-
         auto it = registery.find(id);
         if (it == registery.end()) {
             SDL_LogError(LOG_SOUND, "Unable to set soundtrack for sound ID: %s as it is not in the registery", id.c_str());
             return;
+        }
+
+        if (id == activeSoundTrack.first) {
+            SDL_LogDebug(LOG_SOUND, "'%s' already activley playing, swapping tracks", id.c_str());
+
+            // Tracks are swapped so that we now have our incoming track fade BACK in from where it left off fading OUT
+            std::swap(activeSoundTrack, nextSoundTrack); 
+
+            const float activeGain = std::clamp(
+                std::lerp(0.0f, 1.0f, 1.0f - fadeTimeElapsed / this->fadeTime),
+                0.0f,
+                1.0f
+            );
+            // Set fade time to be % of where we were before to make it seamless even with fade time changes
+            fadeTimeElapsed = fadeTime * activeGain; 
+            return;   
         }
 
         if (!nextSoundTrack.first.empty() || nextSoundTrack.second) {
@@ -579,15 +589,11 @@ namespace sound {
                 id.c_str()
             );
             SDL_DestroyAudioStream(nextSoundTrack.second);
-        }
-
-        if (fadeTimeElapsed < this->fadeTime) {
-            // Still in last fade, adjust new fade to % of last one
-            fadeTimeElapsed = fadeTime * std::clamp(std::lerp(0.0f, 1.0f, fadeTimeElapsed / this->fadeTime), 0.0f, 1.0f);
-        } else {
-            fadeTimeElapsed = 0.0f;
+            nextSoundTrack.first = "";
+            nextSoundTrack.second = nullptr;
         }
         
+        fadeTimeElapsed = 0.0f;
         this->fadeTime = fadeTime;
         nextSoundTrack.first = id;
 
@@ -633,6 +639,11 @@ namespace sound {
 
     void Engine::stopSoundTrack(float fadeTime) {
         // TODO
+        SDL_LogWarn(LOG_SOUND, "stopSoundTrack Function unfinished -- does nothing");
+    }
+
+    bool Engine::playingSoundTrack(const std::string id) const {
+        return (id == activeSoundTrack.first);
     }
 
     void Engine::setListenerPosition(const Vec2f &pos) {

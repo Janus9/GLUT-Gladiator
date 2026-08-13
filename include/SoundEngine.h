@@ -88,9 +88,17 @@ namespace sound {
             /**
              * Stops playing and removes the current soundtrack over the given fade time.
              * 
+             * UNFINISHED
+             * 
              * @param fadeTime Time it takes to fade out of the soundtrack (Default 0.0s)
              */
             void stopSoundTrack(float fadeTime = 0.0f);
+
+            /**
+             * @param id Unique ID of the sound.
+             * @return True if track is currently active (not next); False if track is not currently active.
+             */
+            bool playingSoundTrack(const std::string id) const;
 
             /**
              * Unloads all background sounds currently active.
