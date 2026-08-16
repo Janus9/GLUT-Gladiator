@@ -71,8 +71,6 @@ namespace sound {
             void stopBackgroundSound(const std::string &id);
 
             /**
-             * Set Gain Later!!!
-             * 
              * Sets the soundtrack to the given ID.
              * The soundtrack cannot be stacked, or repeated.  
              * 

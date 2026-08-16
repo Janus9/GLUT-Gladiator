@@ -237,18 +237,36 @@ namespace sound {
         if (!nextSoundTrack.first.empty() && nextSoundTrack.second) {
             // Has next soundtrack
             if (fadeTime != 0.0f) {
+                // Defaults to 1.0 if the track does is not found
+                float activeGainMul = 1.0f;
+                float nextGainMul = 1.0f;
+
+                // Active soundtrack may be empty
+                if (!activeSoundTrack.first.empty() && activeSoundTrack.second) {
+                    auto activeIt = registery.find(activeSoundTrack.first);
+                    if (activeIt != registery.end()) {
+                        activeGainMul = activeIt->second.gain;
+                    }
+                }
+
+                // Set gain for the next soundtrack
+                auto nextIt = registery.find(nextSoundTrack.first);
+                if (nextIt != registery.end()) {
+                    nextGainMul = nextIt->second.gain;
+                }
+
                 SDL_AudioStream* nextStream = nextSoundTrack.second;
                 const float nextGain = std::clamp(
                     std::lerp(0.0f, 1.0f, fadeTimeElapsed / fadeTime),
                     0.0f,
                     1.0f
-                );
+                ) * nextGainMul;
                 SDL_AudioStream* activeStream = activeSoundTrack.second;
                 const float activeGain = std::clamp(
                     std::lerp(0.0f, 1.0f, 1.0f - fadeTimeElapsed / fadeTime),
                     0.0f,
                     1.0f
-                );
+                ) * activeGainMul;
                 // Set fades between track
                 SDL_SetAudioStreamGain(nextStream,nextGain);
                 if(activeStream) SDL_SetAudioStreamGain(activeStream,activeGain);
@@ -266,8 +284,16 @@ namespace sound {
                 // Clear next sound track as its been swapped to the first
                 nextSoundTrack.first = "";
                 nextSoundTrack.second = nullptr;
+                
+                // Get the gain attached to the sound
+                float activeGainMul = 1.0f;
 
-                SDL_SetAudioStreamGain(activeSoundTrack.second, 1.0f);  // Set to full volume
+                auto activeIt = registery.find(activeSoundTrack.first);
+                if (activeIt != registery.end()) {
+                    activeGainMul = activeIt->second.gain;
+                }
+
+                SDL_SetAudioStreamGain(activeSoundTrack.second, activeGainMul);  // Set to full volume (gain value)
 
                 SDL_LogInfo(LOG_SOUND, "Soundtrack '%s' set to active",activeSoundTrack.first.c_str());
             }
