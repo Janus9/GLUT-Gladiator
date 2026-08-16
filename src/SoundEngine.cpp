@@ -651,7 +651,7 @@ namespace sound {
         backgroundStreams.clear();
     }
 
-    void Engine::setSoundTrack(const std::string id, float fadeTime) {
+    void Engine::setSoundTrack(const std::string &id, float fadeTime) {
         if (!initialized) {
             SDL_LogError(LOG_SOUND, "ERROR: Unable to set soundtrack for sound ID: %s as the engine is not initialized.", id.c_str());
             return;
@@ -741,7 +741,7 @@ namespace sound {
         SDL_LogWarn(LOG_SOUND, "stopSoundTrack Function unfinished -- does nothing");
     }
 
-    bool Engine::isPlayingSoundTrack(const std::string id) const {
+    bool Engine::isPlayingSoundTrack(const std::string &id) const {
         return (id == activeSoundTrack.first);
     }
 
@@ -755,6 +755,118 @@ namespace sound {
 
     float Engine::getMasterVolume() const {
         return masterVolume;
+    }
+
+    void Engine::playSpatialLooped(const std::string &id, int instanceId, const Vec2f &pos) {
+        // -- Find Registration -- //
+        auto regIt = registery.find(id);
+        if (regIt == registery.end()) {
+            SDL_LogError(
+                LOG_SOUND,
+                "Sound '%s' not registered",
+                id.c_str()
+            );
+            return;
+        }
+
+        SpatialLoopKey key = {id, instanceId};
+
+        // -- Find In Spatial Map -- //
+        auto it = spatialLoopMap.find(key);
+        if (it != spatialLoopMap.end()) {
+
+            SDL_LogDebug(
+                LOG_SOUND, 
+                "Audio (%s, %i) already playing, resuming playback", 
+                key.soundId.c_str(),
+                key.instanceId
+            );
+            
+            SpatialLoop &audio = spatialLoopList[it->second]; 
+            audio.playing = true;
+            return;
+        }
+
+        // -- Create Stream -- //
+        Registration &sound = regIt->second;
+
+        SDL_AudioStream *stream = SDL_CreateAudioStream(
+            &sound.spec,
+            nullptr
+        );
+
+        if (!stream) {
+            SDL_LogError(
+                LOG_SOUND,
+                "Failed to create looped spatial audio stream: %s",
+                SDL_GetError()
+            );
+            return;
+        }
+
+        // Bind to playback device
+        if (!SDL_BindAudioStream(device, stream)) {
+            SDL_LogError(
+                LOG_SOUND,
+                "Failed to bind looped spatial audio stream: %s",
+                SDL_GetError()
+            );
+
+            SDL_DestroyAudioStream(stream);
+            return;
+        }
+
+        // Queue two copies to create a buffer ahead of playback.
+        if (!SDL_PutAudioStreamData(
+            stream,
+            sound.data,
+            static_cast<int>(sound.dataSize)
+        )) {
+            SDL_LogError(
+                LOG_SOUND,
+                "Failed to queue looped spatial audio: %s",
+                SDL_GetError()
+            );
+
+            SDL_DestroyAudioStream(stream);
+            return;
+        }
+
+        if (!SDL_PutAudioStreamData(
+            stream,
+            sound.data,
+            static_cast<int>(sound.dataSize)
+        )) {
+            SDL_LogError(
+                LOG_SOUND,
+                "Failed to queue looped spatial audio: %s",
+                SDL_GetError()
+            );
+
+            SDL_DestroyAudioStream(stream);
+            return;
+        }
+
+        // -- Create New Spatial Loop -- //
+        SpatialLoop audio {
+            .index = spatialLoopList.size(),
+            .stream = stream,
+            .position = pos,
+            .playing = true,
+            .leftGain = 1.0f,
+            .rightGain = 1.0f,
+            .distanceGain = 1.0f
+        };
+        spatialLoopList.push_back(audio);
+
+        spatialLoopMap[key] = audio.index;
+
+        SDL_LogDebug(
+            LOG_SOUND, 
+            "Added new loop spatial audio (%s, %i)",
+            key.soundId.c_str(),
+            key.instanceId
+        );
     }
 
     // -- PRIVATE -- //
@@ -783,9 +895,15 @@ namespace sound {
             LOG_SOUND, 
             "Registered Sound"
             "\n - ID: %s"
-            "\n - File Path: %s",
+            "\n - File Path: %s"
+            "\n - Frequency: %i fps"
+            "\n - Channels: %i channels"
+            "\n - Sample Rate: %i Hz",
             config.id.c_str(),
-            config.filePath.c_str()
+            config.filePath.c_str(),
+            sound.spec.freq,
+            sound.spec.channels,
+            sound.spec.freq * sound.spec.channels
         );
 
         return true;

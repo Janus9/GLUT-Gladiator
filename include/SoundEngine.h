@@ -48,7 +48,8 @@ namespace sound {
             void playSound(const std::string &id);
             
             /**
-             * Plays a non-looped sound spatial sound from a given ID. Audio can stack.
+             * Plays a non-looped spatial sound from a given ID. Audio can stack.
+             * The spatial sound cannot move. This should only be used for rapid or short audio clips. 
              * 
              * @param id Unique ID of the sound.
              * @param pos Position of the sound.
@@ -85,7 +86,7 @@ namespace sound {
              * @param id Unique ID of the sound.
              * @param fadeTime Time it takes to fade to next track (Default: 0.0s)
              */
-            void setSoundTrack(const std::string id, float fadeTime = 0.0f);
+            void setSoundTrack(const std::string &id, float fadeTime = 0.0f);
 
             /**
              * Stops playing and removes the current soundtrack over the given fade time.
@@ -100,12 +101,63 @@ namespace sound {
              * @param id Unique ID of the sound.
              * @return True if track is currently active (not next); False if track is not currently active.
              */
-            bool isPlayingSoundTrack(const std::string id) const;
+            bool isPlayingSoundTrack(const std::string &id) const;
 
             /**
              * Unloads all background sounds currently active.
              */
             void stopAllBackgroundSounds();
+
+            /**
+             * Plays a looped spatial sound from a given ID. Audio can stack.
+             * The spatial sound can move. This should be used for repeated audio effects (walking, gun reving, etc).
+             * 
+             * The instanceID must be unique only for a given sound id. Meaning there can be repeats if the sound id is different.
+             * 
+             * The looped sound must be manually cleaned via `stopSoundLooped`.
+             * 
+             * @param id Unique ID of the sound.
+             * @param instanceId Unique ID for this specific sound instance. Can be a unit/enemy ID, effect ID, etc.
+             * @param pos Position of the spatial sound.
+             */
+            void playSpatialLooped(const std::string &id, int instanceId, const Vec2f &pos);
+
+            /**
+             * Updates a given looped spatial sound to modify it's position. This allows for moving spatial audio.
+             * 
+             * This function can be called safely called when a looped spatial sound does not exist. 
+             * The function will simply return early.
+             * 
+             * @param id Unique ID of the sound.
+             * @param instanceId Unique ID for this specific sound instance.
+             * @param pos Position of the spatial sound.
+             */
+            void updateSpatialLooped(const std::string &id, int instanceId, const Vec2f &pos);
+
+            /**
+             * Pauses a given looped spatial sound, but does not remove it from the playback list. 
+             * 
+             * The sound will be resumed by `playSpatialLooped`. `updateSpatialLooped` will not resume playback.
+             * 
+             * This does not clean up a sound, use `stopSpatialLooped` upon cleanup (enemy dead, etc).
+             * 
+             * @param id Unique ID of the sound.
+             * @param instanceId Unique ID for this specific sound instance.
+             */
+            void pauseSpatialLooped(const std::string &id, int instanceId);
+
+            /**
+             * Stops playing a looped spatial sound. 
+             * 
+             * @param id Unique ID of the sound.
+             * @param instanceId Unique ID for this specific sound instance.
+             */
+            void stopSpatialLooped(const std::string &id, int instanceId);
+
+            /**
+             * Stops all of the looped spatial sounds and cleans up.
+             */
+            void stopAllSpatialLooped();
 
             /**
              * Sets the listener position for spatial audio.
@@ -138,18 +190,55 @@ namespace sound {
                 Uint32 dataSize = 0;
             };
 
+            // -- Spatial Audio -- //
+            struct SpatialLoop {
+                size_t index = 0;
+                SDL_AudioStream* stream = nullptr;
+                Vec2f position = {0.0f, 0.0f};
+                bool playing = true;
+                float leftGain = 1.0f;
+                float rightGain = 1.0f;
+                float distanceGain = 1.0f;
+            };
+
+            struct SpatialLoopKey {
+                std::string soundId;
+                int instanceId;
+
+                bool operator==(const SpatialLoopKey &other) const {
+                    return soundId == other.soundId && instanceId == other.instanceId;
+                }
+            };
+
+            struct SpatialLoopHash {
+                size_t operator()(const SpatialLoopKey &key) const {
+                    size_t h1 = std::hash<std::string>{}(key.soundId);
+                    size_t h2 = std::hash<int>{}(key.instanceId);
+
+                    return h1 ^ (h2 << 1);
+                }
+            };
+
+            std::unordered_map<SpatialLoopKey, size_t, SpatialLoopHash> spatialLoopMap; // Holds indicies to the Spatial Loops in memory
+            std::vector<SpatialLoop> spatialLoopList; // List of Spatial Loops in memory 
+
+            // Device for playback
             SDL_AudioDeviceID device = 0;
-
+            // Audio registration data
             std::unordered_map<std::string, Registration> registery;
+            // Audio streams with automatic looping. Must be manually cleared.
             std::unordered_map<std::string, SDL_AudioStream*> backgroundStreams;
+            // Audio streams with no looping and autmatic cleanup.
             std::vector<SDL_AudioStream*> activeStreams;
-
+            // The current active soundtrack
             std::pair<std::string, SDL_AudioStream*> activeSoundTrack;
+            // The next sound track that fades in over time
             std::pair<std::string, SDL_AudioStream*> nextSoundTrack;
+
             float fadeTimeElapsed = 0.0f;
             float fadeTime = 0.0f;
 
-            Vec2f listenerPosition = {0.0f, 0.0f};
+            Vec2f listenerPosition = {0.0f, 0.0f};   // Where listener (player) is located
             float spatialMaxDistance = 1000.0f;      // Max distance player can hear audio from
             float audioFalloff = 2.5f;               // What power is applied to audio falloff (ex 2.0f is squared falloff)
 
