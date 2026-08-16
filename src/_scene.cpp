@@ -181,7 +181,7 @@ void _scene::initScene(bool loadWorld, sound::Engine* _sounds) {
         .player = player.get(),
         .world = myWorld.get(),
         .bullets = bulletManager.get(),
-        .sounds = soundManager,
+        .sounds = sounds,
         .lights = lightManager.get(),
         .textures = textureManager.get(),
         .pickups = pickupManager.get(),
@@ -227,7 +227,7 @@ void _scene::initScene(bool loadWorld, sound::Engine* _sounds) {
         .world = myWorld.get(),
         .player = player.get(),
         .enemies = enemyManager.get(),
-        .sounds = soundManager,
+        .sounds = sounds,
         .lights = lightManager.get(),
         .particles = ParticleEngine.get()
     };
@@ -743,7 +743,7 @@ bool _scene::loadSceneFromFile(const std::string &fileName) {
         .player = player.get(),
         .world = myWorld.get(),
         .bullets = bulletManager.get(),
-        .sounds = soundManager,
+        .sounds = sounds,
         .lights = lightManager.get(),
         .textures = textureManager.get(),
         .pickups = pickupManager.get(),

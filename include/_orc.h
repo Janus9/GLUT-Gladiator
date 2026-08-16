@@ -4,7 +4,7 @@
 #include <_common.h>
 #include <_enemyManager.h>
 #include <_player.h>
-#include <_sounds.h>
+#include <SoundEngine.h>
 #include <_textureManager.h>
 
 class _world;
@@ -38,18 +38,18 @@ class _orc : public _enemy {
         void initOrc(const _textureManager* sceneTextureManager);
 
         // Per-frame AI + animation FSM. Manager handles dead/despawn timing.
-        void updateOrc(double dt, _player* player, _world* world, _sounds* sounds);
+        void updateOrc(double dt, _player* player, _world* world, sound::Engine* sounds);
 
         // Selects active sprite for current action and draws it.
         void drawOrc();
 
         // Called by _bulletManager (via _enemy::notifyDamaged) when this orc
         // takes a hit. Triggers HURT animation if alive.
-        void notifyDamaged(_sounds* sounds) override;
+        void notifyDamaged(sound::Engine* sounds) override;
 
         // Called by _enemyManager once when the orc has just died, to play
         // the directional DEATH animation. Idempotent.
-        void triggerDeath(_sounds* sounds);
+        void triggerDeath(sound::Engine* sounds);
 
         // -- Stats -- //
         float moveSpeed      = 60.0f;   // units / second

@@ -177,7 +177,7 @@ void _vampire::initVampire(const _textureManager* sceneTextureManager, vampire_v
     if (_sprite* s = getSprite("IDLE")) s->startAnimation();
 }
 
-void _vampire::updateVampire(double dt, _player* player, _world* world, _sounds* sounds) {
+void _vampire::updateVampire(double dt, _player* player, _world* world, sound::Engine* sounds) {
     if (!player) return;
     if (isDead()) return;
 
@@ -209,7 +209,7 @@ void _vampire::updateVampire(double dt, _player* player, _world* world, _sounds*
             if (dist <= hitReach && !player->isDead()) {
                 player->impulseDamage(attackDamage);
                 player->playerTookDamage = true;
-                if (sounds) sounds->playSfx("PLAYER_HURT");
+                sounds->playSound("PLAYER_HURT");
             }
             damageDealtThisSwing = true;
         }
@@ -299,7 +299,7 @@ void _vampire::updateVampire(double dt, _player* player, _world* world, _sounds*
                 s->setFPS(VAMPIRE_ATTACK_FPS);
                 s->startAnimation();
             }
-            if (sounds) sounds->playSfx("VAMPIRE_ATTACK", soundPitch);
+            sounds->playSound("VAMPIRE_ATTACK", pos);
         }
     }
 }
@@ -308,7 +308,7 @@ void _vampire::drawVampire() {
     drawUnitSingular();
 }
 
-void _vampire::triggerDeath(_sounds* sounds) {
+void _vampire::triggerDeath(sound::Engine* sounds) {
     if (inDeathAnimation) return;
     inDeathAnimation = true;
     inAttack = false;
@@ -321,11 +321,11 @@ void _vampire::triggerDeath(_sounds* sounds) {
         s->setIdleFrame(animationTable[deathAct].idleFrame.x, animationTable[deathAct].idleFrame.y);
         s->playAction(animationTable[deathAct].action);
     }
-    if (sounds) sounds->playSfx("VAMPIRE_DEATH", soundPitch);
+    sounds->playSound("VAMPIRE_DEATH", pos);
     deathTime = 0.0;
 }
 
-void _vampire::notifyDamaged(_sounds* sounds) {
+void _vampire::notifyDamaged(sound::Engine* sounds) {
     if (isDead()) return;
     if (inHurt) return;
     inAttack = false;
@@ -337,7 +337,7 @@ void _vampire::notifyDamaged(_sounds* sounds) {
         s->setFPS(VAMPIRE_HURT_FPS);
         s->startAnimation();
     }
-    if (sounds) sounds->playSfx("VAMPIRE_HURT", soundPitch);
+    sounds->playSound("VAMPIRE_HURT", pos);
 }
 
 // -- PRIVATE -- //

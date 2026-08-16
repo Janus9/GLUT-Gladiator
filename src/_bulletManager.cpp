@@ -129,7 +129,7 @@ void _bulletManager::updateBulletManager(double dt) {
             if (world->isCellWall(occupyingCell)) {
                 // Collision event
                 world->damageCell(occupyingCell,b->damage);
-                if (sounds) sounds->playSfx3D("BULLET_HIT_WALL",occupyingCell->pos);
+                sounds->playSound("BULLET_HIT_WALL",occupyingCell->pos);
                 b->health -= 50;
             }
         }
@@ -140,7 +140,7 @@ void _bulletManager::updateBulletManager(double dt) {
             if (enemy) {
                 enemy->impulseDamage(b->damage);
                 enemy->notifyDamaged(sounds);
-                if (sounds) sounds->playSfx3D("BULLET_HIT_UNIT",occupyingCell->pos);
+                sounds->playSound("BULLET_HIT_UNIT",occupyingCell->pos);
                 b->health -= 25;
             }
         } else {
@@ -148,7 +148,7 @@ void _bulletManager::updateBulletManager(double dt) {
             if (b->pos.distance(player->pos) < 6.0f) {
                 player->impulseDamage(10);
                 player->playerTookDamage = true;
-                if (sounds) sounds->playSfx("PLAYER_HURT");
+                sounds->playSound("PLAYER_HURT");
                 b->health -= 25;
             }
         }

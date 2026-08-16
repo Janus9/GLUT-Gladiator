@@ -251,7 +251,6 @@ void _enemyManager::updateEnemies(double dt) {
                 // Handle player being dead
                 if (player->isDead() || player->isRealDead) {
                     sprite->stopAnimation();
-                    sounds->removeSfx3DLooped(enemy->getID());
                     continue;
                 }
 
@@ -262,7 +261,7 @@ void _enemyManager::updateEnemies(double dt) {
                     sprite->playAction("DEATH");
                     enemy->deathTime = 0.0;
                     ParticleEngine->spawnEffect({enemy->pos.x, enemy->pos.y}, "turret_death");
-                    if (sounds) sounds->playSfx("ENEMY_DEATH");
+                    sounds->playSound("ENEMY_DEATH", enemy->pos);
                     continue;
                 } else if (enemy->isDead() && enemy->deathTime > enemy->timeInDeathAnimation) {
                     Vec2f offset_pos = {pos_dist(rng), pos_dist(rng)};
@@ -290,7 +289,7 @@ void _enemyManager::updateEnemies(double dt) {
                         if (enemy->firingTime > 1.0f/(enemy->fireRate/60.0f)) {
                             bulletManager->spawnBulletEffect(enemy->pos,player->pos,_team::ENEMY,*bullet_1);
                             ParticleEngine->spawnEffect({enemy->pos.x, enemy->pos.y}, "turret_bullet_casing");
-                            if (sounds) sounds->playSfx3D("ENEMY_SHOOT", enemy->pos);
+                            // if (sounds) sounds->playSfx3D("ENEMY_SHOOT", enemy->pos);
                             sprite->setFPS(enemy->fireRate / 60.0f);
                             enemy->firingTime = 0;
                         }
@@ -314,7 +313,6 @@ void _enemyManager::updateEnemies(double dt) {
                 // Handle player being dead
                 if (player->isDead() || player->isRealDead) {
                     sprite->stopAnimation();
-                    sounds->removeSfx3DLooped(enemy->getID());
                     continue;
                 }
 
@@ -355,7 +353,6 @@ void _enemyManager::updateEnemies(double dt) {
                 // Handle player being dead
                 if (player->isDead() || player->isRealDead) {
                     sprite->stopAnimation();
-                    sounds->removeSfx3DLooped(enemy->getID());
                     continue;
                 }
 
@@ -384,7 +381,6 @@ void _enemyManager::updateEnemies(double dt) {
                 // Handle player being dead
                 if (player->isDead() || player->isRealDead) {
                     sprite->stopAnimation();
-                    sounds->removeSfx3DLooped(enemy->getID());
                     continue;
                 }
 
@@ -395,7 +391,7 @@ void _enemyManager::updateEnemies(double dt) {
                     sprite->setIdleFrame(8,1);
                     sprite->playAction("DEATH");
                     enemy->deathTime = 0.0;
-                    if (sounds) sounds->playSfx("ENEMY_DEATH");
+                    sounds->playSound("ENEMY_DEATH", enemy->pos);
                     ParticleEngine->spawnEffect({enemy->pos.x, enemy->pos.y}, "gatling_death");
                     ParticleEngine->spawnEffect({enemy->pos.x, enemy->pos.y}, "gatling_death_smoke");
                     continue;
@@ -429,7 +425,6 @@ void _enemyManager::updateEnemies(double dt) {
 
                 // If dead update death time to final death event
                 if (enemy->isDead()) {
-                    sounds->removeSfx3DLooped(enemy->getID());
                     enemy->deathTime += dt;
                     continue;
                 }
@@ -447,7 +442,7 @@ void _enemyManager::updateEnemies(double dt) {
                             ParticleEngine->spawnEffect({enemy->pos.x, enemy->pos.y}, "gatling_bullet_casing");
                             enemy->firingTime = 0;
                         }
-                        sounds->playSfx3DLooped("GATLING_SHOOT", enemy->getID(), enemy->pos);
+                        // sounds->playSfx3DLooped("GATLING_SHOOT", enemy->getID(), enemy->pos);
                         sprite->setFPS(enemy->fireRate / 60.0f);
                         sprite->loadSpriteAction("SHOOT");
                     } else {
@@ -459,13 +454,13 @@ void _enemyManager::updateEnemies(double dt) {
                         }
                         sprite->loadSpriteAction("REV");
                         sprite->setFPS(enemy->fireRate / 60.0f);
-                        sounds->playSfx3DLooped("GATLING_REV", enemy->getID(), enemy->pos);
+                        // sounds->playSfx3DLooped("GATLING_REV", enemy->getID(), enemy->pos);
                     }
                 }  else {
                     enemy->revTime = 0.0;
                     sprite->loadSpriteAction("IDLE");
                     sprite->setFPS(12);
-                    sounds->removeSfx3DLooped(enemy->getID());
+                    // sounds->removeSfx3DLooped(enemy->getID());
                 }
                 break;
             }

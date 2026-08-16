@@ -5,7 +5,7 @@
 #include <_player.h>
 #include <_world.h>
 #include <_bulletManager.h>
-#include <_sounds.h>
+#include <SoundEngine.h>
 #include <_shader.h>
 #include <_lightManager.h>
 #include <_textureManager.h>
@@ -75,7 +75,7 @@ class _enemy : public _unit {
 
         // Hook fired by _bulletManager after impulseDamage. Subclasses override
         // to react (e.g. _orc plays HURT animation). Default is no-op.
-        virtual void notifyDamaged([[maybe_unused]] _sounds* sounds) {}
+        virtual void notifyDamaged(sound::Engine* sounds) {}
 
         // Returns a serialized struct of the enemy
         enemy_serial_data serializeEnemy() const;
@@ -106,7 +106,7 @@ struct enemyManagerContext {
     _player* player; 
     _world* world; 
     _bulletManager* bullets; 
-    _sounds* sounds; 
+    sound::Engine* sounds; 
     _lightManager* lights; 
     _textureManager* textures; 
     pickups::Engine* pickups;
@@ -131,7 +131,7 @@ struct enemyManagerContext {
             return false;
         }
         if (!sounds) {
-            SDL_LogError(LOG_ENEMY_MANAGER, "ERROR: Sounds is nullptr");
+            SDL_LogError(LOG_ENEMY_MANAGER, "ERROR: Sound Engine is nullptr");
             return false;
         }
         if (!lights) {
@@ -208,16 +208,16 @@ class _enemyManager {
         bool bossKilledEvent = false;
     protected:
     private:
-        _player* player = nullptr;                      // Pointer to player instance instantiated in scene (non-owning)
-        _world* world = nullptr;                        // Pointer to world instance instantiated in scene (non-owning)
-        _bulletManager* bulletManager = nullptr;        // Pointer to bulletManager instance instantiated in scene (non-owning)
-        _textureManager* sceneTextureManager = nullptr; // Pointer to the texture manager instance instantiated in scene (non-owning)
+        _player* player = nullptr;                       // Pointer to player instance instantiated in scene (non-owning)
+        _world* world = nullptr;                         // Pointer to world instance instantiated in scene (non-owning)
+        _bulletManager* bulletManager = nullptr;         // Pointer to bulletManager instance instantiated in scene (non-owning)
+        _textureManager* sceneTextureManager = nullptr;  // Pointer to the texture manager instance instantiated in scene (non-owning)
         pickups::Engine* scenePickupManager = nullptr;   // Pointer to the pickup manager instance instantiated in scene (non-owning)
-        particles::Engine* ParticleEngine = nullptr;    // Pointer to the particle manager instance instantiated in scene (non-owning)
+        particles::Engine* ParticleEngine = nullptr;     // Pointer to the particle manager instance instantiated in scene (non-owning)
 
-        _sounds* sounds = nullptr;                  // Pointer to sounds instance instantiated in scene (non-owning)
+        sound::Engine* sounds = nullptr;                 // Pointer to sounds instance instantiated in scene (non-owning)
 
-        std::vector<std::unique_ptr<_enemy>> enemyList;   // List of enemy instances
+        std::vector<std::unique_ptr<_enemy>> enemyList;  // List of enemy instances
 
         // -- SHADERS -- //
         std::map<int, std::unordered_map<GLuint, std::vector<_sprite*>>> layerMap;

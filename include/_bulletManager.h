@@ -7,7 +7,7 @@
 #include <_world.h>
 #include <_shader.h>
 #include <_player.h>
-#include <_sounds.h>
+#include <SoundEngine.h>
 #include <_lightManager.h>
 #include <ParticleEngine.h>
 
@@ -53,7 +53,7 @@ struct _bulletManagerContext {
     _world* world; 
     _player* player; 
     _enemyManager* enemies; 
-    _sounds* sounds; 
+    sound::Engine* sounds; 
     _lightManager* lights;
     particles::Engine* particles;   // Unused
 
@@ -75,7 +75,7 @@ struct _bulletManagerContext {
             return false;
         }
         if (!sounds) {
-            SDL_LogError(LOG_ENEMY_MANAGER, "ERROR: Sound Manager is nullptr");
+            SDL_LogError(LOG_ENEMY_MANAGER, "ERROR: Sound Engine is nullptr");
             return false;
         }
         if (!lights) {
@@ -131,7 +131,7 @@ class _bulletManager {
         _player* player = nullptr;                  // Pointer to player instance instantiated in scene (non-owning)
         _world* world = nullptr;                    // Pointer to world instance instantiated in scene (non-owning)
         _enemyManager* enemyManager = nullptr;      // Pointer to enemyManager instance instantiated in scene (non-owning)
-        _sounds* sounds = nullptr;                  // Pointer to sounds instance instantiated in scene (non-owning)
+        sound::Engine* sounds = nullptr;            // Pointer to sounds instance instantiated in scene (non-owning)
         _lightManager* sceneLightManager = nullptr; // Pointer to light manager instantiated in scne (non-owning)
         particles::Engine* ParticleEngine = nullptr;// Pointer to Particle Engine instantiated in scene (non-owning) 
 

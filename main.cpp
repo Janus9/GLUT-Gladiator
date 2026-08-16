@@ -236,12 +236,26 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char *argv[])
 	soundEngine->registerSound("MINE_COMPLETE", "sounds/player/mine_complete.wav");
 	soundEngine->registerSound("MINE_TICK", "sounds/player/mine_tick.wav");
 	soundEngine->registerSound("PLAYER_SHOOT", "sounds/player/22LR Single Isolated.wav");
+	soundEngine->registerSound("PLAYER_HURT", "sounds/player/TODO");
 	// Sound Tracks //
 	soundEngine->registerSound("LEVEL_OUTER_MUSIC", "sounds/level_outer/level_outer.wav");
 	soundEngine->registerSound("LEVEL_MIDDLE_MUSIC", "sounds/level_middle/level_middle.wav");
 	soundEngine->registerSound("LEVEL_CENTER_MUSIC", "sounds/level_center/level_center.wav");
 	soundEngine->registerSound("LEVEL_BOSS_MUSIC", "sounds/level_boss/level_boss.wav");
+	// Enemy //
+	soundEngine->registerSound("TURRET_FIRE", "sounds/enemy/turret/turret_fire.wav");
 
+	soundEngine->registerSound("ORC_ATTACK", "sounds/enemy/orc/orc_attack.wav");
+	soundEngine->registerSound("ORC_HURT", "sounds/enemy/orc/orc_hurt.wav");
+	soundEngine->registerSound("ORC_DEATH", "sounds/enemy/orc/orc_death.wav");
+
+	soundEngine->registerSound("VAMPIRE_ATTACK", "sounds/enemy/vampire/vampire_attack.wav");
+	soundEngine->registerSound("VAMPIRE_HURT", "sounds/enemy/vampire/vampire_hurt.wav");
+	soundEngine->registerSound("VAMPIRE_DEATH", "sounds/enemy/vampire/vampire_death.wav");
+	// Environment //
+	soundEngine->registerSound("BULLET_HIT_WALL", "sounds/environment/bullet_hit_wall.wav");
+	soundEngine->registerSound("BULLET_HIT_UNIT", "sounds/environment/hurt.wav");
+	// Other //
 	soundEngine->registerSound("TEST", "sounds/gameplay_music1.wav");
 	soundEngine->registerSound("WIN_MUSIC", "sounds/win_music.wav");
 

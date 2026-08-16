@@ -124,7 +124,7 @@ void _orc::initOrc(const _textureManager* sceneTextureManager) {
     if (_sprite* s = getSprite("WALK")) s->stopAnimation();
 }
 
-void _orc::updateOrc(double dt, _player* player, _world* world, _sounds* sounds) {
+void _orc::updateOrc(double dt, _player* player, _world* world, sound::Engine* sounds) {
     if (!player) return;
     if (isDead()) return;     // Manager handles death/despawn timing.
 
@@ -163,7 +163,7 @@ void _orc::updateOrc(double dt, _player* player, _world* world, _sounds* sounds)
             if (dist <= HIT_REACH && !player->isDead()) {
                 player->impulseDamage(attackDamage);
                 player->playerTookDamage = true;
-                if (sounds) sounds->playSfx("PLAYER_HURT");
+                sounds->playSound("PLAYER_HURT", player->pos);
             }
             damageDealtThisSwing = true;
         }
@@ -257,7 +257,7 @@ void _orc::updateOrc(double dt, _player* player, _world* world, _sounds* sounds)
                 s->setFPS(ORC_ATTACK_FPS);
                 s->startAnimation();
             }
-            if (sounds) sounds->playSfx("ORC_ATTACK");
+            sounds->playSound("ORC_ATTACK", pos);
         }
     }
 }
@@ -266,7 +266,7 @@ void _orc::drawOrc() {
     drawUnitSingular();
 }
 
-void _orc::triggerDeath(_sounds* sounds) {
+void _orc::triggerDeath(sound::Engine* sounds) {
     if (inDeathAnimation) return;
     inDeathAnimation = true;
     inAttack = false;
@@ -279,11 +279,11 @@ void _orc::triggerDeath(_sounds* sounds) {
         s->setIdleFrame(animationTable[deathAct].idleFrame.x, animationTable[deathAct].idleFrame.y);
         s->playAction(animationTable[deathAct].action);
     }
-    if (sounds) sounds->playSfx("ORC_DEATH");
+    sounds->playSound("ORC_DEATH", pos);
     deathTime = 0.0;
 }
 
-void _orc::notifyDamaged(_sounds* sounds) {
+void _orc::notifyDamaged(sound::Engine* sounds) {
     if (isDead()) return;
     if (inHurt) return;
     inAttack = false;
@@ -295,7 +295,7 @@ void _orc::notifyDamaged(_sounds* sounds) {
         s->setFPS(ORC_HURT_FPS);
         s->startAnimation();
     }
-    if (sounds) sounds->playSfx("ORC_HURT");
+    sounds->playSound("ORC_HURT", pos);
 }
 
 // -- PRIVATE -- //

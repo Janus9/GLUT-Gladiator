@@ -4,7 +4,7 @@
 #include <_common.h>
 #include <_enemyManager.h>
 #include <_player.h>
-#include <_sounds.h>
+#include <SoundEngine.h>
 #include <_textureManager.h>
 
 class _world;
@@ -42,11 +42,11 @@ class _vampire : public _enemy {
         virtual ~_vampire();
 
         void initVampire(const _textureManager* sceneTextureManager, vampire_variant variant = VAMPIRE_BOSS);
-        void updateVampire(double dt, _player* player, _world* world, _sounds* sounds);
+        void updateVampire(double dt, _player* player, _world* world, sound::Engine* sounds);
         void drawVampire();
 
-        void notifyDamaged(_sounds* sounds) override;
-        void triggerDeath(_sounds* sounds);
+        void notifyDamaged(sound::Engine* sounds) override;
+        void triggerDeath(sound::Engine* sounds);
 
         // -- Stats (defaults are boss-tier; initVampire overrides per variant) -- //
         float moveSpeed      = 40.0f;
