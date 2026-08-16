@@ -83,6 +83,8 @@ namespace sound {
     }
 
     void Engine::reload() {
+        auto start = std::chrono::steady_clock::now();
+
         SDL_LogInfo(LOG_SOUND, "Reloading sound engine");
 
         // -- Load Config -- //
@@ -168,6 +170,10 @@ namespace sound {
         }
 
         SDL_LogInfo(LOG_SOUND, "Finished reloading sound engine");
+
+        auto stop = std::chrono::steady_clock::now();
+        double dt = std::chrono::duration_cast<std::chrono::milliseconds>(stop-start).count(); 
+        SDL_LogDebug(LOG_SOUND, "Sound engine reload took [%ams]",dt);
     }
 
     void Engine::update(double dt) {
@@ -704,7 +710,7 @@ namespace sound {
         SDL_LogInfo(LOG_SOUND, "Set next sound track to '%s' with fade time '%fs'", id.c_str(), fadeTime);
     }
 
-    void Engine::stopSoundTrack(float fadeTime) {
+    void Engine::stopSoundTrack([[maybe_unused]] float fadeTime) {
         // TODO
         SDL_LogWarn(LOG_SOUND, "stopSoundTrack Function unfinished -- does nothing");
     }
