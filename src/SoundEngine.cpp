@@ -180,13 +180,16 @@ namespace sound {
         fadeTimeElapsed += static_cast<float>(dt);
     }
 
-    bool Engine::registerSound(const std::string &id, const std::string &filePath) {
+    bool Engine::registerSound(const std::string &id, const std::string &filePath, float gain) {
+        gain = std::clamp(gain, 0.0f, 1.0f);
+
         if (registery.contains(id)) {
             SDL_LogWarn(LOG_SOUND, "Sound ID: %s is already registered!", id.c_str());
             return false;
         }
 
         Registration sound;
+        sound.gain = gain;
         if (!SDL_LoadWAV(filePath.c_str(), &sound.spec, &sound.data, &sound.dataSize)) {
             SDL_LogError(LOG_SOUND, "ERROR: Unable to load sound: %s, reason: %s", filePath.c_str(), SDL_GetError());
             return false;
@@ -266,6 +269,7 @@ namespace sound {
             return;
         }
 
+        SDL_SetAudioStreamGain(stream,sound.gain);
 
         SDL_FlushAudioStream(stream);
 
@@ -342,8 +346,8 @@ namespace sound {
             leftGain = 1.0f - pan;
         }
 
-        leftGain *= distanceGain;
-        rightGain *= distanceGain;
+        leftGain *= distanceGain * sound.gain;
+        rightGain *= distanceGain * sound.gain;
 
 
         // ---------------------------------
@@ -524,6 +528,8 @@ namespace sound {
             SDL_DestroyAudioStream(stream);
             return;
         }
+
+        SDL_SetAudioStreamGain(stream, sound.gain);
 
         backgroundStreams[id] = stream;
     }

@@ -253,7 +253,7 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char *argv[])
 	soundEngine->registerSound("VAMPIRE_HURT", "sounds/enemy/vampire/vampire_hurt.wav");
 	soundEngine->registerSound("VAMPIRE_DEATH", "sounds/enemy/vampire/vampire_death.wav");
 	// Environment //
-	soundEngine->registerSound("BULLET_HIT_WALL", "sounds/environment/bullet_hit_wall.wav");
+	soundEngine->registerSound("BULLET_HIT_WALL", "sounds/environment/bullet_hit_wall.wav", 0.1f);
 	soundEngine->registerSound("BULLET_HIT_UNIT", "sounds/environment/hurt.wav");
 	// Other //
 	soundEngine->registerSound("TEST", "sounds/gameplay_music1.wav");

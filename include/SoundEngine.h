@@ -26,14 +26,16 @@ namespace sound {
 
             /** 
              * Registers a sound by ID for a given path. ID collisions will not apply and will return False. 
+             * Gain can be set to tweak audio volumes easily, they cannot be made louder, only quieter. 
              * 
              * Only works for WAV files. 
              * 
              * @param id Unique ID for the sound.
              * @param filePath Location of the sound file.
+             * @param gain Baseline % for sound volume [0.0 - 1.0] (Default: 1.0)
              * @return True if sound was successfully registered.
              */
-            bool registerSound(const std::string &id, const std::string &filePath);
+            bool registerSound(const std::string &id, const std::string &filePath, float gain = 1.0f);
 
             /**
              * Removes a sound from the registry by unique ID. Will fail on unregistered IDs.
@@ -72,6 +74,8 @@ namespace sound {
             void stopBackgroundSound(const std::string &id);
 
             /**
+             * Set Gain Later!!!
+             * 
              * Sets the soundtrack to the given ID.
              * The soundtrack cannot be stacked, or repeated.  
              * 
@@ -127,6 +131,7 @@ namespace sound {
         protected:
         private:
             struct Registration {
+                float gain;
                 SDL_AudioSpec spec = {};
                 Uint8* data = nullptr;
                 Uint32 dataSize = 0;
