@@ -1,0 +1,128 @@
+### GLUT Gladiator Sound Registration List ###
+
+# -- Menu -- #
+
+[[sounds]]
+id = "MENU_MUSIC"
+file_path = "sounds/menu/main_menu_music.wav"
+gain = 1.0
+
+[[sounds]]
+id = "MENU_HOVER"
+file_path = "sounds/menu/menu_hover.wav"
+gain = 1.0
+
+[[sounds]]
+id = "MENU_CLICK"
+file_path = "sounds/menu/menu_click.wav"
+gain = 1.0
+
+
+# -- Player -- #
+
+[[sounds]]
+id = "MINE_COMPLETE"
+file_path = "sounds/player/mine_complete.wav"
+gain = 1.0
+
+[[sounds]]
+id = "MINE_TICK"
+file_path = "sounds/player/mine_tick.wav"
+gain = 1.0
+
+[[sounds]]
+id = "PLAYER_SHOOT"
+file_path = "sounds/player/22LR Single Isolated.wav"
+gain = 0.3
+
+[[sounds]]
+id = "PLAYER_HURT"
+file_path = "sounds/player/TODO"
+gain = 1.0
+
+
+# -- Sound Tracks -- #
+
+[[sounds]]
+id = "LEVEL_OUTER_MUSIC"
+file_path = "sounds/level_outer/level_outer.wav"
+gain = 1.0
+
+[[sounds]]
+id = "LEVEL_MIDDLE_MUSIC"
+file_path = "sounds/level_middle/level_middle.wav"
+gain = 1.0
+
+[[sounds]]
+id = "LEVEL_CENTER_MUSIC"
+file_path = "sounds/level_center/level_center.wav"
+gain = 1.0
+
+[[sounds]]
+id = "LEVEL_BOSS_MUSIC"
+file_path = "sounds/level_boss/level_boss.wav"
+gain = 1.0
+
+
+# -- Enemy -- #
+
+[[sounds]]
+id = "TURRET_FIRE"
+file_path = "sounds/enemy/turret/turret_fire.wav"
+gain = 1.0
+
+[[sounds]]
+id = "ORC_ATTACK"
+file_path = "sounds/enemy/orc/orc_attack.wav"
+gain = 1.0
+
+[[sounds]]
+id = "ORC_HURT"
+file_path = "sounds/enemy/orc/orc_hurt.wav"
+gain = 1.0
+
+[[sounds]]
+id = "ORC_DEATH"
+file_path = "sounds/enemy/orc/orc_death.wav"
+gain = 1.0
+
+[[sounds]]
+id = "VAMPIRE_ATTACK"
+file_path = "sounds/enemy/vampire/vampire_attack.wav"
+gain = 1.0
+
+[[sounds]]
+id = "VAMPIRE_HURT"
+file_path = "sounds/enemy/vampire/vampire_hurt.wav"
+gain = 1.0
+
+[[sounds]]
+id = "VAMPIRE_DEATH"
+file_path = "sounds/enemy/vampire/vampire_death.wav"
+gain = 1.0
+
+
+# -- Environment -- #
+
+[[sounds]]
+id = "BULLET_HIT_WALL"
+file_path = "sounds/environment/bullet_hit_wall.wav"
+gain = 0.1
+
+[[sounds]]
+id = "BULLET_HIT_UNIT"
+file_path = "sounds/environment/hurt.wav"
+gain = 1.0
+
+
+# -- Other -- #
+
+[[sounds]]
+id = "TEST"
+file_path = "sounds/gameplay_music1.wav"
+gain = 1.0
+
+[[sounds]]
+id = "WIN_MUSIC"
+file_path = "sounds/win_music.wav"
+gain = 1.0

@@ -138,7 +138,7 @@ class _scene
         std::unique_ptr<particles::Engine> ParticleEngine;
         
         _sounds* soundManager = nullptr; // DEPRICTED :: Non-owning; set via setSounds() before initScene()
-        sound::Engine* sounds = nullptr;
+        sound::Engine* sounds = nullptr; // Rename to SoundEngine
 
         // Texture Manager //
         void setupTextures();   // Sets up game texture assets via a TOML config file "configs/texture.toml"

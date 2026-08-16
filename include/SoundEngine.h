@@ -4,6 +4,9 @@
 #include <_common.h>
 #include <SDL3/SDL.h>
 
+#define TOML_HEADER_ONLY 1
+#include <toml.hpp>
+
 namespace sound {
     class Engine {
         public:
@@ -20,22 +23,16 @@ namespace sound {
             void shutdown();
 
             /** 
+             * Sets up sound registrations. Safe to call while program is active for runtime changes to sounds.
+             * 
+             * Automatically ran by init to setup initial sounds.   
+             * */
+            void reload();
+
+            /** 
              * Update loop for the sound engine. 
              * */
             void update(double dt);
-
-            /** 
-             * Registers a sound by ID for a given path. ID collisions will not apply and will return False. 
-             * Gain can be set to tweak audio volumes easily, they cannot be made louder, only quieter. 
-             * 
-             * Only works for WAV files. 
-             * 
-             * @param id Unique ID for the sound.
-             * @param filePath Location of the sound file.
-             * @param gain Baseline % for sound volume [0.0 - 1.0] (Default: 1.0)
-             * @return True if sound was successfully registered.
-             */
-            bool registerSound(const std::string &id, const std::string &filePath, float gain = 1.0f);
 
             /**
              * Removes a sound from the registry by unique ID. Will fail on unregistered IDs.
@@ -130,6 +127,12 @@ namespace sound {
             float getMasterVolume() const;
         protected:
         private:
+            struct Config {
+                std::string id;
+                std::string filePath;
+                float gain;
+            };
+
             struct Registration {
                 float gain;
                 SDL_AudioSpec spec = {};
@@ -154,6 +157,8 @@ namespace sound {
 
             float masterVolume = 1.0f;
             bool initialized = false;
+
+            bool registerSound(const Config &config);
     };
 }
 

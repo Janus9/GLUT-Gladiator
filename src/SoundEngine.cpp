@@ -27,6 +27,8 @@ namespace sound {
             return false;
         }
 
+        reload();
+
         SDL_LogInfo(LOG_SOUND, "Successfully initialized the Sound Engine.");
         
         initialized = true;
@@ -78,6 +80,94 @@ namespace sound {
         initialized = false;
 
         SDL_LogInfo(LOG_SOUND, "Successfully shut down the Sound Engine.");
+    }
+
+    void Engine::reload() {
+        SDL_LogInfo(LOG_SOUND, "Reloading sound engine");
+
+        // -- Load Config -- //
+
+        toml::table config;
+        try {
+            config = toml::parse_file("configs/sounds.toml");
+        } catch (const toml::parse_error &err) {
+            SDL_LogError(LOG_SOUND, "ERROR: Failed to parse the sounds: %s", err.what());
+            return;
+        }
+
+        toml::array* sounds = config["sounds"].as_array();
+        if (!sounds) {
+            SDL_LogError(LOG_SOUND,"ERROR: Cannot parse sounds as sounds.toml is missing"); 
+            return;
+        }
+
+        SDL_LogDebug(LOG_SOUND,"Read: %llu sounds from sounds.toml",sounds->size());
+
+        // -- Clear Memory -- //
+
+        // One-shot streams
+        for (SDL_AudioStream *stream : activeStreams) {
+            if (stream) SDL_DestroyAudioStream(stream);
+        }
+        activeStreams.clear();
+
+        // Background streams
+        stopAllBackgroundSounds();
+
+        // Sound Tracks //
+        if (activeSoundTrack.second) SDL_DestroyAudioStream(activeSoundTrack.second);
+        if (nextSoundTrack.second) SDL_DestroyAudioStream(nextSoundTrack.second);
+        activeSoundTrack.first = ""; activeSoundTrack.second = nullptr;
+        nextSoundTrack.first = ""; nextSoundTrack.second = nullptr;
+        
+        // Registered audio data
+        for (auto &entry : registery) {
+            Registration &sound = entry.second;
+
+            if (sound.data) {
+                SDL_free(sound.data);
+                sound.data = nullptr;
+            }
+        }
+        registery.clear();
+
+        // -- Load Audio -- //
+
+        for (toml::node &node : *sounds) {
+            toml::table* soundTable = node.as_table();
+
+            if (!soundTable) {
+                SDL_LogWarn(LOG_SOUND, "Skipping invalid sound entry");
+                continue;
+            }
+
+            Config sound;
+
+            sound.id = soundTable->get("id")->value_or("");
+            sound.filePath = soundTable->get("file_path")->value_or("");
+            sound.gain = std::clamp(soundTable->get("gain")->value_or(1.0f), 0.0f, 1.0f);
+
+            if (sound.id.empty()) {
+                SDL_LogWarn(LOG_SOUND, "Skipping sound with missing ID");
+                continue;
+            }
+
+            if (sound.filePath.empty()) {
+                SDL_LogWarn(
+                    LOG_SOUND,
+                    "Skipping sound '%s': missing file_path",
+                    sound.id.c_str()
+                );
+                continue;
+            }
+
+            if (!registerSound(sound)) {
+                SDL_LogError(LOG_SOUND, "ERROR: Unable to register sound '%s'", sound.id.c_str());
+                continue;
+            }
+        }
+
+        SDL_LogInfo(LOG_SOUND, "Finished reloading sound engine");
     }
 
     void Engine::update(double dt) {
@@ -178,35 +268,6 @@ namespace sound {
         }
 
         fadeTimeElapsed += static_cast<float>(dt);
-    }
-
-    bool Engine::registerSound(const std::string &id, const std::string &filePath, float gain) {
-        gain = std::clamp(gain, 0.0f, 1.0f);
-
-        if (registery.contains(id)) {
-            SDL_LogWarn(LOG_SOUND, "Sound ID: %s is already registered!", id.c_str());
-            return false;
-        }
-
-        Registration sound;
-        sound.gain = gain;
-        if (!SDL_LoadWAV(filePath.c_str(), &sound.spec, &sound.data, &sound.dataSize)) {
-            SDL_LogError(LOG_SOUND, "ERROR: Unable to load sound: %s, reason: %s", filePath.c_str(), SDL_GetError());
-            return false;
-        }
-
-        registery[id] = sound;
-
-        SDL_LogDebug(
-            LOG_SOUND, 
-            "Registered Sound"
-            "\n - ID: %s"
-            "\n - File Path: %s",
-            id.c_str(),
-            filePath.c_str()
-        );
-
-        return true;
     }
 
     bool Engine::unRegisterSound(const std::string &id) {
@@ -665,4 +726,37 @@ namespace sound {
     }
 
     // -- PRIVATE -- //
+
+    bool Engine::registerSound(const Config &config) {
+        if (registery.contains(config.id)) {
+            SDL_LogWarn(LOG_SOUND, "Sound ID: %s is already registered!", config.id.c_str());
+            return false;
+        }
+
+        Registration sound;
+        sound.gain = config.gain;
+        if (!SDL_LoadWAV(config.filePath.c_str(), &sound.spec, &sound.data, &sound.dataSize)) {
+            SDL_LogError(
+                LOG_SOUND, 
+                "ERROR: Unable to load sound: %s, reason: %s", 
+                config.filePath.c_str(), 
+                SDL_GetError()
+            );
+            return false;
+        }
+
+        registery[config.id] = sound;
+
+        SDL_LogDebug(
+            LOG_SOUND, 
+            "Registered Sound"
+            "\n - ID: %s"
+            "\n - File Path: %s",
+            config.id.c_str(),
+            config.filePath.c_str()
+        );
+
+        return true;
+    }
+
 }
