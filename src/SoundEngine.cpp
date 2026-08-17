@@ -299,6 +299,12 @@ namespace sound {
             }
         }
 
+        // -- Looped Spatial Audio -- //
+
+        for (auto &audio : spatialLoopList) {
+            updateSpatialGains(audio);
+        }
+
         fadeTimeElapsed += static_cast<float>(dt);
     }
 
@@ -849,7 +855,8 @@ namespace sound {
 
         // -- Create New Spatial Loop -- //
         SpatialLoop audio {
-            .index = spatialLoopList.size(),
+            .soundId = id,
+            .instanceId = instanceId,
             .stream = stream,
             .position = pos,
             .playing = true,
@@ -859,13 +866,104 @@ namespace sound {
         };
         spatialLoopList.push_back(audio);
 
-        spatialLoopMap[key] = audio.index;
+        spatialLoopMap[key] = spatialLoopList.size();
 
         SDL_LogDebug(
             LOG_SOUND, 
             "Added new loop spatial audio (%s, %i)",
             key.soundId.c_str(),
             key.instanceId
+        );
+    }
+
+    void Engine::updateSpatialLooped(const std::string &id, int instanceId, const Vec2f &pos) {
+        SpatialLoopKey key = {id, instanceId};
+        
+        auto it = spatialLoopMap.find(key);
+        if (it == spatialLoopMap.end()) {
+            SDL_LogDebug(
+                LOG_SOUND, 
+                "Unable to update spatial audio (%s, %i)",
+                key.soundId.c_str(),
+                key.instanceId
+            );
+            return;
+        }
+
+        SpatialLoop &audio = spatialLoopList[it->second];
+        audio.position = pos;
+    }
+
+    void Engine::pauseSpatialLooped(const std::string &id, int instanceId) {
+        SpatialLoopKey key = {id, instanceId};
+        
+        auto it = spatialLoopMap.find(key);
+        if (it == spatialLoopMap.end()) {
+            SDL_LogError(
+                LOG_SOUND, 
+                "Unable to pause spatial audio (%s, %i)",
+                key.soundId.c_str(),
+                key.instanceId
+            );
+            return;
+        }
+
+        SpatialLoop &audio = spatialLoopList[it->second];
+        audio.playing = false;
+    }
+
+    void Engine::stopSpatialLooped(const std::string &id, int instanceId) {
+        SpatialLoopKey key = {id, instanceId};
+        
+        auto it = spatialLoopMap.find(key);
+        if (it == spatialLoopMap.end()) {
+            SDL_LogError(
+                LOG_SOUND, 
+                "Unable to stop spatial audio (%s, %i)",
+                key.soundId.c_str(),
+                key.instanceId
+            );
+            return;
+        }
+
+        SpatialLoop &audio = spatialLoopList[it->second];
+        if (audio.stream) {
+            SDL_DestroyAudioStream(audio.stream); // Destroy the stream
+        }
+
+        SpatialLoop &audioBack = spatialLoopList.back(); // Get the back of the list
+
+        // Set the back of the list's index to be where current audio is. Its swapped with the current so we only have to change one audio.
+        spatialLoopMap[{audioBack.soundId, audioBack.instanceId}] = it->second;
+        std::swap(audio, audioBack);
+        
+        spatialLoopList.erase(spatialLoopList.end());   // Remove the audio (now at back after swap)
+        spatialLoopMap.erase(it); // Remove from map
+
+        SDL_LogDebug(
+            LOG_SOUND, 
+            "Removed spatial audio (%s, %i)",
+            key.soundId.c_str(),
+            key.instanceId
+        );
+    }
+
+    void Engine::stopAllSpatialLooped() {
+        size_t audioCount = spatialLoopList.size();
+
+        for (auto &audio : spatialLoopList) {
+            if (audio.stream) {
+                SDL_DestroyAudioStream(audio.stream);
+            }
+        }
+
+        spatialLoopList.clear();
+        spatialLoopMap.clear();
+
+        SDL_LogDebug(
+            LOG_SOUND,
+            "Cleared %llu active spatial audios",
+            audioCount
         );
     }
 
@@ -907,6 +1005,26 @@ namespace sound {
         );
 
         return true;
+    }
+
+    void Engine::updateSpatialGains(SpatialLoop &audio) {
+        // -- Pre Checks -- //
+        auto it = registery.find(audio.soundId);
+        if (it == registery.end()) {
+            SDL_LogError(
+                LOG_SOUND, 
+                "Cannot calculate spatial gains of (%s, %i) as it is not registered",
+                audio.soundId.c_str(),
+                audio.instanceId
+            );
+            return;
+        }
+
+        const float gainMul = it->second.gain;
+
+        // -- Stereo Panning -- //
+
+        // -- Distance Attenuation -- //
     }
 
 }

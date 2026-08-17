@@ -192,7 +192,9 @@ namespace sound {
 
             // -- Spatial Audio -- //
             struct SpatialLoop {
-                size_t index = 0;
+                std::string soundId;
+                int instanceId = 0;
+
                 SDL_AudioStream* stream = nullptr;
                 Vec2f position = {0.0f, 0.0f};
                 bool playing = true;
@@ -246,6 +248,7 @@ namespace sound {
             bool initialized = false;
 
             bool registerSound(const Config &config);
+            void updateSpatialGains(SpatialLoop &audio);   // Sets panning & attenuation based on distance
     };
 }
 
