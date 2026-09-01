@@ -364,15 +364,25 @@ struct TilePosI
 };
 
 struct InputState {
-	bool LMB;
+    bool LMB;
 	bool RMB;
-
+    
 	Vec2f mouseScreenPos;
 	Vec2f mouseScreenClipPos;
-
+    
 	bool keys[512] = { false };
-
+    
     float mouseWheelY;              /// 1.0 means scroll UP :: -1.0 means scroll DOWN :: 0.0 means no scroll event
+};
+
+// Structure for an int,int -> hash. Used for the unordered map in _world for chunks
+struct PairHash {
+    std::size_t operator()(const std::pair<int, int>& p) const {
+        // Combine two ints into one hash using bit shifting
+        // This is fast - just bit operations, no string allocation
+        // AI recommended hashing function, don't know how it works -- will research it later
+        return std::hash<long long>()(((long long)p.first << 32) | (unsigned int)p.second);
+    }
 };
 
 /**
@@ -398,15 +408,6 @@ inline float radToDegree(float rad) {
     return rad * (180.0 / PI);
 }
 
-// Structure for an int,int -> hash. Used for the unordered map in _world for chunks
-struct PairHash {
-    std::size_t operator()(const std::pair<int, int>& p) const {
-        // Combine two ints into one hash using bit shifting
-        // This is fast - just bit operations, no string allocation
-        // AI recommended hashing function, don't know how it works -- will research it later
-        return std::hash<long long>()(((long long)p.first << 32) | (unsigned int)p.second);
-    }
-};
 
 // Returns the distance (in world units) between two points
 inline float GetDistance(const Vec2f &start, const Vec2f &end) {

@@ -303,6 +303,8 @@ namespace sound {
 
         for (auto &audio : spatialLoopList) {
             updateSpatialGains(audio);
+
+
         }
 
         fadeTimeElapsed += static_cast<float>(dt);
@@ -796,8 +798,13 @@ namespace sound {
         // -- Create Stream -- //
         Registration &sound = regIt->second;
 
+        SDL_AudioSpec spatialSpec = {};
+        spatialSpec.format = SDL_AUDIO_F32;     // Stream is F32 stereo so we can manipulate the data
+        spatialSpec.channels = 2;
+        spatialSpec.freq = sound.spec.freq;
+
         SDL_AudioStream *stream = SDL_CreateAudioStream(
-            &sound.spec,
+            &spatialSpec,
             nullptr
         );
 
@@ -822,21 +829,21 @@ namespace sound {
             return;
         }
 
-        // Queue two copies to create a buffer ahead of playback.
-        if (!SDL_PutAudioStreamData(
-            stream,
-            sound.data,
-            static_cast<int>(sound.dataSize)
-        )) {
-            SDL_LogError(
-                LOG_SOUND,
-                "Failed to queue looped spatial audio: %s",
-                SDL_GetError()
-            );
+        // // Queue two copies to create a buffer ahead of playback.
+        // if (!SDL_PutAudioStreamData(
+        //     stream,
+        //     sound.data,
+        //     static_cast<int>(sound.dataSize)
+        // )) {
+        //     SDL_LogError(
+        //         LOG_SOUND,
+        //         "Failed to queue looped spatial audio: %s",
+        //         SDL_GetError()
+        //     );
 
-            SDL_DestroyAudioStream(stream);
-            return;
-        }
+        //     SDL_DestroyAudioStream(stream);
+        //     return;
+        // }
 
         if (!SDL_PutAudioStreamData(
             stream,
@@ -984,8 +991,37 @@ namespace sound {
                 config.filePath.c_str(), 
                 SDL_GetError()
             );
+            SDL_free(sound.data);
+            sound.data = nullptr;
+            
             return false;
         }
+
+        sound.spatialSpec = {};
+
+        sound.spatialSpec.format = SDL_AUDIO_F32;
+        sound.spatialSpec.channels = 2;
+        sound.spatialSpec.freq = sound.spec.freq;
+
+        Uint8 *convertedData = nullptr;
+        int convertedSize = 0;
+
+        if (!SDL_ConvertAudioSamples(
+            &sound.spec,
+            sound.data,
+            static_cast<int>(sound.dataSize),
+            &sound.spatialSpec,
+            &convertedData,
+            &convertedSize
+        )) {
+            SDL_free(sound.data);
+            sound.data = nullptr;
+
+            return false;
+        }
+
+        sound.spatialData = convertedData;
+        sound.spatialDataSize = static_cast<Uint32>(convertedSize);
 
         registery[config.id] = sound;
 
@@ -1023,8 +1059,19 @@ namespace sound {
         const float gainMul = it->second.gain;
 
         // -- Stereo Panning -- //
+        const float angle = GetRotationAngle(listenerPosition, audio.position);
+        const float pan = -1.0f * sinf(1.0f / 180.0f * PI * angle);
+
+        audio.leftGain = (1.0f - pan) * gainMul;
+        audio.rightGain = (1.0f + pan) * gainMul;
+
+        (void)std::clamp(audio.leftGain, 0.0f, 1.0f);
+        (void)std::clamp(audio.rightGain, 0.0f, 1.0f);
 
         // -- Distance Attenuation -- //
-    }
 
+        // TODO //
+        audio.distanceGain = 1.0f * gainMul;
+        (void)std::clamp(audio.distanceGain, 0.0f, 1.0f);
+    }
 }

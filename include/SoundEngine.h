@@ -185,9 +185,16 @@ namespace sound {
 
             struct Registration {
                 float gain;
+
+                // -- Regular -- //
                 SDL_AudioSpec spec = {};
                 Uint8* data = nullptr;
                 Uint32 dataSize = 0;
+
+                // -- Spatial Audio -- //
+                SDL_AudioSpec spatialSpec = {};
+                Uint8* spatialData = nullptr;
+                Uint32 spatialDataSize = 0;
             };
 
             // -- Spatial Audio -- //
@@ -195,7 +202,10 @@ namespace sound {
                 std::string soundId;
                 int instanceId = 0;
 
+                const Registration* registration = nullptr;
+                
                 SDL_AudioStream* stream = nullptr;
+
                 Vec2f position = {0.0f, 0.0f};
                 bool playing = true;
                 float leftGain = 1.0f;
