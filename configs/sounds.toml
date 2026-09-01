@@ -72,6 +72,16 @@ file_path = "sounds/enemy/turret/turret_fire.wav"
 gain = 1.0
 
 [[sounds]]
+id = "GATLING_REV"
+file_path = "sounds/enemy/gatling/gatling_rev.wav"
+gain = 0.1
+
+[[sounds]]
+id = "GATLING_FIRE"
+file_path = "sounds/enemy/gatling/gatling_fire.wav"
+gain = 0.1
+
+[[sounds]]
 id = "ORC_ATTACK"
 file_path = "sounds/enemy/orc/orc_attack.wav"
 gain = 1.0

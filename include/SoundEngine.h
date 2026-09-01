@@ -211,7 +211,7 @@ namespace sound {
                 Vec2f position = {0.0f, 0.0f};
 
                 bool playing = true;
-                
+
                 float leftGain = 1.0f;
                 float rightGain = 1.0f;
                 float distanceGain = 1.0f;
@@ -263,6 +263,7 @@ namespace sound {
 
             bool registerSound(const Config &config);
             void updateSpatialGains(SpatialLoop &audio);   // Sets panning & attenuation based on distance
+            void queueSpatialChunk(SpatialLoop &audio);    // Assigns chunk of playback to the stream each update
     };
 }
 

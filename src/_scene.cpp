@@ -969,6 +969,7 @@ void _scene::updateScene(double dt, const InputState &inputState)
 
     // soundManager->setListenerPos(player->pos);
     sounds->setListenerPosition(player->pos);
+    sounds->updateSpatialLooped("GATLING_REV", 0, mouseWorldPos);
 
     enemyManager->updateEnemies(dt);
     bulletManager->updateBulletManager(dt);
@@ -1469,13 +1470,12 @@ void _scene::keyboardHandler(const InputState &inputState)
         
     }
     if (inputState.keys[SDL_SCANCODE_F1]) {
-
     }
     if (inputState.keys[SDL_SCANCODE_F2]) {
-        
+        sounds->playSpatialLooped("GATLING_REV", 0, mouseWorldPos);
     }
     if (inputState.keys[SDL_SCANCODE_F3]) {
-
+        sounds->stopSpatialLooped("GATLING_REV", 0);
     }
     if (inputState.keys[SDL_SCANCODE_F4]) {
         

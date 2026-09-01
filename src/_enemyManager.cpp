@@ -442,7 +442,8 @@ void _enemyManager::updateEnemies(double dt) {
                             ParticleEngine->spawnEffect({enemy->pos.x, enemy->pos.y}, "gatling_bullet_casing");
                             enemy->firingTime = 0;
                         }
-                        // sounds->playSfx3DLooped("GATLING_SHOOT", enemy->getID(), enemy->pos);
+                        sounds->playSpatialLooped("GATLING_FIRE", enemy->getID(), enemy->pos);
+                        sounds->stopSpatialLooped("GATLING_REV", enemy->getID());
                         sprite->setFPS(enemy->fireRate / 60.0f);
                         sprite->loadSpriteAction("SHOOT");
                     } else {
@@ -454,13 +455,15 @@ void _enemyManager::updateEnemies(double dt) {
                         }
                         sprite->loadSpriteAction("REV");
                         sprite->setFPS(enemy->fireRate / 60.0f);
-                        // sounds->playSfx3DLooped("GATLING_REV", enemy->getID(), enemy->pos);
+                        sounds->playSpatialLooped("GATLING_REV", enemy->getID(), enemy->pos);
+                        sounds->stopSpatialLooped("GATLING_FIRE", enemy->getID());
                     }
                 }  else {
                     enemy->revTime = 0.0;
                     sprite->loadSpriteAction("IDLE");
                     sprite->setFPS(12);
-                    // sounds->removeSfx3DLooped(enemy->getID());
+                    sounds->stopSpatialLooped("GATLING_REV", enemy->getID());
+                    sounds->stopSpatialLooped("GATLING_FIRE", enemy->getID());
                 }
                 break;
             }

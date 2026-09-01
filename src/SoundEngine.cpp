@@ -307,7 +307,7 @@ namespace sound {
         for (auto &audio : spatialLoopList) {
             updateSpatialGains(audio);
 
-
+            queueSpatialChunk(audio);
         }
 
         fadeTimeElapsed += static_cast<float>(dt);
@@ -827,37 +827,6 @@ namespace sound {
             return;
         }
 
-        // // Queue two copies to create a buffer ahead of playback.
-        // if (!SDL_PutAudioStreamData(
-        //     stream,
-        //     sound.data,
-        //     static_cast<int>(sound.dataSize)
-        // )) {
-        //     SDL_LogError(
-        //         LOG_SOUND,
-        //         "Failed to queue looped spatial audio: %s",
-        //         SDL_GetError()
-        //     );
-
-        //     SDL_DestroyAudioStream(stream);
-        //     return;
-        // }
-
-        if (!SDL_PutAudioStreamData(
-            stream,
-            sound.data,
-            static_cast<int>(sound.dataSize)
-        )) {
-            SDL_LogError(
-                LOG_SOUND,
-                "Failed to queue looped spatial audio: %s",
-                SDL_GetError()
-            );
-
-            SDL_DestroyAudioStream(stream);
-            return;
-        }
-
         // -- Create New Spatial Loop -- //
         SpatialLoop audio {
             .soundId = id,
@@ -1073,5 +1042,76 @@ namespace sound {
         // TODO //
         audio.distanceGain = 1.0f * gainMul;
         audio.distanceGain = std::clamp(audio.distanceGain, 0.0f, 1.0f);
+    }
+
+    void Engine::queueSpatialChunk(SpatialLoop &audio) {
+        if (!audio.stream || !audio.registration) return;
+
+        const Registration &sound = *audio.registration;
+
+        const int queuedBytes = SDL_GetAudioStreamQueued(audio.stream);
+
+        // Keep roughly 100ms of audio buffered.
+        const int targetQueuedBytes =
+            static_cast<int>(
+                sound.spatialSpec.freq * sound.spatialSpec.channels * sizeof(float) * 0.10f
+            );
+
+        if (queuedBytes >= targetQueuedBytes) return;
+     
+        // Generate roughly 50ms of audio.
+        const size_t framesPerChunk =
+            static_cast<size_t>(
+                sound.spatialSpec.freq * 0.05f
+            );
+
+        const size_t samplesPerChunk = framesPerChunk * sound.spatialSpec.channels;
+
+        std::vector<float> chunk;
+        chunk.resize(samplesPerChunk);
+
+        const float *source = reinterpret_cast<const float*>(sound.spatialData);
+
+        const size_t totalSamples =
+            sound.spatialDataSize /
+            sizeof(float);
+
+        for (size_t i = 0; i < samplesPerChunk; i += 2) {
+            // Wrap back to start when we reach the end.
+            if (audio.sampleOffset + 1 >= totalSamples) {
+                audio.sampleOffset = 0;
+            }
+
+            // Left channel
+            chunk[i] =
+                source[audio.sampleOffset] *
+                audio.leftGain;
+
+            // Right channel
+            chunk[i + 1] =
+                source[audio.sampleOffset + 1] *
+                audio.rightGain;
+
+            audio.sampleOffset += 2;
+        }
+
+        const int chunkBytes =
+            static_cast<int>(
+                chunk.size() * sizeof(float)
+            );
+
+        if (!SDL_PutAudioStreamData(
+            audio.stream,
+            chunk.data(),
+            chunkBytes
+        )) {
+            SDL_LogError(
+                LOG_SOUND,
+                "Failed to queue spatial loop (%s, %i): %s",
+                audio.soundId.c_str(),
+                audio.instanceId,
+                SDL_GetError()
+            );
+        }
     }
 }
