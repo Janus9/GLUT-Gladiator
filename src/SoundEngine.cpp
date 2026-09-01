@@ -53,8 +53,8 @@ namespace sound {
 
         activeStreams.clear();
 
-        // Background streams
-        stopAllBackgroundSounds();
+        stopAllBackgroundSounds();  // Stop all background music from playing
+        stopAllSpatialLooped();     // Stop all looped effects from playing
 
         // Sound Tracks //
         if (activeSoundTrack.second) SDL_DestroyAudioStream(activeSoundTrack.second);
@@ -67,6 +67,9 @@ namespace sound {
             if (sound.data != nullptr) {
                 SDL_free(sound.data);
                 sound.data = nullptr;
+
+                SDL_free(sound.spatialData);
+                sound.spatialData = nullptr;
             }
         }
 
@@ -798,13 +801,8 @@ namespace sound {
         // -- Create Stream -- //
         Registration &sound = regIt->second;
 
-        SDL_AudioSpec spatialSpec = {};
-        spatialSpec.format = SDL_AUDIO_F32;     // Stream is F32 stereo so we can manipulate the data
-        spatialSpec.channels = 2;
-        spatialSpec.freq = sound.spec.freq;
-
         SDL_AudioStream *stream = SDL_CreateAudioStream(
-            &spatialSpec,
+            &sound.spatialSpec,
             nullptr
         );
 
@@ -864,7 +862,9 @@ namespace sound {
         SpatialLoop audio {
             .soundId = id,
             .instanceId = instanceId,
+            .registration = &sound,
             .stream = stream,
+            .sampleOffset = 0,
             .position = pos,
             .playing = true,
             .leftGain = 1.0f,
@@ -873,7 +873,7 @@ namespace sound {
         };
         spatialLoopList.push_back(audio);
 
-        spatialLoopMap[key] = spatialLoopList.size();
+        spatialLoopMap[key] = spatialLoopList.size() - 1;
 
         SDL_LogDebug(
             LOG_SOUND, 
@@ -944,7 +944,7 @@ namespace sound {
         spatialLoopMap[{audioBack.soundId, audioBack.instanceId}] = it->second;
         std::swap(audio, audioBack);
         
-        spatialLoopList.erase(spatialLoopList.end());   // Remove the audio (now at back after swap)
+        spatialLoopList.pop_back(); // Remove the audio (now at back after swap)
         spatialLoopMap.erase(it); // Remove from map
 
         SDL_LogDebug(
@@ -1065,13 +1065,13 @@ namespace sound {
         audio.leftGain = (1.0f - pan) * gainMul;
         audio.rightGain = (1.0f + pan) * gainMul;
 
-        (void)std::clamp(audio.leftGain, 0.0f, 1.0f);
-        (void)std::clamp(audio.rightGain, 0.0f, 1.0f);
+        audio.leftGain = std::clamp(audio.leftGain, 0.0f, 1.0f);
+        audio.rightGain = std::clamp(audio.rightGain, 0.0f, 1.0f);
 
         // -- Distance Attenuation -- //
 
         // TODO //
         audio.distanceGain = 1.0f * gainMul;
-        (void)std::clamp(audio.distanceGain, 0.0f, 1.0f);
+        audio.distanceGain = std::clamp(audio.distanceGain, 0.0f, 1.0f);
     }
 }

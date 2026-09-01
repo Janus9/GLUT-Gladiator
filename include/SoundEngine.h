@@ -206,8 +206,12 @@ namespace sound {
                 
                 SDL_AudioStream* stream = nullptr;
 
+                size_t sampleOffset = 0;
+
                 Vec2f position = {0.0f, 0.0f};
+
                 bool playing = true;
+                
                 float leftGain = 1.0f;
                 float rightGain = 1.0f;
                 float distanceGain = 1.0f;
