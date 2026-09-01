@@ -305,6 +305,8 @@ namespace sound {
         // -- Looped Spatial Audio -- //
 
         for (auto &audio : spatialLoopList) {
+            if (!audio.playing) continue; // Skip paused audio
+
             updateSpatialGains(audio);
 
             queueSpatialChunk(audio);
@@ -794,7 +796,18 @@ namespace sound {
             );
             
             SpatialLoop &audio = spatialLoopList[it->second]; 
-            audio.playing = true;
+            
+            if (!audio.playing) {
+                if (!SDL_BindAudioStream(device, audio.stream)) {
+                    SDL_LogError(
+                        LOG_SOUND,
+                        "Failed to resume spatial loop: %s",
+                        SDL_GetError()
+                    );
+                    return;
+                }
+                audio.playing = true;
+            }
             return;
         }
 
@@ -884,7 +897,12 @@ namespace sound {
             return;
         }
 
+        
         SpatialLoop &audio = spatialLoopList[it->second];
+        
+        if (!audio.playing) return;
+        
+        SDL_UnbindAudioStream(audio.stream);
         audio.playing = false;
     }
 

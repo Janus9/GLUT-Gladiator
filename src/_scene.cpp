@@ -1475,7 +1475,7 @@ void _scene::keyboardHandler(const InputState &inputState)
         sounds->playSpatialLooped("GATLING_REV", 0, mouseWorldPos);
     }
     if (inputState.keys[SDL_SCANCODE_F3]) {
-        sounds->stopSpatialLooped("GATLING_REV", 0);
+        sounds->pauseSpatialLooped("GATLING_REV", 0);
     }
     if (inputState.keys[SDL_SCANCODE_F4]) {
         
