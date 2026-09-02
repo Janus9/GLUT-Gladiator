@@ -120,7 +120,14 @@ namespace sound {
              * @param instanceId Unique ID for this specific sound instance. Can be a unit/enemy ID, effect ID, etc.
              * @param pos Position of the spatial sound.
              */
-            void playSpatialLooped(const std::string &id, int instanceId, const Vec2f &pos);
+            void createSpatialLooped(const std::string &id, int instanceId, const Vec2f &pos);
+
+            /**
+             * Resumes playback of a looped spatial sound from a given ID. 
+             * 
+             * If audio is already playing, then command is skipped. 
+             */
+            void resumeSpatialLooped(const std::string &id, int instanceId);
 
             /**
              * Updates a given looped spatial sound to modify it's position. This allows for moving spatial audio.

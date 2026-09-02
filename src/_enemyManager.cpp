@@ -394,6 +394,10 @@ void _enemyManager::updateEnemies(double dt) {
                     sounds->playSound("ENEMY_DEATH", enemy->pos);
                     ParticleEngine->spawnEffect({enemy->pos.x, enemy->pos.y}, "gatling_death");
                     ParticleEngine->spawnEffect({enemy->pos.x, enemy->pos.y}, "gatling_death_smoke");
+                    
+                    sounds->stopSpatialLooped("GATLING_REV", enemy->getID());
+                    sounds->stopSpatialLooped("GATLING_FIRE", enemy->getID());
+                    
                     continue;
                 // Final death event (removes enemy)
                 } else if (enemy->isDead() && enemy->deathTime > enemy->timeInDeathAnimation) {
@@ -429,6 +433,9 @@ void _enemyManager::updateEnemies(double dt) {
                     continue;
                 }
 
+                sounds->updateSpatialLooped("GATLING_FIRE", enemy->getID(), enemy->pos);
+                sounds->updateSpatialLooped("GATLING_REV", enemy->getID(), enemy->pos);
+
                 const float distance = enemy->pos.distance(player->pos);
                 if (distance < enemy->detectionRadius) {
                     // Enemy in range
@@ -442,8 +449,8 @@ void _enemyManager::updateEnemies(double dt) {
                             ParticleEngine->spawnEffect({enemy->pos.x, enemy->pos.y}, "gatling_bullet_casing");
                             enemy->firingTime = 0;
                         }
-                        sounds->playSpatialLooped("GATLING_FIRE", enemy->getID(), enemy->pos);
-                        sounds->stopSpatialLooped("GATLING_REV", enemy->getID());
+                        sounds->resumeSpatialLooped("GATLING_FIRE", enemy->getID());
+                        sounds->pauseSpatialLooped("GATLING_REV", enemy->getID());
                         sprite->setFPS(enemy->fireRate / 60.0f);
                         sprite->loadSpriteAction("SHOOT");
                     } else {
@@ -455,15 +462,15 @@ void _enemyManager::updateEnemies(double dt) {
                         }
                         sprite->loadSpriteAction("REV");
                         sprite->setFPS(enemy->fireRate / 60.0f);
-                        sounds->playSpatialLooped("GATLING_REV", enemy->getID(), enemy->pos);
-                        sounds->stopSpatialLooped("GATLING_FIRE", enemy->getID());
+                        sounds->resumeSpatialLooped("GATLING_REV", enemy->getID());
+                        sounds->pauseSpatialLooped("GATLING_FIRE", enemy->getID());
                     }
                 }  else {
                     enemy->revTime = 0.0;
                     sprite->loadSpriteAction("IDLE");
                     sprite->setFPS(12);
-                    sounds->stopSpatialLooped("GATLING_REV", enemy->getID());
-                    sounds->stopSpatialLooped("GATLING_FIRE", enemy->getID());
+                    sounds->pauseSpatialLooped("GATLING_REV", enemy->getID());
+                    sounds->pauseSpatialLooped("GATLING_FIRE", enemy->getID());
                 }
                 break;
             }
@@ -580,6 +587,10 @@ void _enemyManager::addEnemy(const Vec2f &_pos, const enemy_config &config) {
     } else {
         newEnemy = std::make_unique<_enemy>();
         newEnemy->initEnemy(config, sceneTextureManager);
+        if (config.type == ENEMY_GATLING) {
+            sounds->createSpatialLooped("GATLING_REV",newEnemy->getID(), newEnemy->pos);
+            sounds->createSpatialLooped("GATLING_FIRE",newEnemy->getID(), newEnemy->pos);
+        }
     }
     newEnemy->pos = _pos;
 

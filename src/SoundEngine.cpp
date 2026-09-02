@@ -770,7 +770,7 @@ namespace sound {
         return masterVolume;
     }
 
-    void Engine::playSpatialLooped(const std::string &id, int instanceId, const Vec2f &pos) {
+    void Engine::createSpatialLooped(const std::string &id, int instanceId, const Vec2f &pos) {
         // -- Find Registration -- //
         auto regIt = registery.find(id);
         if (regIt == registery.end()) {
@@ -790,24 +790,11 @@ namespace sound {
 
             SDL_LogDebug(
                 LOG_SOUND, 
-                "Audio (%s, %i) already playing, resuming playback", 
+                "Audio (%s, %i) already registered", 
                 key.soundId.c_str(),
                 key.instanceId
             );
             
-            SpatialLoop &audio = spatialLoopList[it->second]; 
-            
-            if (!audio.playing) {
-                if (!SDL_BindAudioStream(device, audio.stream)) {
-                    SDL_LogError(
-                        LOG_SOUND,
-                        "Failed to resume spatial loop: %s",
-                        SDL_GetError()
-                    );
-                    return;
-                }
-                audio.playing = true;
-            }
             return;
         }
 
@@ -865,17 +852,48 @@ namespace sound {
         );
     }
 
+    void Engine::resumeSpatialLooped(const std::string &id, int instanceId) {
+        SpatialLoopKey key = {id, instanceId};
+
+        // -- Find In Spatial Map -- //
+        auto it = spatialLoopMap.find(key);
+        if (it == spatialLoopMap.end()) {
+            // Not Found
+            SDL_LogError(
+                LOG_SOUND,
+                "Cannot resume (%s, %i) as it was never created",
+                id.c_str(),
+                instanceId
+            );
+            return;
+        }
+        
+        SpatialLoop &audio = spatialLoopList[it->second]; 
+            
+        if (!audio.playing) {
+            if (!SDL_BindAudioStream(device, audio.stream)) {
+                SDL_LogError(
+                    LOG_SOUND,
+                    "Failed to resume spatial loop: %s",
+                    SDL_GetError()
+                );
+                return;
+            }
+            audio.playing = true;
+        }
+    }
+
     void Engine::updateSpatialLooped(const std::string &id, int instanceId, const Vec2f &pos) {
         SpatialLoopKey key = {id, instanceId};
         
         auto it = spatialLoopMap.find(key);
         if (it == spatialLoopMap.end()) {
-            SDL_LogDebug(
-                LOG_SOUND, 
-                "Unable to update spatial audio (%s, %i)",
-                key.soundId.c_str(),
-                key.instanceId
-            );
+            // SDL_LogDebug(
+            //     LOG_SOUND, 
+            //     "Unable to update spatial audio (%s, %i)",
+            //     key.soundId.c_str(),
+            //     key.instanceId
+            // );
             return;
         }
 
