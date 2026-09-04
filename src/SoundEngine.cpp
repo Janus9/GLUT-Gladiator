@@ -116,8 +116,12 @@ namespace sound {
         }
         activeStreams.clear();
 
+
         // Background streams
         stopAllBackgroundSounds();
+
+        // Looped Spatial Sounds
+        stopAllSpatialLooped();
 
         // Sound Tracks //
         if (activeSoundTrack.second) SDL_DestroyAudioStream(activeSoundTrack.second);
