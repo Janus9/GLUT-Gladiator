@@ -1069,10 +1069,11 @@ namespace sound {
         audio.rightGain = std::clamp(audio.rightGain, 0.0f, 1.0f);
 
         // -- Distance Attenuation -- //
+        const float distance = audio.position.distance(listenerPosition);
 
-        // TODO //
-        audio.distanceGain = 1.0f * gainMul;
+        audio.distanceGain = (1 - distance/spatialMaxDistance);
         audio.distanceGain = std::clamp(audio.distanceGain, 0.0f, 1.0f);
+        audio.distanceGain = powf(audio.distanceGain, audioFalloff);
     }
 
     void Engine::queueSpatialChunk(SpatialLoop &audio) {
@@ -1115,13 +1116,11 @@ namespace sound {
 
             // Left channel
             chunk[i] =
-                source[audio.sampleOffset] *
-                audio.leftGain;
+                source[audio.sampleOffset] * audio.leftGain * audio.distanceGain;
 
             // Right channel
             chunk[i + 1] =
-                source[audio.sampleOffset + 1] *
-                audio.rightGain;
+                source[audio.sampleOffset + 1] * audio.rightGain * audio.distanceGain;
 
             audio.sampleOffset += 2;
         }

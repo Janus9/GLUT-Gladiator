@@ -102,7 +102,7 @@ gain = 1.0
 [[sounds]]
 id = "ORC_WALK"
 file_path = "sounds/enemy/orc/orc_walk.wav"
-gain = 0.5
+gain = 0.1
 
 # Vampire #
 [[sounds]]
