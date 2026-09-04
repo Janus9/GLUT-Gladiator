@@ -120,8 +120,15 @@ namespace sound {
         // Background streams
         stopAllBackgroundSounds();
 
+        // auto tempLoopedSpatial = spatialLoopList;
+
         // Looped Spatial Sounds
         stopAllSpatialLooped();
+
+        // for (const auto &sound : tempLoopedSpatial) {
+        //     createSpatialLooped(sound.soundId, sound.instanceId, sound.position);
+        // }
+        // tempLoopedSpatial.clear(); // Early clear despite scope destruction since not used rest of function
 
         // Sound Tracks //
         if (activeSoundTrack.second) SDL_DestroyAudioStream(activeSoundTrack.second);
