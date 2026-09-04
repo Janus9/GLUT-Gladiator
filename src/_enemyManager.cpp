@@ -206,6 +206,27 @@ void _enemyManager::updateEnemies(double dt) {
         _enemy* enemy = enemyList[i].get();
         enemy->setPosition(enemy->pos);
         enemy->updateUnit(dt);
+        
+        // -- SOUND -- //
+        switch (enemy->eType) {
+            case ENEMY_GATLING:
+                sounds->updateSpatialLooped("GATLING_REV", enemy->getID(), enemy->pos);
+                sounds->updateSpatialLooped("GATLING_FIRE", enemy->getID(), enemy->pos);
+                break;
+            case ENEMY_ORC:
+                sounds->updateSpatialLooped("ORC_WALK", enemy->getID(), enemy->pos);
+                break;
+            case ENEMY_TURRET:
+                break;
+            case ENEMY_VAMPIRE:
+                break;
+            case ENEMY_VAMPIRE_MINION1:
+                break;
+            case ENEMY_VAMPIRE_MINION2:
+                break;
+            default:
+                break;
+        }
 
         // Kill enemy event //
         if (enemy->isDead() && enemy->deathTime > enemy->timeInDeathAnimation) {
@@ -364,6 +385,7 @@ void _enemyManager::updateEnemies(double dt) {
                         bossKilledEvent = true;
                     }
                     enemyList.erase(enemyList.begin() + i);
+                    sounds->resumeSpatialLooped("ORC_WALK", enemy->getID());
                     continue;
                 }
                 if (enemy->isDead()) {
@@ -572,6 +594,7 @@ void _enemyManager::addEnemy(const Vec2f &_pos, const enemy_config &config) {
         std::unique_ptr<_orc> orc = std::make_unique<_orc>();
         orc->initOrc(sceneTextureManager);
         newEnemy = move(orc);
+        sounds->createSpatialLooped("ORC_WALK",newEnemy->getID(), newEnemy->pos);
     } else if (config.type == ENEMY_VAMPIRE) {
         std::unique_ptr<_vampire> vampire = std::make_unique<_vampire>();
         vampire->initVampire(sceneTextureManager, VAMPIRE_BOSS);

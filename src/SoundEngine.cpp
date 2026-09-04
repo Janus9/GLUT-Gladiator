@@ -888,12 +888,7 @@ namespace sound {
         
         auto it = spatialLoopMap.find(key);
         if (it == spatialLoopMap.end()) {
-            // SDL_LogDebug(
-            //     LOG_SOUND, 
-            //     "Unable to update spatial audio (%s, %i)",
-            //     key.soundId.c_str(),
-            //     key.instanceId
-            // );
+            // No error message -- Safe to call on non-existent sounds.
             return;
         }
 

@@ -186,7 +186,9 @@ void _orc::updateOrc(double dt, _player* player, _world* world, sound::Engine* s
             vel = {0.0f, 0.0f};
             if (_sprite* s = getSprite(animationTable[action].sprite)) s->stopAnimation();
             cooldownTimer += dt;
+            sounds->pauseSpatialLooped("ORC_WALK", getID());
         } else {
+            sounds->resumeSpatialLooped("ORC_WALK", getID());
             face = faceFromVec(delta);
             // Always chase here; if we make contact this frame the post-move
             // step below will swap us into ATTACK.
