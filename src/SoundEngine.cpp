@@ -120,15 +120,10 @@ namespace sound {
         // Background streams
         stopAllBackgroundSounds();
 
-        // auto tempLoopedSpatial = spatialLoopList;
+        auto tempLoopedSpatial = spatialLoopList; // Save copy of the list so we can add them all back after reload
 
         // Looped Spatial Sounds
         stopAllSpatialLooped();
-
-        // for (const auto &sound : tempLoopedSpatial) {
-        //     createSpatialLooped(sound.soundId, sound.instanceId, sound.position);
-        // }
-        // tempLoopedSpatial.clear(); // Early clear despite scope destruction since not used rest of function
 
         // Sound Tracks //
         if (activeSoundTrack.second) SDL_DestroyAudioStream(activeSoundTrack.second);
@@ -181,6 +176,11 @@ namespace sound {
                 SDL_LogError(LOG_SOUND, "ERROR: Unable to register sound '%s'", sound.id.c_str());
                 continue;
             }
+        }
+
+        // Reload looped spatial sounds back in
+        for (const auto &sound : tempLoopedSpatial) {
+            createSpatialLooped(sound.soundId, sound.instanceId, sound.position);
         }
 
         SDL_LogInfo(LOG_SOUND, "Finished reloading sound engine");

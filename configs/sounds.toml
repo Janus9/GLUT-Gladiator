@@ -76,12 +76,12 @@ gain = 1.0
 [[sounds]]
 id = "GATLING_REV"
 file_path = "sounds/enemy/gatling/gatling_rev.wav"
-gain = 0.2
+gain = 0.1
 
 [[sounds]]
 id = "GATLING_FIRE"
 file_path = "sounds/enemy/gatling/gatling_fire.wav"
-gain = 0.1
+gain = 0.075
 
 # Orc #
 [[sounds]]
