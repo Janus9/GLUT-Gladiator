@@ -171,6 +171,14 @@ void handleUpdate(double dt) {
 	if (menuManager->getLoadedPage() == menu::PAGE_GAME) {
 		// Update Game
 		gameScene->updateScene(dt, inputState);
+
+		if (gameScene->gameEnded && gameScene->gameWon) {
+			menuManager->loadPage(menu::PAGE_WIN);
+			soundEngine->setSoundTrack("WIN_MUSIC", 0.0f);
+		} else if (gameScene->gameEnded && !gameScene->gameWon) {
+			menuManager->loadPage(menu::PAGE_LOOSE);
+			soundEngine->setSoundTrack("LOOSE_MUSIC", 0.0f);
+		}
 	} else {
 		// Update Menu
 		menuManager->update(dt, inputState);

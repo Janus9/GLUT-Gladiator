@@ -172,7 +172,7 @@ class _player : public _unit {
         bool isReloading() const;
 
         // Player Variables //
-        int lives = 1;
+        int lives = 0;
         float respawnTime = 5.0f; // Seconds to respawn.
         Vec2f spawnPos = {0.0f, 0.0f};
         
