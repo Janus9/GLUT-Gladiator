@@ -106,12 +106,12 @@ gain = 0.5
 [[sounds]]
 id = "ORC_ATTACK"
 file_path = "sounds/enemy/orc/orc_attack.wav"
-gain = 1.0
+gain = 0.5
 
 [[sounds]]
 id = "ORC_HURT"
 file_path = "sounds/enemy/orc/orc_hurt.wav"
-gain = 0.4
+gain = 0.2
 
 [[sounds]]
 id = "ORC_DEATH"

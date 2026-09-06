@@ -214,6 +214,7 @@ void _enemyManager::updateEnemies(double dt) {
                 sounds->updateSpatialLooped("GATLING_FIRE", enemy->getID(), enemy->pos);
                 break;
             case ENEMY_ORC:
+                if (enemy->inDeathAnimation || enemy->isDead()) break;
                 sounds->updateSpatialLooped("ORC_WALK", enemy->getID(), enemy->pos);
                 break;
             case ENEMY_TURRET:
@@ -406,7 +407,7 @@ void _enemyManager::updateEnemies(double dt) {
 
                     sounds->pauseSpatialLooped("GATLING_REV", enemy->getID());
                     sounds->pauseSpatialLooped("GATLING_FIRE", enemy->getID());
-                    
+
                     continue;
                 }
 

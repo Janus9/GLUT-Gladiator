@@ -281,6 +281,7 @@ void _orc::triggerDeath(sound::Engine* sounds) {
         s->setIdleFrame(animationTable[deathAct].idleFrame.x, animationTable[deathAct].idleFrame.y);
         s->playAction(animationTable[deathAct].action);
     }
+    sounds->stopSpatialLooped("ORC_WALK", getID());
     sounds->playSound("ORC_DEATH", pos);
     deathTime = 0.0;
 }
