@@ -23,8 +23,10 @@ namespace sound {
             void shutdown();
 
             /** 
-             * Sets up sound registrations. Safe to call while program is active for runtime changes to sounds.
-             * 
+             * Reloads the sound engine which reads from the `sounds.toml` file for registration and gain levels.
+             * Safe to run while program is active. Spatial looped sounds will be added back. Sound track will be added back (but restarted).
+             * Does not add back `playSound` or `playBackgroundSound`.
+             *  
              * Automatically ran by init to setup initial sounds.   
              * */
             void reload();
@@ -57,6 +59,8 @@ namespace sound {
             void playSound(const std::string &id, const Vec2f &pos);
 
             /**
+             * -DEPRICATED- Use Sound Track instead!
+             * 
              * Plays a looped sound from a given ID. Intended for music. Must be unloaded to stop playing (stopBackgroundSound). 
              * Different sound IDs can be stacked. If sound is already playing, then function does nothing.
              * 
@@ -65,6 +69,8 @@ namespace sound {
             void playBackgroundSound(const std::string &id);
 
             /**
+             * -DEPRICATED- Use Sound Track instead!
+             * 
              * Unloads a given background sound (looped) to stop it from playing from a given ID.
              * 
              * @param id Unique ID of the sound.

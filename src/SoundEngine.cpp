@@ -126,6 +126,9 @@ namespace sound {
         stopAllSpatialLooped();
 
         // Sound Tracks //
+        std::string tempActiveSoundTrack = activeSoundTrack.first;
+        std::string tempNextSoundTrack = nextSoundTrack.first;
+        
         if (activeSoundTrack.second) SDL_DestroyAudioStream(activeSoundTrack.second);
         if (nextSoundTrack.second) SDL_DestroyAudioStream(nextSoundTrack.second);
         activeSoundTrack.first = ""; activeSoundTrack.second = nullptr;
@@ -183,11 +186,29 @@ namespace sound {
             createSpatialLooped(sound.soundId, sound.instanceId, sound.position);
         }
 
+        if (!tempNextSoundTrack.empty()) {
+            // Set next soundtrack to active
+            setSoundTrack(tempNextSoundTrack, 0.0f);
+            SDL_LogDebug(
+                LOG_SOUND, 
+                "Setting active from next soundtrack to '%s'",
+                tempNextSoundTrack.c_str()
+            );
+        } else {
+            // Active to active
+            setSoundTrack(tempActiveSoundTrack, 0.0f);
+            SDL_LogDebug(
+                LOG_SOUND, 
+                "Setting active soundtrack to '%s'",
+                tempActiveSoundTrack.c_str()
+            );
+        }
+
         SDL_LogInfo(LOG_SOUND, "Finished reloading sound engine");
 
         auto stop = std::chrono::steady_clock::now();
         double dt = std::chrono::duration_cast<std::chrono::milliseconds>(stop-start).count(); 
-        SDL_LogDebug(LOG_SOUND, "Sound engine reload took [%ams]",dt);
+        SDL_LogDebug(LOG_SOUND, "Sound engine reload took [%fms]",dt);
     }
 
     void Engine::update(double dt) {
