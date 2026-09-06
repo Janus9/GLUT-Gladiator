@@ -192,34 +192,9 @@ void _scene::initScene(bool loadWorld, sound::Engine* _sounds) {
     enemyManager->bullet_1 = &turret_bullet;
     enemyManager->bullet_2 = &gatling_bullet;
 
-    // -- SOUND EFFECTS -- //
-    // Register all SFX up front so first-play decoder stalls are avoided. Tune per-SFX volumes here.
-    soundManager->registerSfx("PLAYER_SHOOT", "sounds/player_shoot.mp3", 0.1f); // Done
-    soundManager->registerSfx("ENEMY_SHOOT", "sounds/22LR Single Isolated WAV.wav", 0.3f);  // Done
-    soundManager->registerSfx("BULLET_HIT_WALL", "sounds/bullet_hit_wall.wav", 0.07f);
-    soundManager->registerSfx("BULLET_HIT_UNIT", "sounds/test.m4a", 0.8f);        // This is a clown horn because I don't know when this triggers yet and want to be surprised
-    soundManager->registerSfx("ENEMY_DEATH", "sounds/enemy_death.wav", 0.1f);     // Done
-    soundManager->registerSfx("PLAYER_HURT", "sounds/player_hurt.mp3", 0.3f);     // Done
-    soundManager->registerSfx("PLAYER_DEATH", "sounds/player_death.wav", 0.5f);   // Done
-    soundManager->registerSfx("MINE_COMPLETE", "sounds/mine_complete.wav", 0.05f); // Done
-    soundManager->registerSfx("MINE_TICK", "sounds/mine_tick.wav", 0.15f);         // Done
-    soundManager->registerSfx("ORC_ATTACK", "sounds/orc_attack.mp3", 0.1f);
-    soundManager->registerSfx("ORC_HURT", "sounds/orc_hurt.mp3", 0.05f);
-    soundManager->registerSfx("ORC_DEATH", "sounds/orc_death.mp3", 0.5f);
-    soundManager->registerSfx("VAMPIRE_ATTACK", "sounds/Vampire_Attack.wav", 0.3f);
-    soundManager->registerSfx("VAMPIRE_HURT", "sounds/Vampire_Hurt.wav", 0.2f);
-    soundManager->registerSfx("VAMPIRE_DEATH", "sounds/Vampire_Death.wav", 0.6f);
-    soundManager->registerSfx("GATLING_SHOOT","sounds/MinigunLoop.wav", 0.2f);
-    soundManager->registerSfx("GATLING_REV","sounds/MinigunSpinLoop.wav", 0.2f);
-    soundManager->registerSfx("FOB_AMBIENT","sounds/machine_mx_2_loop.ogg", 0.4f);
-
-    // Background music is started by _menuManager when the user clicks Start (transition to MENU_GAME),
-    // not here, so the fade-in lines up with gameplay starting rather than world generation.
-
     // -- SHADERS -- //
     // sh->initShader("shaders/V.vs","shaders/F.fs");
     // glUseProgram(sh->program);
-
 
     // -- BULLETS -- //
     _bulletManagerContext bulletManagerContext {
@@ -1296,7 +1271,7 @@ void _scene::updateScene(double dt, const InputState &inputState)
     {
         if (!playerDeathSfxFired)
         {
-            soundManager->playSfx("PLAYER_DEATH");
+            sounds->playSound("PLAYER_DEATH");
             playerDeathSfxFired = true;
         }
         player->handlePlayerDeath(face);

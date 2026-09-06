@@ -282,7 +282,7 @@ void _enemyManager::updateEnemies(double dt) {
                     sprite->playAction("DEATH");
                     enemy->deathTime = 0.0;
                     ParticleEngine->spawnEffect({enemy->pos.x, enemy->pos.y}, "turret_death");
-                    sounds->playSound("ENEMY_DEATH", enemy->pos);
+                    sounds->playSound("TURRET_DEATH", enemy->pos);
                     continue;
                 } else if (enemy->isDead() && enemy->deathTime > enemy->timeInDeathAnimation) {
                     Vec2f offset_pos = {pos_dist(rng), pos_dist(rng)};
@@ -310,7 +310,7 @@ void _enemyManager::updateEnemies(double dt) {
                         if (enemy->firingTime > 1.0f/(enemy->fireRate/60.0f)) {
                             bulletManager->spawnBulletEffect(enemy->pos,player->pos,_team::ENEMY,*bullet_1);
                             ParticleEngine->spawnEffect({enemy->pos.x, enemy->pos.y}, "turret_bullet_casing");
-                            // if (sounds) sounds->playSfx3D("ENEMY_SHOOT", enemy->pos);
+                            sounds->playSound("TURRET_FIRE", enemy->pos);
                             sprite->setFPS(enemy->fireRate / 60.0f);
                             enemy->firingTime = 0;
                         }
@@ -413,12 +413,12 @@ void _enemyManager::updateEnemies(double dt) {
                     sprite->setIdleFrame(8,1);
                     sprite->playAction("DEATH");
                     enemy->deathTime = 0.0;
-                    sounds->playSound("ENEMY_DEATH", enemy->pos);
+                    sounds->playSound("GATLING_DEATH", enemy->pos);
                     ParticleEngine->spawnEffect({enemy->pos.x, enemy->pos.y}, "gatling_death");
                     ParticleEngine->spawnEffect({enemy->pos.x, enemy->pos.y}, "gatling_death_smoke");
                     
-                    sounds->stopSpatialLooped("GATLING_REV", enemy->getID());
-                    sounds->stopSpatialLooped("GATLING_FIRE", enemy->getID());
+                    sounds->pauseSpatialLooped("GATLING_REV", enemy->getID());
+                    sounds->pauseSpatialLooped("GATLING_FIRE", enemy->getID());
                     
                     continue;
                 // Final death event (removes enemy)
@@ -444,6 +444,9 @@ void _enemyManager::updateEnemies(double dt) {
                         offset_pos = {pos_dist(rng), pos_dist(rng)};
                         scenePickupManager->add(offset_pos + enemy->pos, pickups::PICKUP_HEALTH, 20.0f);
                     }
+
+                    sounds->stopSpatialLooped("GATLING_REV", enemy->getID());
+                    sounds->stopSpatialLooped("GATLING_FIRE", enemy->getID());
 
                     enemyList.erase(enemyList.begin() + i);
                     continue;

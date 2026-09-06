@@ -32,21 +32,30 @@ gain = 1.0
 
 [[sounds]]
 id = "PLAYER_SHOOT"
-file_path = "sounds/player/22LR Single Isolated.wav"
+file_path = "sounds/player/player_shoot.wav"
 gain = 0.3
 
 [[sounds]]
 id = "PLAYER_HURT"
-file_path = "sounds/player/TODO"
+file_path = "sounds/player/player_hurt.wav"
+gain = 0.5
+
+[[sounds]]
+id = "PLAYER_WALK"
+file_path = "sounds/player/player_walk.wav"
 gain = 1.0
 
+[[sounds]]
+id = "PLAYER_DEATH"
+file_path = "sounds/player/player_death.wav"
+gain = 1.0
 
 # -- Sound Tracks -- #
 
 [[sounds]]
 id = "LEVEL_OUTER_MUSIC"
 file_path = "sounds/level_outer/level_outer.wav"
-gain = 1.0
+gain = 0.6
 
 [[sounds]]
 id = "LEVEL_MIDDLE_MUSIC"
@@ -70,7 +79,12 @@ gain = 1.0
 [[sounds]]
 id = "TURRET_FIRE"
 file_path = "sounds/enemy/turret/turret_fire.wav"
-gain = 1.0
+gain = 0.35
+
+[[sounds]]
+id = "TURRET_DEATH"
+file_path = "sounds/enemy/turret/turret_death.wav"
+gain = 0.25
 
 # Gatling #
 [[sounds]]
@@ -83,6 +97,11 @@ id = "GATLING_FIRE"
 file_path = "sounds/enemy/gatling/gatling_fire.wav"
 gain = 0.075
 
+[[sounds]]
+id = "GATLING_DEATH"
+file_path = "sounds/enemy/gatling/gatling_death.wav"
+gain = 0.5
+
 # Orc #
 [[sounds]]
 id = "ORC_ATTACK"
@@ -92,7 +111,7 @@ gain = 1.0
 [[sounds]]
 id = "ORC_HURT"
 file_path = "sounds/enemy/orc/orc_hurt.wav"
-gain = 1.0
+gain = 0.4
 
 [[sounds]]
 id = "ORC_DEATH"
@@ -102,7 +121,7 @@ gain = 1.0
 [[sounds]]
 id = "ORC_WALK"
 file_path = "sounds/enemy/orc/orc_walk.wav"
-gain = 0.1
+gain = 0.05
 
 # Vampire #
 [[sounds]]
@@ -126,12 +145,12 @@ gain = 1.0
 [[sounds]]
 id = "BULLET_HIT_WALL"
 file_path = "sounds/environment/bullet_hit_wall.wav"
-gain = 0.1
+gain = 0.05
 
 [[sounds]]
 id = "BULLET_HIT_UNIT"
 file_path = "sounds/environment/hurt.wav"
-gain = 1.0
+gain = 0.5
 
 
 # -- Other -- #
