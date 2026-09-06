@@ -8,16 +8,15 @@ _fob::~_fob() {
 
 }
 
-void _fob::initFob(
-    _player* currentPlayer, 
-    _lightManager* currentLightManager,
-    _sounds* currentSoundManager,
-    particles::Engine* particles
-) {
-    ParticleEngine = particles;
-    player = currentPlayer;
-    sceneLightManager = currentLightManager;
-    sceneSoundManager = currentSoundManager;
+void _fob::initFob(const FobContext& context) {
+    player = &context.player;
+    lightManager = &context.lights;
+    soundEngine = &context.sounds;
+    particleEngine = &context.particles;
+
+    // AUDIO //
+    soundEngine->createSpatialLooped("FOB_AMBIENT", 0, pos);
+    soundEngine->pauseSpatialLooped("FOB_AMBIENT", 0);
 
     // SPRITES //
     setCollisionBox({32.0f,32.0f});
@@ -36,7 +35,10 @@ void _fob::initFob(
 }
 
 void _fob::updateFob(double dt) {
-    sceneSoundManager->playSfx3DLooped("FOB_AMBIENT",0,pos);
+    if (!alive) return;
+    
+    soundEngine->updateSpatialLooped("FOB_AMBIENT", 0, pos);
+    soundEngine->resumeSpatialLooped("FOB_AMBIENT", 0);
 
     if (player->playerRespawnedEvent) {
         evaluatePlayer();
@@ -66,13 +68,17 @@ void _fob::evaluatePlayer() {
 
     if (player->lives <= -1) {
         // Death Event //
-        ParticleEngine->spawnEffect({pos.x, pos.y}, "fob_death_1");
-        ParticleEngine->spawnEffect({pos.x, pos.y}, "fob_death_2");
-        ParticleEngine->spawnEffect({pos.x, pos.y}, "fob_death_3");
-        ParticleEngine->spawnEffect({pos.x, pos.y}, "fob_death_4");
+        particleEngine->spawnEffect({pos.x, pos.y}, "fob_death_1");
+        particleEngine->spawnEffect({pos.x, pos.y}, "fob_death_2");
+        particleEngine->spawnEffect({pos.x, pos.y}, "fob_death_3");
+        particleEngine->spawnEffect({pos.x, pos.y}, "fob_death_4");
         fob_sprite->setIdleFrame(14,4);
         fob_sprite->playAction("DEATH");
-        sceneSoundManager->playSfx("ENEMY_DEATH");
+
+        soundEngine->stopSpatialLooped("FOB_AMBIENT",0);
+        soundEngine->playSound("FOB_DEATH");
+
+        alive = false;
         return;
     }
 

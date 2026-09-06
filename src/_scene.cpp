@@ -42,11 +42,6 @@ _scene::~_scene()
     sh = nullptr;
 }
 
-void _scene::setSounds(_sounds *sounds)
-{
-    soundManager = sounds;
-}
-
 bool _scene::initGL()
 {
     SDL_LogInfo(LOG_SCENE, "Running Scene OpenGL Initialization");
@@ -66,12 +61,8 @@ bool _scene::initGL()
     return true;
 }
 
-void _scene::initScene(bool loadWorld, sound::Engine* _sounds) {
-    sounds = _sounds;
-
-    if (!sounds) {
-        SDL_LogError(LOG_SCENE, "ERROR: Unable to validate the sound engine");
-    }
+void _scene::initScene(bool loadWorld, const SceneContext &context) {
+    soundEngine = &context.sounds;
 
     if (sceneInitialized) {
         std::cout << "WARNING: Scene already initialized, skipping\n";
@@ -114,7 +105,14 @@ void _scene::initScene(bool loadWorld, sound::Engine* _sounds) {
     player->hasGun = true;
 
     // -- FOB -- //
-    FOB->initFob(player.get(),lightManager.get(),soundManager,ParticleEngine.get());
+    FobContext fobContext {
+        .player = *player.get(),
+        .lights = *lightManager.get(),
+        .sounds = *soundEngine,
+        .particles = *ParticleEngine.get()
+    };
+    FOB->initFob(fobContext);
+
     // -- HUD -- //
 
     hud->addHudText("FPS");
@@ -181,7 +179,7 @@ void _scene::initScene(bool loadWorld, sound::Engine* _sounds) {
         .player = player.get(),
         .world = myWorld.get(),
         .bullets = bulletManager.get(),
-        .sounds = sounds,
+        .sounds = soundEngine,
         .lights = lightManager.get(),
         .textures = textureManager.get(),
         .pickups = pickupManager.get(),
@@ -202,7 +200,7 @@ void _scene::initScene(bool loadWorld, sound::Engine* _sounds) {
         .world = myWorld.get(),
         .player = player.get(),
         .enemies = enemyManager.get(),
-        .sounds = sounds,
+        .sounds = soundEngine,
         .lights = lightManager.get(),
         .particles = ParticleEngine.get()
     };
@@ -718,7 +716,7 @@ bool _scene::loadSceneFromFile(const std::string &fileName) {
         .player = player.get(),
         .world = myWorld.get(),
         .bullets = bulletManager.get(),
-        .sounds = sounds,
+        .sounds = soundEngine,
         .lights = lightManager.get(),
         .textures = textureManager.get(),
         .pickups = pickupManager.get(),
@@ -905,11 +903,6 @@ void _scene::drawScene()
     }
 }
 
-void _scene::updateAudio(double dt)
-{
-    soundManager->updateFadeIn(dt);
-}
-
 // Maps an aim vector (player-relative, +y = up) to one of 8 player face directions
 // by binning the angle into 45-degree sectors.
 static player_face faceFromAim(const Vec2f &aim)
@@ -943,7 +936,7 @@ void _scene::updateScene(double dt, const InputState &inputState)
     mouseScreenPos = inputState.mouseScreenPos;
 
     // soundManager->setListenerPos(player->pos);
-    sounds->setListenerPosition(player->pos);
+    soundEngine->setListenerPosition(player->pos);
 
     enemyManager->updateEnemies(dt);
     bulletManager->updateBulletManager(dt);
@@ -985,9 +978,9 @@ void _scene::updateScene(double dt, const InputState &inputState)
     if (gameEnded && !playEndSongEvent) {
         playEndSongEvent = true;
         if (gameWon) {
-            soundManager->playBackgroundMusic("sounds/win_music.wav",0.075f);
+            soundEngine->setSoundTrack("WIN_MUSIC", 2.5f);
         } else {
-            soundManager->playBackgroundMusic("sounds/loose_music.ogg",0.075f);
+            soundEngine->setSoundTrack("LOOSE_MUSIC", 2.5f);
         }
     }
 
@@ -1012,22 +1005,22 @@ void _scene::updateScene(double dt, const InputState &inputState)
     switch (player->playerLevelEvent) {
         case PLAYER_EVENT_LEVEL_OUTER:
             SDL_LogInfo(LOG_SCENE, "Player entered level: OUTER");
-            sounds->setSoundTrack("LEVEL_OUTER_MUSIC", 1.5f);
+            soundEngine->setSoundTrack("LEVEL_OUTER_MUSIC", 1.5f);
             player->playerLevelEvent = PLAYER_EVENT_LEVEL_NONE;
             break;
         case PLAYER_EVENT_LEVEL_MIDDLE:
             SDL_LogInfo(LOG_SCENE, "Player entered level: MIDDLE");
-            sounds->setSoundTrack("LEVEL_MIDDLE_MUSIC", 1.5f);
+            soundEngine->setSoundTrack("LEVEL_MIDDLE_MUSIC", 1.5f);
             player->playerLevelEvent = PLAYER_EVENT_LEVEL_NONE;
             break;
         case PLAYER_EVENT_LEVEL_CENTER:
             SDL_LogInfo(LOG_SCENE, "Player entered level: CENTER");
-            sounds->setSoundTrack("LEVEL_CENTER_MUSIC", 1.5f);
+            soundEngine->setSoundTrack("LEVEL_CENTER_MUSIC", 1.5f);
             player->playerLevelEvent = PLAYER_EVENT_LEVEL_NONE;
             break;
         case PLAYER_EVENT_LEVEL_BOSS:
             SDL_LogInfo(LOG_SCENE, "Player entered level: BOSS");
-            sounds->setSoundTrack("LEVEL_BOSS_MUSIC", 1.5f);
+            soundEngine->setSoundTrack("LEVEL_BOSS_MUSIC", 1.5f);
             player->playerLevelEvent = PLAYER_EVENT_LEVEL_NONE;
             break;
     }
@@ -1041,9 +1034,9 @@ void _scene::updateScene(double dt, const InputState &inputState)
             myWorld->damageCell(hoveredCell, 25.0f);
             if (!hoveredCell->isAlive()) {
                 hud->getHudSprite("PROGRESS_BAR")->getSprite()->stopAnimation(); // Mining finished, reset progress bar animation
-                sounds->playSound("MINE_COMPLETE", hoveredCell->pos);
+                soundEngine->playSound("MINE_COMPLETE", hoveredCell->pos);
             } else {
-                sounds->playSound("MINE_TICK", hoveredCell->pos);
+                soundEngine->playSound("MINE_TICK", hoveredCell->pos);
             }
             interactionTimer->reset();
         }
@@ -1261,7 +1254,7 @@ void _scene::updateScene(double dt, const InputState &inputState)
             offsetPos = {-4.0f, 8.0f};
         }
         bulletManager->spawnBulletEffect(player->pos + offsetPos, mouseWorldPos, _team::FRIENDLY, player_bullet);
-        sounds->playSound("PLAYER_SHOOT");
+        soundEngine->playSound("PLAYER_SHOOT");
     } else {
         player->setAnimationFPS(12);
     }
@@ -1271,7 +1264,7 @@ void _scene::updateScene(double dt, const InputState &inputState)
     {
         if (!playerDeathSfxFired)
         {
-            sounds->playSound("PLAYER_DEATH");
+            soundEngine->playSound("PLAYER_DEATH");
             playerDeathSfxFired = true;
         }
         player->handlePlayerDeath(face);

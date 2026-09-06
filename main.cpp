@@ -125,7 +125,11 @@ void menuEventHandler(const menu::Event &event) {
 	// Generate World
 	if (event.ID == "saves_generate_button") {
 		SDL_LogInfo(LOG_MAIN, "Generate World Event");
-		gameScene->initScene(false, soundEngine.get());
+
+		SceneContext context {
+			.sounds = *soundEngine.get()
+		};
+		gameScene->initScene(false, context);
 	}
 
 	// Load World
@@ -135,7 +139,11 @@ void menuEventHandler(const menu::Event &event) {
 			SDL_LogError(LOG_MAIN, "ERROR: Save failed to load correctly");
 			return;
 		}
-		gameScene->initScene(true, soundEngine.get());             // Setup scene to load world
+
+		SceneContext context {
+			.sounds = *soundEngine.get()
+		};
+		gameScene->initScene(true, context);             // Setup scene to load world
 	}	
 
 	// Save World

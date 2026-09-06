@@ -3,29 +3,28 @@
 
 // INCLUDES //
 
-#include<_common.h> 
-#include<_texture.h>
-#include<_lightSettings.h>
-#include<_model.h>
-#include<_timerPlusPlus.h>  
-#include<_sprite.h>
-#include<_vbo.h>
-#include<_quad.h>
-#include<_benchmark.h>
-#include<_unit.h>
-#include<_sounds.h>
-#include<_world.h>
-#include<_hud.h>
-#include<_bulletManager.h>
-#include<_shader.h>
-#include<_player.h>
-#include<_enemyManager.h>
-#include<_fob.h>
-#include<_lightManager.h>
-#include<_textureManager.h>
-#include<PickupEngine.h>
-#include<ParticleEngine.h>
-#include<SoundEngine.h>
+#include <_common.h> 
+#include <_texture.h>
+#include <_lightSettings.h>
+#include <_model.h>
+#include <_timerPlusPlus.h>  
+#include <_sprite.h>
+#include <_vbo.h>
+#include <_quad.h>
+#include <_benchmark.h>
+#include <_unit.h>
+#include <_world.h>
+#include <_hud.h>
+#include <_bulletManager.h>
+#include <_shader.h>
+#include <_player.h>
+#include <_enemyManager.h>
+#include <_fob.h>
+#include <_lightManager.h>
+#include <_textureManager.h>
+#include <PickupEngine.h>
+#include <ParticleEngine.h>
+#include <SoundEngine.h>
 
 // Matrix math for shaders //
 #include <glm/glm.hpp>                      // Core library
@@ -37,6 +36,10 @@
 #define TOML_HEADER_ONLY 1
 #include <toml.hpp>
 
+struct SceneContext {
+    sound::Engine &sounds;
+};
+
 class _scene
 {
     public:
@@ -47,7 +50,7 @@ class _scene
         bool initGL(); 
 
         // Initialization of scene objects
-        void initScene(bool loadWorld, sound::Engine* _sounds);
+        void initScene(bool loadWorld, const SceneContext &context);
 
         /**
          * Runs a save command to save the world/player/enemies etc to a save file specified
@@ -63,9 +66,6 @@ class _scene
          */
         bool loadSceneFromFile(const std::string &fileName);
 
-        // DEPRICATED Inject the shared sound engine (owned by main). Must be called before initScene().
-        void setSounds(_sounds* sounds);
-
         // Runs and handles a window resize event
         void reSize(GLint width, GLint height);
         // Draws the scene using a double-buffer. Runs as fast as the loop will let it. No time-based events should ever be added in here. Those are for the updateScene()
@@ -74,8 +74,6 @@ class _scene
         void updateScene(double dt, const InputState &inputState);
         // Performs background updates on the scene regardless of game state. Does not use time-based updates. 
         void updateSceneBackground();
-        // Runs audio ramps every frame regardless of menu state, so music fade-in still progresses while on the main menu
-        void updateAudio(double dt);
         // Handles keyboard inputs for toggle keys. Function regulated by a timer
         void keyboardHandler(const InputState &inputState); 
         // Handles mouse scroll wheel events
@@ -137,8 +135,7 @@ class _scene
         // Particle Engine //
         std::unique_ptr<particles::Engine> ParticleEngine;
         
-        _sounds* soundManager = nullptr; // DEPRICTED :: Non-owning; set via setSounds() before initScene()
-        sound::Engine* sounds = nullptr; // Rename to SoundEngine
+        sound::Engine* soundEngine = nullptr; 
 
         // Texture Manager //
         void setupTextures();   // Sets up game texture assets via a TOML config file "configs/texture.toml"

@@ -403,6 +403,10 @@ void _enemyManager::updateEnemies(double dt) {
                 // Handle player being dead
                 if (player->isDead() || player->isRealDead) {
                     sprite->stopAnimation();
+
+                    sounds->pauseSpatialLooped("GATLING_REV", enemy->getID());
+                    sounds->pauseSpatialLooped("GATLING_FIRE", enemy->getID());
+                    
                     continue;
                 }
 
@@ -467,18 +471,21 @@ void _enemyManager::updateEnemies(double dt) {
                     const bool focused = enemy->focusOn(player->pos,enemy->slewRate,5.0f,sprite);
                     const bool reved = enemy->revTime > enemy->timeInRevAnimation;
                     if (focused && reved) {
-                        // Focused on player -- ready to fire
+                        // FIRE //
                         enemy->firingTime += dt;
                         if (enemy->firingTime > 1.0f/(enemy->fireRate/60.0f)) {
                             bulletManager->spawnBulletEffect(enemy->pos,player->pos,_team::ENEMY,*bullet_2);
                             ParticleEngine->spawnEffect({enemy->pos.x, enemy->pos.y}, "gatling_bullet_casing");
                             enemy->firingTime = 0;
                         }
+
                         sounds->resumeSpatialLooped("GATLING_FIRE", enemy->getID());
                         sounds->pauseSpatialLooped("GATLING_REV", enemy->getID());
+
                         sprite->setFPS(enemy->fireRate / 60.0f);
                         sprite->loadSpriteAction("SHOOT");
                     } else {
+                        // REV //
                         if (focused && !reved) {
                             enemy->revTime += dt;
                         }
@@ -487,13 +494,16 @@ void _enemyManager::updateEnemies(double dt) {
                         }
                         sprite->loadSpriteAction("REV");
                         sprite->setFPS(enemy->fireRate / 60.0f);
+
                         sounds->resumeSpatialLooped("GATLING_REV", enemy->getID());
                         sounds->pauseSpatialLooped("GATLING_FIRE", enemy->getID());
                     }
-                }  else {
+                } else {
+                    // IDLE //
                     enemy->revTime = 0.0;
                     sprite->loadSpriteAction("IDLE");
                     sprite->setFPS(12);
+
                     sounds->pauseSpatialLooped("GATLING_REV", enemy->getID());
                     sounds->pauseSpatialLooped("GATLING_FIRE", enemy->getID());
                 }

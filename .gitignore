@@ -13,6 +13,7 @@ build/
 logs/
 obj/
 publish/
+assets/
 
 # GAME FILES #
 saves/

@@ -139,6 +139,19 @@ id = "VAMPIRE_DEATH"
 file_path = "sounds/enemy/vampire/vampire_death.wav"
 gain = 1.0
 
+# -- Structures -- #
+
+# Fob #
+[[sounds]]
+id = "FOB_AMBIENT"
+file_path = "sounds/structures/fob_ambient.wav"
+gain = 0.5
+
+[[sounds]]
+id = "FOB_DEATH"
+file_path = "sounds/structures/fob_death.wav"
+gain = 0.5
+
 
 # -- Environment -- #
 
@@ -152,15 +165,14 @@ id = "BULLET_HIT_UNIT"
 file_path = "sounds/environment/hurt.wav"
 gain = 0.5
 
-
 # -- Other -- #
 
 [[sounds]]
-id = "TEST"
-file_path = "sounds/gameplay_music1.wav"
+id = "WIN_MUSIC"
+file_path = "sounds/music/win_music.wav"
 gain = 1.0
 
 [[sounds]]
-id = "WIN_MUSIC"
-file_path = "sounds/win_music.wav"
+id = "LOOSE_MUSIC"
+file_path = "sounds/music/loose_music.wav"
 gain = 1.0
