@@ -899,7 +899,12 @@ namespace sound {
         
         auto it = spatialLoopMap.find(key);
         if (it == spatialLoopMap.end()) {
-            // No error message -- Safe to call on non-existent sounds.
+            SDL_LogError(
+                LOG_SOUND, 
+                "Unable to update looped spatial sound (%s, %i) as it does not exist in the list",
+                id.c_str(),
+                instanceId
+            );
             return;
         }
 
@@ -914,7 +919,7 @@ namespace sound {
         if (it == spatialLoopMap.end()) {
             SDL_LogError(
                 LOG_SOUND, 
-                "Unable to pause spatial audio (%s, %i)",
+                "Unable to pause spatial audio (%s, %i) as it does not exist in the list",
                 key.soundId.c_str(),
                 key.instanceId
             );
@@ -930,6 +935,14 @@ namespace sound {
         audio.playing = false;
     }
 
+    void Engine::pauseAllSpatialLooped() {
+        for (auto &audio : spatialLoopList) {
+            if (!audio.playing) continue; // Already paused -- skip
+            SDL_UnbindAudioStream(audio.stream);
+            audio.playing = false;
+        }
+    }
+
     void Engine::stopSpatialLooped(const std::string &id, int instanceId) {
         SpatialLoopKey key = {id, instanceId};
         
@@ -937,7 +950,7 @@ namespace sound {
         if (it == spatialLoopMap.end()) {
             SDL_LogError(
                 LOG_SOUND, 
-                "Unable to stop spatial audio (%s, %i)",
+                "Unable to stop spatial audio (%s, %i) as it was never created",
                 key.soundId.c_str(),
                 key.instanceId
             );

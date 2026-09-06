@@ -292,6 +292,7 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char *argv[])
 							if (menuManager->getLoadedPage() == menu::PAGE_GAME) {
 								// In game - pause
 								SDL_LogInfo(LOG_MAIN, "Pause game event");
+								soundEngine->pauseAllSpatialLooped();
 								menuManager->loadPage(menu::PAGE_PAUSE);
 							} else {
 								// In menu - unpause (if game loaded)

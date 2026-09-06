@@ -110,7 +110,8 @@ namespace sound {
 
             /**
              * Plays a looped spatial sound from a given ID. Audio can stack.
-             * The spatial sound can move. This should be used for repeated audio effects (walking, gun reving, etc).
+             * The looped spatial sound can move. This should be used for repeated audio effects (walking, gun reving, etc).
+             * The looped spatial sound can be pause via `pauseSpatialLooped`.
              * 
              * The instanceID must be unique only for a given sound id. Meaning there can be repeats if the sound id is different.
              * 
@@ -132,9 +133,6 @@ namespace sound {
             /**
              * Updates a given looped spatial sound to modify it's position. This allows for moving spatial audio.
              * 
-             * This function can be called safely called when a looped spatial sound does not exist. 
-             * The function will simply return early.
-             * 
              * @param id Unique ID of the sound.
              * @param instanceId Unique ID for this specific sound instance.
              * @param pos Position of the spatial sound.
@@ -152,6 +150,12 @@ namespace sound {
              * @param instanceId Unique ID for this specific sound instance.
              */
             void pauseSpatialLooped(const std::string &id, int instanceId);
+
+            /**
+             * Pauses all the looped spatial sounds. 
+             * This does not clean them like `stopAllSpatialLooped` does, but it mean they do not have to be re-created. 
+             */
+            void pauseAllSpatialLooped();
 
             /**
              * Stops playing a looped spatial sound. 
