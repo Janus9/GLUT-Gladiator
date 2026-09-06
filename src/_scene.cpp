@@ -1,6 +1,8 @@
 #include <_scene.h>
 
-_scene::_scene() : rng(std::random_device{}())
+_scene::_scene(const SceneContext &context) 
+    : rng(std::random_device{}()),
+      soundEngine(&context.sounds)
 {
     if (!loadWorldConfig("configs/world.toml",world_configuration)) {
         std::cerr << "ERROR loading configuration file for [world.toml], please check logs for errors\n";
@@ -61,9 +63,7 @@ bool _scene::initGL()
     return true;
 }
 
-void _scene::initScene(bool loadWorld, const SceneContext &context) {
-    soundEngine = &context.sounds;
-
+void _scene::initScene(bool loadWorld) {
     if (sceneInitialized) {
         std::cout << "WARNING: Scene already initialized, skipping\n";
         return;

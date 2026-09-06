@@ -126,10 +126,7 @@ void menuEventHandler(const menu::Event &event) {
 	if (event.ID == "saves_generate_button") {
 		SDL_LogInfo(LOG_MAIN, "Generate World Event");
 
-		SceneContext context {
-			.sounds = *soundEngine.get()
-		};
-		gameScene->initScene(false, context);
+		gameScene->initScene(false);
 	}
 
 	// Load World
@@ -139,11 +136,8 @@ void menuEventHandler(const menu::Event &event) {
 			SDL_LogError(LOG_MAIN, "ERROR: Save failed to load correctly");
 			return;
 		}
-
-		SceneContext context {
-			.sounds = *soundEngine.get()
-		};
-		gameScene->initScene(true, context);             // Setup scene to load world
+	
+		gameScene->initScene(true);             // Setup scene to load world
 	}	
 
 	// Save World
@@ -158,7 +152,10 @@ void menuEventHandler(const menu::Event &event) {
 	// Unload World Event
 	if (event.ID == "pause_menu_button") {
 		SDL_LogInfo(LOG_MAIN, "Unload world event");
-		gameScene = std::make_unique<_scene>();
+		SceneContext context {
+			.sounds = *soundEngine.get()
+		};
+		gameScene = std::make_unique<_scene>(context);
 		gameScene->initGL();
 		auto callback = menuEventHandler;
 		menuManager->injectContext({ 
@@ -231,7 +228,10 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char *argv[])
 		return EXIT_FAILURE;
 	}
 
-	gameScene = std::make_unique<_scene>();
+	SceneContext context {
+		.sounds = *soundEngine.get()
+	};
+	gameScene = std::make_unique<_scene>(context);
 	gameScene->initGL();
 
 	// -- Sound Registration -- //

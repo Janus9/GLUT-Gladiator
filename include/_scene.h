@@ -43,14 +43,14 @@ struct SceneContext {
 class _scene
 {
     public:
-        _scene();
+        _scene(const SceneContext &context);
         virtual ~_scene();
 
         // Initialization of the scene openGL content
         bool initGL(); 
 
         // Initialization of scene objects
-        void initScene(bool loadWorld, const SceneContext &context);
+        void initScene(bool loadWorld);
 
         /**
          * Runs a save command to save the world/player/enemies etc to a save file specified
