@@ -1173,18 +1173,18 @@ namespace sound {
 
         const int queuedBytes = SDL_GetAudioStreamQueued(audio.stream);
 
-        // Keep roughly 100ms of audio buffered.
+        // Keep roughly 80ms of audio buffered.
         const int targetQueuedBytes =
             static_cast<int>(
-                sound.spatialSpec.freq * sound.spatialSpec.channels * sizeof(float) * 0.10f
+                sound.spatialSpec.freq * sound.spatialSpec.channels * sizeof(float) * 0.08f
             );
 
         if (queuedBytes >= targetQueuedBytes) return;
      
-        // Generate roughly 50ms of audio.
+        // Generate roughly 40ms of audio.
         const size_t framesPerChunk =
             static_cast<size_t>(
-                sound.spatialSpec.freq * 0.05f
+                sound.spatialSpec.freq * 0.04f
             );
 
         const size_t samplesPerChunk = framesPerChunk * sound.spatialSpec.channels;
