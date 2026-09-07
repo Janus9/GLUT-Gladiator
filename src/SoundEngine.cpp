@@ -53,7 +53,6 @@ namespace sound {
 
         activeStreams.clear();
 
-        stopAllBackgroundSounds();  // Stop all background music from playing
         stopAllSpatialLooped();     // Stop all looped effects from playing
 
         // Sound Tracks //
@@ -156,10 +155,6 @@ namespace sound {
             if (stream) SDL_DestroyAudioStream(stream);
         }
         activeStreams.clear();
-
-
-        // Background streams
-        stopAllBackgroundSounds();
 
         auto tempLoopedSpatial = spatialLoopList; // Save copy of the list so we can add them all back after reload
 
@@ -266,26 +261,6 @@ namespace sound {
                 it = activeStreams.erase(it);
             } else {
                 ++it;
-            }
-        }
-
-        // ----- Background sounds ----- //
-        for (auto &entry : backgroundStreams) {
-            const std::string &id = entry.first;
-            SDL_AudioStream *stream = entry.second;
-
-            auto soundIt = registery.find(id);
-            if (soundIt == registery.end()) {
-                continue;
-            }
-
-            Registration &sound = soundIt->second;
-
-            int queued = SDL_GetAudioStreamQueued(stream);
-            if (queued <= static_cast<int>(sound.dataSize)) {
-                if (!SDL_PutAudioStreamData(stream, sound.data, static_cast<int>(sound.dataSize))) {
-                    SDL_LogError(LOG_SOUND, "Failed to loop background sound '%s': %s", id.c_str(), SDL_GetError());
-                }
             }
         }
 
@@ -623,118 +598,6 @@ namespace sound {
         activeStreams.push_back(stream);
 
         return;
-    }
-
-    void Engine::playBackgroundSound(const std::string &id) {
-        if (!initialized) {
-            return;
-        }
-
-        // Already playing
-        if (backgroundStreams.find(id) != backgroundStreams.end()) {
-            return;
-        }
-
-        // Find registered sound
-        auto soundIt = registery.find(id);
-        if (soundIt == registery.end()) {
-            SDL_LogWarn(
-                LOG_SOUND,
-                "Background sound ID not registered: %s",
-                id.c_str()
-            );
-
-            return;
-        }
-
-        Registration &sound = soundIt->second;
-
-        // Create stream
-        SDL_AudioStream *stream = SDL_CreateAudioStream(
-            &sound.spec,
-            nullptr
-        );
-
-        if (!stream) {
-            SDL_LogError(
-                LOG_SOUND,
-                "Failed to create background audio stream: %s",
-                SDL_GetError()
-            );
-            return;
-        }
-
-        // Bind to playback device
-        if (!SDL_BindAudioStream(device, stream)) {
-            SDL_LogError(
-                LOG_SOUND,
-                "Failed to bind background audio stream: %s",
-                SDL_GetError()
-            );
-
-            SDL_DestroyAudioStream(stream);
-
-            return;
-        }
-
-        // Queue two copies to create a buffer ahead of playback.
-        if (!SDL_PutAudioStreamData(
-            stream,
-            sound.data,
-            static_cast<int>(sound.dataSize)
-        )) {
-            SDL_LogError(
-                LOG_SOUND,
-                "Failed to queue background audio: %s",
-                SDL_GetError()
-            );
-
-            SDL_DestroyAudioStream(stream);
-            return;
-        }
-
-        if (!SDL_PutAudioStreamData(
-            stream,
-            sound.data,
-            static_cast<int>(sound.dataSize)
-        )) {
-            SDL_LogError(
-                LOG_SOUND,
-                "Failed to queue background audio: %s",
-                SDL_GetError()
-            );
-
-            SDL_DestroyAudioStream(stream);
-            return;
-        }
-
-        SDL_SetAudioStreamGain(stream, sound.gain);
-
-        backgroundStreams[id] = stream;
-    }
-
-    void Engine::stopBackgroundSound(const std::string &id) {
-        auto it = backgroundStreams.find(id);
-
-        if (it == backgroundStreams.end()) {
-            return;
-        }
-
-        SDL_DestroyAudioStream(it->second);
-
-        backgroundStreams.erase(it);
-    }
-
-    void Engine::stopAllBackgroundSounds() {
-        for (auto &entry : backgroundStreams) {
-            SDL_AudioStream *stream = entry.second;
-
-            if (stream != nullptr) {
-                SDL_DestroyAudioStream(stream);
-            }
-        }
-
-        backgroundStreams.clear();
     }
 
     void Engine::setSoundTrack(const std::string &id, float fadeTime) {

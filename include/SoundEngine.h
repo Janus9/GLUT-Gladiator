@@ -63,25 +63,6 @@ namespace sound {
             void playSound(const std::string &id, const Vec2f &pos);
 
             /**
-             * -DEPRICATED- Use Sound Track instead!
-             * 
-             * Plays a looped sound from a given ID. Intended for music. Must be unloaded to stop playing (stopBackgroundSound). 
-             * Different sound IDs can be stacked. If sound is already playing, then function does nothing.
-             * 
-             * @param id Unique ID of the sound.
-             */
-            void playBackgroundSound(const std::string &id);
-
-            /**
-             * -DEPRICATED- Use Sound Track instead!
-             * 
-             * Unloads a given background sound (looped) to stop it from playing from a given ID.
-             * 
-             * @param id Unique ID of the sound.
-             */
-            void stopBackgroundSound(const std::string &id);
-
-            /**
              * Sets the soundtrack to the given ID.
              * The soundtrack cannot be stacked, or repeated.  
              * 
@@ -114,11 +95,6 @@ namespace sound {
              * @return True if track is currently active (not next); False if track is not currently active.
              */
             bool isPlayingSoundTrack(const std::string &id) const;
-
-            /**
-             * Unloads all background sounds currently active.
-             */
-            void stopAllBackgroundSounds();
 
             /**
              * Plays a looped spatial sound from a given ID. Audio can stack.
@@ -266,8 +242,6 @@ namespace sound {
             SDL_AudioDeviceID device = 0;
             // Audio registration data
             std::unordered_map<std::string, Registration> registery;
-            // Audio streams with automatic looping. Must be manually cleared.
-            std::unordered_map<std::string, SDL_AudioStream*> backgroundStreams;
             // Audio streams with no looping and autmatic cleanup.
             std::vector<SDL_AudioStream*> activeStreams;
             // The current active soundtrack
