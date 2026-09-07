@@ -271,11 +271,16 @@ namespace sound {
             float fadeTimeElapsed = 0.0f;
             float fadeTime = 0.0f;
 
+            // -- Spatial Sound Settings -- //
             Vec2f listenerPosition = {0.0f, 0.0f};   // Where listener (player) is located
             float spatialMaxDistance = 1000.0f;      // Max distance player can hear audio from
             float audioFalloff = 2.5f;               // What power is applied to audio falloff (ex 2.0f is squared falloff)
 
+            // -- Gain Levels -- //
             float masterVolume = 1.0f;
+            float musicVolume = 1.0f;
+            float sfxVolume = 1.0f;
+            
             bool initialized = false;
 
             bool registerSound(const Config &config);

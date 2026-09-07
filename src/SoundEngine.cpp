@@ -108,6 +108,30 @@ namespace sound {
 
         SDL_LogDebug(LOG_SOUND,"Read: %llu sounds from sounds.toml",sounds->size());
 
+        // -- Read Volumes -- //
+        if (auto volume = config["volume"].as_table()) {
+            masterVolume = std::clamp(volume->get("master")->value_or(1.0f), 0.0f, 1.0f);
+            musicVolume = std::clamp(volume->get("music")->value_or(1.0f), 0.0f, 1.0f);
+            sfxVolume = std::clamp(volume->get("sfx")->value_or(1.0f), 0.0f, 1.0f);
+
+            SDL_LogInfo(
+                LOG_SOUND,
+                "Read volume levels from config:"
+                "\n - Master: %f"
+                "\n - Music: %f"
+                "\n - SFX: %f",
+                masterVolume,
+                musicVolume,
+                sfxVolume
+            );
+        } else {
+            SDL_LogError(
+                LOG_SOUND, 
+                "Cannot read volumes section of sounds.toml"
+            );
+            return;
+        }
+
         // -- Clear Memory -- //
 
         // One-shot streams

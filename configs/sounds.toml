@@ -1,4 +1,26 @@
-### GLUT Gladiator Sound Registration List ###
+### GLUT Gladiator Sound Registration ###
+
+## Guide ##
+# 
+# To register a new audio, first ensure it is a waveform file (".wav").
+# After that, copy the template below. Make sure the id is 100% unique.
+# All caps for the ID is *not* required, but is recommended for clarity. 
+# The "gain" is the individual volume level for the sound file. This applies to all use cases of it. 
+# If you want one file to have different gains, it may be registered multiple times under differnt IDs.
+# The gain is constrained [0.0 - 1.0], thus sounds cannot be made louder, only quieter.
+
+# -- Template -- #
+
+#[[sounds]]
+#id = "EXAMPLE"
+#file_path = "file/path_to/sound.wav"
+#gain = 1.0
+
+# -- Settings -- #
+[volume]
+master = 1.0
+music = 1.0
+sfx = 1.0
 
 # -- Menu -- #
 
