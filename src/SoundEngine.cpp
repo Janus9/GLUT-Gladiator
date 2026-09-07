@@ -321,14 +321,14 @@ namespace sound {
                 if (!activeSoundTrack.first.empty() && activeSoundTrack.second) {
                     auto activeIt = registery.find(activeSoundTrack.first);
                     if (activeIt != registery.end()) {
-                        activeGainMul = activeIt->second.gain;
+                        activeGainMul = activeIt->second.gain * masterVolume * musicVolume;
                     }
                 }
 
                 // Set gain for the next soundtrack
                 auto nextIt = registery.find(nextSoundTrack.first);
                 if (nextIt != registery.end()) {
-                    nextGainMul = nextIt->second.gain;
+                    nextGainMul = nextIt->second.gain * masterVolume * musicVolume;
                 }
 
                 SDL_AudioStream* nextStream = nextSoundTrack.second;
@@ -366,7 +366,7 @@ namespace sound {
 
                 auto activeIt = registery.find(activeSoundTrack.first);
                 if (activeIt != registery.end()) {
-                    activeGainMul = activeIt->second.gain;
+                    activeGainMul = activeIt->second.gain * masterVolume * musicVolume;
                 }
 
                 SDL_SetAudioStreamGain(activeSoundTrack.second, activeGainMul);  // Set to full volume (gain value)
@@ -448,7 +448,7 @@ namespace sound {
             return;
         }
 
-        SDL_SetAudioStreamGain(stream,sound.gain);
+        SDL_SetAudioStreamGain(stream,sound.gain * masterVolume * sfxVolume);
 
         SDL_FlushAudioStream(stream);
 
@@ -525,8 +525,8 @@ namespace sound {
             leftGain = 1.0f - pan;
         }
 
-        leftGain *= distanceGain * sound.gain;
-        rightGain *= distanceGain * sound.gain;
+        leftGain *= distanceGain * sound.gain * masterVolume * sfxVolume;
+        rightGain *= distanceGain * sound.gain * masterVolume * sfxVolume;
 
 
         // ---------------------------------
@@ -835,12 +835,16 @@ namespace sound {
         listenerPosition = pos;
     }
 
-    void Engine::setMasterVolume(float volume) {
-        masterVolume = std::clamp(volume, 0.0f, 1.0f);
-    }
-
     float Engine::getMasterVolume() const {
         return masterVolume;
+    }
+
+    float Engine::getMusicVolume() const {
+        return musicVolume;
+    }
+
+    float Engine::getSFXVolume() const {
+        return sfxVolume;
     }
 
     void Engine::createSpatialLooped(const std::string &id, int instanceId, const Vec2f &pos) {
@@ -1142,7 +1146,7 @@ namespace sound {
             return;
         }
 
-        const float gainMul = it->second.gain;
+        const float gainMul = it->second.gain * masterVolume * sfxVolume;
 
         // -- Stereo Panning -- //
         const float angle = GetRotationAngle(listenerPosition, audio.position);

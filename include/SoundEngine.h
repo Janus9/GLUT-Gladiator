@@ -46,12 +46,16 @@ namespace sound {
 
             /**
              * Plays a non-looped mono sound from a given ID. Audio can stack.
+             * 
+             * Uses SFX volume.
              */
             void playSound(const std::string &id);
             
             /**
              * Plays a non-looped spatial sound from a given ID. Audio can stack.
              * The spatial sound cannot move. This should only be used for rapid or short audio clips. 
+             * 
+             * Uses SFX volume.
              * 
              * @param id Unique ID of the sound.
              * @param pos Position of the sound.
@@ -89,6 +93,8 @@ namespace sound {
              * This function is not protected from repeated calls, to prevent odd clipping, use "isPlayingSoundTrack" to ensure you are
              * not calling function repeatedly on the same soundtrack.
              * 
+             * Uses Music volume.
+             * 
              * @param id Unique ID of the sound.
              * @param fadeTime Time it takes to fade to next track (Default: 0.0s)
              */
@@ -122,6 +128,8 @@ namespace sound {
              * The instanceID must be unique only for a given sound id. Meaning there can be repeats if the sound id is different.
              * 
              * The looped sound must be manually cleaned via `stopSoundLooped`.
+             * 
+             * Uses SFX volume.
              * 
              * @param id Unique ID of the sound.
              * @param instanceId Unique ID for this specific sound instance. Can be a unit/enemy ID, effect ID, etc.
@@ -183,15 +191,14 @@ namespace sound {
              */
             void setListenerPosition(const Vec2f &pos);
 
-            /**
-             * Sets master volume for all sound outputs. 
-             * 
-             * @param volume [0.0 - 1.0]
-             */
-            void setMasterVolume(float volume);
-            
-            /** Returns the current master volume level [0.0-1.0] */
+            /** Returns the current master volume level [0.0 - 1.0] */
             float getMasterVolume() const;
+
+            /** Returns the current music volume level [0.0 - 1.0] */
+            float getMusicVolume() const;
+
+            /** Returns the current sfx volume level [0.0 - 1.0] */
+            float getSFXVolume() const;
         protected:
         private:
             struct Config {
@@ -280,7 +287,7 @@ namespace sound {
             float masterVolume = 1.0f;
             float musicVolume = 1.0f;
             float sfxVolume = 1.0f;
-            
+
             bool initialized = false;
 
             bool registerSound(const Config &config);
