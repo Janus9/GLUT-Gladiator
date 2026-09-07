@@ -110,9 +110,26 @@ namespace sound {
 
         // -- Read Volumes -- //
         if (auto volume = config["volume"].as_table()) {
-            masterVolume = std::clamp(volume->get("master")->value_or(1.0f), 0.0f, 1.0f);
-            musicVolume = std::clamp(volume->get("music")->value_or(1.0f), 0.0f, 1.0f);
-            sfxVolume = std::clamp(volume->get("sfx")->value_or(1.0f), 0.0f, 1.0f);
+            auto master = volume->get("master");
+            auto music = volume->get("music");
+            auto sfx = volume->get("sfx");
+
+            if (!master || !music || !sfx) {
+                SDL_LogError(
+                    LOG_SOUND,
+                    "Unable to read ('master', 'music', 'sfx') from TOML file."
+                    "Ensure the config follows the example:"
+                    "\n\n[volume]"
+                    "\nmaster = 1.0"
+                    "\nmusic = 1.0"
+                    "\nsfx = 1.0"
+                );
+                return;
+            }
+
+            masterVolume = std::clamp(master->value_or(1.0f), 0.0f, 1.0f);
+            musicVolume = std::clamp(music->value_or(1.0f), 0.0f, 1.0f);
+            sfxVolume = std::clamp(sfx->value_or(1.0f), 0.0f, 1.0f);
 
             SDL_LogInfo(
                 LOG_SOUND,
