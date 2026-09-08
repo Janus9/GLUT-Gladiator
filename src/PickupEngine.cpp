@@ -60,7 +60,7 @@ namespace pickups {
         _lightManager* currentLightManager,
         _world* currentWorld
     ) {
-        SDL_LogInfo(LOG_PICKUPS, "Initializing the pickup manager");
+        GG_LOG_INFO(LOG_PICKUPS, "Initializing the pickup manager");
         
         player = currentPlayer;
         world = currentWorld;
@@ -68,7 +68,7 @@ namespace pickups {
         numImages = imageWidth;
 
         if (!player || !sceneLightManager || !world) {
-            SDL_LogError(LOG_PICKUPS, "ERROR: Player or LightManager is nullptr");
+            GG_LOG_ERROR(LOG_PICKUPS, "ERROR: Player or LightManager is nullptr");
             return;
         }
         
@@ -103,7 +103,7 @@ namespace pickups {
         buildEBO();
         buildVAO();
 
-        SDL_LogInfo(LOG_PICKUPS, "Successfully initialized the pickup manager");
+        GG_LOG_INFO(LOG_PICKUPS, "Successfully initialized the pickup manager");
         initialized = true;
     }
 
@@ -133,21 +133,21 @@ namespace pickups {
     void Engine::update(const double dt) {
         // Save Pickups Timer //
         if (pickupSaveElapsedTime >= PICKUP_SAVE_INTERVAL) {
-            SDL_LogInfo(LOG_PICKUPS, "Saving pickups!");
+            GG_LOG_INFO(LOG_PICKUPS, "Saving pickups!");
             pickupSaveElapsedTime = 0.0f;
             writeToFileAsync();
         }
         
         // Clean Disk Timer //
         if (cleanDiskElapsedTime >= DISK_CLEAN_INTERVAL) {
-            SDL_LogInfo(LOG_PICKUPS, "Cleaning dead pickups!");
+            GG_LOG_INFO(LOG_PICKUPS, "Cleaning dead pickups!");
             cleanDiskElapsedTime = 0.0f;
             cleanDeadFromFileAsync();
         }
 
         // Reload Pickups Distance Check //
         if (prevWritePos.distance(cameraPosition) > VIEW_RANGE*0.5f) {
-            SDL_LogDebug(LOG_PICKUPS, "Camera moved too far from previous write position, reloading pickups!");
+            GG_LOG_DEBUG(LOG_PICKUPS, "Camera moved too far from previous write position, reloading pickups!");
             readFromFileAsync();
         }
 
@@ -189,7 +189,7 @@ namespace pickups {
                         player->addFireRate(p.value);    
                         break;
                     default:
-                        SDL_LogError(LOG_PICKUPS, "ERROR: Could not determine pickup type");
+                        GG_LOG_ERROR(LOG_PICKUPS, "ERROR: Could not determine pickup type");
                         break;
                 }
                 continue;
@@ -229,9 +229,9 @@ namespace pickups {
                 writeBufferThread.join();
                 // Not done in thread to prevent race conditions
                 std::swap(writeBuffer, readBuffer); // Swap the buffers so that the buffer we wrote into (write buffer) becomes the one we read (read buffer)
-                SDL_LogDebug(LOG_PICKUPS, "Write Buffer Thread joined");
+                GG_LOG_DEBUG(LOG_PICKUPS, "Write Buffer Thread joined");
             } else {
-                SDL_LogWarn(LOG_PICKUPS, "WARNING: Cannot join Write Buffer Thread as it is not joinable");
+                GG_LOG_WARN(LOG_PICKUPS, "WARNING: Cannot join Write Buffer Thread as it is not joinable");
             }
             writeBufferState.store(AsyncState::IDLE);
         }
@@ -240,9 +240,9 @@ namespace pickups {
         if (writeDiskState.load() == AsyncState::COMPLETED) {
             if (writeDiskThread.joinable()) {
                 writeDiskThread.join();
-                SDL_LogDebug(LOG_PICKUPS, "Write Disk Thread joined");
+                GG_LOG_DEBUG(LOG_PICKUPS, "Write Disk Thread joined");
             } else {
-                SDL_LogWarn(LOG_PICKUPS, "WARNING: Cannot join Write Disk Thread as it is not joinable");
+                GG_LOG_WARN(LOG_PICKUPS, "WARNING: Cannot join Write Disk Thread as it is not joinable");
             }
 
             writeDiskState.store(AsyncState::IDLE);
@@ -252,9 +252,9 @@ namespace pickups {
         if (cleanDiskState.load() == AsyncState::COMPLETED) {
             if (cleanDiskThread.joinable()) {
                 cleanDiskThread.join();
-                SDL_LogDebug(LOG_PICKUPS, "Clean Disk Thread joined");
+                GG_LOG_DEBUG(LOG_PICKUPS, "Clean Disk Thread joined");
             } else {
-                SDL_LogWarn(LOG_PICKUPS, "WARNING: Cannot join Clean Disk Thread as it is not joinable");
+                GG_LOG_WARN(LOG_PICKUPS, "WARNING: Cannot join Clean Disk Thread as it is not joinable");
             }
 
             cleanDiskState.store(AsyncState::IDLE);
@@ -267,7 +267,7 @@ namespace pickups {
         std::lock_guard<std::mutex> lock(m_mm);
 
         if (mutationMap.contains(id)) {
-            SDL_LogError(LOG_PICKUPS, "Error cannot add ID: %u as it already exists" , id);
+            GG_LOG_ERROR(LOG_PICKUPS, "Error cannot add ID: %u as it already exists" , id);
             return false;
         }
 
@@ -286,7 +286,7 @@ namespace pickups {
         readBuffer->push_back(p);   // Add to read buffer so user immediately sees it. Next writeToDisk call will save it in disk
 
         nextID.store(id + 1);
-        SDL_LogDebug(LOG_PICKUPS, "NextID: %u", nextID.load());
+        GG_LOG_DEBUG(LOG_PICKUPS, "NextID: %u", nextID.load());
 
         return true;
     }
@@ -294,11 +294,11 @@ namespace pickups {
     bool Engine::generateToFile(const world_config &config) {
         const std::string saveDir = std::string(SAVE_DIRECTORY + global::saveFileName + PICKUPS_EXTENSION);
 
-        SDL_LogInfo(LOG_PICKUPS, "Generating pickups for save: %s", saveDir.c_str());
+        GG_LOG_INFO(LOG_PICKUPS, "Generating pickups for save: %s", saveDir.c_str());
 
         std::fstream file(saveDir, std::ios::binary | std::ios::out);
         if (!file) {
-            SDL_LogError(LOG_PICKUPS, "ERROR: Cannot create save file %s", saveDir.c_str());
+            GG_LOG_ERROR(LOG_PICKUPS, "ERROR: Cannot create save file %s", saveDir.c_str());
             return false;
         }
 
@@ -307,14 +307,14 @@ namespace pickups {
         constexpr char meta_header[2] = {'G','G'};
         file.write(meta_header,2); 
         if (!file) {
-            SDL_LogError(LOG_PICKUPS, "ERROR: Could not create meta header for save file: %s", saveDir.c_str());
+            GG_LOG_ERROR(LOG_PICKUPS, "ERROR: Could not create meta header for save file: %s", saveDir.c_str());
             return false;
         }
 
         constexpr char pickup_header[4] = {'P','K','U','P'};
         file.write(pickup_header,4); 
         if (!file) {
-            SDL_LogError(LOG_PICKUPS, "ERROR: Could not create data header for save file: %s", saveDir.c_str());
+            GG_LOG_ERROR(LOG_PICKUPS, "ERROR: Could not create data header for save file: %s", saveDir.c_str());
             return false;
         }
 
@@ -330,15 +330,15 @@ namespace pickups {
         const uint32_t pickup_count = num_hp_pickups + num_ammo_pickups + num_speed_pickups + num_max_hp_pickups + num_firerate_pickups;
         file.write(reinterpret_cast<const char*>(&pickup_count),sizeof(pickup_count)); 
         if (!file) {
-            SDL_LogError(LOG_PICKUPS, "ERROR: Could not create write count for save file: %s", saveDir.c_str());
+            GG_LOG_ERROR(LOG_PICKUPS, "ERROR: Could not create write count for save file: %s", saveDir.c_str());
             return false;
         }
 
-        SDL_LogDebug(LOG_PICKUPS, "Pickup generation count: %u", pickup_count);
+        GG_LOG_DEBUG(LOG_PICKUPS, "Pickup generation count: %u", pickup_count);
 
         // -- WRITE PICKUPS -- //
 
-        SDL_LogDebug(LOG_PICKUPS, "Staring write at position: 0x%llX", static_cast<long long>(file.tellp()));
+        GG_LOG_DEBUG(LOG_PICKUPS, "Staring write at position: 0x%llX", static_cast<long long>(file.tellp()));
 
         generatePickup(file, config.max_health_pickups, config.num_chunks, PICKUP_MAX_HEALTH, ID);   // Max Health
         generatePickup(file, config.health_pickups, config.num_chunks, PICKUP_HEALTH, ID);           // Health
@@ -346,28 +346,28 @@ namespace pickups {
         generatePickup(file, config.speed_pickups, config.num_chunks, PICKUP_SPEED, ID);             // Speed
         generatePickup(file, config.firerate_pickups, config.num_chunks, PICKUP_FIRERATE, ID);       // Fire rate
 
-        SDL_LogDebug(LOG_PICKUPS, "Final position: 0x%llX", static_cast<long long>(file.tellp()));
+        GG_LOG_DEBUG(LOG_PICKUPS, "Final position: 0x%llX", static_cast<long long>(file.tellp()));
         
         file.close();
 
-        SDL_LogInfo(LOG_PICKUPS, "Successfully generated pickups into save file");
+        GG_LOG_INFO(LOG_PICKUPS, "Successfully generated pickups into save file");
         
         return true;
     }
 
     void Engine::readFromFileAsync() {
-        SDL_LogInfo(LOG_PICKUPS, "Command given to read from file");
+        GG_LOG_INFO(LOG_PICKUPS, "Command given to read from file");
 
         if (writeBufferState.load() == AsyncState::RUNNING || writeBufferThread.joinable()) {
-            SDL_LogWarn(LOG_PICKUPS, "WARNING: Write Buffer Thread already working, skipping command");
+            GG_LOG_WARN(LOG_PICKUPS, "WARNING: Write Buffer Thread already working, skipping command");
             return;
         }
         if (writeDiskState.load() == AsyncState::RUNNING || writeDiskThread.joinable()) {
-            SDL_LogWarn(LOG_PICKUPS, "WARNING: Write Disk Thread already working, must wait until done, skipping command");
+            GG_LOG_WARN(LOG_PICKUPS, "WARNING: Write Disk Thread already working, must wait until done, skipping command");
             return;
         }
         if (cleanDiskState.load() == AsyncState::RUNNING || cleanDiskThread.joinable()) {
-            SDL_LogWarn(LOG_PICKUPS, "WARNING: Clean Disk Thread already working, must wait until done, skipping command");
+            GG_LOG_WARN(LOG_PICKUPS, "WARNING: Clean Disk Thread already working, must wait until done, skipping command");
             return;
         }
 
@@ -380,21 +380,21 @@ namespace pickups {
     }
 
     void Engine::writeToFileAsync() {
-        SDL_LogInfo(LOG_PICKUPS, "Command given to write to file");
+        GG_LOG_INFO(LOG_PICKUPS, "Command given to write to file");
         if (writeDiskState.load() == AsyncState::RUNNING || writeDiskThread.joinable()) {
-            SDL_LogWarn(LOG_PICKUPS, "WARNING: Write Disk Thread already working, skipping command");
+            GG_LOG_WARN(LOG_PICKUPS, "WARNING: Write Disk Thread already working, skipping command");
             return;
         }
         if (writeBufferState.load() == AsyncState::RUNNING || writeBufferThread.joinable()) {
-            SDL_LogWarn(LOG_PICKUPS, "WARNING: Write Buffer Thread already working, must wait until done, skipping command");
+            GG_LOG_WARN(LOG_PICKUPS, "WARNING: Write Buffer Thread already working, must wait until done, skipping command");
             return;
         }
         if (cleanDiskState.load() == AsyncState::RUNNING || cleanDiskThread.joinable()) {
-            SDL_LogWarn(LOG_PICKUPS, "WARNING: Clean Disk Thread already working, must wait until done, skipping command");
+            GG_LOG_WARN(LOG_PICKUPS, "WARNING: Clean Disk Thread already working, must wait until done, skipping command");
             return;
         }
         if (mutationMap.empty()) {
-            SDL_LogInfo(LOG_PICKUPS, "Mutation Map empty, skipping command");
+            GG_LOG_INFO(LOG_PICKUPS, "Mutation Map empty, skipping command");
             return;
         }
 
@@ -405,18 +405,18 @@ namespace pickups {
     }
 
     void Engine::cleanDeadFromFileAsync() {
-        SDL_LogInfo(LOG_PICKUPS, "Command given to remove dead pickups from file");
+        GG_LOG_INFO(LOG_PICKUPS, "Command given to remove dead pickups from file");
 
         if (cleanDiskState.load() == AsyncState::RUNNING || cleanDiskThread.joinable()) {
-            SDL_LogWarn(LOG_PICKUPS, "WARNING: Clean Disk Thread already working, skipping command");
+            GG_LOG_WARN(LOG_PICKUPS, "WARNING: Clean Disk Thread already working, skipping command");
             return;
         }
         if (writeDiskState.load() == AsyncState::RUNNING || writeDiskThread.joinable()) {
-            SDL_LogWarn(LOG_PICKUPS, "WARNING: Write Disk Thread already working, must wait until done, skipping command");
+            GG_LOG_WARN(LOG_PICKUPS, "WARNING: Write Disk Thread already working, must wait until done, skipping command");
             return;
         }
         if (writeBufferState.load() == AsyncState::RUNNING || writeBufferThread.joinable()) {
-            SDL_LogWarn(LOG_PICKUPS, "WARNING: Write Buffer Thread already working, must wait until done, skipping command");
+            GG_LOG_WARN(LOG_PICKUPS, "WARNING: Write Buffer Thread already working, must wait until done, skipping command");
             return;
         }
 
@@ -426,34 +426,34 @@ namespace pickups {
 
     bool Engine::areAsyncTasksCompleted() const {
         if (writeDiskState.load() == AsyncState::RUNNING || writeDiskThread.joinable()) {
-            SDL_LogInfo(LOG_PICKUPS, "Write Disk Thread working");
+            GG_LOG_INFO(LOG_PICKUPS, "Write Disk Thread working");
             return false;
         }
         if (writeBufferState.load() == AsyncState::RUNNING || writeBufferThread.joinable()) {
-            SDL_LogInfo(LOG_PICKUPS, "Write Buffer Thread working");
+            GG_LOG_INFO(LOG_PICKUPS, "Write Buffer Thread working");
             return false;
         }
         if (cleanDiskState.load() == AsyncState::RUNNING || cleanDiskThread.joinable()) {
-            SDL_LogInfo(LOG_PICKUPS, "Clean Disk Thread working");
+            GG_LOG_INFO(LOG_PICKUPS, "Clean Disk Thread working");
             return false;
         }
-        SDL_LogInfo(LOG_PICKUPS, "All threads have been joined");
+        GG_LOG_INFO(LOG_PICKUPS, "All threads have been joined");
         return true;
     }
 
     void Engine::logDisk() const {
-        SDL_LogInfo(LOG_PICKUPS, "Creating a log output at [logs/pickup.log]");
+        GG_LOG_INFO(LOG_PICKUPS, "Creating a log output at [logs/pickup.log]");
 
         const std::string saveDir = std::string(SAVE_DIRECTORY + global::saveFileName + PICKUPS_EXTENSION);
         std::fstream file(saveDir, std::ios::binary | std::ios::in);
         if (!file) {
-            SDL_LogError(LOG_PICKUPS, "ERROR: Cannot open the save file: %s", saveDir.c_str());
+            GG_LOG_ERROR(LOG_PICKUPS, "ERROR: Cannot open the save file: %s", saveDir.c_str());
             return;
         }
 
         std::fstream log("logs/pickup.log", std::ios::out);
         if (!log) {
-            SDL_LogError(LOG_PICKUPS, "ERROR: Unable to create log file");
+            GG_LOG_ERROR(LOG_PICKUPS, "ERROR: Unable to create log file");
             return;
         }
         // -- VARIABLES -- //
@@ -461,7 +461,7 @@ namespace pickups {
 
         uint32_t pickup_count = 0;
         if (!verifyFile(file, pickup_count)) {
-            SDL_LogError(LOG_PICKUPS, "ERROR: Cannot verify the save file");
+            GG_LOG_ERROR(LOG_PICKUPS, "ERROR: Cannot verify the save file");
             return;
         }
 
@@ -483,7 +483,7 @@ namespace pickups {
             int pickupsRead = static_cast<int>(bytesRead / sizeof(pickups::serial_data));
             
             if (pickupsRead == 0) {
-                SDL_LogError(LOG_PICKUPS, "ERROR: Reached end of file before reading all pickups");
+                GG_LOG_ERROR(LOG_PICKUPS, "ERROR: Reached end of file before reading all pickups");
                 break;
             }
 
@@ -504,20 +504,20 @@ namespace pickups {
 
         log.close();
         
-        SDL_LogInfo(LOG_PICKUPS, "Finished creating a log output at [logs/pickup.log]");
+        GG_LOG_INFO(LOG_PICKUPS, "Finished creating a log output at [logs/pickup.log]");
     }
 
     // -- PRIVATE -- //
 
     void Engine::readFromFileWorker() {
-        SDL_LogInfo(LOG_PICKUPS, "[Write Buffer Thread]: Reading pickups from save file");
+        GG_LOG_INFO(LOG_PICKUPS, "[Write Buffer Thread]: Reading pickups from save file");
 
         auto start = std::chrono::steady_clock::now();
 
         const std::string saveDir = std::string(SAVE_DIRECTORY + global::saveFileName + PICKUPS_EXTENSION);
         std::fstream file(saveDir, std::ios::binary | std::ios::in | std::ios::out);
         if (!file) {
-            SDL_LogError(LOG_PICKUPS, "[Write Buffer Thread]: ERROR: Cannot open the save file: %s", saveDir.c_str());
+            GG_LOG_ERROR(LOG_PICKUPS, "[Write Buffer Thread]: ERROR: Cannot open the save file: %s", saveDir.c_str());
             writeBufferState.store(AsyncState::COMPLETED);
             return;
         }
@@ -527,17 +527,17 @@ namespace pickups {
 
         uint32_t pickup_count = 0;
         if (!verifyFile(file, pickup_count)) {
-            SDL_LogError(LOG_PICKUPS, "ERROR: Cannot verify the save file");
+            GG_LOG_ERROR(LOG_PICKUPS, "ERROR: Cannot verify the save file");
             return;
         }
 
-        SDL_LogDebug(LOG_PICKUPS, "[Write Buffer Thread]: Pickups in save: %u", pickup_count);
+        GG_LOG_DEBUG(LOG_PICKUPS, "[Write Buffer Thread]: Pickups in save: %u", pickup_count);
         if (pickup_count == 0) {
-            SDL_LogWarn(LOG_PICKUPS, "[Write Buffer Thread]: WARNING: Pickups found is 0");
+            GG_LOG_WARN(LOG_PICKUPS, "[Write Buffer Thread]: WARNING: Pickups found is 0");
         }
 
         if (!writeBuffer) {
-            SDL_LogError(LOG_PICKUPS, "[Write Buffer Thread]: ERROR: Cannot write to the buffer as it is nullptr");
+            GG_LOG_ERROR(LOG_PICKUPS, "[Write Buffer Thread]: ERROR: Cannot write to the buffer as it is nullptr");
             writeBufferState.store(AsyncState::COMPLETED);
             return;
         }
@@ -582,13 +582,13 @@ namespace pickups {
             }
         }
 
-        SDL_LogDebug(LOG_PICKUPS, "[Write Buffer Thread]: Max ID found: %u", maxID);
+        GG_LOG_DEBUG(LOG_PICKUPS, "[Write Buffer Thread]: Max ID found: %u", maxID);
         if (maxID + 1 > nextID) nextID.store(maxID + 1);
-        SDL_LogDebug(LOG_PICKUPS, "[Write Buffer Thread]: Next ID: %u", nextID.load());
+        GG_LOG_DEBUG(LOG_PICKUPS, "[Write Buffer Thread]: Next ID: %u", nextID.load());
 
-        SDL_LogDebug(LOG_PICKUPS, "[Write Buffer Thread]: Read %llu pickups", writeBuffer->size());
+        GG_LOG_DEBUG(LOG_PICKUPS, "[Write Buffer Thread]: Read %llu pickups", writeBuffer->size());
         if (writeBuffer->size() > MAX_RENDER_PICKUPS) {
-            SDL_LogWarn(
+            GG_LOG_WARN(
                 LOG_PICKUPS, 
                 "[Write Buffer Thread]: WARNING: Pickups loaded (%llu) exceeds max render amount of (%i)",
                 writeBuffer->size(), 
@@ -600,10 +600,10 @@ namespace pickups {
 
         auto stop = std::chrono::steady_clock::now();
         const float d = std::chrono::duration<float, std::milli>(stop-start).count();
-        SDL_LogDebug(LOG_PICKUPS, "[Write Buffer Thread]: Write To Buffer took [%fms]",d);
-        SDL_LogDebug(LOG_PICKUPS, "[Write Buffer Thread]: Pickups in Mutation Map: %llu", mutationMap.size());
+        GG_LOG_DEBUG(LOG_PICKUPS, "[Write Buffer Thread]: Write To Buffer took [%fms]",d);
+        GG_LOG_DEBUG(LOG_PICKUPS, "[Write Buffer Thread]: Pickups in Mutation Map: %llu", mutationMap.size());
 
-        SDL_LogInfo(LOG_PICKUPS, "[Write Buffer Thread]: Successfully loaded pickups from save file");
+        GG_LOG_INFO(LOG_PICKUPS, "[Write Buffer Thread]: Successfully loaded pickups from save file");
     }
 
     void Engine::saveToFileWorker() {
@@ -612,7 +612,7 @@ namespace pickups {
         const std::string saveDir = std::string(SAVE_DIRECTORY + global::saveFileName + PICKUPS_EXTENSION);
         std::fstream file(saveDir, std::ios::binary | std::ios::in | std::ios::out);
         if (!file) {
-            SDL_LogError(LOG_PICKUPS, "[Disk Write Thread]: ERROR: Cannot open the save file: %s", saveDir.c_str());
+            GG_LOG_ERROR(LOG_PICKUPS, "[Disk Write Thread]: ERROR: Cannot open the save file: %s", saveDir.c_str());
             writeDiskState.store(AsyncState::COMPLETED);
             return;
         }
@@ -622,16 +622,16 @@ namespace pickups {
 
         uint32_t pickup_count = 0;
         if (!verifyFile(file, pickup_count)) {
-            SDL_LogError(LOG_PICKUPS, "[Disk Write Thread]: ERROR: Cannot verify the save file: %s", saveDir.c_str());
+            GG_LOG_ERROR(LOG_PICKUPS, "[Disk Write Thread]: ERROR: Cannot verify the save file: %s", saveDir.c_str());
             writeDiskState.store(AsyncState::COMPLETED);
             return;
         }
 
         std::streampos pickupCountPos = file.tellp() - static_cast<std::streamoff>(4); // 4 bytes to get back to beginning of where count is
 
-        SDL_LogDebug(LOG_PICKUPS, "[Disk Write Thread]: Pickups in save: %u", pickup_count);
+        GG_LOG_DEBUG(LOG_PICKUPS, "[Disk Write Thread]: Pickups in save: %u", pickup_count);
         if (pickup_count == 0) {
-            SDL_LogWarn(LOG_PICKUPS, "[Disk Write Thread]: WARNING: Pickups found is 0");
+            GG_LOG_WARN(LOG_PICKUPS, "[Disk Write Thread]: WARNING: Pickups found is 0");
         }
 
         int pickups = static_cast<int>(pickup_count);
@@ -650,7 +650,7 @@ namespace pickups {
             std::streampos startPos = file.tellp();
 
             if (debug::pickupWriteDisk) {
-                SDL_LogDebug(
+                GG_LOG_DEBUG(
                     LOG_PICKUPS, 
                     "[Disk Write Thread]: Disk Start: 0x%llX", 
                     static_cast<unsigned long long>(static_cast<std::streamoff>(startPos))
@@ -676,35 +676,35 @@ namespace pickups {
             // Write modified buffer back in
             file.write(reinterpret_cast<const char*>(buffer.data()), buffer.size() * sizeof(pickups::serial_data)); 
             if (!file) {
-                SDL_LogError(LOG_PICKUPS, "[Disk Write Thread]: ERROR: Failed to write the pickup buffer data");
+                GG_LOG_ERROR(LOG_PICKUPS, "[Disk Write Thread]: ERROR: Failed to write the pickup buffer data");
                 writeDiskState.store(AsyncState::COMPLETED);
                 return;
             }
         }
-        SDL_LogDebug(LOG_PICKUPS, "[Disk Write Thread]: Mutated pickups processed: %i", mutatedPickups);
+        GG_LOG_DEBUG(LOG_PICKUPS, "[Disk Write Thread]: Mutated pickups processed: %i", mutatedPickups);
 
         // NEW PICKUPS //
 
         const size_t newPickups = snapshot.size();
         std::vector<pickups::serial_data> buffer(newPickups);
 
-        SDL_LogDebug(LOG_PICKUPS, "[Disk Write Thread]: New pickups to add: %llu", newPickups);
+        GG_LOG_DEBUG(LOG_PICKUPS, "[Disk Write Thread]: New pickups to add: %llu", newPickups);
 
         int i = 0;
         for (const auto &it : snapshot) {
             if (i > static_cast<int>(newPickups)) {
-                SDL_LogError(LOG_PICKUPS, "[Disk Write Thread]: Overloaded max size of buffer at index: %i", i);
+                GG_LOG_ERROR(LOG_PICKUPS, "[Disk Write Thread]: Overloaded max size of buffer at index: %i", i);
                 break;
             }
             buffer[i] = (serializePickup(it.second));
             i++;
         }
 
-        SDL_LogDebug(LOG_PICKUPS, "[Disk Write Thread]: New pickups added: %i", i);
+        GG_LOG_DEBUG(LOG_PICKUPS, "[Disk Write Thread]: New pickups added: %i", i);
 
         file.write(reinterpret_cast<const char*>(buffer.data()), buffer.size() * sizeof(pickups::serial_data)); 
         if (!file) {
-            SDL_LogError(LOG_PICKUPS, "[Disk Write Thread]: ERROR: Failed to write the pickup buffer data");
+            GG_LOG_ERROR(LOG_PICKUPS, "[Disk Write Thread]: ERROR: Failed to write the pickup buffer data");
             writeDiskState.store(AsyncState::COMPLETED);
             return;
         }
@@ -716,7 +716,7 @@ namespace pickups {
             file.write(reinterpret_cast<const char*>(&pickup_count),sizeof(pickup_count)); // Pickup Count
             
             if (!file) {
-                SDL_LogError(LOG_PICKUPS, "[Disk Write Thread]: ERROR: Failed to write the updated pickup_count");
+                GG_LOG_ERROR(LOG_PICKUPS, "[Disk Write Thread]: ERROR: Failed to write the updated pickup_count");
                 writeDiskState.store(AsyncState::COMPLETED);
                 return;
             }
@@ -727,7 +727,7 @@ namespace pickups {
 
         auto stop = std::chrono::steady_clock::now();
         const float d = std::chrono::duration<float, std::milli>(stop-start).count();
-        SDL_LogDebug(LOG_PICKUPS, "[Disk Write Thread]: Empty Mutation Map took [%fms]",d);
+        GG_LOG_DEBUG(LOG_PICKUPS, "[Disk Write Thread]: Empty Mutation Map took [%fms]",d);
     }
 
     void Engine::cleanDeadFromFileWorker() {
@@ -737,7 +737,7 @@ namespace pickups {
         const std::string saveDir = std::string(SAVE_DIRECTORY + global::saveFileName + PICKUPS_EXTENSION);
         std::fstream file(saveDir, std::ios::binary | std::ios::in | std::ios::out);
         if (!file) {
-            SDL_LogError(LOG_PICKUPS, "[Clean Disk Thread]: ERROR: Cannot open the save file: %s", saveDir.c_str());
+            GG_LOG_ERROR(LOG_PICKUPS, "[Clean Disk Thread]: ERROR: Cannot open the save file: %s", saveDir.c_str());
             cleanDiskState.store(AsyncState::COMPLETED);
             return;
         }
@@ -749,7 +749,7 @@ namespace pickups {
         
         uint32_t pickup_count = 0;
         if (!verifyFile(file, pickup_count)) {
-            SDL_LogError(LOG_PICKUPS, "[Clean Disk Thread]: ERROR: Cannot verify the save file: %s", saveDir.c_str());
+            GG_LOG_ERROR(LOG_PICKUPS, "[Clean Disk Thread]: ERROR: Cannot verify the save file: %s", saveDir.c_str());
             cleanDiskState.store(AsyncState::COMPLETED);
             return;
         }
@@ -762,7 +762,7 @@ namespace pickups {
         readPos = file.tellg();
 
         if (debug::pickupCleanDisk) {
-            SDL_LogDebug(
+            GG_LOG_DEBUG(
                 LOG_PICKUPS, 
                 "[Clean Disk Thread]: Disk Position Debug"
                 "\n - Write Pos: 0x%llX" 
@@ -812,7 +812,7 @@ namespace pickups {
             writePos += std::streamoff(static_cast<long long>(aliveCount) * static_cast<long long>(sizeof(pickups::serial_data)));
             
             if (debug::pickupCleanDisk) {
-                SDL_LogDebug(
+                GG_LOG_DEBUG(
                     LOG_PICKUPS, 
                     "[Clean Disk Thread]: Disk Position Debug"
                     "\n - Write Pos: 0x%llX" 
@@ -821,9 +821,9 @@ namespace pickups {
                     static_cast<unsigned long long>(static_cast<std::streamoff>(readPos))
                 );
         
-                SDL_LogDebug(LOG_PICKUPS, "[Clean Disk Thread]: Alive Pickups Found: %i of %llu", aliveCount, buffer.size());
-                SDL_LogDebug(LOG_PICKUPS, "[Clean Disk Thread]: Pickups Remaining: %i", pickups);
-                SDL_LogDebug(LOG_PICKUPS, "[Clean Disk Thread]: Total Alive Pickups: %u", totalAlive);
+                GG_LOG_DEBUG(LOG_PICKUPS, "[Clean Disk Thread]: Alive Pickups Found: %i of %llu", aliveCount, buffer.size());
+                GG_LOG_DEBUG(LOG_PICKUPS, "[Clean Disk Thread]: Pickups Remaining: %i", pickups);
+                GG_LOG_DEBUG(LOG_PICKUPS, "[Clean Disk Thread]: Total Alive Pickups: %u", totalAlive);
             }
         }
 
@@ -838,20 +838,20 @@ namespace pickups {
             static_cast<uintmax_t>(sizeof(pickups::serial_data));
         
         file.seekg(0,std::ios::end);
-        SDL_LogDebug(LOG_PICKUPS, "[Clean Disk Thread]: File Original Size: %lli B", static_cast<long long>(file.tellg()));
+        GG_LOG_DEBUG(LOG_PICKUPS, "[Clean Disk Thread]: File Original Size: %lli B", static_cast<long long>(file.tellg()));
 
         file.flush();
         file.close();
 
         std::filesystem::resize_file(saveDir, newSize);
-        SDL_LogDebug(LOG_PICKUPS, "[Clean Disk Thread]: File New Size: %llu B", newSize);
+        GG_LOG_DEBUG(LOG_PICKUPS, "[Clean Disk Thread]: File New Size: %llu B", newSize);
 
         // -- DONE -- //
         cleanDiskState.store(AsyncState::COMPLETED);
 
         auto stop = std::chrono::steady_clock::now();
         const float d = std::chrono::duration<float, std::milli>(stop-start).count();
-        SDL_LogDebug(LOG_PICKUPS, "[Clean Disk Thread]: cleanDeadFromFileWorker took [%fms]",d);
+        GG_LOG_DEBUG(LOG_PICKUPS, "[Clean Disk Thread]: cleanDeadFromFileWorker took [%fms]",d);
     }
 
     pickups::serial_data Engine::serializePickup(const _pickup &pickup) const {
@@ -867,34 +867,34 @@ namespace pickups {
 
     bool Engine::verifyFile(std::fstream &file, uint32_t &pickup_count) const {
         if (!file) {
-            SDL_LogError(LOG_PICKUPS, "ERROR: File cannot be opened");
+            GG_LOG_ERROR(LOG_PICKUPS, "ERROR: File cannot be opened");
             return false;
         }
 
         char meta_header[2];
         file.read(meta_header,2);
         if (meta_header[0] != 'G' || meta_header[1] != 'G') {
-            SDL_LogError(LOG_PICKUPS, "ERROR: Invalid pickup meta header");
+            GG_LOG_ERROR(LOG_PICKUPS, "ERROR: Invalid pickup meta header");
             return false;
         }
 
         char data_header[4];
         file.read(data_header,4);
         if (data_header[0] != 'P' || data_header[1] != 'K' || data_header[2] != 'U' || data_header[3] != 'P') {
-            SDL_LogError(LOG_PICKUPS, "ERROR: Invalid pickup data header");
+            GG_LOG_ERROR(LOG_PICKUPS, "ERROR: Invalid pickup data header");
             return false;
         }
 
         file.read(reinterpret_cast<char*>(&pickup_count), sizeof(pickup_count));  
         if (pickup_count == 0) {
-            SDL_LogWarn(LOG_PICKUPS, "WARNING: Pickup count is zero");
+            GG_LOG_WARN(LOG_PICKUPS, "WARNING: Pickup count is zero");
         }
 
         return true;
     }
 
     bool Engine::generatePickup(std::fstream &file, const pickup_config &config, float numChunks, pickups::type type, int &ID) {
-        SDL_LogInfo(LOG_PICKUPS, "Generating pickups instance");
+        GG_LOG_INFO(LOG_PICKUPS, "Generating pickups instance");
         auto start = std::chrono::steady_clock::now();
 
         // -- VARIABLES -- //
@@ -907,7 +907,7 @@ namespace pickups {
         const float max_distance = Vec2f(WORLD_RADIUS,WORLD_RADIUS).distance({0.0f, 0.0f});
         int pickups = static_cast<int>(numChunks * config.pickups_per_chunk);
         
-        SDL_LogDebug(LOG_PICKUPS, "Pickups to generate: %i", pickups);
+        GG_LOG_DEBUG(LOG_PICKUPS, "Pickups to generate: %i", pickups);
 
         std::uniform_real_distribution<float> pickup_hp_dist(config.near_bound, config.far_bound);
         std::uniform_real_distribution<float> rad_rng(0.0f, 2.0f * PI);
@@ -950,16 +950,16 @@ namespace pickups {
 
             file.write(reinterpret_cast<const char*>(buffer.data()), buffer.size() * sizeof(pickups::serial_data)); // Pickup Data
             if (!file) {
-                SDL_LogError(LOG_PICKUPS, "ERROR: Failed to write the pickup data");
+                GG_LOG_ERROR(LOG_PICKUPS, "ERROR: Failed to write the pickup data");
                 return false;
             }
         }
 
         auto stop = std::chrono::steady_clock::now();
         const float d = std::chrono::duration<float, std::milli>(stop - start).count();
-        SDL_LogDebug(LOG_PICKUPS, "Generate Pickups took [%fms]", d);
+        GG_LOG_DEBUG(LOG_PICKUPS, "Generate Pickups took [%fms]", d);
 
-        SDL_LogInfo(LOG_PICKUPS, "Finished generating pickups instance");
+        GG_LOG_INFO(LOG_PICKUPS, "Finished generating pickups instance");
         return true;
     }
 

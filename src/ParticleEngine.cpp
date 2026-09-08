@@ -49,7 +49,7 @@ namespace particles {
             const std::string msg = std::string("ERROR: One of the context injections is nullptr:")
                 + "\ntextureManager: " + (textureManager ? "OK" : "NULLPTR")
                 + "\nlightManager: " + (lightManager ? "OK" : "NULLPTR");
-            SDL_LogError(LOG_PARTICLE_ENGINE,msg.c_str());
+            GG_LOG_ERROR(LOG_PARTICLE_ENGINE,msg.c_str());
         }
 
         // -- SHADER SETUP -- //
@@ -135,33 +135,33 @@ namespace particles {
         try {
             configFile = toml::parse_file("configs/particles.toml");
         } catch (const toml::parse_error& err) {
-            SDL_LogError(LOG_PARTICLE_ENGINE,"ERROR: Cannot parse particles, reason: %s",err.what());
+            GG_LOG_ERROR(LOG_PARTICLE_ENGINE,"ERROR: Cannot parse particles, reason: %s",err.what());
             return;
         }
 
         toml::array* particles = configFile["particles"].as_array();
         if (particles == nullptr) {
-            SDL_LogError(LOG_PARTICLE_ENGINE,"ERROR: Cannot parse particles config");
+            GG_LOG_ERROR(LOG_PARTICLE_ENGINE,"ERROR: Cannot parse particles config");
             return;
         }
 
-        SDL_LogDebug(LOG_PARTICLE_ENGINE, "Number of configs to parse: %i", static_cast<int>(particles->size()));
+        GG_LOG_DEBUG(LOG_PARTICLE_ENGINE, "Number of configs to parse: %i", static_cast<int>(particles->size()));
 
         for (int i = 0; i < static_cast<int>(particles->size()); i++) {
             toml::table* particleTable = particles->at(i).as_table();
             if (particleTable == nullptr) {
-                SDL_LogError(LOG_PARTICLE_ENGINE,"ERROR: Particles [%i] must be a valid table",i);
+                GG_LOG_ERROR(LOG_PARTICLE_ENGINE,"ERROR: Particles [%i] must be a valid table",i);
                 continue;
             }
 
             const std::string id = (*particleTable)["id"].value_or<std::string>("");
             if (id.empty()) {
-                SDL_LogError(LOG_PARTICLE_ENGINE,"ERROR: Particles [%i] is missing a valid ID",i);
+                GG_LOG_ERROR(LOG_PARTICLE_ENGINE,"ERROR: Particles [%i] is missing a valid ID",i);
                 continue;
             }
 
             if (configTable.find(id) != configTable.end()) {
-                SDL_LogError(LOG_PARTICLE_ENGINE,"ERROR: Particles [%i] is a duplicate for ID: %s",i,id.c_str());
+                GG_LOG_ERROR(LOG_PARTICLE_ENGINE,"ERROR: Particles [%i] is a duplicate for ID: %s",i,id.c_str());
                 continue;
             }
 
@@ -221,7 +221,7 @@ namespace particles {
             // Particle Count Check
             if (config.particleCount <= 0) {
                 config.valid = false;
-                SDL_LogDebug(
+                GG_LOG_DEBUG(
                     LOG_PARTICLE_ENGINE, 
                     "Skipping effect ID: %s as the particle count of %i is invalid",
                     id.c_str(),
@@ -242,7 +242,7 @@ namespace particles {
                 // Use entire sheet requires the death on animation end
                 if (!config.deathOnAnimationEnd) {
                     config.valid = false;
-                    SDL_LogDebug(
+                    GG_LOG_DEBUG(
                         LOG_PARTICLE_ENGINE, 
                         "Skipping effect ID: %s as useEntireSheet requires deathOnAnimationEnd to be enabled",
                         id.c_str(),
@@ -355,7 +355,7 @@ namespace particles {
             }
 
             if (pBatch.aliveParticles == 0) {
-                SDL_LogDebug(LOG_PARTICLE_ENGINE, "Clearing batch: %s as all particles are dead", pBatch.texturePath.c_str());
+                GG_LOG_DEBUG(LOG_PARTICLE_ENGINE, "Clearing batch: %s as all particles are dead", pBatch.texturePath.c_str());
                 pBatch.particles.clear(); // Clear the memory since all particles are now dead
             }
         }
@@ -364,14 +364,14 @@ namespace particles {
     void Engine::spawnEffect(glm::vec2 pos, const std::string &ID) {
         auto it = configTable.find(ID);
         if (it == configTable.end()) {
-            SDL_LogError(LOG_PARTICLE_ENGINE, "ERROR: Config ID: %s does not exist", ID.c_str());
+            GG_LOG_ERROR(LOG_PARTICLE_ENGINE, "ERROR: Config ID: %s does not exist", ID.c_str());
             return;
         }
         const Config &config = it->second;
 
         if (!config.valid) {
             // Invalid config -- skip
-            SDL_LogDebug(LOG_PARTICLE_ENGINE, "Skipping effect: %s as it is invalid",ID.c_str());
+            GG_LOG_DEBUG(LOG_PARTICLE_ENGINE, "Skipping effect: %s as it is invalid",ID.c_str());
             return;
         }
 
@@ -391,7 +391,7 @@ namespace particles {
         std::uniform_real_distribution<float> wave_off_dist(0.0f, 2* PI);
 
         if (totalAliveParticles + config.particleCount > MAX_PARTICLES) {
-            SDL_LogWarn(LOG_PARTICLE_ENGINE, "WARNING: Particle count of: %i exceeds max count of: %i", totalAliveParticles, MAX_PARTICLES);
+            GG_LOG_WARN(LOG_PARTICLE_ENGINE, "WARNING: Particle count of: %i exceeds max count of: %i", totalAliveParticles, MAX_PARTICLES);
         }
 
         bool registed;
@@ -402,14 +402,14 @@ namespace particles {
             // Already registered
             layerIndex = it2->second;
             registed = true;
-            SDL_LogDebug(LOG_PARTICLE_ENGINE, "Effect: %s already registed", config.texturePath.c_str());
+            GG_LOG_DEBUG(LOG_PARTICLE_ENGINE, "Effect: %s already registed", config.texturePath.c_str());
         } else {
             // New registration
             particleList.emplace_back(); // Create a new particle entry into the list
             layerIndex = particleList.size() - 1; // Get the index of the new entry           
             particleTable[config.texturePath] = layerIndex; // Setup new entry in table
             registed = false;
-            SDL_LogDebug(LOG_PARTICLE_ENGINE, "Effect: %s has not been registed", config.texturePath.c_str());
+            GG_LOG_DEBUG(LOG_PARTICLE_ENGINE, "Effect: %s has not been registed", config.texturePath.c_str());
         }
         ParticleBatch &pBatch = particleList[layerIndex];
         if (!registed) {
@@ -421,18 +421,18 @@ namespace particles {
             
             bool divByZero = false;
             if (pBatch.sheetColumns <= 0) {
-                SDL_LogWarn(LOG_PARTICLE_ENGINE, "WARNING: Number of columns in config: %s is 0 or less. Should be greater than 0.", pBatch.texturePath.c_str());
+                GG_LOG_WARN(LOG_PARTICLE_ENGINE, "WARNING: Number of columns in config: %s is 0 or less. Should be greater than 0.", pBatch.texturePath.c_str());
                 divByZero = true;
             }
 
             if (pBatch.sheetRows <= 0) {
-                SDL_LogWarn(LOG_PARTICLE_ENGINE, "WARNING: Number of rows in config: %s is 0 or less. Should be greater than 0.", pBatch.texturePath.c_str());
+                GG_LOG_WARN(LOG_PARTICLE_ENGINE, "WARNING: Number of rows in config: %s is 0 or less. Should be greater than 0.", pBatch.texturePath.c_str());
                 divByZero = true;
             }
             
             // Values never change per registed animation sheet -- calculated once here
             if (divByZero) { // Protect against divide by 0
-                SDL_LogWarn(LOG_PARTICLE_ENGINE, "WARNING: Image: %s will have 0 image dimensions (not visible) due to bad row/column params", pBatch.texturePath.c_str());
+                GG_LOG_WARN(LOG_PARTICLE_ENGINE, "WARNING: Image: %s will have 0 image dimensions (not visible) due to bad row/column params", pBatch.texturePath.c_str());
                 pBatch.c_uWidth = 0.0f;
                 pBatch.c_vWidth = 0.0f;
             } else {
@@ -442,7 +442,7 @@ namespace particles {
 
             const texture_entry &texture = textureManager->getTextureEntry(config.texturePath);
             if (texture.ID == 0) {
-                SDL_LogError(LOG_PARTICLE_ENGINE, "ERROR: Unable to load image: %s\n - Removing entry", config.texturePath.c_str());
+                GG_LOG_ERROR(LOG_PARTICLE_ENGINE, "ERROR: Unable to load image: %s\n - Removing entry", config.texturePath.c_str());
                 // Remove entries from bad insertion
                 particleList.erase(particleList.begin() + layerIndex);
                 particleTable.erase(config.texturePath);
@@ -516,12 +516,12 @@ namespace particles {
     }
 
     void Engine::reload() {
-        SDL_LogInfo(LOG_PARTICLE_ENGINE, "Reloading the Particle Engine");
+        GG_LOG_INFO(LOG_PARTICLE_ENGINE, "Reloading the Particle Engine");
         particleList.clear();
         particleTable.clear();
         configTable.clear();
         init({textureManager, lightManager});
-        SDL_LogInfo(LOG_PARTICLE_ENGINE, "Finished reloading the Particle Engine");
+        GG_LOG_INFO(LOG_PARTICLE_ENGINE, "Finished reloading the Particle Engine");
     }
 
     void Engine::logGpuMemoryUsage() const {
@@ -541,7 +541,7 @@ namespace particles {
             "| - GPU Memory Usage: " + std::to_string(total) + "B" + " (" + std::to_string(static_cast<double>(total) / 1000000.0) + "MB)\n" +
             "|-----------------------------|\n";
         
-        SDL_LogDebug(LOG_PARTICLE_ENGINE, msg.c_str());
+        GG_LOG_DEBUG(LOG_PARTICLE_ENGINE, msg.c_str());
     }
 
     void Engine::logCpuMemoryUsage() const {
@@ -567,7 +567,7 @@ namespace particles {
             "| - CPU Memory Usage: " + std::to_string(total) + "B" + " (" + std::to_string(static_cast<double>(total) / 1000000.0) + "MB)\n" +
             "|-----------------------------|\n";
         
-        SDL_LogDebug(LOG_PARTICLE_ENGINE, msg.c_str());
+        GG_LOG_DEBUG(LOG_PARTICLE_ENGINE, msg.c_str());
     }
 
     // PRIVATE //
