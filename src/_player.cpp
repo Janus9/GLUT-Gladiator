@@ -295,7 +295,6 @@ void _player::updatePlayer(double dt) {
         reloadTimeElapsed += dt;
         if (reloadTimeElapsed >= reloadSpeed) {
             // reload finished //
-            std::cout << "Player reload finished\n";
             int numBulletsFromReserve = 0;  // How many bullets to put INTO the mag from reserve
             int numBulletsIntoMag = magCapacity - magLevel;  // How many bullets to put INTO the mag
             
@@ -522,7 +521,6 @@ void _player::addXP(float value) {
 void _player::procReload() {
     if (reloading) return; // Early return on reloading for call saftey
     if (reserveLevel <= 0 || magLevel == magCapacity) return; // Early return, no bullets to reload or mag is full
-    std::cout << "Reload event started\n";
     reloading = true;
 }
 

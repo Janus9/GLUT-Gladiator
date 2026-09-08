@@ -29,7 +29,10 @@ _vampire::~_vampire() {}
 
 void _vampire::initVampire(const _textureManager* sceneTextureManager, vampire_variant variant) {
     if (!sceneTextureManager) {
-        std::cout << "ERROR: Cannot initialize the vampire enemy as the texture is missing\n";
+        GG_LOG_ERROR(
+            LOG_VAMPIRE,
+            "Cannot initialize the vampire enemy as the texture is missing"
+        );
         return;
     }
 

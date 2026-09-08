@@ -62,7 +62,10 @@ void _fob::updateFob(double dt) {
 void _fob::evaluatePlayer() {
     _sprite* fob_sprite = getSprite("MAIN");
     if (!fob_sprite) {
-        std::cout << "ERROR: Cannot get FOB sprite\n";
+        GG_LOG_ERROR(
+            LOG_FOB,
+            "Cannot get FOB sprite"
+        );
         return;
     }
 

@@ -65,7 +65,10 @@ bool _scene::initGL()
 
 void _scene::initScene(bool loadWorld) {
     if (sceneInitialized) {
-        std::cout << "WARNING: Scene already initialized, skipping\n";
+        GG_LOG_WARN(
+            LOG_SCENE,
+            "Scene already initialized -- skipping"
+        );
         return;
     }
     // -- RNG SETUP -- //    
@@ -76,7 +79,10 @@ void _scene::initScene(bool loadWorld) {
 
     // -- CLASS INIT -- //
 
-    std::cout << "Running Scene Class Initialization ... \n";
+    GG_LOG_INFO(
+        LOG_SCENE,
+        "Running Scene Class Initialization"
+    );
 
     // TEXTURE LOADER //
     if (!loadWorld) setupTextures();
@@ -855,7 +861,13 @@ void _scene::reSize(GLint width, GLint height)
     if (hud->getHudText("PLAYER_XP"))
         hud->getHudText("PLAYER_XP")->position = {width-300.0, 0 + 120.0f};
 
-    Logger.LogInfo("Resizing window to width: " + std::to_string(width) + " and height: " + std::to_string(height), LOG_BOTH);
+    GG_LOG_DEBUG(
+        LOG_SCENE,
+        "Resizing Window to (%i, %i)",
+        width,
+        height
+    );
+
     GLfloat aspectRatio = (GLfloat)width / (GLfloat)height; // Intended to keep track of window resize
     glViewport(0, 0, width, height);                        // Integer values taken in to take in view. Setting Viewport
     glMatrixMode(GL_PROJECTION);                            // Turns the projection into a matrix. Initiate the projection
@@ -950,14 +962,22 @@ void _scene::updateScene(double dt, const InputState &inputState)
         enemyManager->bossKilledEvent = false;
         gameEnded = true;
         gameWon = true;
-        std::cout << "GAME WON!\n";
+
+        GG_LOG_INFO(
+            LOG_SCENE,
+            "Game Won :)"
+        );
     }
 
     if (player->playerLoseEvent) {
         player->playerLoseEvent = false;
         gameEnded = true;
         gameWon = false;
-        std::cout << "GAME LOST\n";
+
+        GG_LOG_INFO(
+            LOG_SCENE,
+            "Game Lost :("
+        );
     }
 
     if (gameEnded) {
@@ -1379,12 +1399,6 @@ void _scene::updateSceneBackground() {
 
 void _scene::debugPrint()
 {
-    Logger.LogDebug("World drawing took: " + std::to_string(drawWorldBenchmark.getAverageResult()) + "ms");
-    Logger.LogDebug("Enemy drawing took: " + std::to_string(drawEnemiesBenchmark.getAverageResult()) + "ms");
-    // std::cout << "-- LEFT: " << left << "\n"
-    //      << "-- RIGHT: " << right << "\n"
-    //      << "-- TOP: " << top << "\n"
-    //      << "-- BOTTOM: " << bottom << "\n";
     myWorld->debugPrint();
     ParticleEngine->logGpuMemoryUsage();
     ParticleEngine->logCpuMemoryUsage();
@@ -1393,7 +1407,6 @@ void _scene::debugPrint()
 void _scene::debugPrintFPS()
 {
     sceneFPS = frameCount / (fpsTimer->getMilliseconds() / 1000.0); // Calculate FPS based on frames and time
-    // Logger.LogInfo("Current FPS: " + std::to_string(sceneFPS), LOG_CONSOLE);
     frameCount = 0;    // Reset frame count after printing FPS
     fpsTimer->reset(); // Reset the timer for the next FPS calculation
 }
@@ -1458,7 +1471,13 @@ void _scene::keyboardHandler(const InputState &inputState)
     }
     if (inputState.keys[SDL_SCANCODE_BACKSLASH]) {
         cameraFree = !cameraFree;
-        Logger.LogInfo("Toggled camera free mode: " + std::string(cameraFree ? "ON" : "OFF"), LOG_CONSOLE);
+
+        GG_LOG_INFO(
+            LOG_SCENE, 
+            "Camera Mode: %s",
+            std::string(cameraFree ? "FREE CAM" : "NORMAL").c_str()
+        );
+
         if (!cameraFree && cameraZoom < 3.0f) {
             // Reset camera on disabling free cam
             cameraZoom = 3.0f;

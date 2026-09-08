@@ -104,7 +104,11 @@ enum GameLogCategory {
     LOG_ENEMY_MANAGER,
     LOG_PICKUPS,
     LOG_SHADER,
-    LOG_SOUND
+    LOG_SOUND,
+    LOG_TEXTURE,
+    LOG_FOB,
+    LOG_ORC,
+    LOG_VAMPIRE
 };
 
 void initSDLLogger();

@@ -27,7 +27,11 @@ bool _textureManager::addTexture(const std::string &fileName) {
 
     unsigned char* image = stbi_load(fileName.c_str(), &width, &height, &channels, 4);
     if (!image) {
-        std::cerr << "ERROR: Unable to load texture: " << fileName << "\n";
+        GG_LOG_ERROR(
+            LOG_TEXTURE,
+            "Unable to load texture: '%s'",
+            fileName.c_str()
+        );
         return false;
     }
 
@@ -55,7 +59,12 @@ bool _textureManager::addTexture(const std::string &fileName) {
 bool _textureManager::removeTexture(const std::string &fileName) {
     auto it = textureMap.find(fileName);
     if (it == textureMap.end()) {
-        std::cout << "ERROR: Unable to remove texture: " << fileName << " as it does not exist\n";
+        GG_LOG_ERROR(
+            LOG_TEXTURE,
+            "Unable to remove texture: '%s' as it does not exist",
+            fileName.c_str()
+        );
+
         return false;
     }
     glDeleteTextures(1, &it->second.ID);
@@ -68,7 +77,11 @@ texture_entry _textureManager::getTextureEntry(const std::string &fileName) cons
     
     auto it = textureMap.find(fileName);
     if (it == textureMap.end()) {
-        std::cout << "ERROR: Unable to retrieve texture: " << fileName << "\n";
+        GG_LOG_INFO(
+            LOG_TEXTURE,
+            "Unable to retrieve texture: '%s'",
+            fileName.c_str()
+        );
         return entry;
     }
     entry.ID = it->second.ID;

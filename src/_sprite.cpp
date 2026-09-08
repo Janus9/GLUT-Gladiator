@@ -224,12 +224,6 @@ void _sprite::drawSprite() {
             // If single action and were at the beginning (after++) means we already looped. 
             stopAnimation();
         } 
-        if (debugging) {
-            std::cout << "DRAW for sprite ID: " << spriteID << "\n";
-            std::cout << "-------------------------------\n";
-            std::cout << "Frame Pos: (" << currentFrameX << ", " << currentFrameY << ")\n"; 
-            std::cout << "Pivot Point: (" << pivotPoint.x << "px, " << pivotPoint.y << "px)\n";
-        }
     }
 }
 
@@ -252,12 +246,6 @@ void _sprite::updateSprite(double dt) {
             // If single action and were at the beginning (after++) means we already looped. 
             stopAnimation();
         } 
-        if (debugging) {
-            std::cout << "DRAW for sprite ID: " << spriteID << "\n";
-            std::cout << "-------------------------------\n";
-            std::cout << "Frame Pos: (" << currentFrameX << ", " << currentFrameY << ")\n"; 
-            std::cout << "Pivot Point: (" << pivotPoint.x << "px, " << pivotPoint.y << "px)\n";
-        }
     }
 }
 

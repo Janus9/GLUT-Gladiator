@@ -31,12 +31,16 @@ GLuint _texture::loadTexture(const std::string& fileName)
 
     image = stbi_load(fileName.c_str(),&width,&height,&channels,4); 
     if (!image) {
-        Logger.LogError("Couldn't load texture: " + std::string(fileName), LOG_BOTH);
+        GG_LOG_ERROR(
+            LOG_TEXTURE, 
+            "Could not load texture: '%s'",
+            fileName.c_str()
+        );
+
         glBindTexture(GL_TEXTURE_2D, 0);
         textID = 0;     // mark invalid
         return 0;
     }
-    // Logger.LogInfo("Loaded texture: " + std::string(fileName) + " with width: " + std::to_string(width) + " and height: " + std::to_string(height), LOG_BOTH);
     glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA,width,height,0,GL_RGBA,GL_UNSIGNED_BYTE,image); // Copies the image data into GPU memory
     stbi_image_free(image); // Free the image data from CPU memory since it's now in GPU memory
 

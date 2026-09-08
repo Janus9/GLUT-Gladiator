@@ -1,4 +1,3 @@
-// src/_loggerSDL.cpp
 #include <_loggerSDL.h>
 
 #include <fstream>
@@ -120,6 +119,14 @@ static const char* getCategoryName(int category) {
             return "SOUND_ENGINE";
         case LOG_SHADER:
             return "SHADER";
+        case LOG_TEXTURE:
+            return "TEXTURE";
+        case LOG_FOB:
+            return "FOB";
+        case LOG_ORC:
+            return "ORC";
+        case LOG_VAMPIRE:
+            return "VAMPIRE";
         default:
             return "UNKNOWN";
     }

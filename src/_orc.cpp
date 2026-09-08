@@ -32,7 +32,10 @@ _orc::~_orc() {
 
 void _orc::initOrc(const _textureManager* sceneTextureManager) {
     if (!sceneTextureManager) {
-        std::cout << "ERROR: Cannot initialize the orc enemy as the texture is missing\n";
+        GG_LOG_ERROR(
+            LOG_ORC,
+            "Cannot initialize the orc enemy as the texture is missing"
+        );
         return;
     }
 

@@ -657,7 +657,10 @@ std::vector<enemy_serial_data> _enemyManager::exportSerializedEnemies() const {
 
 bool _enemyManager::importSerializedEnemies(const std::vector<enemy_serial_data> &enemy_data) {
     if (enemy_data.empty()) {
-        std::cout << "ERROR: Cannot import enemies as the data is empty\n";
+        GG_LOG_ERROR(
+            LOG_ENEMY_MANAGER,
+            "Cannot import enemies, enemy data is empty"
+        );
         return false;
     }
     enemyList.reserve(enemy_data.size());

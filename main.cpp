@@ -34,7 +34,6 @@ uint64_t inputPreviousTime;
 InputState inputState;
 
 // CLASS INSTANCE DECLARATIONS //
-_logger Logger; 																// DEPRICATED -- Delete later
 std::unique_ptr<_scene> gameScene; 												// Singleton Scene
 // std::unique_ptr<_timerPlusPlus> timer = std::make_unique<_timerPlusPlus>();  // Wont likely be used
 std::unique_ptr<menu::Manager> menuManager;										// Singleton Menu Manager
@@ -266,7 +265,6 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char *argv[])
 
 	handleWindowResize(window);	// Force resize event to sit window dimension parameters + OpenGL window params		
 	SDL_SetWindowFullscreen(window, fullscreen); // Set fullscreen based on settings
-
 
 	menuManager = std::make_unique<menu::Manager>();
 
