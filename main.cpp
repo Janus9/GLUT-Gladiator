@@ -190,6 +190,25 @@ void handleUpdate(double dt) {
 // MAIN ENTRY POINT //
 int main([[maybe_unused]] int argc,[[maybe_unused]] char *argv[])
 {
+	// Pre-processor Buid Mode Checks //
+	#if defined(GAME_DEBUG)
+
+		std::cout << "Build Mode: DEBUG\n";
+
+	#elif defined(GAME_RELEASE)
+	
+		std::cout << "Build Mode: RELEASE\n";
+	
+	#elif defined(GAME_PRODUCTION)
+		
+		std::cout << "Build Mode: PRODUCTION\n";
+
+	#else
+
+		std::cout << "Build Mode: UNKNOWN\n";
+		
+	#endif
+
 	initSDLLogger();  // Setup logging functionality
 	
 	// Initialization //

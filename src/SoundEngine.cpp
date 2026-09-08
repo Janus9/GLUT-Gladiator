@@ -15,21 +15,21 @@ namespace sound {
     }
 
     bool Engine::init() {
-        SDL_LogInfo(LOG_SOUND, "Initializing the Sound Engine.");
+        GG_LOG_INFO(LOG_SOUND, "Initializing the Sound Engine.");
         if (initialized) {
-            SDL_LogInfo(LOG_SOUND, "Sound Engine already initialized, skipping.");
+            GG_LOG_INFO(LOG_SOUND, "Sound Engine already initialized, skipping.");
             return false;
         }
 
         device = SDL_OpenAudioDevice(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, nullptr);
         if (device == 0) {
-            SDL_LogError(LOG_SOUND, "ERROR: Unable to open audio device: %s", SDL_GetError());
+            GG_LOG_ERROR(LOG_SOUND, "ERROR: Unable to open audio device: %s", SDL_GetError());
             return false;
         }
 
         reload();
 
-        SDL_LogInfo(LOG_SOUND, "Successfully initialized the Sound Engine.");
+        GG_LOG_INFO(LOG_SOUND, "Successfully initialized the Sound Engine.");
         
         initialized = true;
 
@@ -37,10 +37,10 @@ namespace sound {
     }
 
     void Engine::shutdown() {
-        SDL_LogInfo(LOG_SOUND, "Shutting down the Sound Engine");
+        GG_LOG_INFO(LOG_SOUND, "Shutting down the Sound Engine");
 
         if (!initialized) {
-            SDL_LogWarn(LOG_SOUND, "Sound engine never initialized, skipping shut down.");
+            GG_LOG_WARN(LOG_SOUND, "Sound engine never initialized, skipping shut down.");
             return;
         }
 
@@ -81,13 +81,13 @@ namespace sound {
 
         initialized = false;
 
-        SDL_LogInfo(LOG_SOUND, "Successfully shut down the Sound Engine.");
+        GG_LOG_INFO(LOG_SOUND, "Successfully shut down the Sound Engine.");
     }
 
     void Engine::reload() {
         auto start = std::chrono::steady_clock::now();
 
-        SDL_LogInfo(LOG_SOUND, "Reloading sound engine");
+        GG_LOG_INFO(LOG_SOUND, "Reloading sound engine");
 
         // -- Load Config -- //
 
@@ -95,17 +95,17 @@ namespace sound {
         try {
             config = toml::parse_file("configs/sounds.toml");
         } catch (const toml::parse_error &err) {
-            SDL_LogError(LOG_SOUND, "ERROR: Failed to parse the sounds: %s", err.what());
+            GG_LOG_ERROR(LOG_SOUND, "ERROR: Failed to parse the sounds: %s", err.what());
             return;
         }
 
         toml::array* sounds = config["sounds"].as_array();
         if (!sounds) {
-            SDL_LogError(LOG_SOUND,"ERROR: Cannot parse sounds as sounds.toml is missing"); 
+            GG_LOG_ERROR(LOG_SOUND,"ERROR: Cannot parse sounds as sounds.toml is missing"); 
             return;
         }
 
-        SDL_LogDebug(LOG_SOUND,"Read: %llu sounds from sounds.toml",sounds->size());
+        GG_LOG_DEBUG(LOG_SOUND,"Read: %llu sounds from sounds.toml",sounds->size());
 
         // -- Read Volumes -- //
         if (auto volume = config["volume"].as_table()) {
@@ -114,7 +114,7 @@ namespace sound {
             auto sfx = volume->get("sfx");
 
             if (!master || !music || !sfx) {
-                SDL_LogError(
+                GG_LOG_ERROR(
                     LOG_SOUND,
                     "Unable to read ('master', 'music', 'sfx') from TOML file."
                     "Ensure the config follows the example:"
@@ -130,7 +130,7 @@ namespace sound {
             musicVolume = std::clamp(music->value_or(1.0f), 0.0f, 1.0f);
             sfxVolume = std::clamp(sfx->value_or(1.0f), 0.0f, 1.0f);
 
-            SDL_LogInfo(
+            GG_LOG_INFO(
                 LOG_SOUND,
                 "Read volume levels from config:"
                 "\n - Master: %f"
@@ -141,7 +141,7 @@ namespace sound {
                 sfxVolume
             );
         } else {
-            SDL_LogError(
+            GG_LOG_ERROR(
                 LOG_SOUND, 
                 "Cannot read volumes section of sounds.toml"
             );
@@ -187,7 +187,7 @@ namespace sound {
             toml::table* soundTable = node.as_table();
 
             if (!soundTable) {
-                SDL_LogWarn(LOG_SOUND, "Skipping invalid sound entry");
+                GG_LOG_WARN(LOG_SOUND, "Skipping invalid sound entry");
                 continue;
             }
 
@@ -198,12 +198,12 @@ namespace sound {
             sound.gain = std::clamp(soundTable->get("gain")->value_or(1.0f), 0.0f, 1.0f);
 
             if (sound.id.empty()) {
-                SDL_LogWarn(LOG_SOUND, "Skipping sound with missing ID");
+                GG_LOG_WARN(LOG_SOUND, "Skipping sound with missing ID");
                 continue;
             }
 
             if (sound.filePath.empty()) {
-                SDL_LogWarn(
+                GG_LOG_WARN(
                     LOG_SOUND,
                     "Skipping sound '%s': missing file_path",
                     sound.id.c_str()
@@ -212,7 +212,7 @@ namespace sound {
             }
 
             if (!registerSound(sound)) {
-                SDL_LogError(LOG_SOUND, "ERROR: Unable to register sound '%s'", sound.id.c_str());
+                GG_LOG_ERROR(LOG_SOUND, "ERROR: Unable to register sound '%s'", sound.id.c_str());
                 continue;
             }
         }
@@ -225,7 +225,7 @@ namespace sound {
         if (!tempNextSoundTrack.empty()) {
             // Set next soundtrack to active
             setSoundTrack(tempNextSoundTrack, 0.0f);
-            SDL_LogDebug(
+            GG_LOG_DEBUG(
                 LOG_SOUND, 
                 "Setting active from next soundtrack to '%s'",
                 tempNextSoundTrack.c_str()
@@ -233,18 +233,18 @@ namespace sound {
         } else {
             // Active to active
             setSoundTrack(tempActiveSoundTrack, 0.0f);
-            SDL_LogDebug(
+            GG_LOG_DEBUG(
                 LOG_SOUND, 
                 "Setting active soundtrack to '%s'",
                 tempActiveSoundTrack.c_str()
             );
         }
 
-        SDL_LogInfo(LOG_SOUND, "Finished reloading sound engine");
+        GG_LOG_INFO(LOG_SOUND, "Finished reloading sound engine");
 
         auto stop = std::chrono::steady_clock::now();
         double dt = std::chrono::duration_cast<std::chrono::milliseconds>(stop-start).count(); 
-        SDL_LogDebug(LOG_SOUND, "Sound engine reload took [%fms]",dt);
+        GG_LOG_DEBUG(LOG_SOUND, "Sound engine reload took [%fms]",dt);
     }
 
     void Engine::update(double dt) {
@@ -278,7 +278,7 @@ namespace sound {
                 int queued = SDL_GetAudioStreamQueued(stream);
                 if (queued <= static_cast<int>(sound.dataSize)) {
                     if (!SDL_PutAudioStreamData(stream, sound.data, static_cast<int>(sound.dataSize))) {
-                        SDL_LogError(LOG_SOUND, "Failed to loop soundtrack '%s': %s", id.c_str(), SDL_GetError());
+                        GG_LOG_ERROR(LOG_SOUND, "Failed to loop soundtrack '%s': %s", id.c_str(), SDL_GetError());
                     }
                 }
             }
@@ -346,7 +346,7 @@ namespace sound {
 
                 SDL_SetAudioStreamGain(activeSoundTrack.second, activeGainMul);  // Set to full volume (gain value)
 
-                SDL_LogInfo(LOG_SOUND, "Soundtrack '%s' set to active",activeSoundTrack.first.c_str());
+                GG_LOG_INFO(LOG_SOUND, "Soundtrack '%s' set to active",activeSoundTrack.first.c_str());
             }
         }
 
@@ -366,7 +366,7 @@ namespace sound {
     bool Engine::unRegisterSound(const std::string &id) {
         auto it = registery.find(id);
         if (it == registery.end()) {
-            SDL_LogError(LOG_SOUND, "ERROR: Unable to remove sound ID: %s as it is not in the registery.", id.c_str());
+            GG_LOG_ERROR(LOG_SOUND, "ERROR: Unable to remove sound ID: %s as it is not in the registery.", id.c_str());
             return false;
         }
 
@@ -375,19 +375,19 @@ namespace sound {
         }
 
         registery.erase(it);
-        SDL_LogInfo(LOG_PICKUPS, "Removed registered sound of ID: %s", id.c_str());
+        GG_LOG_INFO(LOG_PICKUPS, "Removed registered sound of ID: %s", id.c_str());
         return true;
     }
 
     void Engine::playSound(const std::string &id) {
         if (!initialized) {
-            SDL_LogError(LOG_SOUND, "ERROR: Unable to play sound ID: %s as the engine is not initialized.", id.c_str());
+            GG_LOG_ERROR(LOG_SOUND, "ERROR: Unable to play sound ID: %s as the engine is not initialized.", id.c_str());
             return;
         }
 
         auto it = registery.find(id);
         if (it == registery.end()) {
-            SDL_LogWarn(LOG_SOUND, "WARNING: Unable to play sound ID: %s as it was not in the registery.", id.c_str());
+            GG_LOG_WARN(LOG_SOUND, "WARNING: Unable to play sound ID: %s as it was not in the registery.", id.c_str());
             return;
         }
 
@@ -395,12 +395,12 @@ namespace sound {
 
         SDL_AudioStream *stream = SDL_CreateAudioStream(&sound.spec, nullptr);
         if (!stream) {
-            SDL_LogError(LOG_SOUND, "ERROR: Failed to create audio stream for sound ID: %s, reason: %s", id.c_str(), SDL_GetError());
+            GG_LOG_ERROR(LOG_SOUND, "ERROR: Failed to create audio stream for sound ID: %s, reason: %s", id.c_str(), SDL_GetError());
             return;    
         }
         
         if (!SDL_BindAudioStream(device, stream)) {
-            SDL_LogError(
+            GG_LOG_ERROR(
                 LOG_SOUND,
                 "Failed to bind audio stream for sound ID: %s, reason: %s",
                 id.c_str(),
@@ -412,7 +412,7 @@ namespace sound {
         }
 
         if (!SDL_PutAudioStreamData(stream, sound.data, static_cast<int>(sound.dataSize))) {
-            SDL_LogError(
+            GG_LOG_ERROR(
                 LOG_SOUND,
                 "Failed to queue audio data for sound ID: %s, reason %s",
                 id.c_str(),
@@ -441,7 +441,7 @@ namespace sound {
         auto it = registery.find(id);
 
         if (it == registery.end()) {
-            SDL_LogWarn(
+            GG_LOG_WARN(
                 LOG_SOUND,
                 "Sound ID not registered: %s",
                 id.c_str()
@@ -526,7 +526,7 @@ namespace sound {
             &convertedData,
             &convertedSize
         )) {
-            SDL_LogError(
+            GG_LOG_ERROR(
                 LOG_SOUND,
                 "Unable to convert sound '%s': %s",
                 id.c_str(),
@@ -602,18 +602,18 @@ namespace sound {
 
     void Engine::setSoundTrack(const std::string &id, float fadeTime) {
         if (!initialized) {
-            SDL_LogError(LOG_SOUND, "ERROR: Unable to set soundtrack for sound ID: %s as the engine is not initialized.", id.c_str());
+            GG_LOG_ERROR(LOG_SOUND, "ERROR: Unable to set soundtrack for sound ID: %s as the engine is not initialized.", id.c_str());
             return;
         }
 
         auto it = registery.find(id);
         if (it == registery.end()) {
-            SDL_LogError(LOG_SOUND, "Unable to set soundtrack for sound ID: %s as it is not in the registery", id.c_str());
+            GG_LOG_ERROR(LOG_SOUND, "Unable to set soundtrack for sound ID: %s as it is not in the registery", id.c_str());
             return;
         }
 
         if (id == activeSoundTrack.first) {
-            SDL_LogDebug(LOG_SOUND, "'%s' already activley playing, swapping tracks", id.c_str());
+            GG_LOG_DEBUG(LOG_SOUND, "'%s' already activley playing, swapping tracks", id.c_str());
 
             // Tracks are swapped so that we now have our incoming track fade BACK in from where it left off fading OUT
             std::swap(activeSoundTrack, nextSoundTrack); 
@@ -630,7 +630,7 @@ namespace sound {
 
         if (!nextSoundTrack.first.empty() || nextSoundTrack.second) {
             // Next soundtrack already set -- destroy it prior to replacing it
-            SDL_LogDebug(
+            GG_LOG_DEBUG(
                 LOG_SOUND, 
                 "Replacing next track '%s' with '%s'", 
                 nextSoundTrack.first.c_str(),
@@ -651,43 +651,43 @@ namespace sound {
         SDL_AudioStream* stream = SDL_CreateAudioStream(&sound.spec, nullptr);
         nextSoundTrack.second = stream;
         if (!stream) {
-            SDL_LogError(LOG_SOUND, "Failed to create background audio stream: %s", SDL_GetError());
+            GG_LOG_ERROR(LOG_SOUND, "Failed to create background audio stream: %s", SDL_GetError());
             return;
         }
 
         // Bind to playback device
         if (!SDL_BindAudioStream(device, stream)) {
-            SDL_LogError(LOG_SOUND, "Failed to bind background audio stream: %s", SDL_GetError());
+            GG_LOG_ERROR(LOG_SOUND, "Failed to bind background audio stream: %s", SDL_GetError());
             SDL_DestroyAudioStream(stream);
             return;
         }
 
         // Set gain to 0.0 so there is no audio (for fade in)
         if (!SDL_SetAudioStreamGain(stream, 0.0f)) {
-            SDL_LogError(LOG_SOUND, "Failed to set background audio gain to 0.0: %s", SDL_GetError());
+            GG_LOG_ERROR(LOG_SOUND, "Failed to set background audio gain to 0.0: %s", SDL_GetError());
             SDL_DestroyAudioStream(stream);
             return;
         }
 
         // Fill stream with data for playback. Done twice to buffer for the looping
         if (!SDL_PutAudioStreamData(stream, sound.data, static_cast<int>(sound.dataSize))) {
-            SDL_LogError(LOG_SOUND, "Failed to queue background audio: %s", SDL_GetError());
+            GG_LOG_ERROR(LOG_SOUND, "Failed to queue background audio: %s", SDL_GetError());
             SDL_DestroyAudioStream(stream);
             return;
         }
 
         if (!SDL_PutAudioStreamData(stream, sound.data, static_cast<int>(sound.dataSize))) {
-            SDL_LogError(LOG_SOUND, "Failed to queue background audio: %s", SDL_GetError());
+            GG_LOG_ERROR(LOG_SOUND, "Failed to queue background audio: %s", SDL_GetError());
             SDL_DestroyAudioStream(stream);
             return;
         }
 
-        SDL_LogInfo(LOG_SOUND, "Set next sound track to '%s' with fade time '%fs'", id.c_str(), fadeTime);
+        GG_LOG_INFO(LOG_SOUND, "Set next sound track to '%s' with fade time '%fs'", id.c_str(), fadeTime);
     }
 
     void Engine::stopSoundTrack([[maybe_unused]] float fadeTime) {
         // TODO
-        SDL_LogWarn(LOG_SOUND, "stopSoundTrack Function unfinished -- does nothing");
+        GG_LOG_WARN(LOG_SOUND, "stopSoundTrack Function unfinished -- does nothing");
     }
 
     bool Engine::isPlayingSoundTrack(const std::string &id) const {
@@ -714,7 +714,7 @@ namespace sound {
         // -- Find Registration -- //
         auto regIt = registery.find(id);
         if (regIt == registery.end()) {
-            SDL_LogError(
+            GG_LOG_ERROR(
                 LOG_SOUND,
                 "Sound '%s' not registered",
                 id.c_str()
@@ -728,7 +728,7 @@ namespace sound {
         auto it = spatialLoopMap.find(key);
         if (it != spatialLoopMap.end()) {
 
-            SDL_LogDebug(
+            GG_LOG_DEBUG(
                 LOG_SOUND, 
                 "Audio (%s, %i) already registered", 
                 key.soundId.c_str(),
@@ -747,7 +747,7 @@ namespace sound {
         );
 
         if (!stream) {
-            SDL_LogError(
+            GG_LOG_ERROR(
                 LOG_SOUND,
                 "Failed to create looped spatial audio stream: %s",
                 SDL_GetError()
@@ -757,7 +757,7 @@ namespace sound {
 
         // Bind to playback device
         if (!SDL_BindAudioStream(device, stream)) {
-            SDL_LogError(
+            GG_LOG_ERROR(
                 LOG_SOUND,
                 "Failed to bind looped spatial audio stream: %s",
                 SDL_GetError()
@@ -784,7 +784,7 @@ namespace sound {
 
         spatialLoopMap[key] = spatialLoopList.size() - 1;
 
-        SDL_LogDebug(
+        GG_LOG_DEBUG(
             LOG_SOUND, 
             "Added new loop spatial audio (%s, %i)",
             key.soundId.c_str(),
@@ -799,7 +799,7 @@ namespace sound {
         auto it = spatialLoopMap.find(key);
         if (it == spatialLoopMap.end()) {
             // Not Found
-            SDL_LogError(
+            GG_LOG_ERROR(
                 LOG_SOUND,
                 "Cannot resume (%s, %i) as it was never created",
                 id.c_str(),
@@ -812,7 +812,7 @@ namespace sound {
             
         if (!audio.playing) {
             if (!SDL_BindAudioStream(device, audio.stream)) {
-                SDL_LogError(
+                GG_LOG_ERROR(
                     LOG_SOUND,
                     "Failed to resume spatial loop: %s",
                     SDL_GetError()
@@ -828,7 +828,7 @@ namespace sound {
         
         auto it = spatialLoopMap.find(key);
         if (it == spatialLoopMap.end()) {
-            SDL_LogError(
+            GG_LOG_ERROR(
                 LOG_SOUND, 
                 "Unable to update looped spatial sound (%s, %i) as it does not exist in the list",
                 id.c_str(),
@@ -846,7 +846,7 @@ namespace sound {
         
         auto it = spatialLoopMap.find(key);
         if (it == spatialLoopMap.end()) {
-            SDL_LogError(
+            GG_LOG_ERROR(
                 LOG_SOUND, 
                 "Unable to pause spatial audio (%s, %i) as it does not exist in the list",
                 key.soundId.c_str(),
@@ -877,7 +877,7 @@ namespace sound {
         
         auto it = spatialLoopMap.find(key);
         if (it == spatialLoopMap.end()) {
-            SDL_LogError(
+            GG_LOG_ERROR(
                 LOG_SOUND, 
                 "Unable to stop spatial audio (%s, %i) as it was never created",
                 key.soundId.c_str(),
@@ -900,7 +900,7 @@ namespace sound {
         spatialLoopList.pop_back(); // Remove the audio (now at back after swap)
         spatialLoopMap.erase(it); // Remove from map
 
-        SDL_LogDebug(
+        GG_LOG_DEBUG(
             LOG_SOUND, 
             "Removed spatial audio (%s, %i)",
             key.soundId.c_str(),
@@ -920,7 +920,7 @@ namespace sound {
         spatialLoopList.clear();
         spatialLoopMap.clear();
 
-        SDL_LogDebug(
+        GG_LOG_DEBUG(
             LOG_SOUND,
             "Cleared %llu active spatial audios",
             audioCount
@@ -931,14 +931,14 @@ namespace sound {
 
     bool Engine::registerSound(const Config &config) {
         if (registery.contains(config.id)) {
-            SDL_LogWarn(LOG_SOUND, "Sound ID: %s is already registered!", config.id.c_str());
+            GG_LOG_WARN(LOG_SOUND, "Sound ID: %s is already registered!", config.id.c_str());
             return false;
         }
 
         Registration sound;
         sound.gain = config.gain;
         if (!SDL_LoadWAV(config.filePath.c_str(), &sound.spec, &sound.data, &sound.dataSize)) {
-            SDL_LogError(
+            GG_LOG_ERROR(
                 LOG_SOUND, 
                 "ERROR: Unable to load sound: %s, reason: %s", 
                 config.filePath.c_str(), 
@@ -978,7 +978,7 @@ namespace sound {
 
         registery[config.id] = sound;
 
-        SDL_LogDebug(
+        GG_LOG_DEBUG(
             LOG_SOUND, 
             "Registered Sound"
             "\n - ID: %s"
@@ -1000,7 +1000,7 @@ namespace sound {
         // -- Pre Checks -- //
         auto it = registery.find(audio.soundId);
         if (it == registery.end()) {
-            SDL_LogError(
+            GG_LOG_ERROR(
                 LOG_SOUND, 
                 "Cannot calculate spatial gains of (%s, %i) as it is not registered",
                 audio.soundId.c_str(),
@@ -1088,7 +1088,7 @@ namespace sound {
             chunk.data(),
             chunkBytes
         )) {
-            SDL_LogError(
+            GG_LOG_ERROR(
                 LOG_SOUND,
                 "Failed to queue spatial loop (%s, %i): %s",
                 audio.soundId.c_str(),
