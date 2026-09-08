@@ -37,7 +37,7 @@ _bulletManager::~_bulletManager() {
 
 void _bulletManager::initBulletManager(_bulletManagerContext &context) {
     if (!context.validate()) {
-        SDL_LogError(LOG_ENEMY_MANAGER, "ERROR: Unable to valid the bullet manager context");
+        GG_LOG_ERROR(LOG_ENEMY_MANAGER, "ERROR: Unable to valid the bullet manager context");
     }
 
     texture->loadTexture(context.fileName);

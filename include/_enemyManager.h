@@ -119,35 +119,35 @@ struct enemyManagerContext {
      */
     bool validate() {
         if (!player) {
-            SDL_LogError(LOG_ENEMY_MANAGER, "ERROR: Player is nullptr");
+            GG_LOG_ERROR(LOG_ENEMY_MANAGER, "ERROR: Player is nullptr");
             return false;
         }
         if (!world) {
-            SDL_LogError(LOG_ENEMY_MANAGER, "ERROR: World is nullptr");
+            GG_LOG_ERROR(LOG_ENEMY_MANAGER, "ERROR: World is nullptr");
             return false;
         }
         if (!bullets) {
-            SDL_LogError(LOG_ENEMY_MANAGER, "ERROR: Bullet Manager is nullptr");
+            GG_LOG_ERROR(LOG_ENEMY_MANAGER, "ERROR: Bullet Manager is nullptr");
             return false;
         }
         if (!sounds) {
-            SDL_LogError(LOG_ENEMY_MANAGER, "ERROR: Sound Engine is nullptr");
+            GG_LOG_ERROR(LOG_ENEMY_MANAGER, "ERROR: Sound Engine is nullptr");
             return false;
         }
         if (!lights) {
-            SDL_LogError(LOG_ENEMY_MANAGER, "ERROR: Light Manager is nullptr");
+            GG_LOG_ERROR(LOG_ENEMY_MANAGER, "ERROR: Light Manager is nullptr");
             return false;
         }
         if (!textures) {
-            SDL_LogError(LOG_ENEMY_MANAGER, "ERROR: Texture Manager is nullptr");
+            GG_LOG_ERROR(LOG_ENEMY_MANAGER, "ERROR: Texture Manager is nullptr");
             return false;
         }
         if (!pickups) {
-            SDL_LogError(LOG_ENEMY_MANAGER, "ERROR: Pickup Manager is nullptr");
+            GG_LOG_ERROR(LOG_ENEMY_MANAGER, "ERROR: Pickup Manager is nullptr");
             return false;
         }
         if (!particles) {
-            SDL_LogError(LOG_ENEMY_MANAGER, "ERROR: Particle Engine is nullptr");
+            GG_LOG_ERROR(LOG_ENEMY_MANAGER, "ERROR: Particle Engine is nullptr");
             return false;
         }
         return true;

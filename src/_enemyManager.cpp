@@ -96,19 +96,19 @@ void _enemy::initEnemy(const enemy_config &config, const _textureManager* textur
             break;
         }
         case ENEMY_ORC:
-            SDL_LogWarn(LOG_ENEMY_MANAGER, "WARNING: Not yet implemented");
+            GG_LOG_WARN(LOG_ENEMY_MANAGER, "WARNING: Not yet implemented");
             break;
         case ENEMY_VAMPIRE:
-            SDL_LogWarn(LOG_ENEMY_MANAGER, "WARNING: Not yet implemented");
+            GG_LOG_WARN(LOG_ENEMY_MANAGER, "WARNING: Not yet implemented");
             break;
         case ENEMY_VAMPIRE_MINION1:
-            SDL_LogWarn(LOG_ENEMY_MANAGER, "WARNING: Not yet implemented");
+            GG_LOG_WARN(LOG_ENEMY_MANAGER, "WARNING: Not yet implemented");
             break;
         case ENEMY_VAMPIRE_MINION2:
-            SDL_LogWarn(LOG_ENEMY_MANAGER, "WARNING: Not yet implemented");
+            GG_LOG_WARN(LOG_ENEMY_MANAGER, "WARNING: Not yet implemented");
             break;
         default:
-            SDL_LogError(LOG_ENEMY_MANAGER, "ERROR: Unable to initialize an enemy");
+            GG_LOG_ERROR(LOG_ENEMY_MANAGER, "ERROR: Unable to initialize an enemy");
             break;
     }
 }
@@ -163,7 +163,7 @@ _enemyManager::~_enemyManager() {
 
 void _enemyManager::initEnemyManager(enemyManagerContext& context) {
     if (!context.validate()) {
-        SDL_LogError(LOG_ENEMY_MANAGER, "ERROR: Enemy Manager Context was not able to be validated");
+        GG_LOG_ERROR(LOG_ENEMY_MANAGER, "ERROR: Enemy Manager Context was not able to be validated");
     }
     
     player = context.player;

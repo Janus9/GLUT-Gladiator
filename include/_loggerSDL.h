@@ -103,6 +103,7 @@ enum GameLogCategory {
     LOG_WORLD,
     LOG_ENEMY_MANAGER,
     LOG_PICKUPS,
+    LOG_SHADER,
     LOG_SOUND
 };
 

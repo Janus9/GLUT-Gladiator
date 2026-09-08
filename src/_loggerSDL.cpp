@@ -118,6 +118,8 @@ static const char* getCategoryName(int category) {
             return "PICKUP_MANAGER";
         case LOG_SOUND:
             return "SOUND_ENGINE";
+        case LOG_SHADER:
+            return "SHADER";
         default:
             return "UNKNOWN";
     }

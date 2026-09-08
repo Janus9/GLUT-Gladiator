@@ -59,31 +59,31 @@ struct _bulletManagerContext {
 
     bool validate() {
         if (fileName.empty()) {
-            SDL_LogError(LOG_ENEMY_MANAGER, "ERROR: Filename is empty");
+            GG_LOG_ERROR(LOG_ENEMY_MANAGER, "ERROR: Filename is empty");
             return false;
         }
         if (!world) {
-            SDL_LogError(LOG_ENEMY_MANAGER, "ERROR: World is nullptr");
+            GG_LOG_ERROR(LOG_ENEMY_MANAGER, "ERROR: World is nullptr");
             return false;
         }
         if (!player) {
-            SDL_LogError(LOG_ENEMY_MANAGER, "ERROR: Player is nullptr");
+            GG_LOG_ERROR(LOG_ENEMY_MANAGER, "ERROR: Player is nullptr");
             return false;
         }
         if (!enemies) {
-            SDL_LogError(LOG_ENEMY_MANAGER, "ERROR: Enemy Manager is nullptr");
+            GG_LOG_ERROR(LOG_ENEMY_MANAGER, "ERROR: Enemy Manager is nullptr");
             return false;
         }
         if (!sounds) {
-            SDL_LogError(LOG_ENEMY_MANAGER, "ERROR: Sound Engine is nullptr");
+            GG_LOG_ERROR(LOG_ENEMY_MANAGER, "ERROR: Sound Engine is nullptr");
             return false;
         }
         if (!lights) {
-            SDL_LogError(LOG_ENEMY_MANAGER, "ERROR: Light Manager is nullptr");
+            GG_LOG_ERROR(LOG_ENEMY_MANAGER, "ERROR: Light Manager is nullptr");
             return false;
         }
         if (!particles) {
-            SDL_LogError(LOG_ENEMY_MANAGER, "ERROR: Particle Engine is nullptr");
+            GG_LOG_ERROR(LOG_ENEMY_MANAGER, "ERROR: Particle Engine is nullptr");
             return false;
         }
         return true;

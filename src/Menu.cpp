@@ -13,7 +13,7 @@ namespace menu {
     
     void Manager::injectContext(const Context &context) {
         if (!context.validate()) {
-            SDL_LogError(LOG_MENU_MANAGER, "ERROR: Unable to validate the context");
+            GG_LOG_ERROR(LOG_MENU_MANAGER, "ERROR: Unable to validate the context");
         }
         sounds = context.sounds;
         scene = context.scene;
@@ -21,10 +21,10 @@ namespace menu {
     }
     
     void Manager::init() {
-        SDL_LogInfo(LOG_MENU_MANAGER, "Initializing the menu manager");
+        GG_LOG_INFO(LOG_MENU_MANAGER, "Initializing the menu manager");
     
         if (!sounds || !scene) {
-            SDL_LogWarn(LOG_MENU_MANAGER, "WARNING: Sounds or Scene is nullptr");
+            GG_LOG_WARN(LOG_MENU_MANAGER, "WARNING: Sounds or Scene is nullptr");
         }
     
         //  -- Landing --  //
@@ -274,7 +274,7 @@ namespace menu {
         // Events are not destroyed here, main.cpp must handle them
         if (!page.eventQueue.empty()) {
             Event &event = page.eventQueue.front();
-            SDL_LogDebug(LOG_MENU_MANAGER, "Loaded event: %s from the event queue",event.ID.c_str());
+            GG_LOG_DEBUG(LOG_MENU_MANAGER, "Loaded event: %s from the event queue",event.ID.c_str());
 
             // Handle event callback onto main.cpp
             if (eventCallback) {
@@ -283,7 +283,7 @@ namespace menu {
 
             if (event.redirectTo != PAGE_NULL) {
                 const type targetPage = event.redirectTo;
-                SDL_LogDebug(LOG_MENU_MANAGER, "Redirecting to page: %i", static_cast<int>(targetPage));
+                GG_LOG_DEBUG(LOG_MENU_MANAGER, "Redirecting to page: %i", static_cast<int>(targetPage));
                
                 loadPage(targetPage);     // Load page
             }
@@ -293,7 +293,7 @@ namespace menu {
     }
     
     void Manager::loadPage(type type) {
-        SDL_LogDebug(LOG_MENU_MANAGER, "Loaded page: %i", static_cast<int>(type));
+        GG_LOG_DEBUG(LOG_MENU_MANAGER, "Loaded page: %i", static_cast<int>(type));
         if (type == PAGE_GAME) {
         } else {
             if(!sounds->isPlayingSoundTrack("MENU_MUSIC")) sounds->setSoundTrack("MENU_MUSIC", 0.5f);
@@ -566,7 +566,7 @@ namespace menu {
                 sounds->playSound("MENU_HOVER");
             }
             if (renderObject->getMouseState() && inputState.LMB && timeSinceRedirect > 0.5) {
-                SDL_LogDebug(LOG_MENU_PAGE, "Mouse clicked on ID: %s", renderObject->getID().c_str());
+                GG_LOG_DEBUG(LOG_MENU_PAGE, "Mouse clicked on ID: %s", renderObject->getID().c_str());
                 
                 sounds->playSound("MENU_CLICK");
                 

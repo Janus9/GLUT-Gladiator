@@ -46,7 +46,7 @@ _scene::~_scene()
 
 bool _scene::initGL()
 {
-    SDL_LogInfo(LOG_SCENE, "Running Scene OpenGL Initialization");
+    GG_LOG_INFO(LOG_SCENE, "Running Scene OpenGL Initialization");
 
     glClearColor(0.0, 0.0, 0.0, 1.0); // Intended to change the background color. 0001 is black
     glClearDepth(1.0);                // Gives depth to the environment by having color both in the front and back. Depth-test value
@@ -480,16 +480,16 @@ void _scene::initScene(bool loadWorld) {
 
     if (!loadWorld) pickupManager->generateToFile(world_configuration);
 
-    SDL_LogInfo(LOG_SCENE, "Scene has been initialized");
+    GG_LOG_INFO(LOG_SCENE, "Scene has been initialized");
     sceneInitialized = true;
 }
 
 bool _scene::saveSceneToFile(const std::string &fileName) {
-    SDL_LogInfo(LOG_SCENE, "Exporting game to save file: %s.gg_world", fileName.c_str());
+    GG_LOG_INFO(LOG_SCENE, "Exporting game to save file: %s.gg_world", fileName.c_str());
 
     std::fstream file(fileName + ".gg_world", std::ios::binary | std::ios::out);     // Output as binary file
     if (!file) {
-        SDL_LogError(LOG_SCENE, "ERROR: Cannot create output file for: %s", fileName.c_str());
+        GG_LOG_ERROR(LOG_SCENE, "ERROR: Cannot create output file for: %s", fileName.c_str());
         return false;
     }
     // Header Data Write //
@@ -525,7 +525,7 @@ bool _scene::saveSceneToFile(const std::string &fileName) {
 
     std::vector<chunk_serial_data> world_data = myWorld->exportSerializeWorld();
     if (!world_data.empty()) {
-        SDL_LogDebug(LOG_SCENE, 
+        GG_LOG_DEBUG(LOG_SCENE, 
             "Writing world data: \n"
             " - Number of chunks: %i\n"
             " - Size of world: %iB\n",
@@ -536,11 +536,11 @@ bool _scene::saveSceneToFile(const std::string &fileName) {
         file.write(reinterpret_cast<const char*>(world_data.data()), world_data.size() * sizeof(chunk_serial_data));
 
         if (!file) {
-            SDL_LogError(LOG_SCENE, "ERROR: Save failed to write the world data");
+            GG_LOG_ERROR(LOG_SCENE, "ERROR: Save failed to write the world data");
             return false;
         }
     } else {
-        SDL_LogError(LOG_SCENE, "ERROR: Size of world data is 0");
+        GG_LOG_ERROR(LOG_SCENE, "ERROR: Size of world data is 0");
         return false;
     }
 
@@ -549,11 +549,11 @@ bool _scene::saveSceneToFile(const std::string &fileName) {
     // *** Fix empty enemies later *** //
     std::vector<enemy_serial_data> enemy_data = enemyManager->exportSerializedEnemies();
     if (enemy_data.empty()) {
-        SDL_LogWarn(LOG_SCENE, "WARNING: Size of enemy data is 0");
+        GG_LOG_WARN(LOG_SCENE, "WARNING: Size of enemy data is 0");
         return false;
     }
 
-    SDL_LogDebug(LOG_SCENE, 
+    GG_LOG_DEBUG(LOG_SCENE, 
         "Writing enemy data:\n"
         " - Number of enemies: %i\n"
         " - Size of enemies: %iB\n",
@@ -569,7 +569,7 @@ bool _scene::saveSceneToFile(const std::string &fileName) {
 
     file.write(reinterpret_cast<const char*>(enemy_data.data()), enemy_data.size() * sizeof(enemy_serial_data)); // Enemy Data
     if (!file) {
-        SDL_LogError(LOG_SCENE, "ERROR: Save failed to write the enemy data");
+        GG_LOG_ERROR(LOG_SCENE, "ERROR: Save failed to write the enemy data");
         return false;
     }
 
@@ -578,7 +578,7 @@ bool _scene::saveSceneToFile(const std::string &fileName) {
 
     // Player Data Write //
 
-    SDL_LogDebug(LOG_SCENE, 
+    GG_LOG_DEBUG(LOG_SCENE, 
         "Writing player data:\n"
         " - Size of player: %iB",
         static_cast<int>(sizeof(player_serial_data))
@@ -591,11 +591,11 @@ bool _scene::saveSceneToFile(const std::string &fileName) {
     file.write(reinterpret_cast<const char*>(&player_data), sizeof(player_data));
 
     if (!file) {
-        SDL_LogError(LOG_SCENE, "ERROR: Save failed to write the player data");
+        GG_LOG_ERROR(LOG_SCENE, "ERROR: Save failed to write the player data");
         return false;
     }
 
-    SDL_LogInfo(LOG_SCENE, 
+    GG_LOG_INFO(LOG_SCENE, 
         "Finished saving game\n"
         "Save size: %lldB",
         static_cast<long long>(file.tellp())
@@ -605,18 +605,18 @@ bool _scene::saveSceneToFile(const std::string &fileName) {
 }
 
 bool _scene::loadSceneFromFile(const std::string &fileName) {
-    SDL_LogInfo(LOG_SCENE, "Starting game import from: %s.gg_world", fileName.c_str());
+    GG_LOG_INFO(LOG_SCENE, "Starting game import from: %s.gg_world", fileName.c_str());
 
     std::ifstream file(fileName + ".gg_world", std::ios::binary);
     if (!file) {
-        SDL_LogError(LOG_SCENE, "ERROR: Cannot open file: %s", fileName.c_str());
+        GG_LOG_ERROR(LOG_SCENE, "ERROR: Cannot open file: %s", fileName.c_str());
         return false;
     }
 
     char header[2];
     file.read(header,2);
     if (header[0] != 'G' || header[1] != 'G') {
-        SDL_LogError(LOG_SCENE, "ERROR: Invalid file header");
+        GG_LOG_ERROR(LOG_SCENE, "ERROR: Invalid file header");
         return false;
     }
 
@@ -631,7 +631,7 @@ bool _scene::loadSceneFromFile(const std::string &fileName) {
     uint32_t version_id = 0;
     file.read(reinterpret_cast<char*>(&version_id), sizeof(version_id));    // Version ID
     if (version_id != WORLD_SAVE_VERSION) {
-        SDL_LogWarn(LOG_SCENE, "WARNING: World file version of %u does not match current version of %u continuing with load but may fail", version_id, WORLD_SAVE_VERSION);
+        GG_LOG_WARN(LOG_SCENE, "WARNING: World file version of %u does not match current version of %u continuing with load but may fail", version_id, WORLD_SAVE_VERSION);
     }    
 
     constexpr float tolerance = 0.0009;
@@ -639,7 +639,7 @@ bool _scene::loadSceneFromFile(const std::string &fileName) {
     file.read(reinterpret_cast<char*>(&game_id), sizeof(game_id));    // Version ID
     const float diff = abs(game_id - GAME_VERSION);
     if (diff > tolerance) {
-        SDL_LogWarn(
+        GG_LOG_WARN(
             LOG_SCENE, 
             "WARNING: Game file version of %f does not match loaded version of the game %f continuing with load but may fail." 
             "\nDifference: %f",
@@ -652,7 +652,7 @@ bool _scene::loadSceneFromFile(const std::string &fileName) {
     int32_t chunk_count = 0;
     file.read(reinterpret_cast<char*>(&chunk_count), sizeof(chunk_count));  // Chunk Count
     if (chunk_count <= 0) {
-        SDL_LogError(LOG_SCENE, "ERROR: Chunk Count of save %s for %d must be greater than 0", fileName.c_str(), chunk_count);
+        GG_LOG_ERROR(LOG_SCENE, "ERROR: Chunk Count of save %s for %d must be greater than 0", fileName.c_str(), chunk_count);
         return false;
     }
     world_configuration.num_chunks = chunk_count;
@@ -662,7 +662,7 @@ bool _scene::loadSceneFromFile(const std::string &fileName) {
     char data_header[4];
     file.read(data_header,4);    // Chunk Data Header
     if (data_header[0] != 'W' || data_header[1] != 'R' || data_header[2] != 'L' || data_header[3] != 'D') {
-        SDL_LogError(LOG_SCENE, "ERROR: Invalid chunk data header");
+        GG_LOG_ERROR(LOG_SCENE, "ERROR: Invalid chunk data header");
         return false;
     }
 
@@ -671,16 +671,16 @@ bool _scene::loadSceneFromFile(const std::string &fileName) {
     file.read(reinterpret_cast<char*>(world_data.data()), world_data.size() * sizeof(chunk_serial_data));
 
     if (!file) {
-        SDL_LogError(LOG_SCENE, "ERROR: Unable to read chunk data");
+        GG_LOG_ERROR(LOG_SCENE, "ERROR: Unable to read chunk data");
         return false;
     }
 
     if (world_data.empty()) {
-        SDL_LogError(LOG_SCENE, "ERROR: World data read is empty");
+        GG_LOG_ERROR(LOG_SCENE, "ERROR: World data read is empty");
         return false;
     }
 
-    SDL_LogInfo(LOG_SCENE,
+    GG_LOG_INFO(LOG_SCENE,
         "Read world data:\n"
         " - Number of chunks: %zu\n"
         " - Size of world: %zu bytes",
@@ -697,17 +697,17 @@ bool _scene::loadSceneFromFile(const std::string &fileName) {
     char enemy_header[4];
     file.read(enemy_header,4);    // Enemy Data Header
     if (enemy_header[0] != 'E' || enemy_header[1] != 'N' || enemy_header[2] != 'M' || enemy_header[3] != 'Y') {
-        SDL_LogError(LOG_SCENE, "ERROR: Invalid enemy data header");
+        GG_LOG_ERROR(LOG_SCENE, "ERROR: Invalid enemy data header");
         return false;
     }
 
     uint32_t enemy_count = 0;
     file.read(reinterpret_cast<char*>(&enemy_count), sizeof(enemy_count));  // Enemy Count
 
-    SDL_LogInfo(LOG_SCENE, "Enemie count read: %u", enemy_count);
+    GG_LOG_INFO(LOG_SCENE, "Enemie count read: %u", enemy_count);
 
     if (enemy_count == 0) {
-        SDL_LogWarn(LOG_SCENE, "WARNING: Enemy count is 0");
+        GG_LOG_WARN(LOG_SCENE, "WARNING: Enemy count is 0");
     }
 
     // Setup enemy manager before adding enemies
@@ -732,16 +732,16 @@ bool _scene::loadSceneFromFile(const std::string &fileName) {
     enemyManager->importSerializedEnemies(enemy_data);
 
     if (!file) {
-        SDL_LogError(LOG_SCENE, "ERROR: Unable to read chunk data");
+        GG_LOG_ERROR(LOG_SCENE, "ERROR: Unable to read chunk data");
         return false;
     }
 
     if (enemy_data.empty()) {
-        SDL_LogError(LOG_SCENE, "ERROR: Enemy data read is empty");
+        GG_LOG_ERROR(LOG_SCENE, "ERROR: Enemy data read is empty");
         return false;
     }
 
-    SDL_LogInfo(LOG_SCENE,
+    GG_LOG_INFO(LOG_SCENE,
         "Read enemy data:\n"
         " - Number of enemies: %zu\n"
         " - Size of enemies: %zu bytes",
@@ -765,7 +765,7 @@ bool _scene::loadSceneFromFile(const std::string &fileName) {
     char player_header[4];
     file.read(player_header,4);    // Player Data Header
     if (player_header[0] != 'P' || player_header[1] != 'L' || player_header[2] != 'Y' || player_header[3] != 'R') {
-        SDL_LogError(LOG_SCENE, "ERROR: Invalid player data header");
+        GG_LOG_ERROR(LOG_SCENE, "ERROR: Invalid player data header");
         return false;
     }
 
@@ -774,13 +774,13 @@ bool _scene::loadSceneFromFile(const std::string &fileName) {
 
     player->importSerializedPlayer(player_data);
 
-    SDL_LogInfo(LOG_SCENE,
+    GG_LOG_INFO(LOG_SCENE,
         "Read player data:\n"
         " - Size of player: %zu bytes",
         sizeof(player_data)
     );
 
-    SDL_LogInfo(LOG_SCENE,
+    GG_LOG_INFO(LOG_SCENE,
         "Finished game import from: %s.gg_world\n"
         " - Save Size: %lld bytes",
         fileName.c_str(),
@@ -987,7 +987,7 @@ void _scene::updateScene(double dt, const InputState &inputState)
     const float playerSpeed = player->getSpeed();
 
     if (gameUnPausedEvent) {
-        SDL_LogInfo(LOG_SCENE, "Game unpaused");
+        GG_LOG_INFO(LOG_SCENE, "Game unpaused");
         gameUnPausedEvent = false;
 
         const float distance = player->pos.distance({0.0f,0.0f});
@@ -1004,22 +1004,22 @@ void _scene::updateScene(double dt, const InputState &inputState)
 
     switch (player->playerLevelEvent) {
         case PLAYER_EVENT_LEVEL_OUTER:
-            SDL_LogInfo(LOG_SCENE, "Player entered level: OUTER");
+            GG_LOG_INFO(LOG_SCENE, "Player entered level: OUTER");
             soundEngine->setSoundTrack("LEVEL_OUTER_MUSIC", 1.5f);
             player->playerLevelEvent = PLAYER_EVENT_LEVEL_NONE;
             break;
         case PLAYER_EVENT_LEVEL_MIDDLE:
-            SDL_LogInfo(LOG_SCENE, "Player entered level: MIDDLE");
+            GG_LOG_INFO(LOG_SCENE, "Player entered level: MIDDLE");
             soundEngine->setSoundTrack("LEVEL_MIDDLE_MUSIC", 1.5f);
             player->playerLevelEvent = PLAYER_EVENT_LEVEL_NONE;
             break;
         case PLAYER_EVENT_LEVEL_CENTER:
-            SDL_LogInfo(LOG_SCENE, "Player entered level: CENTER");
+            GG_LOG_INFO(LOG_SCENE, "Player entered level: CENTER");
             soundEngine->setSoundTrack("LEVEL_CENTER_MUSIC", 1.5f);
             player->playerLevelEvent = PLAYER_EVENT_LEVEL_NONE;
             break;
         case PLAYER_EVENT_LEVEL_BOSS:
-            SDL_LogInfo(LOG_SCENE, "Player entered level: BOSS");
+            GG_LOG_INFO(LOG_SCENE, "Player entered level: BOSS");
             soundEngine->setSoundTrack("LEVEL_BOSS_MUSIC", 1.5f);
             player->playerLevelEvent = PLAYER_EVENT_LEVEL_NONE;
             break;
@@ -1556,30 +1556,30 @@ void _scene::setupTextures() {
     try {
         config = toml::parse_file("configs/textures.toml");
     } catch (const toml::parse_error &err) {
-        SDL_LogError(LOG_SCENE, "ERROR: Failed to parse the textures: %s", err.what());
+        GG_LOG_ERROR(LOG_SCENE, "ERROR: Failed to parse the textures: %s", err.what());
         return;
     }
 
     toml::array* textures = config["textures"].as_array();
     if (!textures) {
-       SDL_LogError(LOG_SCENE,"ERROR: Cannot parse textures as textures.toml is missing"); 
+       GG_LOG_ERROR(LOG_SCENE,"ERROR: Cannot parse textures as textures.toml is missing"); 
        return;
     }
 
-    SDL_LogDebug(LOG_SCENE,"Read: %i images from textures.toml",static_cast<int>(textures->size()));
+    GG_LOG_DEBUG(LOG_SCENE,"Read: %i images from textures.toml",static_cast<int>(textures->size()));
 
     for (int i = 0; i < static_cast<int>(textures->size()); i++) {
         toml::node& item = textures->at(i);
 
         if (!item.is_string()) {
-            SDL_LogError(LOG_SCENE,"ERROR: textures[%i] must be a string path",i);
+            GG_LOG_ERROR(LOG_SCENE,"ERROR: textures[%i] must be a string path",i);
             continue;
         }
 
         std::string path = item.value_or<std::string>("");
 
         if (path.empty()) {
-            SDL_LogError(LOG_SCENE,"ERROR: textures[%i] is empty",i);
+            GG_LOG_ERROR(LOG_SCENE,"ERROR: textures[%i] is empty",i);
             continue;
         }
 
@@ -1589,7 +1589,7 @@ void _scene::setupTextures() {
 
 // Add logging to an output file at some point to help user out
 bool _scene::loadWorldConfig(const std::string &configPath, world_config &outConfig) {
-    SDL_LogInfo(LOG_SCENE, "Reading configuration file %s for world generation", configPath.c_str());
+    GG_LOG_INFO(LOG_SCENE, "Reading configuration file %s for world generation", configPath.c_str());
 
     // Test world configuration //
     toml::table config;
@@ -1597,7 +1597,7 @@ bool _scene::loadWorldConfig(const std::string &configPath, world_config &outCon
     try {
         config = toml::parse_file(configPath);
     } catch (const toml::parse_error &err) {
-        SDL_LogError(LOG_SCENE, 
+        GG_LOG_ERROR(LOG_SCENE, 
             "ERROR: Failed to parse the TOML config file %s\n"
             " - What: %s", 
             configPath.c_str(),
@@ -1611,7 +1611,7 @@ bool _scene::loadWorldConfig(const std::string &configPath, world_config &outCon
     {
         auto check = config["world"]["num_chunks"];
         if (!check.is_integer()) {
-            SDL_LogError(LOG_SCENE, "ERROR: Num Chunks must be an integer type");
+            GG_LOG_ERROR(LOG_SCENE, "ERROR: Num Chunks must be an integer type");
             return false;
         } 
     }
@@ -1619,7 +1619,7 @@ bool _scene::loadWorldConfig(const std::string &configPath, world_config &outCon
     {
         auto check = config["world"]["outer_cutoff"];
         if (!check.is_number()) {
-            SDL_LogError(LOG_SCENE, "ERROR: Outer Cutoff must be a float type");
+            GG_LOG_ERROR(LOG_SCENE, "ERROR: Outer Cutoff must be a float type");
             return false;
         } 
     }
@@ -1627,7 +1627,7 @@ bool _scene::loadWorldConfig(const std::string &configPath, world_config &outCon
     {
         auto check = config["world"]["middle_cutoff"];
         if (!check.is_number()) {
-            SDL_LogError(LOG_SCENE, "ERROR: Middle Cutoff must be a float type");
+            GG_LOG_ERROR(LOG_SCENE, "ERROR: Middle Cutoff must be a float type");
             return false;
         } 
     }
@@ -1635,7 +1635,7 @@ bool _scene::loadWorldConfig(const std::string &configPath, world_config &outCon
     {
         auto check = config["world"]["inner_cutoff"];
         if (!check.is_number()) {
-            SDL_LogError(LOG_SCENE, "ERROR: Inner Cutoff must be a float type");
+            GG_LOG_ERROR(LOG_SCENE, "ERROR: Inner Cutoff must be a float type");
             return false;
         } 
     }
@@ -1643,7 +1643,7 @@ bool _scene::loadWorldConfig(const std::string &configPath, world_config &outCon
     {
         auto check = config["world"]["outer_biome_blend_radius"];
         if (!check.is_number()) {
-            SDL_LogError(LOG_SCENE, "ERROR: Outer Biome Blend Radius must be a float type");
+            GG_LOG_ERROR(LOG_SCENE, "ERROR: Outer Biome Blend Radius must be a float type");
             return false;
         } 
     }
@@ -1651,7 +1651,7 @@ bool _scene::loadWorldConfig(const std::string &configPath, world_config &outCon
     {
         auto check = config["world"]["middle_biome_blend_radius"];
         if (!check.is_number()) {
-            SDL_LogError(LOG_SCENE, "ERROR: Middle Biome Blend Radius must be a float type");
+            GG_LOG_ERROR(LOG_SCENE, "ERROR: Middle Biome Blend Radius must be a float type");
             return false;
         } 
     }
@@ -1660,7 +1660,7 @@ bool _scene::loadWorldConfig(const std::string &configPath, world_config &outCon
     {
         auto check = config["world"]["inner_biome_blend_radius"];
         if (!check.is_number()) {
-            SDL_LogError(LOG_SCENE, "ERROR: Inner Biome Blend Radius must be a float type");
+            GG_LOG_ERROR(LOG_SCENE, "ERROR: Inner Biome Blend Radius must be a float type");
             return false;
         } 
     }
@@ -1684,35 +1684,35 @@ bool _scene::loadWorldConfig(const std::string &configPath, world_config &outCon
     outConfig.inner_biome_blend_radius = static_cast<float>(config["world"]["inner_biome_blend_radius"].value_or(0.0f));
 
     if (!loadGenerationConfig(config, "world", "wall_generation", outConfig.wall_generation)) {
-        SDL_LogError(LOG_SCENE, "ERROR: Cannot parse [wall_generation] for %s", configPath.c_str());
+        GG_LOG_ERROR(LOG_SCENE, "ERROR: Cannot parse [wall_generation] for %s", configPath.c_str());
         return false;
     }
     if (!loadGenerationConfig(config, "world", "wet_generation", outConfig.wet_generation)) {
-        SDL_LogError(LOG_SCENE, "ERROR: Cannot parse [wet_generation] for %s", configPath.c_str());
+        GG_LOG_ERROR(LOG_SCENE, "ERROR: Cannot parse [wet_generation] for %s", configPath.c_str());
         return false;
     }
     if (!loadPickupConfig(config, "world", "health_pickups", outConfig.health_pickups)) {
-        SDL_LogError(LOG_SCENE, "ERROR: Cannot parse [health_pickups] for %s", configPath.c_str());
+        GG_LOG_ERROR(LOG_SCENE, "ERROR: Cannot parse [health_pickups] for %s", configPath.c_str());
         return false;
     }
     if (!loadPickupConfig(config, "world", "max_health_pickups", outConfig.max_health_pickups)) {
-        SDL_LogError(LOG_SCENE, "ERROR: Cannot parse [max_health_pickups] for %s", configPath.c_str());
+        GG_LOG_ERROR(LOG_SCENE, "ERROR: Cannot parse [max_health_pickups] for %s", configPath.c_str());
         return false;
     }
     if (!loadPickupConfig(config, "world", "ammo_pickups", outConfig.ammo_pickups)) {
-        SDL_LogError(LOG_SCENE, "ERROR: Cannot parse [ammo_pickups] for %s", configPath.c_str());
+        GG_LOG_ERROR(LOG_SCENE, "ERROR: Cannot parse [ammo_pickups] for %s", configPath.c_str());
         return false;
     }
     if (!loadPickupConfig(config, "world", "speed_pickups", outConfig.speed_pickups)) {
-        SDL_LogError(LOG_SCENE, "ERROR: Cannot parse [speed_pickups] for %s", configPath.c_str());
+        GG_LOG_ERROR(LOG_SCENE, "ERROR: Cannot parse [speed_pickups] for %s", configPath.c_str());
         return false;
     }
     if (!loadPickupConfig(config, "world", "firerate_pickups", outConfig.firerate_pickups)) {
-        SDL_LogError(LOG_SCENE, "ERROR: Cannot parse [firerate_pickups] for %s", configPath.c_str());
+        GG_LOG_ERROR(LOG_SCENE, "ERROR: Cannot parse [firerate_pickups] for %s", configPath.c_str());
         return false;
     }
 
-    SDL_LogInfo(LOG_SCENE, "World generation file read successfully for %s", configPath.c_str());
+    GG_LOG_INFO(LOG_SCENE, "World generation file read successfully for %s", configPath.c_str());
     return true;
 }
 
@@ -1727,7 +1727,7 @@ bool _scene::loadGenerationConfig(
     {
         auto check = config[tableParentPath][tableChildPath]["random_distribution"];
         if (!check.is_number()) {
-            SDL_LogError(LOG_SCENE, "ERROR: Random Distribution must be a float type");
+            GG_LOG_ERROR(LOG_SCENE, "ERROR: Random Distribution must be a float type");
             return false;
         } 
     }
@@ -1735,7 +1735,7 @@ bool _scene::loadGenerationConfig(
     {
         auto check = config[tableParentPath][tableChildPath]["num_iterations"];
         if (!check.is_integer()) {
-            SDL_LogError(LOG_SCENE, "ERROR: Num Iterations must be an integer type");
+            GG_LOG_ERROR(LOG_SCENE, "ERROR: Num Iterations must be an integer type");
             return false;
         } 
     }
@@ -1743,7 +1743,7 @@ bool _scene::loadGenerationConfig(
     {
         auto check = config[tableParentPath][tableChildPath]["survival_requirement"];
         if (!check.is_integer()) {
-            SDL_LogError(LOG_SCENE, "ERROR: Survival Requirement must be an integer type");
+            GG_LOG_ERROR(LOG_SCENE, "ERROR: Survival Requirement must be an integer type");
             return false;
         } 
     }
@@ -1751,7 +1751,7 @@ bool _scene::loadGenerationConfig(
     {
         auto check = config[tableParentPath][tableChildPath]["birth_requirement"];
         if (!check.is_integer()) {
-            SDL_LogError(LOG_SCENE, "ERROR: Birth Requirement must be an integer type");
+            GG_LOG_ERROR(LOG_SCENE, "ERROR: Birth Requirement must be an integer type");
             return false;
         } 
     }
@@ -1759,7 +1759,7 @@ bool _scene::loadGenerationConfig(
     {
         auto check = config[tableParentPath][tableChildPath]["out_of_bounds_is_alive"];
         if (!check.is_boolean()) {
-            SDL_LogError(LOG_SCENE, "ERROR: Out of Bounds must be a boolean type");
+            GG_LOG_ERROR(LOG_SCENE, "ERROR: Out of Bounds must be a boolean type");
             return false;
         } 
     }
@@ -1795,7 +1795,7 @@ bool _scene::loadPickupConfig(
     {
         auto check = config[tableParentPath][tableChildPath]["pickups_per_chunk"];
         if (!check.is_number()) {
-            SDL_LogError(LOG_SCENE, "ERROR: 'pickups_per_chunk' must be a float type");
+            GG_LOG_ERROR(LOG_SCENE, "ERROR: 'pickups_per_chunk' must be a float type");
             return false;
         } 
     }
@@ -1803,7 +1803,7 @@ bool _scene::loadPickupConfig(
     {
         auto check = config[tableParentPath][tableChildPath]["far_bound"];
         if (!check.is_number()) {
-            SDL_LogError(LOG_SCENE, "ERROR: 'far_bound' must be a float type");
+            GG_LOG_ERROR(LOG_SCENE, "ERROR: 'far_bound' must be a float type");
             return false;
         } 
     }
@@ -1811,7 +1811,7 @@ bool _scene::loadPickupConfig(
     {
         auto check = config[tableParentPath][tableChildPath]["near_bound"];
         if (!check.is_number()) {
-            SDL_LogError(LOG_SCENE, "ERROR: 'near_bound' must be a float type");
+            GG_LOG_ERROR(LOG_SCENE, "ERROR: 'near_bound' must be a float type");
             return false;
         } 
     }
@@ -1819,7 +1819,7 @@ bool _scene::loadPickupConfig(
     {
         auto check = config[tableParentPath][tableChildPath]["min_chance"];
         if (!check.is_number()) {
-            SDL_LogError(LOG_SCENE, "ERROR: 'min_chance' distribution normalized must be a float type");
+            GG_LOG_ERROR(LOG_SCENE, "ERROR: 'min_chance' distribution normalized must be a float type");
             return false;
         } 
     }
@@ -1839,7 +1839,7 @@ bool _scene::loadPickupConfig(
     ), 0.0f, 1.0f);
 
     if (outConfig.far_bound < outConfig.near_bound) {
-        SDL_LogError(LOG_SCENE, "ERROR: 'far_bound' must be greater than 'near_bound' ... Setting both to 0.0");
+        GG_LOG_ERROR(LOG_SCENE, "ERROR: 'far_bound' must be greater than 'near_bound' ... Setting both to 0.0");
         outConfig.far_bound = 0.0f;
         outConfig.near_bound = 0.0f;
     }

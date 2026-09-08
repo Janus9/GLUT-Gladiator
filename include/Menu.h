@@ -63,15 +63,15 @@ namespace menu {
     
         bool validate() const {
             if (!sounds) {
-                SDL_LogError(LOG_MENU_MANAGER, "ERROR: Unable to validate the Sound Manager");
+                GG_LOG_ERROR(LOG_MENU_MANAGER, "ERROR: Unable to validate the Sound Manager");
                 return false;
             }
             if (!scene) {
-                SDL_LogError(LOG_MENU_MANAGER, "ERROR: Unable to validate the Scene");
+                GG_LOG_ERROR(LOG_MENU_MANAGER, "ERROR: Unable to validate the Scene");
                 return false;
             }
             if (!callback) {
-                SDL_LogError(LOG_MENU_MANAGER, "ERROR: Unable to validate the event callback");
+                GG_LOG_ERROR(LOG_MENU_MANAGER, "ERROR: Unable to validate the event callback");
                 return false;
             }
             return true;

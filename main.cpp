@@ -104,12 +104,12 @@ void handleDraw(SDL_Window* window) {
 }
 
 void menuEventHandler(const menu::Event &event) {
-	SDL_LogInfo(LOG_MAIN, "Event callback called for event: %s", event.ID.c_str());
+	GG_LOG_INFO(LOG_MAIN, "Event callback called for event: %s", event.ID.c_str());
 
 	// Unpause game
 	if (event.redirectTo == menu::PAGE_GAME) {
 		if (!gameScene->isInitialized()) {
-			SDL_LogError(LOG_MAIN, "ERROR: Cannot redirect to GAME as scene is not initialized");
+			GG_LOG_ERROR(LOG_MAIN, "ERROR: Cannot redirect to GAME as scene is not initialized");
 		} else {
 			gameScene->reSize(wWidth, wHeight);
 			gameScene->gameUnPausedEvent = true;
@@ -118,22 +118,22 @@ void menuEventHandler(const menu::Event &event) {
 
 	// Exit game
 	if (event.ID == "exit_game_button") {
-		SDL_LogInfo(LOG_MAIN, "Close Game Event");
+		GG_LOG_INFO(LOG_MAIN, "Close Game Event");
 		running = false;
 	}
 	
 	// Generate World
 	if (event.ID == "saves_generate_button") {
-		SDL_LogInfo(LOG_MAIN, "Generate World Event");
+		GG_LOG_INFO(LOG_MAIN, "Generate World Event");
 
 		gameScene->initScene(false);
 	}
 
 	// Load World
 	if (event.ID == "saves_load_button") {
-		SDL_LogInfo(LOG_MAIN, "Load World Event");
+		GG_LOG_INFO(LOG_MAIN, "Load World Event");
 		if (!gameScene->loadSceneFromFile("saves/game")) {
-			SDL_LogError(LOG_MAIN, "ERROR: Save failed to load correctly");
+			GG_LOG_ERROR(LOG_MAIN, "ERROR: Save failed to load correctly");
 			return;
 		}
 	
@@ -142,16 +142,16 @@ void menuEventHandler(const menu::Event &event) {
 
 	// Save World
 	if (event.ID == "pause_save_button") {
-		SDL_LogInfo(LOG_MAIN, "Save World Event");
+		GG_LOG_INFO(LOG_MAIN, "Save World Event");
 		if (!gameScene->saveSceneToFile("saves/game")) {
-			SDL_LogError(LOG_MAIN, "ERROR: Failed to save game correctly");
+			GG_LOG_ERROR(LOG_MAIN, "ERROR: Failed to save game correctly");
 			return;
 		}
 	}
 
 	// Unload World Event
 	if (event.ID == "pause_menu_button") {
-		SDL_LogInfo(LOG_MAIN, "Unload world event");
+		GG_LOG_INFO(LOG_MAIN, "Unload world event");
 		SceneContext context {
 			.sounds = *soundEngine.get()
 		};
@@ -214,7 +214,7 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char *argv[])
 	// Initialization //
 	if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO)) {
 		const std::string errorMessage = std::string("ERROR: SDL_Init failed") + SDL_GetError(); 
-		SDL_LogError(LOG_MAIN, errorMessage.c_str());
+		GG_LOG_ERROR(LOG_MAIN, errorMessage.c_str());
 		return EXIT_FAILURE;
 	}
 
@@ -222,7 +222,7 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char *argv[])
 	SDL_Window* window = SDL_CreateWindow("GLUT Gladiator", windowSpawnWidth, windowSpawnHeight, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
 	if (!window) {
 		const std::string errorMessage = std::string("ERROR: Window failed") + SDL_GetError(); 
-		SDL_LogError(LOG_MAIN, errorMessage.c_str());
+		GG_LOG_ERROR(LOG_MAIN, errorMessage.c_str());
 		SDL_Quit();
 		return EXIT_FAILURE;
 	}
@@ -231,7 +231,7 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char *argv[])
 	SDL_GLContext glContext = SDL_GL_CreateContext(window);
 	if (!glContext) {
 		const std::string errorMessage = std::string("ERROR: GL Context failed") + SDL_GetError(); 
-		SDL_LogError(LOG_MAIN, errorMessage.c_str());
+		GG_LOG_ERROR(LOG_MAIN, errorMessage.c_str());
 		SDL_Quit();
 		return EXIT_FAILURE;
 	}
@@ -326,13 +326,13 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char *argv[])
 						if (inputState.keys[SDL_SCANCODE_ESCAPE]) {
 							if (menuManager->getLoadedPage() == menu::PAGE_GAME) {
 								// In game - pause
-								SDL_LogInfo(LOG_MAIN, "Pause game event");
+								GG_LOG_INFO(LOG_MAIN, "Pause game event");
 								soundEngine->pauseAllSpatialLooped();
 								menuManager->loadPage(menu::PAGE_PAUSE);
 							} else {
 								// In menu - unpause (if game loaded)
 								if (gameScene->isInitialized()) {
-									SDL_LogInfo(LOG_MAIN, "Unpause game event");
+									GG_LOG_INFO(LOG_MAIN, "Unpause game event");
 									menuManager->loadPage(menu::PAGE_GAME);
 									gameScene->gameUnPausedEvent = true;
 								}
@@ -341,7 +341,7 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char *argv[])
 							// Toggle Fullscreen //
 							fullscreen = !fullscreen;
 							const std::string msg = (fullscreen ? "TRUE" : "FALSE");
-							SDL_LogInfo(LOG_MAIN, "Fullscreen Mode: %s",msg.c_str());
+							GG_LOG_INFO(LOG_MAIN, "Fullscreen Mode: %s",msg.c_str());
 							SDL_SetWindowFullscreen(window, fullscreen);
 						} else if (inputState.keys[SDL_SCANCODE_F1]) {
 							soundEngine->reload();
