@@ -1,7 +1,11 @@
 // src/_loggerSDL.cpp
 #include <_loggerSDL.h>
 
+#include <fstream>
 #include <iostream>
+
+static std::ofstream logFile;
+static bool logToFile = true; // False means console.
 
 /* -- COLOR DEFINITIONS -- */
 #define LOG_RESET "\033[0m"
@@ -36,28 +40,56 @@
 #define LOG_CYAN_BKG   "\033[46m"
 #define LOG_WHITE_BKG  "\033[47m"
 
-static const char* getPriorityName(SDL_LogPriority priority) {
+static const char* getPriorityName(bool prettyPrinting, SDL_LogPriority priority) {
     switch (priority) {
         case SDL_LOG_PRIORITY_VERBOSE: {
-            return LOG_WHITE_TXT "[VERBOSE]";
+            if (prettyPrinting) {
+                return LOG_WHITE_TXT "[VERBOSE]";
+            } else {
+                return "[VERBOSE]";
+            }
         }
         case SDL_LOG_PRIORITY_DEBUG: {
-            return LOG_GREEN_TXT "[DEBUG]";
+            if (prettyPrinting) {
+                return LOG_GREEN_TXT "[DEBUG]";
+            } else {
+                return "[DEBUG]";
+            }
         }
         case SDL_LOG_PRIORITY_INFO: {
-            return LOG_BLUE_TXT "[INFO]";
+            if (prettyPrinting) {
+                return LOG_BLUE_TXT "[INFO]";
+            } else {
+                return "[INFO]";
+            }
         }
         case SDL_LOG_PRIORITY_WARN: {
-            return LOG_YELLOW_TXT "[WARNING]";
+            if (prettyPrinting) {
+                return LOG_YELLOW_TXT "[WARNING]";
+            } else {
+                return "[WARNING]";
+            }
         }
         case SDL_LOG_PRIORITY_ERROR: {
-            return LOG_RED_TXT "[ERROR]";
+            if (prettyPrinting) {
+                return LOG_RED_TXT "[ERROR]";
+            } else {
+                return "[ERROR]";
+            }
         }
         case SDL_LOG_PRIORITY_CRITICAL: {
-            return LOG_BRIGHT_PURPLE_TXT "[CRITICAL]";
+            if (prettyPrinting) {
+                return LOG_BRIGHT_PURPLE_TXT "[CRITICAL]";
+            } else {
+                return "[CRITICAL]";
+            }
         }
         default: {
-            return LOG_WHITE_TXT "[UNKNOWN]";
+            if (prettyPrinting) {
+                return LOG_WHITE_TXT "[UNKNOWN]";
+            } else {
+                return "[UNKNOWN]";
+            }
         }
     }
 }
@@ -93,15 +125,23 @@ static const char* getCategoryName(int category) {
 
 // Re-routes the logger function calls here to add pretty-printing
 static void SDLCALL gameLogOutput([[maybe_unused]] void* userdata, int category, SDL_LogPriority priority, const char* message) {
-    const char* priorityName = getPriorityName(priority);
     const char* categoryName = getCategoryName(category);
 
-    std::cout << priorityName << " [" << categoryName << "] " << message << LOG_RESET << "\n";
+    if (logToFile) {
+        logFile << getPriorityName(false, priority) << " [" << categoryName << "] " << message << "\n";
+    } else {
+        std::cout << getPriorityName(true, priority) << " [" << categoryName << "] " << message << LOG_RESET << "\n";
+    }
+
 }
 
 void initSDLLogger() {
     SDL_SetLogPriorities(SDL_LOG_PRIORITY_VERBOSE);
     SDL_SetLogOutputFunction(gameLogOutput, nullptr);
 
-    SDL_LogInfo(LOG_MAIN, "SDL logger initialized");
+    if (logToFile) {
+        logFile.open("logs/game.log", std::ios::trunc | std::ios::out);
+    }
+
+    GG_LOG_INFO(LOG_MAIN, "SDL logger initialized");
 }
