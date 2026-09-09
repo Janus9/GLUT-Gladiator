@@ -47,8 +47,10 @@ R_BINS += $(BIN_R_DIR)/$(MAIN_BIN)													# Adds main to binary list for re
 
 debug: | $(DIRS_COMMON)
 debug: $(BUILD_D_DIR)/$(OUTPUT)	
+
 release: | $(DIRS_COMMON)
 release: $(BUILD_R_DIR)/$(OUTPUT)
+
 publish: release | make_publish_dir
 	@cmd /c "if exist $(PUB_DIR) rd /s /q $(PUB_DIR) && md $(PUB_DIR)"
 	@copy "$(BUILD_R_DIR)\$(OUTPUT)" "$(PUB_DIR)\$(PUBLISH_OUTPUT)"
@@ -87,9 +89,9 @@ $(BIN_D_DIR)/$(MAIN_BIN): $(MAIN_SRC) | $(BIN_D_DIR)
 
 # -- RELEASE -- #
 
-# Release Linking (-mwindows for no console)
+# Release Linking
 $(BUILD_R_DIR)/$(OUTPUT): $(R_BINS) | $(IMG_DIR) $(BUILD_R_DIR)
-	$(CXX) $(R_BINS) $(LIB) -o $@
+	$(CXX) $(R_BINS) $(LIB) -mwindows -o $@
 	@echo -------------------- RELEASE -----------------------
 	@echo            Binaries Linked Successfully!            
 	@echo ----------------------------------------------------
