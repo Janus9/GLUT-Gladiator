@@ -18,10 +18,10 @@
  *  | Priority |   Debug |      Release | Production |
  *  | -------- | ------- | ------------ | ---------- |
  *  | Debug    | Console |           No |         No |
- *  | Info     | Console | Console/file |         No |
- *  | Warn     | Console | Console/file |       File |
- *  | Error    | Console | Console/file |       File |
- *  | Critical | Console | Console/file |       File |
+ *  | Info     | Console |         File |         No |
+ *  | Warn     | Console |         File |       File |
+ *  | Error    | Console |         File |       File |
+ *  | Critical | Console |         File |       File |
  *
  */
 

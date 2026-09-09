@@ -5,9 +5,9 @@ SHELL := cmd.exe
 
 # Compiler Flags
 CXX := g++ 
-P_FLAGS := -std=c++20 -O3 -DGAME_PRODUCTION 																	    # Production Flags
-R_FLAGS := -std=c++20 -O3 -DGAME_RELEASE 																			# Release Flags
-D_FLAGS := -std=c++20 -g -O0 -Wall -Wextra -D_GLIBCXX_DEBUG -DGAME_DEBUG  		 									# Debug Flags																		
+P_FLAGS := -std=c++20 -O3 -DGAME_PRODUCTION -DGAME_LOG_FILE 												        # Production Flags
+R_FLAGS := -std=c++20 -O3 -DGAME_RELEASE -DGAME_LOG_FILE 														    # Release Flags
+D_FLAGS := -std=c++20 -g -O0 -Wall -Wextra -D_GLIBCXX_DEBUG -DGAME_DEBUG   		 									# Debug Flags																		
 INCLUDE := -Iinclude -isystem common/include -isystem C:/msys64/uctr64/include										# Headers
 LIB := -LC:/msys64/ucrt64/lib -lSDL3 -Lcommon/lib -lglew32 -lfreeglut -lopengl32 -lglu32 -lwinmm -lgdi32  			# Libraries	    
 

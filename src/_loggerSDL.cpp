@@ -3,8 +3,9 @@
 #include <fstream>
 #include <iostream>
 
-static std::ofstream logFile;
-static bool logToFile = true; // False means console.
+#if defined(GAME_LOG_FILE)
+    static std::ofstream logFile;
+#endif
 
 /* -- COLOR DEFINITIONS -- */
 #define LOG_RESET "\033[0m"
@@ -136,21 +137,20 @@ static const char* getCategoryName(int category) {
 static void SDLCALL gameLogOutput([[maybe_unused]] void* userdata, int category, SDL_LogPriority priority, const char* message) {
     const char* categoryName = getCategoryName(category);
 
-    if (logToFile) {
+    #if defined(GAME_LOG_FILE) 
         logFile << getPriorityName(false, priority) << " [" << categoryName << "] " << message << "\n";
-    } else {
+    #else
         std::cout << getPriorityName(true, priority) << " [" << categoryName << "] " << message << LOG_RESET << "\n";
-    }
-
+    #endif
 }
 
 void initSDLLogger() {
     SDL_SetLogPriorities(SDL_LOG_PRIORITY_VERBOSE);
     SDL_SetLogOutputFunction(gameLogOutput, nullptr);
 
-    if (logToFile) {
+    #if defined(GAME_LOG_FILE)
         logFile.open("logs/game.log", std::ios::trunc | std::ios::out);
-    }
+    #endif
 
     GG_LOG_INFO(LOG_MAIN, "SDL logger initialized");
 }
