@@ -92,7 +92,7 @@ gain = 1.0
 [[sounds]]
 id = "LEVEL_BOSS_MUSIC"
 file_path = "sounds/level_boss/level_boss.wav"
-gain = 1.0
+gain = 0.75
 
 
 # -- Enemy -- #
@@ -101,18 +101,18 @@ gain = 1.0
 [[sounds]]
 id = "TURRET_FIRE"
 file_path = "sounds/enemy/turret/turret_fire.wav"
-gain = 0.35
+gain = 0.25
 
 [[sounds]]
 id = "TURRET_DEATH"
 file_path = "sounds/enemy/turret/turret_death.wav"
-gain = 0.25
+gain = 0.20
 
 # Gatling #
 [[sounds]]
 id = "GATLING_REV"
 file_path = "sounds/enemy/gatling/gatling_rev.wav"
-gain = 0.1
+gain = 0.065
 
 [[sounds]]
 id = "GATLING_FIRE"
@@ -122,18 +122,18 @@ gain = 0.075
 [[sounds]]
 id = "GATLING_DEATH"
 file_path = "sounds/enemy/gatling/gatling_death.wav"
-gain = 0.5
+gain = 0.25
 
 # Orc #
 [[sounds]]
 id = "ORC_ATTACK"
 file_path = "sounds/enemy/orc/orc_attack.wav"
-gain = 0.5
+gain = 0.35
 
 [[sounds]]
 id = "ORC_HURT"
 file_path = "sounds/enemy/orc/orc_hurt.wav"
-gain = 0.2
+gain = 0.1
 
 [[sounds]]
 id = "ORC_DEATH"
@@ -149,17 +149,17 @@ gain = 0.05
 [[sounds]]
 id = "VAMPIRE_ATTACK"
 file_path = "sounds/enemy/vampire/vampire_attack.wav"
-gain = 1.0
+gain = 0.25
 
 [[sounds]]
 id = "VAMPIRE_HURT"
 file_path = "sounds/enemy/vampire/vampire_hurt.wav"
-gain = 1.0
+gain = 0.15
 
 [[sounds]]
 id = "VAMPIRE_DEATH"
 file_path = "sounds/enemy/vampire/vampire_death.wav"
-gain = 1.0
+gain = 0.5
 
 # -- Structures -- #
 
