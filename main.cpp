@@ -375,6 +375,11 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char *argv[])
     }
 
 	// -- GAME EXIT -- //
+	GG_LOG_INFO(
+		LOG_MAIN,
+		"Exiting Game"
+	);
+
 	soundEngine.reset();
 	SDL_Quit();
 
