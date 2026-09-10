@@ -363,8 +363,8 @@ void _scene::initScene(bool loadWorld) {
     lightManager->addLight(boss_light);
 
 
-    const int number_default_turrets = 250;
-    const int number_gatling_turrets = 35;
+    const int number_default_turrets = 300;
+    const int number_gatling_turrets = 45;
     const int number_orcs = 300;
     const int number_vampire_minions = 100;      // Spawn naturally in world
     const int number_vampire_boss_minions = 20;  // Spawn near the boss
