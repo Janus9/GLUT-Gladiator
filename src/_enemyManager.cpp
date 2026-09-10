@@ -284,8 +284,7 @@ void _enemyManager::updateEnemies(double dt) {
                     enemy->deathTime = 0.0;
                     ParticleEngine->spawnEffect({enemy->pos.x, enemy->pos.y}, "turret_death");
                     sounds->playSound("TURRET_DEATH", enemy->pos);
-                    continue;
-                } else if (enemy->isDead() && enemy->deathTime > enemy->timeInDeathAnimation) {
+                    
                     Vec2f offset_pos = {pos_dist(rng), pos_dist(rng)};
                     
                     scenePickupManager->add(enemy->pos + offset_pos, pickups::PICKUP_XP, 5.0f);
@@ -294,7 +293,9 @@ void _enemyManager::updateEnemies(double dt) {
                         offset_pos = {pos_dist(rng), pos_dist(rng)};
                         scenePickupManager->add(enemy->pos + offset_pos, pickups::PICKUP_AMMO, 20.0f);
                     }
-                    
+
+                    continue;
+                } else if (enemy->isDead() && enemy->deathTime > enemy->timeInDeathAnimation) {
                     enemyList.erase(enemyList.begin() + i);
                     continue;
                 }
@@ -340,8 +341,7 @@ void _enemyManager::updateEnemies(double dt) {
 
                 if (enemy->isDead() && !enemy->inDeathAnimation) {
                     orc->triggerDeath(sounds);
-                    continue;
-                } else if (enemy->isDead() && enemy->deathTime > enemy->timeInDeathAnimation) {
+                    
                     Vec2f offset_pos = {pos_dist(rng), pos_dist(rng)};
 
                     for (int i = 0; i < 2; i++) {
@@ -353,6 +353,9 @@ void _enemyManager::updateEnemies(double dt) {
                         offset_pos = {pos_dist(rng), pos_dist(rng)};
                         scenePickupManager->add(enemy->pos + offset_pos, pickups::PICKUP_HEALTH, 15.0f);
                     }
+                    
+                    continue;
+                } else if (enemy->isDead() && enemy->deathTime > enemy->timeInDeathAnimation) {
 
                     enemyList.erase(enemyList.begin() + i);
                     continue;
@@ -425,30 +428,31 @@ void _enemyManager::updateEnemies(double dt) {
                     sounds->pauseSpatialLooped("GATLING_REV", enemy->getID());
                     sounds->pauseSpatialLooped("GATLING_FIRE", enemy->getID());
                     
-                    continue;
-                // Final death event (removes enemy)
-                } else if (enemy->isDead() && enemy->deathTime > enemy->timeInDeathAnimation) {
                     Vec2f offset_pos = {pos_dist(rng), pos_dist(rng)};
                     
                     for (int i = 0; i < 4; i++) {
                         offset_pos = {pos_dist(rng), pos_dist(rng)};
                         scenePickupManager->add(offset_pos + enemy->pos, pickups::PICKUP_XP, 6.0f);
                     }
-
+    
                     if (roll(rng) > 0.8f) {
                         offset_pos = {pos_dist(rng), pos_dist(rng)};
                         scenePickupManager->add(offset_pos + enemy->pos, pickups::PICKUP_FIRERATE, 10.0f);
                     }
-
+    
                     if (roll(rng) > 0.2f) {
                         offset_pos = {pos_dist(rng), pos_dist(rng)};
                         scenePickupManager->add(offset_pos + enemy->pos, pickups::PICKUP_AMMO, 40.0f);
                     }
-
+    
                     if (roll(rng) > 0.2f) {
                         offset_pos = {pos_dist(rng), pos_dist(rng)};
                         scenePickupManager->add(offset_pos + enemy->pos, pickups::PICKUP_HEALTH, 20.0f);
                     }
+                    
+                    continue;
+                // Final death event (removes enemy)
+                } else if (enemy->isDead() && enemy->deathTime > enemy->timeInDeathAnimation) {
 
                     sounds->stopSpatialLooped("GATLING_REV", enemy->getID());
                     sounds->stopSpatialLooped("GATLING_FIRE", enemy->getID());
