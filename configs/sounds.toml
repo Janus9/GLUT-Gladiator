@@ -92,7 +92,7 @@ gain = 1.0
 [[sounds]]
 id = "LEVEL_BOSS_MUSIC"
 file_path = "sounds/level_boss/level_boss.wav"
-gain = 0.75
+gain = 0.3
 
 
 # -- Enemy -- #

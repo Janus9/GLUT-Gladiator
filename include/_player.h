@@ -204,7 +204,7 @@ class _player : public _unit {
         float XP = 0;
         float fireRate = 0;           // RPM
         int reserveLevel = 0;         // Current bullets in reserve
-        float movementSpeed = 360.0f; // World units / second
+        float movementSpeed = 160.0f; // World units / second
 
         Vec2f previousPos = {0.0f, 0.0f};
 

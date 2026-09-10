@@ -5,6 +5,35 @@
 # - 0.5 means 50% of the distance from the origin to the edge
 # - blend radius values are measured in tiles
 
+## -- Pickup Generation -- ##
+#
+# "pickups_per_chunk": How many pickups to spawn per chunk. 
+#   This value is NOT exact, it is for RNG purposes.
+#   The total number of pickups is "total_chunks" * "pickups_per_chunk" for each pickup type.
+#   Increasing this = more pickups.
+# "far_bound": [0.0 - 1.0] Furthest distance from center pickups will spawn.
+#   1.0 means pickup will spawn all the way out to the edge of the map.
+#   0.0 means pickup will not spawn.
+#   MUST be greater than near_bound or pickup wont spawn.
+# "near_bound": [0.0 - 1.0] Closes distance from center pickup will spawn.
+#   1.0 means pickup wont spawn.
+#   0.0 means pickup will spawn all the way to the center of the map.
+#   MUST be less than far_bound or pickup wont spawn.
+# "min_chance": [0.0 - 1.0] Chance for pickup to spawn at the far_bound.
+#   In general, pickups should be more frequent as player gets closer to the center.
+#   So having it at 1.0 means there is no change, pickup is just as likely at its far_bound as it is
+#   at its near_bound.     
+#   This value is linearly interpolated [1.0 - min_chance]. 
+#   Spawn chance at near_bound is always 100%
+#   
+#   ex/ min_chance: 0.0
+#       Chance of spawn at its far_bound is 0%.
+#       Chance of spawn at its near_bound is 100%.
+#       Chance of spawn at 50% distance of far_bound to near_bound is 50%.
+#
+#   * Because of the total pickup amount mentioned above, this at a low value can easily
+#     force a high density of pickups despite a small spawn amount due to a smaller spawn area. *
+
 [world]
 num_chunks = 4096
 
@@ -34,40 +63,35 @@ out_of_bounds_is_alive = false
 
 
 [world.health_pickups]
-# pickups_per_chunk = 500
-pickups_per_chunk = 0
+pickups_per_chunk = 0.20
 far_bound = 1.0
 near_bound = 0.1
 min_chance = 0.8
 
 
 [world.max_health_pickups]
-# pickups_per_chunk = 0.1
-pickups_per_chunk = 0
+pickups_per_chunk = 0.04
 far_bound = 0.4
 near_bound = 0.1
 min_chance = 0.7
 
 
 [world.ammo_pickups]
-# pickups_per_chunk = 0.25
-pickups_per_chunk = 0
+pickups_per_chunk = 0.25
 far_bound = 1.0
 near_bound = 0.1
 min_chance = 0.8
 
 
 [world.speed_pickups]
-# pickups_per_chunk = 0.07
-pickups_per_chunk = 0
+pickups_per_chunk = 0.05
 far_bound = 0.8
 near_bound = 0.1
-min_chance = 0.1
+min_chance = 0.5
 
 
 [world.firerate_pickups]
-# pickups_per_chunk = 0.05
-pickups_per_chunk = 0
+pickups_per_chunk = 0.02
 far_bound = 0.3
 near_bound = 0.1
 min_chance = 1.0

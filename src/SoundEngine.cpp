@@ -784,6 +784,8 @@ namespace sound {
 
         spatialLoopMap[key] = spatialLoopList.size() - 1;
 
+        pauseSpatialLooped(id, instanceId); // Ensure audio starts off paused
+
         GG_LOG_DEBUG(
             LOG_SOUND, 
             "Added new loop spatial audio (%s, %i)",

@@ -363,17 +363,17 @@ void _scene::initScene(bool loadWorld) {
     lightManager->addLight(boss_light);
 
 
-    // const int number_default_turrets = 500;
-    // const int number_gatling_turrets = 75;
-    // const int number_orcs = 600;
-    // const int number_vampire_minions = 200;      // Spawn naturally in world
-    // const int number_vampire_boss_minions = 25;  // Spawn near the boss
+    const int number_default_turrets = 250;
+    const int number_gatling_turrets = 35;
+    const int number_orcs = 300;
+    const int number_vampire_minions = 100;      // Spawn naturally in world
+    const int number_vampire_boss_minions = 20;  // Spawn near the boss
 
-    const int number_default_turrets = 0;
-    const int number_gatling_turrets = 0;
-    const int number_orcs = 0;
-    const int number_vampire_minions = 0;       
-    const int number_vampire_boss_minions = 0;  
+    // const int number_default_turrets = 0;
+    // const int number_gatling_turrets = 0;
+    // const int number_orcs = 0;
+    // const int number_vampire_minions = 0;       
+    // const int number_vampire_boss_minions = 0;  
 
     // Dont spawn enemies when world is loaded
     if (!loadWorld) {
