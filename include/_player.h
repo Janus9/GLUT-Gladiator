@@ -73,6 +73,12 @@ enum player_enterered_level_event {
     PLAYER_EVENT_LEVEL_NONE
 };
 
+struct PlayerContext {
+    _lightManager &lights;
+    particles::Engine &particles;
+    _world &world;
+};
+
 class _player : public _unit {
     public:
         _player();
@@ -81,7 +87,7 @@ class _player : public _unit {
         /**
          * Sets up player sprites, animations, etc.
          */
-        void initPlayer(_lightManager* lightManager, particles::Engine* particles, _world* sceneWorld);
+        void initPlayer(const PlayerContext &context);
 
         /**
          * Update loop for player including inputs/animations/movement/etc

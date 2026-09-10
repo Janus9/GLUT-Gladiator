@@ -8,10 +8,10 @@ _player::~_player() {
     // dtor
 }
 
-void _player::initPlayer(_lightManager* lightManager, particles::Engine* particles, _world* sceneWorld) {
-    ParticleEngine = particles;
-    sceneLightManager = lightManager;
-    world = sceneWorld; 
+void _player::initPlayer(const PlayerContext &context) {
+    ParticleEngine = &context.particles;
+    sceneLightManager = &context.lights;
+    world = &context.world; 
 
     scale = {0.8f, 0.8f};
 
