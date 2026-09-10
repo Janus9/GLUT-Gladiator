@@ -1102,6 +1102,9 @@ void _world::updateWorldVBO(float left, float right, float top, float bottom) {
 
     glBindBuffer(GL_ARRAY_BUFFER, vboID);
 
+    // 256 tiles * 4 verticies * 7 floats per vertex
+    std::array<vertex, NUM_TILES_CHUNK * VERTICIES_PER_TILE> chunkVboData;
+    
     for (int chunkY = minChunkY; chunkY < maxChunkY; chunkY++) {
         for (int chunkX = minChunkX; chunkX < maxChunkX; chunkX++) {
             const Vec2i chunkPos(chunkX,chunkY);
@@ -1118,9 +1121,6 @@ void _world::updateWorldVBO(float left, float right, float top, float bottom) {
             const _cell* cellList = chunk->getAllCells();
             
             for (uint8_t layer = 0; layer < NUM_LAYERS; layer++) {
-
-                // 256 tiles * 4 verticies * 7 floats per vertex
-                std::vector<vertex> chunkVboData(NUM_TILES_CHUNK * VERTICIES_PER_TILE);
                 int vIndex = 0;
 
                 // For each tile of the chunk //
