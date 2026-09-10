@@ -8,9 +8,11 @@ _player::~_player() {
     // dtor
 }
 
-void _player::initPlayer(_lightManager* lightManager, particles::Engine* particles) {
+void _player::initPlayer(_lightManager* lightManager, particles::Engine* particles, _world* sceneWorld) {
     ParticleEngine = particles;
     sceneLightManager = lightManager;
+    world = sceneWorld; 
+
     scale = {0.8f, 0.8f};
 
     // AABB used by enemies (e.g. _orc) to prevent overlap and decide melee contact.
@@ -333,27 +335,23 @@ void _player::updatePlayer(double dt) {
     }
     
     // Level Change Event //
-    const float prevDistance = previousPos.distance({0.0f,0.0f});
-    const float distance = pos.distance({0.0f,0.0f});
-
-    if (prevDistance > 8000.0f && distance < 8000.0f) {
-        // Entered the middle from outer
-        playerLevelEvent = PLAYER_EVENT_LEVEL_MIDDLE;
-    } else if (prevDistance < 8000.0f && distance > 8000.0f) {
-        // Entered the outer from middle
-        playerLevelEvent = PLAYER_EVENT_LEVEL_OUTER;
-    } else if (prevDistance > 3000.0f && distance < 3000.0f) {
-        // Entered the center from middle
-        playerLevelEvent = PLAYER_EVENT_LEVEL_CENTER;
-    } else if (prevDistance < 3000.0f && distance > 3000.0f) {
-        // Entered the middle from center
-        playerLevelEvent = PLAYER_EVENT_LEVEL_MIDDLE;
-    } else if (prevDistance > 400.0f && distance < 400.0f) {
-        // Entered the boss from center
-        playerLevelEvent = PLAYER_EVENT_LEVEL_BOSS;
-    } else if (prevDistance < 400.0f && distance > 400.0f) {
-        // Entered the center from boss
-        playerLevelEvent = PLAYER_EVENT_LEVEL_CENTER;
+    level_pos level = world->getLevelFromPos(pos);
+    if (level != currentLevel) {
+        currentLevel = level;
+        switch (currentLevel) {
+            case LEVEL_OUTER:
+                playerLevelEvent = PLAYER_EVENT_LEVEL_OUTER;
+                break;
+            case LEVEL_MIDDLE:
+                playerLevelEvent = PLAYER_EVENT_LEVEL_MIDDLE;
+                break;
+            case LEVEL_INNER:
+                playerLevelEvent = PLAYER_EVENT_LEVEL_CENTER;
+                break;
+            case LEVEL_BOSS:
+                playerLevelEvent = PLAYER_EVENT_LEVEL_BOSS;
+                break;
+        }
     }
 
     previousPos = pos;

@@ -5,6 +5,7 @@
 #include <_unit.h>
 #include <ParticleEngine.h>
 #include <_lightManager.h>
+#include <_world.h>
 
 struct player_serial_data {
     uint8_t team;
@@ -80,7 +81,7 @@ class _player : public _unit {
         /**
          * Sets up player sprites, animations, etc.
          */
-        void initPlayer(_lightManager* lightManager, particles::Engine* particles);
+        void initPlayer(_lightManager* lightManager, particles::Engine* particles, _world* sceneWorld);
 
         /**
          * Update loop for player including inputs/animations/movement/etc
@@ -206,7 +207,9 @@ class _player : public _unit {
         float movementSpeed = 360.0f; // World units / second
 
         Vec2f previousPos = {0.0f, 0.0f};
+
         _lightManager* sceneLightManager = nullptr;  // Pointer to light manager instantiated in scene (non-owning)
+        _world* world = nullptr;                     // Pointer to the world
         particles::Engine* ParticleEngine = nullptr; // Pointer to the particle Engine instantiated in scene (non-owning)
 
         int FPS = 12;
@@ -215,6 +218,8 @@ class _player : public _unit {
         double reloadTimeElapsed = 0.0;
 
         double shootTimeElapsed = 0.0;
+        
+        level_pos currentLevel;
 
         struct PlayerAnimationResult {
             std::string sprite = ""; // Which sprite

@@ -107,7 +107,7 @@ void _scene::initScene(bool loadWorld) {
     );
     
     // -- PLAYER -- //
-    player->initPlayer(lightManager.get(), ParticleEngine.get());
+    player->initPlayer(lightManager.get(), ParticleEngine.get(), myWorld.get());
     player->hasGun = true;
 
     // -- FOB -- //
