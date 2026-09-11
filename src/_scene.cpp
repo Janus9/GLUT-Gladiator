@@ -1419,80 +1419,115 @@ void _scene::debugPrintFPS()
 void _scene::keyboardHandler(const InputState &inputState)
 {
     if (inputState.keys[SDL_SCANCODE_GRAVE]) {
-        // Nothing
+        #if defined(GAME_DEBUG)
+        #endif
     }
     if (inputState.keys[SDL_SCANCODE_1]) {
-        enemyManager->addEnemy(mouseWorldPos, default_turret_config);
+        #if defined(GAME_DEBUG)
+            enemyManager->addEnemy(mouseWorldPos, default_turret_config);
+        #endif
     }
     if (inputState.keys[SDL_SCANCODE_2]) {
-        enemyManager->addEnemy(mouseWorldPos, gatling_turret_config);
+        #if defined(GAME_DEBUG)
+            enemyManager->addEnemy(mouseWorldPos, gatling_turret_config);
+        #endif
     }
     if (inputState.keys[SDL_SCANCODE_3]) {
-        enemyManager->addEnemy(mouseWorldPos, orc_config);
+        #if defined(GAME_DEBUG)
+            enemyManager->addEnemy(mouseWorldPos, orc_config);
+        #endif
     }
     if (inputState.keys[SDL_SCANCODE_4]) {
-        enemyManager->addEnemy(mouseWorldPos, vampire_config);
+        #if defined(GAME_DEBUG)
+            enemyManager->addEnemy(mouseWorldPos, vampire_config);
+        #endif
     }
     if (inputState.keys[SDL_SCANCODE_5]) {
-        enemyManager->addEnemy(mouseWorldPos, vampire_minion1_config);
+        #if defined(GAME_DEBUG)
+            enemyManager->addEnemy(mouseWorldPos, vampire_minion1_config);
+        #endif
     }
     if (inputState.keys[SDL_SCANCODE_6]) {
-        enemyManager->addEnemy(mouseWorldPos, vampire_minion2_config);
+        #if defined(GAME_DEBUG)
+            enemyManager->addEnemy(mouseWorldPos, vampire_minion2_config);
+        #endif
     }
     if (inputState.keys[SDL_SCANCODE_7]) {
-        pickupManager->add(mouseWorldPos, pickups::PICKUP_SPEED, 10.0f);
+        #if defined(GAME_DEBUG)
+            pickupManager->add(mouseWorldPos, pickups::PICKUP_SPEED, 10.0f);
+        #endif
     }
     if (inputState.keys[SDL_SCANCODE_8]) {
-        pickupManager->add(mouseWorldPos, pickups::PICKUP_MAX_HEALTH, 10.0f);
+        #if defined(GAME_DEBUG)
+            pickupManager->add(mouseWorldPos, pickups::PICKUP_MAX_HEALTH, 10.0f);
+        #endif
     }
     if (inputState.keys[SDL_SCANCODE_9]) {
-        pickupManager->add(mouseWorldPos, pickups::PICKUP_FIRERATE, 10.0f);
+        #if defined(GAME_DEBUG)
+            pickupManager->add(mouseWorldPos, pickups::PICKUP_FIRERATE, 10.0f);
+        #endif
     }
     if (inputState.keys[SDL_SCANCODE_0]) {
-        pickupManager->add(mouseWorldPos, pickups::PICKUP_XP, 10.0f);
+        #if defined(GAME_DEBUG)
+            pickupManager->add(mouseWorldPos, pickups::PICKUP_XP, 10.0f);
+        #endif
     }
     if (inputState.keys[SDL_SCANCODE_SPACE]) {
-        
+        #if defined(GAME_DEBUG)
+        #endif
     }
     if (inputState.keys[SDL_SCANCODE_F1]) {
+        #if defined(GAME_DEBUG)
+        #endif
     }
     if (inputState.keys[SDL_SCANCODE_F2]) {
-
+        #if defined(GAME_DEBUG)
+        #endif
     }
     if (inputState.keys[SDL_SCANCODE_F3]) {
-
+        #if defined(GAME_DEBUG)
+        #endif
     }
     if (inputState.keys[SDL_SCANCODE_F4]) {
-
+        #if defined(GAME_DEBUG)
+        #endif
     }
     if (inputState.keys[SDL_SCANCODE_F5]) {
-        ParticleEngine->reload();
+        #if defined(GAME_DEBUG)
+            ParticleEngine->reload();
+        #endif
     }
     if (inputState.keys[SDL_SCANCODE_RIGHTBRACKET]) {
-
+        #if defined(GAME_DEBUG)
+        #endif
     }
     if (inputState.keys[SDL_SCANCODE_R]) {
+        #if defined(GAME_DEBUG)
+        #endif
+        
         player->procReload();
     }
     if (inputState.keys[SDL_SCANCODE_BACKSLASH]) {
-        cameraFree = !cameraFree;
+        #if defined(GAME_DEBUG)
+            cameraFree = !cameraFree;
 
-        GG_LOG_INFO(
-            LOG_SCENE, 
-            "Camera Mode: %s",
-            std::string(cameraFree ? "FREE CAM" : "NORMAL").c_str()
-        );
+            GG_LOG_INFO(
+                LOG_SCENE, 
+                "Camera Mode: %s",
+                std::string(cameraFree ? "FREE CAM" : "NORMAL").c_str()
+            );
 
-        if (!cameraFree && cameraZoom < 3.0f) {
-            // Reset camera on disabling free cam
-            cameraZoom = 3.0f;
-        }
-        if (cameraFree) {
-            player_light.radius = 24000.0f;
-        } else {
-            player_light.radius = 400.0f;
-        }
-        *lightManager->getLightRadius("PLAYER_LIGHT") = player_light.radius;
+            if (!cameraFree && cameraZoom < 3.0f) {
+                // Reset camera on disabling free cam
+                cameraZoom = 3.0f;
+            }
+            if (cameraFree) {
+                player_light.radius = 24000.0f;
+            } else {
+                player_light.radius = 400.0f;
+            }
+            *lightManager->getLightRadius("PLAYER_LIGHT") = player_light.radius;
+        #endif
     }
 }
 

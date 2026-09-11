@@ -95,7 +95,7 @@ $(BIN_D_DIR)/$(MAIN_BIN): $(MAIN_SRC) | $(BIN_D_DIR)
 
 # Release Linking
 $(BUILD_R_DIR)/$(OUTPUT): $(R_BINS) | $(IMG_DIR) $(BUILD_R_DIR)
-	$(CXX) $(R_BINS) $(LIB) $(LOG_DIR) -mwindows -o $@
+	$(CXX) $(R_BINS) $(LIB) -mwindows -o $@
 	@echo -------------------- RELEASE -----------------------
 	@echo            Binaries Linked Successfully!            
 	@echo ----------------------------------------------------
