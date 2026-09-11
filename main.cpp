@@ -25,6 +25,12 @@ bool active = true;				// Foreground-focus flag. False while the window is not t
 bool minimized = false;			// True while the window is minimized. Combined with !active to drive the suspended state.
 bool fullscreen = false;		// True while application is fullscreened
 
+bool gameLoseEvent = false;
+bool gameWinEvent = false;
+
+double gameLoseTimer = 0.0;
+double gameWinTimer = 0.0;
+
 int wWidth;					// Window width
 int wHeight;				// Window height
 
@@ -172,12 +178,25 @@ void handleUpdate(double dt) {
 		gameScene->updateScene(dt, inputState);
 
 		if (gameScene->gameEnded && gameScene->gameWon) {
-			menuManager->loadPage(menu::PAGE_WIN);
-			soundEngine->setSoundTrack("WIN_MUSIC", 0.0f);
+			gameWinEvent = true;
 		} else if (gameScene->gameEnded && !gameScene->gameWon) {
-			menuManager->loadPage(menu::PAGE_LOOSE);
-			soundEngine->setSoundTrack("LOOSE_MUSIC", 0.0f);
+			gameLoseEvent = true;
 		}
+
+		if (gameLoseEvent) {
+			if (gameLoseTimer > 5.5) {
+				menuManager->loadPage(menu::PAGE_LOOSE);
+			}
+			gameLoseTimer += dt;
+		}
+
+		if (gameWinEvent) {
+			if (gameWinTimer > 5.0) {
+				menuManager->loadPage(menu::PAGE_WIN);
+			}
+			gameWinTimer += dt;
+		}
+
 	} else {
 		// Update Menu
 		menuManager->update(dt, inputState);

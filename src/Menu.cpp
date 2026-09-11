@@ -296,7 +296,9 @@ namespace menu {
         GG_LOG_DEBUG(LOG_MENU_MANAGER, "Loaded page: %i", static_cast<int>(type));
         if (type == PAGE_GAME) {
         } else {
-            if(!sounds->isPlayingSoundTrack("MENU_MUSIC")) sounds->setSoundTrack("MENU_MUSIC", 0.5f);
+            if(!sounds->isPlayingSoundTrack("MENU_MUSIC") && type != PAGE_LOOSE && type != PAGE_WIN) {
+                sounds->setSoundTrack("MENU_MUSIC", 0.5f);
+            }
         }
         selectedPage = type;
     }
