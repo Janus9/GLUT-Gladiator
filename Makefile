@@ -19,9 +19,11 @@ BIN_D_DIR := bin/debug
 BUILD_DIR := build
 BUILD_R_DIR := build\release
 BUILD_D_DIR := build\debug
+CFG_DIR := configs
 IMG_DIR := images
 SHD_DIR := shaders
 SND_DIR := sounds
+LOG_DIR := logs
 DLL_DIR := common\bin
 PUB_DIR ?= publish
 SAV_DIR := saves
@@ -59,6 +61,8 @@ publish: release | make_publish_dir
 	@xcopy "$(SHD_DIR)" "$(PUB_DIR)\$(SHD_DIR)" /E /I /Y
 	@xcopy "$(SND_DIR)" "$(PUB_DIR)\$(SND_DIR)" /E /I /Y
 	@xcopy "$(CUR_DIR)" "$(PUB_DIR)\$(CUR_DIR)" /E /I /Y
+	@xcopy "$(CFG_DIR)" "$(PUB_DIR)\$(CFG_DIR)" /E /I /Y
+	@md "$(PUB_DIR)\$(LOG_DIR)"
 	@md "$(PUB_DIR)\$(SAV_DIR)"
 	@echo --------------------- PUBLISH ------------------------
 	@echo            GLUT Gladiator Published Successfully!     
@@ -91,7 +95,7 @@ $(BIN_D_DIR)/$(MAIN_BIN): $(MAIN_SRC) | $(BIN_D_DIR)
 
 # Release Linking
 $(BUILD_R_DIR)/$(OUTPUT): $(R_BINS) | $(IMG_DIR) $(BUILD_R_DIR)
-	$(CXX) $(R_BINS) $(LIB) -mwindows -o $@
+	$(CXX) $(R_BINS) $(LIB) $(LOG_DIR) -mwindows -o $@
 	@echo -------------------- RELEASE -----------------------
 	@echo            Binaries Linked Successfully!            
 	@echo ----------------------------------------------------
@@ -132,6 +136,10 @@ $(SHD_DIR):
 
 # Makes build directory
 $(BUILD_DIR):
+	@if not exist "$@" md "$@"
+
+# Makes the log directory
+$(LOG_DIR):
 	@if not exist "$@" md "$@"
 
 # Makes publish directory
