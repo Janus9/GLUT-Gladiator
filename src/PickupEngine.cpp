@@ -162,6 +162,11 @@ namespace pickups {
             if (!p.alive) continue;
 
             const float distance = p.pos.distance(player->pos); // Distance to player
+            
+            const bool ignoreHp = player->getHealthPct() == 1.0f && p.type == PICKUP_HEALTH; // HP full ignore pickup
+            const bool ignoreAmmo = player->getAmmo() == player->reserveCapacity && p.type == PICKUP_AMMO; // Ammo full ignore pickup
+
+            if (ignoreHp || ignoreAmmo) continue;
 
             if (distance < 10.0f) {
                 // Apply pickup
