@@ -5,6 +5,7 @@ SHELL := cmd.exe
 
 # Compiler Flags
 CXX := g++ 
+WINDRES := windres
 P_FLAGS := -std=c++20 -O3 -DGAME_PRODUCTION -DGAME_LOG_FILE 												        # Production Flags
 R_FLAGS := -std=c++20 -O3 -DGAME_RELEASE -DGAME_LOG_FILE 														    # Release Flags
 D_FLAGS := -std=c++20 -g -O0 -Wall -Wextra -D_GLIBCXX_DEBUG -DGAME_DEBUG   		 									# Debug Flags																		
@@ -37,6 +38,8 @@ MAIN_SRC = main.cpp
 MAIN_BIN = main.o
 OUTPUT = main.exe
 PUBLISH_OUTPUT = Glut Gladiator.exe
+ICO = icon.ico
+RESOURCES = resources.rc
 SRCS := $(wildcard $(SRC_DIR)/*.cpp)												# List of source files
 D_BINS := $(patsubst $(SRC_DIR)/%.cpp, $(BIN_D_DIR)/%.o, $(SRCS))					# List of binary files for debug
 D_BINS += $(BIN_D_DIR)/$(MAIN_BIN)													# Adds main to binary list for debug
@@ -44,6 +47,7 @@ D_BINS += $(BIN_D_DIR)/$(MAIN_BIN)													# Adds main to binary list for de
 R_BINS := $(patsubst $(SRC_DIR)/%.cpp, $(BIN_R_DIR)/%.o, $(SRCS))					# List of binary files for release
 R_BINS += $(BIN_R_DIR)/$(MAIN_BIN)													# Adds main to binary list for release
 
+R_RES := $(BIN_R_DIR)/resources.o
 
 .PHONY: debug release clean publish
 
@@ -94,8 +98,8 @@ $(BIN_D_DIR)/$(MAIN_BIN): $(MAIN_SRC) | $(BIN_D_DIR)
 # -- RELEASE -- #
 
 # Release Linking
-$(BUILD_R_DIR)/$(OUTPUT): $(R_BINS) | $(IMG_DIR) $(BUILD_R_DIR)
-	$(CXX) $(R_BINS) $(LIB) -mwindows -o $@
+$(BUILD_R_DIR)/$(OUTPUT): $(R_BINS) $(R_RES) | $(IMG_DIR) $(BUILD_R_DIR)
+	$(CXX) $(R_BINS) $(LIB) $(R_RES) -mwindows -o $@
 	@echo -------------------- RELEASE -----------------------
 	@echo            Binaries Linked Successfully!            
 	@echo ----------------------------------------------------
@@ -111,6 +115,11 @@ $(BIN_R_DIR)/%.o: $(SRC_DIR)/%.cpp | $(BIN_R_DIR)
 $(BIN_R_DIR)/$(MAIN_BIN): $(MAIN_SRC) | $(BIN_R_DIR)
 	$(CXX) -c $^ $(INCLUDE) $(R_FLAGS) -o $@
 	@echo Compiled $^ Successfully!
+
+# Release Resource Compilation
+$(R_RES): $(RESOURCES) | $(BIN_R_DIR)
+	$(WINDRES) $(RESOURCES) -O coff -o $@
+	@echo Compiled $(RESOURCES) Successfully!
 
 # -- DIRECTORS -- #
 
