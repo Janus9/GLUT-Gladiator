@@ -9,7 +9,7 @@
 #define PICKUPS_EXTENSION ".gg_pickups"
 
 // Versions //
-#define GAME_VERSION 0.49            // Version of the game itself
+#define GAME_VERSION 0.50            // Version of the game itself
 #define WORLD_SAVE_VERSION 4         // Version of the world save system
 
 #define PI 3.14159
