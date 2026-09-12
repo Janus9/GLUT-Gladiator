@@ -412,23 +412,41 @@ void _world::initTiles() {
     world_tiles[TILE_FLOOR_OUTER_BLANK_2_WET].hasCollision = false;
     world_tiles[TILE_FLOOR_OUTER_BLANK_2_WET].name = "blank_floor_2_wet";
 
-    // Middle Floor //
-    setTileInAtlas(22,13, world_tiles[TILE_FLOOR_OUTER_DEFAULT_1]);       
-    world_tiles[TILE_FLOOR_OUTER_DEFAULT_1].hasCollision = false;
-    world_tiles[TILE_FLOOR_OUTER_DEFAULT_1].name = "default_floor_middle_1";
+    // Middle Floor Dry //
+    setTileInAtlas(22,13, world_tiles[TILE_FLOOR_OUTER_DEFAULT_1_DRY]);       
+    world_tiles[TILE_FLOOR_OUTER_DEFAULT_1_DRY].hasCollision = false;
+    world_tiles[TILE_FLOOR_OUTER_DEFAULT_1_DRY].name = "default_floor_middle_1_dry";
     
-    setTileInAtlas(23,13, world_tiles[TILE_FLOOR_OUTER_DEFAULT_2]);       
-    world_tiles[TILE_FLOOR_OUTER_DEFAULT_2].hasCollision = false;
-    world_tiles[TILE_FLOOR_OUTER_DEFAULT_2].name = "default_floor_middle_2";
+    setTileInAtlas(23,13, world_tiles[TILE_FLOOR_OUTER_DEFAULT_2_DRY]);       
+    world_tiles[TILE_FLOOR_OUTER_DEFAULT_2_DRY].hasCollision = false;
+    world_tiles[TILE_FLOOR_OUTER_DEFAULT_2_DRY].name = "default_floor_middle_2_dry";
 
-    // Inner Floor //
-    setTileInAtlas(25,13, world_tiles[TILE_FLOOR_INNER_DEFAULT_1]);       
-    world_tiles[TILE_FLOOR_INNER_DEFAULT_1].hasCollision = false;
-    world_tiles[TILE_FLOOR_INNER_DEFAULT_1].name = "default_floor_inner_1";
+    // Middle Floor Wet //
+    setTileInAtlas(20,13, world_tiles[TILE_FLOOR_OUTER_DEFAULT_1_WET]);       
+    world_tiles[TILE_FLOOR_OUTER_DEFAULT_1_WET].hasCollision = false;
+    world_tiles[TILE_FLOOR_OUTER_DEFAULT_1_WET].name = "default_floor_middle_1_wet";
     
-    setTileInAtlas(26,13, world_tiles[TILE_FLOOR_INNER_DEFAULT_2]);       
-    world_tiles[TILE_FLOOR_INNER_DEFAULT_2].hasCollision = false;
-    world_tiles[TILE_FLOOR_INNER_DEFAULT_2].name = "default_floor_inner_2";
+    setTileInAtlas(21,13, world_tiles[TILE_FLOOR_OUTER_DEFAULT_2_WET]);       
+    world_tiles[TILE_FLOOR_OUTER_DEFAULT_2_WET].hasCollision = false;
+    world_tiles[TILE_FLOOR_OUTER_DEFAULT_2_WET].name = "default_floor_middle_2_wet";
+
+    // Inner Floor Dry //
+    setTileInAtlas(25,13, world_tiles[TILE_FLOOR_INNER_DEFAULT_1_DRY]);       
+    world_tiles[TILE_FLOOR_INNER_DEFAULT_1_DRY].hasCollision = false;
+    world_tiles[TILE_FLOOR_INNER_DEFAULT_1_DRY].name = "default_floor_inner_1_dry";
+    
+    setTileInAtlas(26,13, world_tiles[TILE_FLOOR_INNER_DEFAULT_2_DRY]);       
+    world_tiles[TILE_FLOOR_INNER_DEFAULT_2_DRY].hasCollision = false;
+    world_tiles[TILE_FLOOR_INNER_DEFAULT_2_DRY].name = "default_floor_inner_2_dry";
+
+    // Inner Floor Wet //
+    setTileInAtlas(25,14, world_tiles[TILE_FLOOR_INNER_DEFAULT_1_WET]);       
+    world_tiles[TILE_FLOOR_INNER_DEFAULT_1_WET].hasCollision = false;
+    world_tiles[TILE_FLOOR_INNER_DEFAULT_1_WET].name = "default_floor_inner_1_wet";
+    
+    setTileInAtlas(26,14, world_tiles[TILE_FLOOR_INNER_DEFAULT_2_WET]);       
+    world_tiles[TILE_FLOOR_INNER_DEFAULT_2_WET].hasCollision = false;
+    world_tiles[TILE_FLOOR_INNER_DEFAULT_2_WET].name = "default_floor_inner_2_wet";
 
     // Floor Broken //
     setTileInAtlas(24,8, world_tiles[TILE_FLOOR_BROKEN_INNER]);       
@@ -617,8 +635,10 @@ void _world::postProcessWorld() {
     std::uniform_int_distribution<uint8_t> boss_dist(TILE_FLOOR_BOSS_BLANK_1, TILE_FLOOR_BOSS_BLANK_2); 
     std::uniform_int_distribution<uint8_t> outer_dist_dry(TILE_FLOOR_OUTER_BLANK_1_DRY, TILE_FLOOR_OUTER_BLANK_2_DRY); 
     std::uniform_int_distribution<uint8_t> outer_dist_wet(TILE_FLOOR_OUTER_BLANK_1_WET, TILE_FLOOR_OUTER_BLANK_2_WET); 
-    std::uniform_int_distribution<uint8_t> middle_dist(TILE_FLOOR_OUTER_DEFAULT_1, TILE_FLOOR_OUTER_DEFAULT_2); 
-    std::uniform_int_distribution<uint8_t> inner_dist(TILE_FLOOR_INNER_DEFAULT_1, TILE_FLOOR_INNER_DEFAULT_2); 
+    std::uniform_int_distribution<uint8_t> middle_dist_dry(TILE_FLOOR_OUTER_DEFAULT_1_DRY, TILE_FLOOR_OUTER_DEFAULT_2_DRY); 
+    std::uniform_int_distribution<uint8_t> middle_dist_wet(TILE_FLOOR_OUTER_DEFAULT_1_WET, TILE_FLOOR_OUTER_DEFAULT_2_WET); 
+    std::uniform_int_distribution<uint8_t> inner_dist_dry(TILE_FLOOR_INNER_DEFAULT_1_DRY, TILE_FLOOR_INNER_DEFAULT_2_DRY); 
+    std::uniform_int_distribution<uint8_t> inner_dist_wet(TILE_FLOOR_INNER_DEFAULT_1_WET, TILE_FLOOR_INNER_DEFAULT_2_WET); 
     std::uniform_real_distribution<float> dist(0.0f,1.0f);
 
     // Positions (world units) where one biome ends and other begins
@@ -655,10 +675,18 @@ void _world::postProcessWorld() {
                     if (dist(rng) > transitionProgress) {
                         world_noise[LAYER_FLOOR][i] = boss_dist(rng);
                     } else {
-                        world_noise[LAYER_FLOOR][i] = inner_dist(rng);
+                        if (wet_noise[i]) {
+                            world_noise[LAYER_FLOOR][i] = inner_dist_wet(rng);
+                        } else {
+                            world_noise[LAYER_FLOOR][i] = inner_dist_dry(rng);
+                        }
                     }
                 } else {
-                    world_noise[LAYER_FLOOR][i] = inner_dist(rng);
+                    if (wet_noise[i]) {
+                        world_noise[LAYER_FLOOR][i] = inner_dist_wet(rng);
+                    } else {
+                        world_noise[LAYER_FLOOR][i] = inner_dist_dry(rng);
+                    };
                 }
                 break;
             case LEVEL_MIDDLE:
@@ -668,12 +696,20 @@ void _world::postProcessWorld() {
                     transitionProgress = glm::clamp(transitionProgress, 0.0f, 1.0f);
                     
                     if (dist(rng) > transitionProgress) {
-                        world_noise[LAYER_FLOOR][i] = inner_dist(rng); // Blend toward middle tiles
+                        world_noise[LAYER_FLOOR][i] = inner_dist_dry(rng); // Blend toward middle tiles
                     } else {
-                        world_noise[LAYER_FLOOR][i] = middle_dist(rng);
+                        if (wet_noise[i]) {
+                            world_noise[LAYER_FLOOR][i] = middle_dist_wet(rng);
+                        } else {
+                            world_noise[LAYER_FLOOR][i] = middle_dist_dry(rng);
+                        }
                     }
                 } else {
-                    world_noise[LAYER_FLOOR][i] = middle_dist(rng);
+                    if (wet_noise[i]) {
+                        world_noise[LAYER_FLOOR][i] = middle_dist_wet(rng);
+                    } else {
+                        world_noise[LAYER_FLOOR][i] = middle_dist_dry(rng);
+                    }
                 }
                 break;
             case LEVEL_OUTER:
@@ -683,7 +719,7 @@ void _world::postProcessWorld() {
                     transitionProgress = glm::clamp(transitionProgress, 0.0f, 1.0f);
                     
                     if (dist(rng) > transitionProgress) {
-                        world_noise[LAYER_FLOOR][i] = middle_dist(rng); // Blend toward middle tiles
+                        world_noise[LAYER_FLOOR][i] = middle_dist_dry(rng); // Blend toward middle tiles
                     } else {
                         if (wet_noise[i]) {
                             world_noise[LAYER_FLOOR][i] = outer_dist_wet(rng);
