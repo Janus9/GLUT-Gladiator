@@ -899,7 +899,7 @@ namespace pickups {
     }
 
     bool Engine::generatePickup(std::fstream &file, const pickup_config &config, float numChunks, pickups::type type, int &ID) {
-        GG_LOG_INFO(LOG_PICKUPS, "Generating pickups instance");
+        GG_LOG_INFO(LOG_PICKUPS, "Generating pickups instance '%i'", static_cast<int>(type));
         auto start = std::chrono::steady_clock::now();
 
         // -- VARIABLES -- //

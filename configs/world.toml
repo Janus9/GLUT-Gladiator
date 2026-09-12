@@ -63,35 +63,35 @@ out_of_bounds_is_alive = false
 
 
 [world.health_pickups]
-pickups_per_chunk = 0.20
+pickups_per_chunk = 0.10
 far_bound = 1.0
 near_bound = 0.1
 min_chance = 1.0
 
 
 [world.max_health_pickups]
-pickups_per_chunk = 0.04
+pickups_per_chunk = 0.02
 far_bound = 0.4
 near_bound = 0.1
 min_chance = 0.7
 
 
 [world.ammo_pickups]
-pickups_per_chunk = 0.25
+pickups_per_chunk = 0.15
 far_bound = 1.0
 near_bound = 0.1
 min_chance = 0.8
 
 
 [world.speed_pickups]
-pickups_per_chunk = 0.05
+pickups_per_chunk = 0.01
 far_bound = 0.8
 near_bound = 0.1
 min_chance = 0.5
 
 
 [world.firerate_pickups]
-pickups_per_chunk = 0.02
+pickups_per_chunk = 0.005
 far_bound = 0.3
 near_bound = 0.1
 min_chance = 1.0
