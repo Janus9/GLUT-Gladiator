@@ -341,6 +341,9 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char *argv[])
 					if (dt > 100) {
 						// Pause Event //
 						if (inputState.keys[SDL_SCANCODE_ESCAPE]) {
+							if (menuManager->getLoadedPage() == menu::PAGE_LOOSE || menuManager->getLoadedPage() == menu::PAGE_WIN) {
+								break;	// Prevent menu from win/loose screen.
+							}
 							if (menuManager->getLoadedPage() == menu::PAGE_GAME) {
 								// In game - pause
 								GG_LOG_INFO(LOG_MAIN, "Pause game event");
