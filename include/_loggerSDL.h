@@ -15,13 +15,13 @@
  * Release: Some logging enabled, either console or file debugging. Same optimization as prod (production simulation)
  * Production: Minimal logging enabled and only to file. Maximum optimzation.
  * 
- *  | Priority |   Debug |      Release | Production |
- *  | -------- | ------- | ------------ | ---------- |
- *  | Debug    | Console |           No |         No |
- *  | Info     | Console |         File |         No |
- *  | Warn     | Console |         File |       File |
- *  | Error    | Console |         File |       File |
- *  | Critical | Console |         File |       File |
+ *  | Priority |   Debug        |      Release | Production |
+ *  | -------- | ---------------| ------------ | ---------- |
+ *  | Debug    | Console & File |           No |         No |
+ *  | Info     | Console & File |         File |         No |
+ *  | Warn     | Console & File |         File |       File |
+ *  | Error    | Console & File |         File |       File |
+ *  | Critical | Console & File |         File |       File |
  *
  */
 
@@ -31,7 +31,9 @@
 
 // Protect against multiple build configurations //
 #if (defined(GAME_DEBUG) + defined(GAME_RELEASE) + defined(GAME_PRODUCTION)) > 1
+
     #error Multiple game build configurations defined
+    
 #endif
 
 // Pre-compiler ignore debugging operations per build configuration //

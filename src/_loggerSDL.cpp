@@ -3,9 +3,7 @@
 #include <fstream>
 #include <iostream>
 
-#if defined(GAME_LOG_FILE)
-    static std::ofstream logFile;
-#endif
+static std::ofstream logFile;
 
 /* -- COLOR DEFINITIONS -- */
 #define LOG_RESET "\033[0m"
@@ -137,20 +135,20 @@ static const char* getCategoryName(int category) {
 static void SDLCALL gameLogOutput([[maybe_unused]] void* userdata, int category, SDL_LogPriority priority, const char* message) {
     const char* categoryName = getCategoryName(category);
 
-    #if defined(GAME_LOG_FILE) 
-        logFile << getPriorityName(false, priority) << " [" << categoryName << "] " << message << "\n";
-    #else
+    #ifndef defined(GAME_LOG_FILE) 
+
         std::cout << getPriorityName(true, priority) << " [" << categoryName << "] " << message << LOG_RESET << "\n";
+
     #endif
+
+    logFile << getPriorityName(false, priority) << " [" << categoryName << "] " << message << "\n";
 }
 
 void initSDLLogger() {
     SDL_SetLogPriorities(SDL_LOG_PRIORITY_VERBOSE);
     SDL_SetLogOutputFunction(gameLogOutput, nullptr);
 
-    #if defined(GAME_LOG_FILE)
-        logFile.open("logs/game.log", std::ios::trunc | std::ios::out);
-    #endif
+    logFile.open("logs/game.log", std::ios::trunc | std::ios::out);
 
     GG_LOG_INFO(LOG_MAIN, "SDL logger initialized");
 }
