@@ -47,6 +47,13 @@ static const char* getPriorityName(bool prettyPrinting, SDL_LogPriority priority
                 return "[VERBOSE]";
             }
         }
+        case SDL_LOG_PRIORITY_TRACE: {
+            if (prettyPrinting) {
+                return LOG_WHITE_TXT "[TRACE]";
+            } else {
+                return "[TRACE]";
+            }
+        }
         case SDL_LOG_PRIORITY_DEBUG: {
             if (prettyPrinting) {
                 return LOG_GREEN_TXT "[DEBUG]";

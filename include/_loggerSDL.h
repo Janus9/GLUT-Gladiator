@@ -1,6 +1,7 @@
 /**
  * -- Log Priorities -- 
  * 
+ * Trace: Code walkthrough. Extremly noisy. Is required to have a TraceID and extra data to support code walkthroughs.
  * Debug: Devloper oriented details. Very noisy. 
  * Info: Normal major lifecycle events. Meaningful milestones.
  * Warning: Something unexpected happened, but recovery is possible without user noticing.
@@ -17,6 +18,7 @@
  * 
  *  | Priority |   Debug        |      Release | Production |
  *  | -------- | ---------------| ------------ | ---------- |
+ *  | Trace    |           File |           No |         No |
  *  | Debug    | Console & File |           No |         No |
  *  | Info     | Console & File |         File |         No |
  *  | Warn     | Console & File |         File |       File |
@@ -33,7 +35,7 @@
 #if (defined(GAME_DEBUG) + defined(GAME_RELEASE) + defined(GAME_PRODUCTION)) > 1
 
     #error Multiple game build configurations defined
-    
+
 #endif
 
 // Pre-compiler ignore debugging operations per build configuration //
