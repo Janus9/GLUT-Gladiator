@@ -7,8 +7,16 @@
         E.0["GG_LOG_ERROR(category, message)"]
         C.0["GG_LOG_CRITICAL(category, message)"]
 
-        T.0 --> T.1["SDL_LogTrace(category, message)"]
-        D.0 --> D.1["SDL_LogDebug(category, message)"]
+        T.0 --> T.0.C{"Is game in debug mode?"}
+        T.0.C --> |Yes| T.0.C.T["Expands to (void)0"]
+        T.0.C --> |No| T.1
+
+        D.0 --> D.0.C{"Is game in debug mode?"}
+        D.0.C --> |Yes| D.0.C.T["Expands to (void)0"]
+        D.0.C --> |No| D.1
+
+        T.1["SDL_LogTrace(category, message)"]
+        D.1["SDL_LogDebug(category, message)"]
         I.0 --> I.1["SDL_LogInfo(category, message)"]
         W.0 --> W.1["SDL_LogWarn(category, message)"]
         E.0 --> E.1["SDL_LogError(category, message)"]
