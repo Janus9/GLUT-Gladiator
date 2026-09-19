@@ -40,11 +40,9 @@ uint64_t inputPreviousTime;
 InputState inputState;
 
 // CLASS INSTANCE DECLARATIONS //
-std::unique_ptr<_scene> gameScene; 												// Singleton Scene
-// std::unique_ptr<_timerPlusPlus> timer = std::make_unique<_timerPlusPlus>();  // Wont likely be used
-std::unique_ptr<menu::Manager> menuManager;										// Singleton Menu Manager
-// std::unique_ptr<_sounds> sharedSounds = std::make_unique<_sounds>();			// DEPRICATED -- Delete later
-std::unique_ptr<sound::Engine> soundEngine = std::make_unique<sound::Engine>();
+std::unique_ptr<_scene> gameScene;				// Scene Object
+std::unique_ptr<menu::Manager> menuManager;		// Menu Manager Object
+std::unique_ptr<sound::Engine> soundEngine;		// Sound Engine Object
 
 // SCREEN RESIZE HANDLER //
 void handleWindowResize(SDL_Window* window) {
@@ -231,16 +229,16 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char *argv[])
 	
 	// Initialization //
 	if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO)) {
-		const std::string errorMessage = std::string("ERROR: SDL_Init failed") + SDL_GetError(); 
-		GG_LOG_ERROR(LOG_MAIN, errorMessage.c_str());
+		const std::string errorMessage = std::string("SDL_Init failed") + SDL_GetError(); 
+		GG_LOG_CRITICAL(LOG_MAIN, errorMessage.c_str());
 		return EXIT_FAILURE;
 	}
 
 	// Window Creation //
 	SDL_Window* window = SDL_CreateWindow("GLUT Gladiator", windowSpawnWidth, windowSpawnHeight, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
 	if (!window) {
-		const std::string errorMessage = std::string("ERROR: Window failed") + SDL_GetError(); 
-		GG_LOG_ERROR(LOG_MAIN, errorMessage.c_str());
+		const std::string errorMessage = std::string("Window failed") + SDL_GetError(); 
+		GG_LOG_CRITICAL(LOG_MAIN, errorMessage.c_str());
 		SDL_Quit();
 		return EXIT_FAILURE;
 	}
@@ -248,8 +246,8 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char *argv[])
 	// Context Setting //
 	SDL_GLContext glContext = SDL_GL_CreateContext(window);
 	if (!glContext) {
-		const std::string errorMessage = std::string("ERROR: GL Context failed") + SDL_GetError(); 
-		GG_LOG_ERROR(LOG_MAIN, errorMessage.c_str());
+		const std::string errorMessage = std::string("GL Context failed") + SDL_GetError(); 
+		GG_LOG_CRITICAL(LOG_MAIN, errorMessage.c_str());
 		SDL_Quit();
 		return EXIT_FAILURE;
 	}
@@ -273,14 +271,20 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char *argv[])
 		return EXIT_FAILURE;
 	}
 
+	// Sound Engine //
+	soundEngine = std::make_unique<sound::Engine>();
+	if (!soundEngine->init()) {
+		GG_LOG_CRITICAL(LOG_MAIN, "Unable to initialize the sound manager");
+		SDL_Quit();
+		return EXIT_FAILURE;
+	}
+
+	// Game Scene //
 	SceneContext context {
 		.sounds = *soundEngine.get()
 	};
 	gameScene = std::make_unique<_scene>(context);
 	gameScene->initGL();
-
-	// -- Sound Registration -- //
-	soundEngine->init();
 
 	handleWindowResize(window);	// Force resize event to sit window dimension parameters + OpenGL window params		
 	SDL_SetWindowFullscreen(window, fullscreen); // Set fullscreen based on settings
