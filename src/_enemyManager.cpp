@@ -77,7 +77,7 @@ void _enemy::initEnemy(const enemy_config &config, const _textureManager* textur
                 base_sprite->setIdleFrame(0,0);
                 base_sprite->stopAnimation();
             }
-
+ 
             setupSprite("TURRET");
             _sprite* turret_sprite = getSprite("TURRET");
             if (turret_sprite) {

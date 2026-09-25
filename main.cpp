@@ -4,6 +4,7 @@
 
 #include <_common.h>         // For common headers
 #include <_scene.h>          // My scene context
+#include <TextureManager.h>
 #include <_timerPlusPlus.h>   // For the timer class
 #include <Menu.h>
 #include <_sounds.h>         // Shared audio engine (owned here, not by _scene)
@@ -43,6 +44,7 @@ InputState inputState;
 std::unique_ptr<_scene> gameScene;				// Scene Object
 std::unique_ptr<menu::Manager> menuManager;		// Menu Manager Object
 std::unique_ptr<sound::Engine> soundEngine;		// Sound Engine Object
+std::unique_ptr<TextureManager> textureManager; // Texture Manager Object
 
 // SCREEN RESIZE HANDLER //
 void handleWindowResize(SDL_Window* window) {
@@ -267,6 +269,14 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char *argv[])
 	if (glewError != GLEW_OK) {
 		SDL_GL_DestroyContext(glContext);
         SDL_DestroyWindow(window);
+		SDL_Quit();
+		return EXIT_FAILURE;
+	}
+
+	// Texture Manager //
+	textureManager == std::make_unique<TextureManager>();
+	if (!textureManager->getInitSuccessState()) {
+		GG_LOG_CRITICAL(LOG_MAIN, "Unable to initialize the texture manager");
 		SDL_Quit();
 		return EXIT_FAILURE;
 	}
