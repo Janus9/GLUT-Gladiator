@@ -22,6 +22,8 @@ class TextureManager {
          * 
          * This can be called at runtime to reload new textures. This may stall the program.
          * 
+         * @important Other managers will need to also be reloaded otherwise they will have incorrect texture IDs.
+         * 
          * @return True if reload was successfull, False if texture file could not be parsed (critical). 
          */
         bool reload();
