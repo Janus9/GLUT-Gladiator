@@ -1485,6 +1485,12 @@ void _scene::keyboardHandler(const InputState &inputState)
     }
     if (inputState.keys[SDL_SCANCODE_F4]) {
         #if defined(GAME_DEBUG)
+            if (!textureManager->reload()) {
+                GG_LOG_ERROR(
+                    LOG_SCENE,
+                    "Unable to reload the texture manager"
+                );
+            }
         #endif
     }
     if (inputState.keys[SDL_SCANCODE_F5]) {

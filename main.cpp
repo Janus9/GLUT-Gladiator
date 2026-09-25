@@ -46,6 +46,16 @@ std::unique_ptr<menu::Manager> menuManager;		// Menu Manager Object
 std::unique_ptr<sound::Engine> soundEngine;		// Sound Engine Object
 std::unique_ptr<TextureManager> textureManager; // Texture Manager Object
 
+// SHUTDOWN HANDLER //
+void shutdown() {
+	gameScene.reset();
+	menuManager.reset();
+	soundEngine.reset();
+	textureManager.reset();
+
+	SDL_Quit();
+}
+
 // SCREEN RESIZE HANDLER //
 void handleWindowResize(SDL_Window* window) {
 	int newWindowW = 0;
@@ -93,6 +103,7 @@ void handleMouseButton(const SDL_Event &event, bool buttonDown) {
 	}
 }
 
+// DRAW HANDLER //
 void handleDraw(SDL_Window* window) {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -108,6 +119,7 @@ void handleDraw(SDL_Window* window) {
 	SDL_GL_SwapWindow(window);			// Double buffering - Swap buffer
 }
 
+// MENU EVENT HANDLER //
 void menuEventHandler(const menu::Event &event) {
 	GG_LOG_INFO(LOG_MAIN, "Event callback called for event: %s", event.ID.c_str());
 
@@ -172,6 +184,7 @@ void menuEventHandler(const menu::Event &event) {
 	}
 }
 
+// UPDATE HANDLER //
 void handleUpdate(double dt) {
 	// In Game Update //
 	if (menuManager->getLoadedPage() == menu::PAGE_GAME) {
@@ -242,7 +255,7 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char *argv[])
 	if (!window) {
 		const std::string errorMessage = std::string("Window failed") + SDL_GetError(); 
 		GG_LOG_CRITICAL(LOG_MAIN, errorMessage.c_str());
-		SDL_Quit();
+		shutdown();
 		return EXIT_FAILURE;
 	}
 
@@ -251,7 +264,7 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char *argv[])
 	if (!glContext) {
 		const std::string errorMessage = std::string("GL Context failed") + SDL_GetError(); 
 		GG_LOG_CRITICAL(LOG_MAIN, errorMessage.c_str());
-		SDL_Quit();
+		shutdown();
 		return EXIT_FAILURE;
 	}
 
@@ -270,7 +283,7 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char *argv[])
 	if (glewError != GLEW_OK) {
 		SDL_GL_DestroyContext(glContext);
         SDL_DestroyWindow(window);
-		SDL_Quit();
+		shutdown();
 		return EXIT_FAILURE;
 	}
 
@@ -278,7 +291,7 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char *argv[])
 	textureManager = std::make_unique<TextureManager>();
 	if (!textureManager->reload()) {
 		GG_LOG_CRITICAL(LOG_MAIN, "Unable to initialize the texture manager");
-		SDL_Quit();
+		shutdown();
 		return EXIT_FAILURE;
 	}
 
@@ -286,7 +299,7 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char *argv[])
 	soundEngine = std::make_unique<sound::Engine>();
 	if (!soundEngine->init()) {
 		GG_LOG_CRITICAL(LOG_MAIN, "Unable to initialize the sound manager");
-		SDL_Quit();
+		shutdown();
 		return EXIT_FAILURE;
 	}
 
@@ -418,8 +431,7 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char *argv[])
 		"Exiting Game"
 	);
 
-	soundEngine.reset();
-	SDL_Quit();
+	shutdown();
 
 	return EXIT_SUCCESS;
 }

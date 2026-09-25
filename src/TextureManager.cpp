@@ -27,6 +27,8 @@ TextureManager::~TextureManager() {
 }
 
 bool TextureManager::reload() {
+    auto start = std::chrono::steady_clock::now();
+
     GG_LOG_INFO(
         LOG_TEXTURE, 
         "Reloading the texture manager"
@@ -106,6 +108,15 @@ bool TextureManager::reload() {
     GG_LOG_INFO(
         LOG_TEXTURE, 
         "Successfully finished reloading the texture manager"
+    );
+
+    auto stop = std::chrono::steady_clock::now();
+    float dt = std::chrono::duration<float, std::milli>(stop-start).count();
+
+    GG_LOG_DEBUG(
+        LOG_TEXTURE,
+        "Reload operation took [%fms]",
+        dt
     );
 
     return true;
