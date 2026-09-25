@@ -6,7 +6,7 @@
 #include <_timerPlusPlus.h>
 #include <_shader.h>
 #include <_lightManager.h>
-#include <_textureManager.h>
+#include <TextureManager.h>
 
 // Enum for a sprite's direction
 enum class sprite_direction {
@@ -91,7 +91,7 @@ class _sprite {
          * Lowest layer is 0
          * @param _FPS Animation rate (frames per second, default = 24)
          */
-        void initSprite(const texture_entry &texture, int _framesX, int _framesY, int _layer,  int _FPS = 24);
+        void initSprite(const TextureEntry &texture, int _framesX, int _framesY, int _layer,  int _FPS = 24);
         
         // Creates or overwrites a sprite action
         void createSpriteAction(const sprite_action &action);
@@ -198,7 +198,7 @@ class _sprite {
         void buildSpriteVBO(float* vboData, int &vIndex) const;
 
         /** Sets the sprite's current texture */
-        void setTexture(const texture_entry &texture);
+        void setTexture(const TextureEntry &texture);
 
         /** Retuns the sprite's current texture ID */
         GLuint getTextureID() const;

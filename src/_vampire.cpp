@@ -27,7 +27,7 @@ namespace {
 _vampire::_vampire() {}
 _vampire::~_vampire() {}
 
-void _vampire::initVampire(const _textureManager* sceneTextureManager, vampire_variant variant) {
+void _vampire::initVampire(const TextureManager* sceneTextureManager, vampire_variant variant) {
     if (!sceneTextureManager) {
         GG_LOG_ERROR(
             LOG_VAMPIRE,
@@ -80,7 +80,7 @@ void _vampire::initVampire(const _textureManager* sceneTextureManager, vampire_v
     // -- IDLE -- //
     setupSprite("IDLE");
     if (_sprite* s = getSprite("IDLE")) {
-        const texture_entry &tex = sceneTextureManager->getTextureEntry(spritePrefix + "Idle.png");
+        const TextureEntry &tex = sceneTextureManager->getTextureEntry(spritePrefix + "Idle.png");
         s->initSprite(tex, IDLE_FRAMES, 4, 0, VAMPIRE_IDLE_FPS);
         s->createSpriteAction(sprite_action("IDLE_DOWN",  ROW_DOWN,  0, IDLE_FRAMES - 1));
         s->createSpriteAction(sprite_action("IDLE_UP",    ROW_UP,    0, IDLE_FRAMES - 1));
@@ -93,7 +93,7 @@ void _vampire::initVampire(const _textureManager* sceneTextureManager, vampire_v
     // -- WALK -- //
     setupSprite("WALK");
     if (_sprite* s = getSprite("WALK")) {
-        const texture_entry &tex = sceneTextureManager->getTextureEntry(spritePrefix + "Walk.png");
+        const TextureEntry &tex = sceneTextureManager->getTextureEntry(spritePrefix + "Walk.png");
         s->initSprite(tex, WALK_FRAMES, 4, 0, VAMPIRE_WALK_FPS);
         s->createSpriteAction(sprite_action("WALK_DOWN",  ROW_DOWN,  0, WALK_FRAMES - 1));
         s->createSpriteAction(sprite_action("WALK_UP",    ROW_UP,    0, WALK_FRAMES - 1));
@@ -106,7 +106,7 @@ void _vampire::initVampire(const _textureManager* sceneTextureManager, vampire_v
     // -- ATTACK -- //
     setupSprite("ATTACK");
     if (_sprite* s = getSprite("ATTACK")) {
-        const texture_entry &tex = sceneTextureManager->getTextureEntry(spritePrefix + "Attack.png");
+        const TextureEntry &tex = sceneTextureManager->getTextureEntry(spritePrefix + "Attack.png");
         s->initSprite(tex, ATTACK_FRAMES, 4, 0, VAMPIRE_ATTACK_FPS);
         s->createSpriteAction(sprite_action("ATTACK_DOWN",  ROW_DOWN,  0, ATTACK_FRAMES - 1));
         s->createSpriteAction(sprite_action("ATTACK_UP",    ROW_UP,    0, ATTACK_FRAMES - 1));
@@ -119,7 +119,7 @@ void _vampire::initVampire(const _textureManager* sceneTextureManager, vampire_v
     // -- HURT -- //
     setupSprite("HURT");
     if (_sprite* s = getSprite("HURT")) {
-        const texture_entry &tex = sceneTextureManager->getTextureEntry(spritePrefix + "Hurt.png");
+        const TextureEntry &tex = sceneTextureManager->getTextureEntry(spritePrefix + "Hurt.png");
         s->initSprite(tex, HURT_FRAMES, 4, 0, VAMPIRE_HURT_FPS);
         s->createSpriteAction(sprite_action("HURT_DOWN",  ROW_DOWN,  0, HURT_FRAMES - 1));
         s->createSpriteAction(sprite_action("HURT_UP",    ROW_UP,    0, HURT_FRAMES - 1));
@@ -132,7 +132,7 @@ void _vampire::initVampire(const _textureManager* sceneTextureManager, vampire_v
     // -- DEATH -- //
     setupSprite("DEATH");
     if (_sprite* s = getSprite("DEATH")) {
-        const texture_entry &tex = sceneTextureManager->getTextureEntry(spritePrefix + "Death.png");
+        const TextureEntry &tex = sceneTextureManager->getTextureEntry(spritePrefix + "Death.png");
         s->initSprite(tex, DEATH_FRAMES, 4, 0, VAMPIRE_DEATH_FPS);
         s->createSpriteAction(sprite_action("DEATH_DOWN",  ROW_DOWN,  0, DEATH_FRAMES - 1));
         s->createSpriteAction(sprite_action("DEATH_UP",    ROW_UP,    0, DEATH_FRAMES - 1));

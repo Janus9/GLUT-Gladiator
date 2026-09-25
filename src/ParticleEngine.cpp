@@ -440,15 +440,15 @@ namespace particles {
                 pBatch.c_vWidth = 1.0f / static_cast<float>(config.sheetRows);
             }
 
-            const texture_entry &texture = textureManager->getTextureEntry(config.texturePath);
-            if (texture.ID == 0) {
+            const TextureEntry &texture = textureManager->getTextureEntry(config.texturePath);
+            if (texture.id == 0) {
                 GG_LOG_ERROR(LOG_PARTICLE_ENGINE, "ERROR: Unable to load image: %s\n - Removing entry", config.texturePath.c_str());
                 // Remove entries from bad insertion
                 particleList.erase(particleList.begin() + layerIndex);
                 particleTable.erase(config.texturePath);
                 return;
             }
-            pBatch.textureID = texture.ID;
+            pBatch.textureID = texture.id;
         }
 
         const int particlesInMemory = pBatch.particles.size();  // Count of particles in the current memory layer

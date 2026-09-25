@@ -158,7 +158,8 @@ void menuEventHandler(const menu::Event &event) {
 	if (event.ID == "pause_menu_button") {
 		GG_LOG_INFO(LOG_MAIN, "Unload world event");
 		SceneContext context {
-			.sounds = *soundEngine.get()
+			.sounds = *soundEngine.get(),
+			.textures = *textureManager.get()
 		};
 		gameScene = std::make_unique<_scene>(context);
 		gameScene->initGL();
@@ -274,8 +275,8 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char *argv[])
 	}
 
 	// Texture Manager //
-	textureManager == std::make_unique<TextureManager>();
-	if (!textureManager->getInitSuccessState()) {
+	textureManager = std::make_unique<TextureManager>();
+	if (!textureManager->reload()) {
 		GG_LOG_CRITICAL(LOG_MAIN, "Unable to initialize the texture manager");
 		SDL_Quit();
 		return EXIT_FAILURE;
@@ -291,7 +292,8 @@ int main([[maybe_unused]] int argc,[[maybe_unused]] char *argv[])
 
 	// Game Scene //
 	SceneContext context {
-		.sounds = *soundEngine.get()
+		.sounds = *soundEngine.get(),
+		.textures = *textureManager.get()
 	};
 	gameScene = std::make_unique<_scene>(context);
 	gameScene->initGL();

@@ -8,7 +8,7 @@
 #include <SoundEngine.h>
 #include <_shader.h>
 #include <_lightManager.h>
-#include <_textureManager.h>
+#include <TextureManager.h>
 #include <PickupEngine.h>
 #include <ParticleEngine.h>
 
@@ -71,7 +71,7 @@ class _enemy : public _unit {
         virtual ~_enemy();
 
         // Initialization function for animations/sprites/textures etc
-        void initEnemy(const enemy_config &config, const _textureManager* textureManager);
+        void initEnemy(const enemy_config &config, const TextureManager* textureManager);
 
         // Hook fired by _bulletManager after impulseDamage. Subclasses override
         // to react (e.g. _orc plays HURT animation). Default is no-op.
@@ -108,7 +108,7 @@ struct enemyManagerContext {
     _bulletManager* bullets; 
     sound::Engine* sounds; 
     _lightManager* lights; 
-    _textureManager* textures; 
+    TextureManager* textures; 
     pickups::Engine* pickups;
     particles::Engine* particles;
 
@@ -211,7 +211,7 @@ class _enemyManager {
         _player* player = nullptr;                       // Pointer to player instance instantiated in scene (non-owning)
         _world* world = nullptr;                         // Pointer to world instance instantiated in scene (non-owning)
         _bulletManager* bulletManager = nullptr;         // Pointer to bulletManager instance instantiated in scene (non-owning)
-        _textureManager* sceneTextureManager = nullptr;  // Pointer to the texture manager instance instantiated in scene (non-owning)
+        TextureManager* sceneTextureManager = nullptr;  // Pointer to the texture manager instance instantiated in scene (non-owning)
         pickups::Engine* scenePickupManager = nullptr;   // Pointer to the pickup manager instance instantiated in scene (non-owning)
         particles::Engine* ParticleEngine = nullptr;     // Pointer to the particle manager instance instantiated in scene (non-owning)
 

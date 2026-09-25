@@ -43,7 +43,7 @@ void _sprite::initSprite(const std::string &fileName, int _framesX, int _framesY
     setFPS(_FPS);
 }
 
-void _sprite::initSprite(const texture_entry &texture, int _framesX, int _framesY, int _layer, int _FPS) {
+void _sprite::initSprite(const TextureEntry &texture, int _framesX, int _framesY, int _layer, int _FPS) {
     framesX = _framesX;
     framesY = _framesY;
 
@@ -421,8 +421,8 @@ GLuint _sprite::getTextureID() const {
     return textureID;
 }
 
-void _sprite::setTexture(const texture_entry &texture) {
-    textureID = texture.ID;
+void _sprite::setTexture(const TextureEntry &texture) {
+    textureID = texture.id;
 
     if (framesX == 0 || framesY == 0) {
         std::cerr << "ERROR: Sprite frames X/Y cannot be 0\n";

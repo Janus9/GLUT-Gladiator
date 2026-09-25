@@ -9,17 +9,7 @@
 // -- PUBLIC -- //
 
 TextureManager::TextureManager() {
-    GG_LOG_INFO(
-        LOG_TEXTURE, 
-        "Starting initialization of the texture manager"
-    );
-
-    initSuccess = reload();
     
-    GG_LOG_INFO(
-        LOG_TEXTURE, 
-        "Successfully finished initialization of the texture manager"
-    );
 }
 
 TextureManager::~TextureManager() {
@@ -28,18 +18,7 @@ TextureManager::~TextureManager() {
         "Cleaning up the texture manager"
     );
 
-    // Delete textures from GPU VRAM
-    for (auto& it : textureMap) {
-        if (it.second.id != 0) {
-            glDeleteTextures(1, &it.second.id);
-        }
-    }
-
-    GG_LOG_DEBUG(
-        LOG_TEXTURE,
-        "Cleaned [%llu] textures from GPU VRAM",
-        textureMap.size()
-    );
+    cleanTextures();
    
     GG_LOG_INFO(
         LOG_TEXTURE,
@@ -52,6 +31,9 @@ bool TextureManager::reload() {
         LOG_TEXTURE, 
         "Reloading the texture manager"
     );
+
+    // Remove old entries & clean VRAM
+    cleanTextures();
 
     // Parse into TOML table
     toml::table config;
@@ -84,7 +66,7 @@ bool TextureManager::reload() {
         LOG_TEXTURE, 
         "Read [%llu] images from '%s'",
         textures->size(),
-        CONFIG_PATH
+        CONFIG_PATH.c_str()
     );
 
     for (size_t i = 0; i < textures->size(); i++) {
@@ -151,6 +133,23 @@ TextureEntry TextureManager::getTextureEntry(const std::string &fileName) const 
 }
 
 // -- PRIVATE -- //
+
+void TextureManager::cleanTextures() {
+    // Delete textures from GPU VRAM
+    for (auto& it : textureMap) {
+        if (it.second.id != 0) {
+            glDeleteTextures(1, &it.second.id);
+        }
+    }
+
+    GG_LOG_DEBUG(
+        LOG_TEXTURE,
+        "Cleaned [%llu] textures from GPU VRAM",
+        textureMap.size()
+    );
+
+    textureMap.clear();
+}
 
 bool TextureManager::addTexture(const std::string &fileName) {
     GG_LOG_DEBUG(

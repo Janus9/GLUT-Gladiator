@@ -5,7 +5,7 @@
 #include <_enemyManager.h>
 #include <_player.h>
 #include <SoundEngine.h>
-#include <_textureManager.h>
+#include <TextureManager.h>
 
 class _world;
 
@@ -41,7 +41,7 @@ class _vampire : public _enemy {
         _vampire();
         virtual ~_vampire();
 
-        void initVampire(const _textureManager* sceneTextureManager, vampire_variant variant = VAMPIRE_BOSS);
+        void initVampire(const TextureManager* sceneTextureManager, vampire_variant variant = VAMPIRE_BOSS);
         void updateVampire(double dt, _player* player, _world* world, sound::Engine* sounds);
         void drawVampire();
 

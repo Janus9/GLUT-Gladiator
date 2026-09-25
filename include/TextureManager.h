@@ -12,9 +12,7 @@ struct TextureEntry {
 class TextureManager {
     public:
         /**
-         * Calls `reload()` on the texture manager. 
-         * 
-         * Check `getInitSuccessState()` to see if initialization was successfull.
+         * Call `reload()` after instantiation.
          */
         TextureManager();
         virtual ~TextureManager();
@@ -38,17 +36,14 @@ class TextureManager {
          */
         TextureEntry getTextureEntry(const std::string &fileName) const;
 
-        /**
-         * @return Initialization success state. False means program should shutdown as no textures were able to be loaded.
-         */
-        bool getInitSuccessState() const { return initSuccess; }
     protected:
     private:
-        const std::string CONFIG_PATH = "configs/texture.toml";
+        const std::string CONFIG_PATH = "configs/textures.toml";
+
+        // Removes textures from GPU VRAM and clears the textureMap
+        void cleanTextures();
 
         bool addTexture(const std::string &fileName);
-
-        bool initSuccess;
 
         std::unordered_map<std::string, TextureEntry> textureMap;   // Map of all the unique IDs (string is the file directory)
 };

@@ -21,7 +21,7 @@
 #include <_enemyManager.h>
 #include <_fob.h>
 #include <_lightManager.h>
-#include <_textureManager.h>
+#include <TextureManager.h>
 #include <PickupEngine.h>
 #include <ParticleEngine.h>
 #include <SoundEngine.h>
@@ -38,6 +38,7 @@
 
 struct SceneContext {
     sound::Engine &sounds;
+    TextureManager &textures;
 };
 
 class _scene
@@ -138,8 +139,7 @@ class _scene
         sound::Engine* soundEngine = nullptr; 
 
         // Texture Manager //
-        void setupTextures();   // Sets up game texture assets via a TOML config file "configs/texture.toml"
-        std::unique_ptr<_textureManager> textureManager;
+        TextureManager* textureManager = nullptr;
 
         _lightSettings *myLight = new _lightSettings();     
         _model* myModel = new _model();

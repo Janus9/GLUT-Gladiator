@@ -19,7 +19,7 @@ _enemy::~_enemy() {
     // dtor
 }
 
-void _enemy::initEnemy(const enemy_config &config, const _textureManager* textureManager) {
+void _enemy::initEnemy(const enemy_config &config, const TextureManager* textureManager) {
 
     switch (config.type) {
         // -- DEFAULT TURRET -- //
@@ -40,7 +40,7 @@ void _enemy::initEnemy(const enemy_config &config, const _textureManager* textur
             setupSprite("MAIN");
             _sprite* main_sprite = getSprite("MAIN");
             if (main_sprite) {
-                const texture_entry &tex = textureManager->getTextureEntry("images/enemy/turret.png");
+                const TextureEntry &tex = textureManager->getTextureEntry("images/enemy/turret.png");
                 main_sprite->initSprite(tex,4,2,0,12);
                 main_sprite->createSpriteAction(sprite_action("SHOOT",0,0,3));
                 main_sprite->createSpriteAction(sprite_action("DEATH",1,0,3));
@@ -72,7 +72,7 @@ void _enemy::initEnemy(const enemy_config &config, const _textureManager* textur
             setupSprite("BASE");
             _sprite* base_sprite = getSprite("BASE");
             if (base_sprite) {
-                const texture_entry &tex = textureManager->getTextureEntry("images/enemy/gatling_gun/gatling_base.png");
+                const TextureEntry &tex = textureManager->getTextureEntry("images/enemy/gatling_gun/gatling_base.png");
                 base_sprite->initSprite(tex,1,1,0,12);
                 base_sprite->setIdleFrame(0,0);
                 base_sprite->stopAnimation();
@@ -81,7 +81,7 @@ void _enemy::initEnemy(const enemy_config &config, const _textureManager* textur
             setupSprite("TURRET");
             _sprite* turret_sprite = getSprite("TURRET");
             if (turret_sprite) {
-                const texture_entry &tex = textureManager->getTextureEntry("images/enemy/gatling_gun/gatling_turret.png");
+                const TextureEntry &tex = textureManager->getTextureEntry("images/enemy/gatling_gun/gatling_turret.png");
                 turret_sprite->initSprite(tex,9,4,1,12);
                 turret_sprite->createSpriteAction(sprite_action("REV",0,0,3));
                 turret_sprite->createSpriteAction(sprite_action("IDLE",1,0,5));

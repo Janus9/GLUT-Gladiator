@@ -2,7 +2,7 @@
 #define PARTICLE_ENGINE_H
 
 #include <_common.h>
-#include <_textureManager.h>
+#include <TextureManager.h>
 #include <_lightManager.h>
 #include <_shader.h>
 
@@ -78,7 +78,7 @@ namespace particles {
      * Setup context containing required dependencies
      */
     struct Context {
-        _textureManager* textureManager = nullptr;  
+        TextureManager* textureManager = nullptr;  
         _lightManager* lightManager = nullptr;       
     };
 
@@ -173,7 +173,7 @@ namespace particles {
             };
 
             // Injections //
-            _textureManager* textureManager = nullptr;  // Pointer to scene texture manager (non-owning)
+            TextureManager* textureManager = nullptr;  // Pointer to scene texture manager (non-owning)
             _lightManager* lightManager = nullptr;      // Pointer to scene light manager (non-owning)
     
             // RNG //

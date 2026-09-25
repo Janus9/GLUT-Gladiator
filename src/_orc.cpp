@@ -30,7 +30,7 @@ _orc::~_orc() {
     // dtor
 }
 
-void _orc::initOrc(const _textureManager* sceneTextureManager) {
+void _orc::initOrc(const TextureManager* sceneTextureManager) {
     if (!sceneTextureManager) {
         GG_LOG_ERROR(
             LOG_ORC,
@@ -51,7 +51,7 @@ void _orc::initOrc(const _textureManager* sceneTextureManager) {
     // -- WALK -- //
     setupSprite("WALK");
     if (_sprite* s = getSprite("WALK")) {
-        const texture_entry &tex = sceneTextureManager->getTextureEntry("images/enemy/orc/orc_walk.png");
+        const TextureEntry &tex = sceneTextureManager->getTextureEntry("images/enemy/orc/orc_walk.png");
         s->initSprite(tex, 6, 4, 0, ORC_WALK_FPS);
         s->createSpriteAction(sprite_action("WALK_DOWN",  ROW_DOWN,  0, 5));
         s->createSpriteAction(sprite_action("WALK_UP",    ROW_UP,    0, 5));
@@ -64,7 +64,7 @@ void _orc::initOrc(const _textureManager* sceneTextureManager) {
     // -- ATTACK -- //
     setupSprite("ATTACK");
     if (_sprite* s = getSprite("ATTACK")) {
-        const texture_entry &tex = sceneTextureManager->getTextureEntry("images/enemy/orc/orc_attack.png");
+        const TextureEntry &tex = sceneTextureManager->getTextureEntry("images/enemy/orc/orc_attack.png");
         s->initSprite(tex, 8, 4, 0, ORC_ATTACK_FPS);
         s->createSpriteAction(sprite_action("ATTACK_DOWN",  ROW_DOWN,  0, 7));
         s->createSpriteAction(sprite_action("ATTACK_UP",    ROW_UP,    0, 7));
@@ -77,7 +77,7 @@ void _orc::initOrc(const _textureManager* sceneTextureManager) {
     // -- HURT -- //
     setupSprite("HURT");
     if (_sprite* s = getSprite("HURT")) {
-        const texture_entry &tex = sceneTextureManager->getTextureEntry("images/enemy/orc/orc_hurt.png");
+        const TextureEntry &tex = sceneTextureManager->getTextureEntry("images/enemy/orc/orc_hurt.png");
         s->initSprite(tex, 6, 4, 0, ORC_HURT_FPS);
         s->createSpriteAction(sprite_action("HURT_DOWN",  ROW_DOWN,  0, 2));
         s->createSpriteAction(sprite_action("HURT_UP",    ROW_UP,    0, 2));
@@ -90,7 +90,7 @@ void _orc::initOrc(const _textureManager* sceneTextureManager) {
     // -- DEATH -- //
     setupSprite("DEATH");
     if (_sprite* s = getSprite("DEATH")) {
-        const texture_entry &tex = sceneTextureManager->getTextureEntry("images/enemy/orc/orc_death.png");
+        const TextureEntry &tex = sceneTextureManager->getTextureEntry("images/enemy/orc/orc_death.png");
         s->initSprite(tex, 8, 4, 0, ORC_DEATH_FPS);
         s->createSpriteAction(sprite_action("DEATH_DOWN",  ROW_DOWN,  0, 7));
         s->createSpriteAction(sprite_action("DEATH_UP",    ROW_UP,    0, 7));

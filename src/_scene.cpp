@@ -2,7 +2,8 @@
 
 _scene::_scene(const SceneContext &context) 
     : rng(std::random_device{}()),
-      soundEngine(&context.sounds)
+      soundEngine(&context.sounds),
+      textureManager(&context.textures)
 {
     if (!loadWorldConfig("configs/world.toml",world_configuration)) {
         std::cerr << "ERROR loading configuration file for [world.toml], please check logs for errors\n";
@@ -16,7 +17,6 @@ _scene::_scene(const SceneContext &context)
     myWorld = std::make_unique<_world>();
     pickupManager = std::make_unique<pickups::Engine>();
     lightManager = std::make_unique<_lightManager>();
-    textureManager = std::make_unique<_textureManager>();
 }
 
 _scene::~_scene()
@@ -84,11 +84,8 @@ void _scene::initScene(bool loadWorld) {
         "Running Scene Class Initialization"
     );
 
-    // TEXTURE LOADER //
-    if (!loadWorld) setupTextures();
-
     // Particle Manager //
-    ParticleEngine->init({textureManager.get(), lightManager.get()});
+    ParticleEngine->init({textureManager, lightManager.get()});
 
     inputTimer.reset();
     fpsTimer->reset();
@@ -192,7 +189,7 @@ void _scene::initScene(bool loadWorld) {
         .bullets = bulletManager.get(),
         .sounds = soundEngine,
         .lights = lightManager.get(),
-        .textures = textureManager.get(),
+        .textures = textureManager,
         .pickups = pickupManager.get(),
         .particles = ParticleEngine.get()
     };
@@ -721,15 +718,13 @@ bool _scene::loadSceneFromFile(const std::string &fileName) {
         GG_LOG_WARN(LOG_SCENE, "WARNING: Enemy count is 0");
     }
 
-    // Setup enemy manager before adding enemies
-    setupTextures();
     enemyManagerContext contex {
         .player = player.get(),
         .world = myWorld.get(),
         .bullets = bulletManager.get(),
         .sounds = soundEngine,
         .lights = lightManager.get(),
-        .textures = textureManager.get(),
+        .textures = textureManager,
         .pickups = pickupManager.get(),
         .particles = ParticleEngine.get()
     };
@@ -1608,42 +1603,6 @@ void _scene::applyCamera()
 
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-}
-
-void _scene::setupTextures() {
-    toml::table config;
-    try {
-        config = toml::parse_file("configs/textures.toml");
-    } catch (const toml::parse_error &err) {
-        GG_LOG_ERROR(LOG_SCENE, "ERROR: Failed to parse the textures: %s", err.what());
-        return;
-    }
-
-    toml::array* textures = config["textures"].as_array();
-    if (!textures) {
-       GG_LOG_ERROR(LOG_SCENE,"ERROR: Cannot parse textures as textures.toml is missing"); 
-       return;
-    }
-
-    GG_LOG_DEBUG(LOG_SCENE,"Read: %i images from textures.toml",static_cast<int>(textures->size()));
-
-    for (int i = 0; i < static_cast<int>(textures->size()); i++) {
-        toml::node& item = textures->at(i);
-
-        if (!item.is_string()) {
-            GG_LOG_ERROR(LOG_SCENE,"ERROR: textures[%i] must be a string path",i);
-            continue;
-        }
-
-        std::string path = item.value_or<std::string>("");
-
-        if (path.empty()) {
-            GG_LOG_ERROR(LOG_SCENE,"ERROR: textures[%i] is empty",i);
-            continue;
-        }
-
-        textureManager->addTexture(path);
-    }
 }
 
 // Add logging to an output file at some point to help user out
