@@ -108,8 +108,7 @@
                 //+getCurrentAnimation() string
                 //+isPlayingAnimation() bool
 
-                -animationMap : unordered_map[string, Config]
-                -filmRoll : array[AnimationFrame]
+                -registrationMap : unordered_map[string, Registration]
             }
     }
 
@@ -121,6 +120,7 @@
 
     Config --> AnimationManager
     Direction --> AnimationManager
+    AnimationRegistration --> AnimationManager
     AnimationManager ..> TextureManager : Requires
     SpriteEngine --> AnimationManager : Requires
 ```
