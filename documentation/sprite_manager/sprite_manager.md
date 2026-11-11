@@ -2,49 +2,69 @@
 
 ## Flow Chart
 
-``` mermaid
-    flowchart TD
-        SR["Sprite Registry"] --> SD["Shared Sprite Definition"]
-        EM["Enemy Manager"] --> E["Enemy"]
-        E --> U["Unit"]
-        U --> AI["Animation Instance"]
-        AI --> SD
-        EM --> R["Sprite Renderer"]
-        R --> SR
-```
+TODO
 
 ## Class Diagram
 
 ``` mermaid
     classDiagram
-        class TextureManager {
-            <<singleton instance>>
+
+        namespace texture {
+            class TextureEntry {
+                <<struct>>
+                id : GLuint
+                width : int
+                height : int
+            }
+
+            class TextureManager {
+                <<singleton instance>>
+                +reload : bool
+                -textureMap : unorderedMap[string, TextureEntry]
+            }
         }
 
+
         namespace sprite {
+            class SpriteSystem["System"] {
+                <<class>>
+                System()
+                ~System()
+
+                +manager : Manager
+                +engine : Engine
+            }
+
             class SpriteManager["Manager"] {
                 <<class>>
-                +createSprite() : uint64
-                +removeSprite(uint64 spriteID) : bool
+                +createSprite() uint64
+                +removeSprite(uint64 spriteID) bool
 
-                -spriteMap : unordered_set[uint64]
+                -engine : EnginePtr
+                -spriteMap : unordered_set[int]
                 -spriteList : vector[uint64]
             }
 
             class SpriteEngine["Engine"] {
                 <<class>>
-                +update() : void
-                +draw() : void
+                +update() void
+                +draw() void
+
+                -manager : ManagerPtr
+            }
+        }
+
+        namespace common {
+            class CommonUVMap["UVMap"] {
+                <<struct>>
+                u0 : float
+                u1 : float
+                v0 : float
+                v1 : float
             }
         }
 
         namespace animation {
-
-            class AnimationFrame["Frame"] {
-                <<struct>>
-                uint8 frameX
-                uint8 frameY
-            }
 
             class Direction {
                 <<enum class>>
@@ -61,9 +81,23 @@
 
             class AnimationData["Data"] {
                 <<struct>>
-                string animationID
-                int frameX
-                int frameY
+                config : Config
+                textureEntry : TextureEntry
+                frameData : vector[UVMap]
+            }
+
+            class AnimationTextureData["TextureData"] {
+                <<struct>>
+                textureEntry : TextureEntry
+                uvMap : UVMap             
+            }
+
+            class AnimationInstance["Instance"] {
+                <<struct>>
+                animationID : string
+                spriteID : uint64
+                frameIndex : int
+                frameChangeDelta : float
             }
 
             class Config {
@@ -87,10 +121,13 @@
                 bool pingPongAnimation
             }
 
-            class AnimationRegistration["Registration"] {
-                <<struct>>
-                Config config
-                std::array[Frame] reel  
+            class AnimationSystem["System"] {
+                <<class>>
+                System()
+                ~System()
+
+                +manager : AnimationManager
+                +engine : Engine
             }
 
             class AnimationManager["Manager"] {
@@ -104,23 +141,49 @@
                 +playLoopedAnimation(uint64 spriteID, string animationID) bool
                 +playLoopedAnimation(uint64 spriteID, string animationID, int animationFPS) bool
                 +stopLoopedAnimation(uint64 spriteID, string animationID) bool
-                //+setIdleFrame(int frame) void
-                //+getCurrentAnimation() string
-                //+isPlayingAnimation() bool
 
-                -registrationMap : unordered_map[string, Registration]
+                -registrationMap : unordered_map[string, Data]
+                -instanceList : vector[Instance]
+                -instanceMap : unordered_map[spriteID, int]
+                -engine : EnginePtr
+            }
+
+            class AnimationEngine["Engine"] {
+                <<class>>
+                Engine() 
+                ~Engine() 
+
+                +update(double dt) void
+                +getTextureData(spriteID) TextureDataPtr
+
+                -manager : ManagerPtr
             }
     }
 
-    note for AnimationManager "Todo"
-    note for AnimationData "Holds data of animation active frame etc"
-    note for AnimationFrame "IDEA: Subject to change"
 
-    note for later "For Later: Preference making things setup during initialization or pre-baked (files etc) to save update/draw performance for many animations"
+    AnimationManager --> TextureManager : Requires
+    AnimationManager --> AnimationEngine : Requires
+    AnimationEngine --> AnimationManager : Requires
+    
+    Config ..> Direction : Uses type
+    AnimationData "1" *.. "*" CommonUVMap : Owns
+    AnimationData ..> Config : Uses type
+    AnimationData ..> TextureEntry : Uses type
+    AnimationTextureData ..> CommonUVMap : Uses type
+    AnimationEngine ..> AnimationTextureData : Uses type
+    AnimationTextureData ..> TextureEntry : Uses type
 
-    Config --> AnimationManager
-    Direction --> AnimationManager
-    AnimationRegistration --> AnimationManager
-    AnimationManager ..> TextureManager : Requires
-    SpriteEngine --> AnimationManager : Requires
+    AnimationManager "1" *-- "*" AnimationData : Owns
+    AnimationManager "1" *-- "*" AnimationInstance : Owns
+
+    AnimationSystem "1" *-- "1" AnimationManager : Owns
+    AnimationSystem "1" *-- "1" AnimationEngine : Owns
+
+    SpriteSystem "1" *-- "1" SpriteManager : Owns
+    SpriteSystem "1" *-- "1" SpriteEngine : Owns
+
+    TextureManager "1" *-- "*" TextureEntry : Owns
+
+    note for SpriteManager "The vector owns the memory, the map hold indices for the vector"
+    note for AnimationManager "The vector owns the memory, the map hold indices for the vector"
 ```

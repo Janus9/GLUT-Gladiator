@@ -1,3 +1,10 @@
+/**
+ * TextureManager
+ * 
+ * notes for later/
+ *  - Change return type to pointer since class owns the memory
+ */
+
 #ifndef TEXTURE_MANAGER_H
 #define TEXTURE_MANAGER_H
 
